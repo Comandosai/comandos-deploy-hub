@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  comandos-db:
+    image: mariadb:10.6
+    container_name: comandos-db
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - comandos-db-data:/var/lib/mysql
+    networks:
+      - comandos-network
+
+  comandos-wp:
+    image: wordpress:6.6-php8.2-apache
+    container_name: comandos-wp
+    depends_on:
+      - comandos-db
+    environment:
+      WORDPRESS_DB_HOST: comandos-db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - comandos-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.comandos-wp.rule=Host(`{{WP_DOMAIN}}`)"
+      - "traefik.http.routers.comandos-wp.entrypoints=websecure"
+      - "traefik.http.routers.comandos-wp.tls=true"
+      - "traefik.http.services.comandos-wp.loadbalancer.server.port=80"
+
+  comandos-next:
+    image: gansa1os/comandos-frontend:latest
+    container_name: comandos-next
+    networks:
+      - comandos-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.comandos-next.rule=Host(`{{FRONT_DOMAIN}}`)"
+      - "traefik.http.routers.comandos-next.entrypoints=websecure"
+      - "traefik.http.routers.comandos-next.tls=true"
+      - "traefik.http.services.comandos-next.loadbalancer.server.port=3000"
+
+volumes:
+  comandos-db-data:
+
+networks:
+  comandos-network:
+    name: comandos-network
