@@ -1,26 +1,11 @@
 # Comandos Deploy Hub
 
-Публичный репозиторий для легких установочных шаблонов деплоя.
+Публичный репозиторий с установочными шаблонами для Comandos AI.  
+Здесь мы собираем и обновляем типовые шаблоны деплоя для разных сервисов.
 
-## Шаблоны
-- `wp-stack/` — Comandos Engine v2.0 (WordPress, Docker)
-- `wp-next-stack/` — Comandos Engine v2.0 (WordPress + Next.js, Docker)
-
-## Быстрый старт (git)
-```bash
-git clone https://github.com/Comandosai/comandos-deploy-hub.git
-cd comandos-deploy-hub/wp-stack   # или wp-next-stack
-chmod +x setup.sh
-./setup.sh
-```
-
-## Быстрый старт (без git)
-```bash
-curl -L https://github.com/Comandosai/comandos-deploy-hub/archive/refs/heads/main.tar.gz | tar -xz
-cd comandos-deploy-hub-main/wp-stack   # или wp-next-stack
-chmod +x setup.sh
-./setup.sh
-```
+## Что внутри
+- Папки шаблонов (каждый шаблон — отдельный каталог с описанием).
+- Унифицированные правила упаковки и структуры.
 
 ## Правила для шаблонов
 - Одна папка на сервис/шаблон.
