@@ -5,7 +5,6 @@
 ## Что внутри
 - `setup.sh` — установщик
 - `docker-compose.yml.j2` — шаблон с плейсхолдерами доменов
-- `frontend.Dockerfile` — сборка Next.js из репозитория
 - `comandos-wp.css` — стили для WordPress (таблицы/блоки)
 
 ## Быстрый старт
@@ -21,17 +20,6 @@ chmod +x setup.sh
 - Frontend Domain (пример: `next.mysite.com`)
 - SSL Email
 
-## Параметры фронтенда
-- По умолчанию сборка идет из `https://github.com/Comandosai/n8n_beget_latvia.git` (ветка `main`).
-- Если репозиторий приватный, можно передать токен:
-  ```bash
-  FRONTEND_REPO_TOKEN=ghp_xxx ./setup.sh
-  ```
-- Переопределение перед запуском:
-  ```bash
-  FRONTEND_REPO_URL=https://github.com/Comandosai/your-repo.git FRONTEND_REPO_REF=main ./setup.sh
-  ```
-
 ## Примечания
 - Установщик копирует шаблоны в текущую папку и генерирует `.env` и `docker-compose.yml`.
-- Next.js собирается локально из указанного репозитория с параметрами `NEXT_PUBLIC_WP_URL` и `WP_API_BASE`.
+- Next.js использует готовый образ `gansa1os/comandos-frontend:latest` и получает `WP_API_BASE` из окружения.

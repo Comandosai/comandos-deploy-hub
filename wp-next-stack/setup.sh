@@ -6,8 +6,6 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' 
 DEFAULT_CERT_RESOLVER="mytlschallenge"
-DEFAULT_FRONTEND_REPO_URL="https://github.com/Comandosai/n8n_beget_latvia.git"
-DEFAULT_FRONTEND_REPO_REF="main"
 
 # Определяем, где лежит сам скрипт
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,28 +33,14 @@ FRONT_DOMAIN=$(clean_url "$RAW_FRONT")
 
 read -p "SSL Email: " SSL_EMAIL
 
-# 3. Настройка фронтенда
-echo -e "\n${YELLOW}>>> Настройка фронтенда${NC}"
-FRONTEND_REPO_URL=${FRONTEND_REPO_URL:-$DEFAULT_FRONTEND_REPO_URL}
-FRONTEND_REPO_REF=${FRONTEND_REPO_REF:-$DEFAULT_FRONTEND_REPO_REF}
-if [[ "$FRONTEND_REPO_URL" == git@github.com:* ]]; then
-    FRONTEND_REPO_URL="https://github.com/${FRONTEND_REPO_URL#git@github.com:}"
-fi
-if [ -n "${FRONTEND_REPO_TOKEN:-}" ] && [[ "$FRONTEND_REPO_URL" == https://github.com/* ]]; then
-    FRONTEND_REPO_URL="https://${FRONTEND_REPO_TOKEN}@github.com/${FRONTEND_REPO_URL#https://github.com/}"
-fi
-echo -e "Frontend Repo: ${FRONTEND_REPO_URL}"
-echo -e "Frontend Branch: ${FRONTEND_REPO_REF}"
-
-# 4. Копирование ассетов из Мастер-папки в папку установки
+# 3. Копирование ассетов из Мастер-папки в папку установки
 echo -e "\n${YELLOW}>>> Копирование компонентов системы...${NC}"
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     cp "$SCRIPT_DIR/docker-compose.yml.j2" .
     cp "$SCRIPT_DIR/comandos-wp.css" .
-    cp "$SCRIPT_DIR/frontend.Dockerfile" .
 fi
 
-# 5. Генерация конфигов
+# 4. Генерация конфигов
 echo -e "${YELLOW}>>> Генерация конфигурации...${NC}"
 DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 
@@ -65,9 +49,8 @@ WP_DOMAIN=$WP_DOMAIN
 FRONT_DOMAIN=$FRONT_DOMAIN
 SSL_EMAIL=$SSL_EMAIL
 DB_PASSWORD=$DB_PASSWORD
-FRONTEND_REPO_URL=$FRONTEND_REPO_URL
-FRONTEND_REPO_REF=$FRONTEND_REPO_REF
 NEXT_PUBLIC_WP_URL=https://$WP_DOMAIN
+WP_API_BASE=https://$WP_DOMAIN/wp-json/wp/v2
 EOF_ENV
 
 # Подставляем данные в docker-compose
@@ -76,28 +59,24 @@ WP_DOMAIN_ESC=$(escape_sed "$WP_DOMAIN")
 FRONT_DOMAIN_ESC=$(escape_sed "$FRONT_DOMAIN")
 SSL_EMAIL_ESC=$(escape_sed "$SSL_EMAIL")
 DB_PASSWORD_ESC=$(escape_sed "$DB_PASSWORD")
-FRONTEND_REPO_URL_ESC=$(escape_sed "$FRONTEND_REPO_URL")
-FRONTEND_REPO_REF_ESC=$(escape_sed "$FRONTEND_REPO_REF")
 
 sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
     -e "s|{{FRONT_DOMAIN}}|$FRONT_DOMAIN_ESC|g" \
     -e "s|{{SSL_EMAIL}}|$SSL_EMAIL_ESC|g" \
     -e "s|{{DB_PASSWORD}}|$DB_PASSWORD_ESC|g" \
-    -e "s|{{FRONTEND_REPO_URL}}|$FRONTEND_REPO_URL_ESC|g" \
-    -e "s|{{FRONTEND_REPO_REF}}|$FRONTEND_REPO_REF_ESC|g" \
     docker-compose.yml.j2 > docker-compose.yml
 
-# 6. Подготовка сети
+# 5. Подготовка сети
 echo -e "\n${YELLOW}>>> Проверка сети comandos-network...${NC}"
 if ! docker network inspect comandos-network >/dev/null 2>&1; then
     docker network create comandos-network >/dev/null
 fi
 
-# 7. Запуск
+# 6. Запуск
 echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
-docker compose up -d --build
+docker compose up -d
 
-# 8. Настройка Traefik
+# 7. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
 TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
 if [ -z "$TRAEFIK_ID" ]; then
@@ -153,7 +132,7 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 9. Установка плагинов WordPress
+# 8. Установка плагинов WordPress
 echo -e "\n${YELLOW}>>> Установка плагинов WordPress...${NC}"
 if ! docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
     echo -e "${YELLOW}WordPress еще не установлен. Завершите установку в браузере и нажмите Enter.${NC}"

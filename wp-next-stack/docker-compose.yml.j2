@@ -37,22 +37,14 @@ services:
       - "traefik.http.services.comandos-wp.loadbalancer.server.port=80"
 
   comandos-next:
-    image: comandos-frontend:local
-    build:
-      context: .
-      dockerfile: frontend.Dockerfile
-      args:
-        FRONTEND_REPO_URL: "{{FRONTEND_REPO_URL}}"
-        FRONTEND_REPO_REF: "{{FRONTEND_REPO_REF}}"
-        NEXT_PUBLIC_WP_URL: "https://{{WP_DOMAIN}}"
-        WP_API_BASE: "https://{{WP_DOMAIN}}/wp-json/wp/v2"
+    image: gansa1os/comandos-frontend:latest
     container_name: comandos-next
     restart: unless-stopped
     networks:
       - comandos-network
     environment:
-      NEXT_PUBLIC_WP_URL: "https://{{WP_DOMAIN}}"
       WP_API_BASE: "https://{{WP_DOMAIN}}/wp-json/wp/v2"
+      NEXT_PUBLIC_WP_URL: "https://{{WP_DOMAIN}}"
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=comandos-network"
