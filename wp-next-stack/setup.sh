@@ -6,6 +6,8 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' 
 DEFAULT_CERT_RESOLVER="mytlschallenge"
+DEFAULT_FRONTEND_REPO_URL="git@github.com:Comandosai/n8n_beget_latvia.git"
+DEFAULT_FRONTEND_REPO_REF="main"
 
 # Определяем, где лежит сам скрипт
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,13 +37,10 @@ read -p "SSL Email: " SSL_EMAIL
 
 # 3. Настройка фронтенда
 echo -e "\n${YELLOW}>>> Настройка фронтенда${NC}"
-read -p "Frontend Repo (git url): " FRONTEND_REPO_URL
-if [ -z "$FRONTEND_REPO_URL" ]; then
-    echo -e "${RED}Нужен URL репозитория фронтенда.${NC}"
-    exit 1
-fi
-read -p "Frontend Branch (default: main): " FRONTEND_REPO_REF
-FRONTEND_REPO_REF=${FRONTEND_REPO_REF:-main}
+FRONTEND_REPO_URL=${FRONTEND_REPO_URL:-$DEFAULT_FRONTEND_REPO_URL}
+FRONTEND_REPO_REF=${FRONTEND_REPO_REF:-$DEFAULT_FRONTEND_REPO_REF}
+echo -e "Frontend Repo: ${FRONTEND_REPO_URL}"
+echo -e "Frontend Branch: ${FRONTEND_REPO_REF}"
 
 # 4. Копирование ассетов из Мастер-папки в папку установки
 echo -e "\n${YELLOW}>>> Копирование компонентов системы...${NC}"

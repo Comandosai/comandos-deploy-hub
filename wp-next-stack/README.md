@@ -20,8 +20,13 @@ chmod +x setup.sh
 - WP Domain (пример: `blog.mysite.com`)
 - Frontend Domain (пример: `next.mysite.com`)
 - SSL Email
-- Frontend Repo (git url)
-- Frontend Branch (default: `main`)
+
+## Параметры фронтенда
+- По умолчанию сборка идет из `git@github.com:Comandosai/n8n_beget_latvia.git` (ветка `main`).
+- Переопределение перед запуском:
+  ```bash
+  FRONTEND_REPO_URL=git@github.com:Comandosai/your-repo.git FRONTEND_REPO_REF=main ./setup.sh
+  ```
 
 ## Примечания
 - Установщик копирует шаблоны в текущую папку и генерирует `.env` и `docker-compose.yml`.
