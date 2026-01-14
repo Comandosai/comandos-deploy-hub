@@ -5,6 +5,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
+DEFAULT_CERT_RESOLVER="mytlschallenge"
 
 # Определяем, где лежит сам скрипт
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,13 +48,27 @@ DB_PASSWORD=$DB_PASSWORD
 EOF_ENV
 
 # Подставляем данные в docker-compose
-sed "s/{{WP_DOMAIN}}/$WP_DOMAIN/g; s/{{SSL_EMAIL}}/$SSL_EMAIL/g; s/{{DB_PASSWORD}}/$DB_PASSWORD/g" docker-compose.yml.j2 > docker-compose.yml
+escape_sed() { printf '%s' "$1" | sed -e 's/[|&]/\\&/g'; }
+WP_DOMAIN_ESC=$(escape_sed "$WP_DOMAIN")
+SSL_EMAIL_ESC=$(escape_sed "$SSL_EMAIL")
+DB_PASSWORD_ESC=$(escape_sed "$DB_PASSWORD")
 
-# 5. Запуск
+sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
+    -e "s|{{SSL_EMAIL}}|$SSL_EMAIL_ESC|g" \
+    -e "s|{{DB_PASSWORD}}|$DB_PASSWORD_ESC|g" \
+    docker-compose.yml.j2 > docker-compose.yml
+
+# 5. Подготовка сети
+echo -e "\n${YELLOW}>>> Проверка сети comandos-network...${NC}"
+if ! docker network inspect comandos-network >/dev/null 2>&1; then
+    docker network create comandos-network >/dev/null
+fi
+
+# 6. Запуск
 echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
 docker compose up -d
 
-# 6. Настройка Traefik
+# 7. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
 TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
 if [ -z "$TRAEFIK_ID" ]; then
@@ -64,19 +79,23 @@ else
     TRAEFIK_RESOLVER=$(docker inspect "$TRAEFIK_ID" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' \
         | tr -d '[],"' | tr ' ' '\n' | grep -oE -- '--certificatesresolvers\\.[^=. ]+' | head -n1 | sed 's/--certificatesresolvers\\.//')
 
-    if [ -n "$TRAEFIK_RESOLVER" ]; then
-        TLS_BLOCK="      tls:\n        certResolver: ${TRAEFIK_RESOLVER}"
-        echo -e "${GREEN}Найден certResolver Traefik: ${TRAEFIK_RESOLVER}${NC}"
+    if [ -z "$TRAEFIK_RESOLVER" ]; then
+        TRAEFIK_RESOLVER="$DEFAULT_CERT_RESOLVER"
+        echo -e "${YELLOW}certResolver не найден. Использую по умолчанию: ${TRAEFIK_RESOLVER}${NC}"
+        echo -e "${YELLOW}Если TLS не выдаётся, проверьте: открыты 80/443, DNS A/AAAA, Cloudflare proxy.${NC}"
     else
-        TLS_BLOCK="      tls: {}"
-        echo -e "${YELLOW}certResolver Traefik не найден. HTTPS может быть самоподписанным.${NC}"
+        echo -e "${GREEN}Найден certResolver Traefik: ${TRAEFIK_RESOLVER}${NC}"
     fi
+
+    TLS_BLOCK="      tls:\n        certResolver: ${TRAEFIK_RESOLVER}"
 
     DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
     if [ -z "$DYNAMIC_DIR" ]; then
         DYNAMIC_DIR="/root/traefik-dynamic"
     fi
     mkdir -p "$DYNAMIC_DIR"
+    echo -e "${GREEN}Traefik ID: ${TRAEFIK_ID}${NC}"
+    echo -e "${GREEN}Dynamic dir: ${DYNAMIC_DIR}${NC}"
 
     cat <<EOF_YAML > "$DYNAMIC_DIR/comandos.yml"
 http:
@@ -93,6 +112,20 @@ ${TLS_BLOCK}
         servers:
           - url: "http://comandos-wp:80"
 EOF_YAML
+fi
+
+# 8. Установка плагинов WordPress
+echo -e "\n${YELLOW}>>> Установка плагинов WordPress...${NC}"
+if ! docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
+    echo -e "${YELLOW}WordPress еще не установлен. Завершите установку в браузере и нажмите Enter.${NC}"
+    read -r
+fi
+
+if docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
+    docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wordpress-seo --activate --allow-root
+else
+    echo -e "${YELLOW}WordPress не установлен. Команда для ручного запуска:${NC}"
+    echo "docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wordpress-seo --activate --allow-root"
 fi
 
 echo -e "\n${GREEN}==============================================${NC}"
