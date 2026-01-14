@@ -86,10 +86,15 @@ fi
 
 # 7. Установка плагинов WordPress
 echo -e "\n${YELLOW}>>> Установка плагинов WordPress...${NC}"
+if ! docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
+    echo -e "${YELLOW}WordPress еще не установлен. Завершите установку в браузере и нажмите Enter.${NC}"
+    read -r
+fi
+
 if docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
     docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wordpress-seo --activate --allow-root
 else
-    echo -e "${YELLOW}WordPress еще не установлен. После установки выполните:${NC}"
+    echo -e "${YELLOW}WordPress не установлен. Команда для ручного запуска:${NC}"
     echo "docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wordpress-seo --activate --allow-root"
 fi
 
