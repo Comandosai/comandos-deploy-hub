@@ -29,14 +29,29 @@ WP_DOMAIN=$(clean_url "$RAW_WP")
 
 read -p "SSL Email: " SSL_EMAIL
 
-# 3. Копирование ассетов из папки шаблона в папку установки
+# 3. Подключение сети для Traefik
+echo -e "\n${YELLOW}>>> Проверка сети comandos-network...${NC}"
+if ! docker network inspect comandos-network >/dev/null 2>&1; then
+    docker network create comandos-network >/dev/null
+fi
+
+TRAEFIK_IDS=$(docker ps --format '{{.ID}} {{.Names}}' | grep -i traefik | awk '{print $1}')
+if [ -n "$TRAEFIK_IDS" ]; then
+    while read -r id; do
+        docker network connect comandos-network "$id" 2>/dev/null || true
+    done <<< "$TRAEFIK_IDS"
+else
+    echo -e "${YELLOW}Traefik контейнер не найден, пропускаю подключение сети.${NC}"
+fi
+
+# 4. Копирование ассетов из папки шаблона в папку установки
 echo -e "\n${YELLOW}>>> Копирование компонентов системы...${NC}"
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     cp "$SCRIPT_DIR/docker-compose.yml.j2" .
     cp "$SCRIPT_DIR/comandos-wp.css" .
 fi
 
-# 4. Генерация конфигов
+# 5. Генерация конфигов
 echo -e "${YELLOW}>>> Генерация конфигурации...${NC}"
 DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 
@@ -49,7 +64,7 @@ EOF_ENV
 # Подставляем данные в docker-compose
 sed "s/{{WP_DOMAIN}}/$WP_DOMAIN/g; s/{{SSL_EMAIL}}/$SSL_EMAIL/g; s/{{DB_PASSWORD}}/$DB_PASSWORD/g" docker-compose.yml.j2 > docker-compose.yml
 
-# 5. Запуск
+# 6. Запуск
 echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
 docker compose up -d
 

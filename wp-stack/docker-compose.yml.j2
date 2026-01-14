@@ -30,6 +30,7 @@ services:
       - comandos-network
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=comandos-network"
       - "traefik.http.routers.comandos-wp.rule=Host(`{{WP_DOMAIN}}`)"
       - "traefik.http.routers.comandos-wp.entrypoints=websecure"
       - "traefik.http.routers.comandos-wp.tls=true"
