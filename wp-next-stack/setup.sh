@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' 
 DEFAULT_CERT_RESOLVER="mytlschallenge"
-DEFAULT_FRONTEND_REPO_URL="git@github.com:Comandosai/n8n_beget_latvia.git"
+DEFAULT_FRONTEND_REPO_URL="https://github.com/Comandosai/n8n_beget_latvia.git"
 DEFAULT_FRONTEND_REPO_REF="main"
 
 # Определяем, где лежит сам скрипт
@@ -39,6 +39,12 @@ read -p "SSL Email: " SSL_EMAIL
 echo -e "\n${YELLOW}>>> Настройка фронтенда${NC}"
 FRONTEND_REPO_URL=${FRONTEND_REPO_URL:-$DEFAULT_FRONTEND_REPO_URL}
 FRONTEND_REPO_REF=${FRONTEND_REPO_REF:-$DEFAULT_FRONTEND_REPO_REF}
+if [[ "$FRONTEND_REPO_URL" == git@github.com:* ]]; then
+    FRONTEND_REPO_URL="https://github.com/${FRONTEND_REPO_URL#git@github.com:}"
+fi
+if [ -n "${FRONTEND_REPO_TOKEN:-}" ] && [[ "$FRONTEND_REPO_URL" == https://github.com/* ]]; then
+    FRONTEND_REPO_URL="https://${FRONTEND_REPO_TOKEN}@github.com/${FRONTEND_REPO_URL#https://github.com/}"
+fi
 echo -e "Frontend Repo: ${FRONTEND_REPO_URL}"
 echo -e "Frontend Branch: ${FRONTEND_REPO_REF}"
 

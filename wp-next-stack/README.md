@@ -22,10 +22,14 @@ chmod +x setup.sh
 - SSL Email
 
 ## Параметры фронтенда
-- По умолчанию сборка идет из `git@github.com:Comandosai/n8n_beget_latvia.git` (ветка `main`).
+- По умолчанию сборка идет из `https://github.com/Comandosai/n8n_beget_latvia.git` (ветка `main`).
+- Если репозиторий приватный, можно передать токен:
+  ```bash
+  FRONTEND_REPO_TOKEN=ghp_xxx ./setup.sh
+  ```
 - Переопределение перед запуском:
   ```bash
-  FRONTEND_REPO_URL=git@github.com:Comandosai/your-repo.git FRONTEND_REPO_REF=main ./setup.sh
+  FRONTEND_REPO_URL=https://github.com/Comandosai/your-repo.git FRONTEND_REPO_REF=main ./setup.sh
   ```
 
 ## Примечания
