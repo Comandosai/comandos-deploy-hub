@@ -66,6 +66,17 @@ if [ -z "$TRAEFIK_ID" ]; then
 else
     docker network connect comandos-network "$TRAEFIK_ID" 2>/dev/null || true
 
+    TRAEFIK_RESOLVER=$(docker inspect "$TRAEFIK_ID" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' \
+        | tr -d '[],"' | tr ' ' '\n' | grep -oE '--certificatesresolvers\\.[^. ]+' | head -n1 | sed 's/--certificatesresolvers\\.//')
+
+    if [ -n "$TRAEFIK_RESOLVER" ]; then
+        TLS_BLOCK="      tls:\n        certResolver: ${TRAEFIK_RESOLVER}"
+        echo -e "${GREEN}Найден certResolver Traefik: ${TRAEFIK_RESOLVER}${NC}"
+    else
+        TLS_BLOCK="      tls: {}"
+        echo -e "${YELLOW}certResolver Traefik не найден. HTTPS может быть самоподписанным.${NC}"
+    fi
+
     DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
     if [ -z "$DYNAMIC_DIR" ]; then
         DYNAMIC_DIR="/root/traefik-dynamic"
@@ -79,13 +90,13 @@ http:
       rule: "Host(\`${WP_DOMAIN}\`)"
       entryPoints:
         - websecure
-      tls: {}
+${TLS_BLOCK}
       service: comandos-wp
     comandos-next:
       rule: "Host(\`${FRONT_DOMAIN}\`)"
       entryPoints:
         - websecure
-      tls: {}
+${TLS_BLOCK}
       service: comandos-next
   services:
     comandos-wp:
