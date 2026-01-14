@@ -84,6 +84,15 @@ http:
 EOF_YAML
 fi
 
+# 7. Установка плагинов WordPress
+echo -e "\n${YELLOW}>>> Установка плагинов WordPress...${NC}"
+if docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
+    docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wordpress-seo --activate --allow-root
+else
+    echo -e "${YELLOW}WordPress еще не установлен. После установки выполните:${NC}"
+    echo "docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wordpress-seo --activate --allow-root"
+fi
+
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
 echo -e "📦 WordPress: https://$WP_DOMAIN/wp-admin"
