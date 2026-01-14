@@ -1,13 +1,13 @@
 # Comandos Engine v2.0 (WP + Next.js)
 
-This folder contains the lightweight installer and templates for the WordPress + Next.js stack.
+Легкий установочный шаблон для WordPress + Next.js.
 
-## What is included
-- `setup.sh` - universal installer
-- `docker-compose.yml.j2` - template with domain placeholders
-- `comandos-wp.css` - WordPress frontend styles
+## Что внутри
+- `setup.sh` — установщик
+- `docker-compose.yml.j2` — шаблон с плейсхолдерами доменов
+- `comandos-wp.css` — стили для WordPress (таблицы/блоки)
 
-## Quick start
+## Быстрый старт
 ```bash
 git clone https://github.com/Comandosai/comandos-deploy-hub.git
 cd comandos-deploy-hub/wp-next-stack
@@ -15,11 +15,11 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-## Installer prompts
-- WP Domain (example: `blog.mysite.com`)
-- Frontend Domain (example: `next.mysite.com`)
+## Вопросы установщика
+- WP Domain (пример: `blog.mysite.com`)
+- Frontend Domain (пример: `next.mysite.com`)
 - SSL Email
 
-## Notes
-- The installer copies templates into the current directory and generates `.env` and `docker-compose.yml`.
-- Next.js uses the prebuilt image `gansa1os/comandos-frontend:latest`.
+## Примечания
+- Установщик копирует шаблоны в текущую папку и генерирует `.env` и `docker-compose.yml`.
+- Next.js использует готовый образ `gansa1os/comandos-frontend:latest`.

@@ -35,19 +35,6 @@ services:
       - "traefik.http.routers.comandos-wp.tls=true"
       - "traefik.http.services.comandos-wp.loadbalancer.server.port=80"
 
-  comandos-next:
-    image: gansa1os/comandos-frontend:latest
-    container_name: comandos-next
-    restart: unless-stopped
-    networks:
-      - comandos-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.comandos-next.rule=Host(`{{FRONT_DOMAIN}}`)"
-      - "traefik.http.routers.comandos-next.entrypoints=websecure"
-      - "traefik.http.routers.comandos-next.tls=true"
-      - "traefik.http.services.comandos-next.loadbalancer.server.port=3000"
-
 volumes:
   comandos-db-data:
 

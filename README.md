@@ -3,12 +3,13 @@
 Публичный репозиторий для легких установочных шаблонов деплоя.
 
 ## Шаблоны
+- `wp-stack/` — Comandos Engine v2.0 (WordPress, Docker)
 - `wp-next-stack/` — Comandos Engine v2.0 (WordPress + Next.js, Docker)
 
 ## Быстрый старт (git)
 ```bash
 git clone https://github.com/Comandosai/comandos-deploy-hub.git
-cd comandos-deploy-hub/wp-next-stack
+cd comandos-deploy-hub/wp-stack   # или wp-next-stack
 chmod +x setup.sh
 ./setup.sh
 ```
@@ -16,7 +17,7 @@ chmod +x setup.sh
 ## Быстрый старт (без git)
 ```bash
 curl -L https://github.com/Comandosai/comandos-deploy-hub/archive/refs/heads/main.tar.gz | tar -xz
-cd comandos-deploy-hub-main/wp-next-stack
+cd comandos-deploy-hub-main/wp-stack   # или wp-next-stack
 chmod +x setup.sh
 ./setup.sh
 ```
