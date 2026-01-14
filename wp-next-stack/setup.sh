@@ -32,29 +32,14 @@ FRONT_DOMAIN=$(clean_url "$RAW_FRONT")
 
 read -p "SSL Email: " SSL_EMAIL
 
-# 3. Подключение сети для Traefik
-echo -e "\n${YELLOW}>>> Проверка сети comandos-network...${NC}"
-if ! docker network inspect comandos-network >/dev/null 2>&1; then
-    docker network create comandos-network >/dev/null
-fi
-
-TRAEFIK_IDS=$(docker ps --format '{{.ID}} {{.Names}}' | grep -i traefik | awk '{print $1}')
-if [ -n "$TRAEFIK_IDS" ]; then
-    while read -r id; do
-        docker network connect comandos-network "$id" 2>/dev/null || true
-    done <<< "$TRAEFIK_IDS"
-else
-    echo -e "${YELLOW}Traefik контейнер не найден, пропускаю подключение сети.${NC}"
-fi
-
-# 4. Копирование ассетов из Мастер-папки в папку установки
+# 3. Копирование ассетов из Мастер-папки в папку установки
 echo -e "\n${YELLOW}>>> Копирование компонентов системы...${NC}"
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     cp "$SCRIPT_DIR/docker-compose.yml.j2" .
     cp "$SCRIPT_DIR/comandos-wp.css" .
 fi
 
-# 5. Генерация конфигов
+# 4. Генерация конфигов
 echo -e "${YELLOW}>>> Генерация конфигурации...${NC}"
 DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 
@@ -69,9 +54,50 @@ EOF_ENV
 # Подставляем данные в docker-compose
 sed "s/{{WP_DOMAIN}}/$WP_DOMAIN/g; s/{{FRONT_DOMAIN}}/$FRONT_DOMAIN/g; s/{{SSL_EMAIL}}/$SSL_EMAIL/g; s/{{DB_PASSWORD}}/$DB_PASSWORD/g" docker-compose.yml.j2 > docker-compose.yml
 
-# 6. Запуск
+# 5. Запуск
 echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
 docker compose up -d
+
+# 6. Настройка Traefik
+echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
+TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
+if [ -z "$TRAEFIK_ID" ]; then
+    echo -e "${YELLOW}Traefik контейнер не найден, пропускаю настройку маршрутов.${NC}"
+else
+    docker network connect comandos-network "$TRAEFIK_ID" 2>/dev/null || true
+
+    DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
+    if [ -z "$DYNAMIC_DIR" ]; then
+        DYNAMIC_DIR="/root/traefik-dynamic"
+    fi
+    mkdir -p "$DYNAMIC_DIR"
+
+    cat <<EOF_YAML > "$DYNAMIC_DIR/comandos.yml"
+http:
+  routers:
+    comandos-wp:
+      rule: "Host(\`${WP_DOMAIN}\`)"
+      entryPoints:
+        - websecure
+      tls: {}
+      service: comandos-wp
+    comandos-next:
+      rule: "Host(\`${FRONT_DOMAIN}\`)"
+      entryPoints:
+        - websecure
+      tls: {}
+      service: comandos-next
+  services:
+    comandos-wp:
+      loadBalancer:
+        servers:
+          - url: "http://comandos-wp:80"
+    comandos-next:
+      loadBalancer:
+        servers:
+          - url: "http://comandos-next:3000"
+EOF_YAML
+fi
 
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
