@@ -43,8 +43,8 @@ services:
     networks:
       - comandos-network
     environment:
-      WP_API_BASE: "https://{{WP_DOMAIN}}/wp-json/wp/v2"
       NEXT_PUBLIC_WP_URL: "https://{{WP_DOMAIN}}"
+      WP_API_BASE: "http://comandos-wp/wp-json/wp/v2"
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=comandos-network"

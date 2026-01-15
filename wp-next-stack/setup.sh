@@ -152,19 +152,18 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 10. Установка плагинов WordPress
-echo -e "\n${YELLOW}>>> Установка плагинов WordPress...${NC}"
-if ! docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
-    echo -e "${YELLOW}WordPress еще не установлен. Завершите установку в браузере и нажмите Enter.${NC}"
-    read -r
-fi
+# 10. Ожидание готовности WP API и перезапуск Next
+echo -e "\n${YELLOW}>>> Ожидание готовности WordPress API...${NC}"
+for i in $(seq 1 60); do
+    if docker exec comandos-wp curl -s http://localhost/wp-json/wp/v2 >/dev/null 2>&1; then
+        echo -e "${GREEN}WordPress API готов.${NC}"
+        break
+    fi
+    sleep 2
+done
 
-if docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
-    docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wp-graphql wordpress-seo --activate --allow-root
-else
-    echo -e "${YELLOW}WordPress не установлен. Команда для ручного запуска:${NC}"
-    echo "docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp plugin install wp-graphql wordpress-seo --activate --allow-root"
-fi
+echo -e "\n${YELLOW}>>> Перезапуск Next.js после готовности WP...${NC}"
+docker compose restart comandos-next >/dev/null 2>&1 || true
 
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
