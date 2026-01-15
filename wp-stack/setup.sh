@@ -66,7 +66,10 @@ fi
 
 # 6. Запуск
 echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
-docker compose up -d
+if ! docker compose up -d; then
+    echo -e "${RED}Ошибка запуска контейнеров. Проверьте логи: docker compose logs${NC}"
+    exit 1
+fi
 
 # 7. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
@@ -87,7 +90,11 @@ else
         echo -e "${GREEN}Найден certResolver Traefik: ${TRAEFIK_RESOLVER}${NC}"
     fi
 
-    TLS_BLOCK="      tls:\n        certResolver: ${TRAEFIK_RESOLVER}"
+    TLS_BLOCK=$(cat <<EOF
+      tls:
+        certResolver: ${TRAEFIK_RESOLVER}
+EOF
+)
 
     DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
     if [ -z "$DYNAMIC_DIR" ]; then
