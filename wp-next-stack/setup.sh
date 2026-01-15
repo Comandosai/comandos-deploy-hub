@@ -66,20 +66,33 @@ sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
     -e "s|{{DB_PASSWORD}}|$DB_PASSWORD_ESC|g" \
     docker-compose.yml.j2 > docker-compose.yml
 
-# 5. Подготовка сети
+# 5. Очистка предыдущей установки (чтобы не тянуть старую БД)
+echo -e "\n${YELLOW}>>> Очистка предыдущей установки...${NC}"
+PROJECT_NAME=$(basename "$INSTALL_DIR")
+DB_VOLUME="${PROJECT_NAME}_comandos-db-data"
+docker rm -f comandos-db comandos-wp comandos-next 2>/dev/null || true
+if docker volume ls -q | grep -Fx "$DB_VOLUME" >/dev/null 2>&1; then
+    docker volume rm "$DB_VOLUME" >/dev/null 2>&1 || true
+fi
+
+# 6. Подготовка сети
 echo -e "\n${YELLOW}>>> Проверка сети comandos-network...${NC}"
 if ! docker network inspect comandos-network >/dev/null 2>&1; then
     docker network create comandos-network >/dev/null
 fi
 
-# 6. Запуск
+# 7. Обновление образов
+echo -e "\n${YELLOW}>>> Обновление образов...${NC}"
+docker compose pull >/dev/null 2>&1 || true
+
+# 8. Запуск
 echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
 if ! docker compose up -d; then
     echo -e "${RED}Ошибка запуска контейнеров. Проверьте логи: docker compose logs${NC}"
     exit 1
 fi
 
-# 7. Настройка Traefik
+# 9. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
 TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
 if [ -z "$TRAEFIK_ID" ]; then
@@ -139,7 +152,7 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 8. Установка плагинов WordPress
+# 10. Установка плагинов WordPress
 echo -e "\n${YELLOW}>>> Установка плагинов WordPress...${NC}"
 if ! docker run --rm --network comandos-network --volumes-from comandos-wp wordpress:cli wp core is-installed --allow-root >/dev/null 2>&1; then
     echo -e "${YELLOW}WordPress еще не установлен. Завершите установку в браузере и нажмите Enter.${NC}"
