@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.4.0      ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.5.0      ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения

@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS EXPERT ENGINE - INSTALLER v1.4.2  ${NC}"
+echo -e "${BLUE}   COMANDOS EXPERT ENGINE - INSTALLER v1.5.0  ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
@@ -138,25 +138,28 @@ fi
 echo -e "\n${YELLOW}>>> Обновление образов...${NC}"
 docker compose pull >/dev/null 2>&1 || true
 
-# 8. Запуск системы
-echo -e "\n${YELLOW}>>> Запуск всех контейнеров...${NC}"
-if ! docker compose up -d; then
-    echo -e "${RED}Ошибка запуска контейнеров. Проверьте логи: docker compose logs${NC}"
+# 8. Запуск СЕРВЕРНОЙ части (БД + WordPress)
+echo -e "\n${YELLOW}>>> Шаг 1: Запуск базы данных и WordPress...${NC}"
+if ! docker compose up -d comandos-db comandos-wp; then
+    echo -e "${RED}Ошибка запуска контейнеров WordPress. Проверьте логи: docker compose logs${NC}"
     exit 1
 fi
 
-echo -e "${BLUE}>>> Ожидание готовности WordPress для финальной настройки...${NC}"
-# Проверка Healthcheck вручную
-for i in {1..30}; do
-    STATUS=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' comandos-wp)
-    if [ "$STATUS" == "healthy" ]; then
-        echo -e "${GREEN}[OK] WordPress готов! Перезапускаю фронтенд для чистого соединения...${NC}"
-        docker restart comandos-next >/dev/null 2>&1 || true
-        break
-    fi
-    echo -ne "${YELLOW}Статус WP: $STATUS... (попытка $i/30)\r${NC}"
-    sleep 2
-done
+echo -e "\n${BLUE}==============================================${NC}"
+echo -e "${YELLOW}🚨 ВАЖНО: ТРЕБУЕТСЯ ВАШЕ УЧАСТИЕ!${NC}"
+echo -e "WordPress запущен, но его нужно настроить в браузере,"
+echo -e "чтобы Next.js смог получить данные."
+echo -e ""
+echo -e "1. Прямо сейчас перейдите по ссылке: ${GREEN}https://$WP_DOMAIN/wp-admin${NC}"
+echo -e "2. Пройдите шаги установки (язык, имя сайта, админ)."
+echo -e "3. Как только увидите Консоль (Dashboard) WordPress — возвращайтесь сюда."
+echo -e "${BLUE}==============================================${NC}"
+read -p "Нажмите [Enter] только после завершения установки в браузере..."
+
+echo -e "\n${YELLOW}>>> Шаг 2: Запуск ФРОНТЕНДА (Next.js)...${NC}"
+if ! docker compose up -d comandos-next; then
+    echo -e "${RED}Ошибка запуска фронтенда.${NC}"
+fi
 
 # 9. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
