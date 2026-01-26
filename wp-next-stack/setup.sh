@@ -138,11 +138,31 @@ fi
 echo -e "\n${YELLOW}>>> Обновление образов...${NC}"
 docker compose pull >/dev/null 2>&1 || true
 
-# 8. Запуск системы
-echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
-if ! docker compose up -d; then
-    echo -e "${RED}Ошибка запуска контейнеров. Проверьте логи: docker compose logs${NC}"
+# 8. Запуск системы (Поэтапный)
+echo -e "\n${YELLOW}>>> Шаг 1: Запуск базы данных и WordPress...${NC}"
+if ! docker compose up -d comandos-db comandos-wp; then
+    echo -e "${RED}Ошибка запуска серверной части. Проверьте логи: docker compose logs${NC}"
     exit 1
+fi
+
+echo -e "${BLUE}>>> Шаг 2: Ожидание готовности WordPress (это займет 20-30 сек)...${NC}"
+# Проверка Healthcheck вручную для вывода прогресса
+for i in {1..30}; do
+    STATUS=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' comandos-wp)
+    if [ "$STATUS" == "healthy" ]; then
+        echo -e "${GREEN}[OK] WordPress полностью готов!${NC}"
+        break
+    fi
+    echo -ne "${YELLOW}Статус: $STATUS... (попытка $i/30)\r${NC}"
+    sleep 2
+    if [ $i -eq 30 ]; then
+        echo -e "\n${RED}WordPress долго запускается. Продолжаю установку, но Next.js может выдать ошибку при первом открытии.${NC}"
+    fi
+done
+
+echo -e "\n${YELLOW}>>> Шаг 3: Запуск Next.js фронтенда...${NC}"
+if ! docker compose up -d comandos-next; then
+    echo -e "${RED}Ошибка запуска фронтенда.${NC}"
 fi
 
 # 9. Настройка Traefik
