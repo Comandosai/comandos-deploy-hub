@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS EXPERT ENGINE - INSTALLER v1.5.0  ${NC}"
+echo -e "${BLUE}   COMANDOS EXPERT ENGINE - INSTALLER v1.5.2  ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
@@ -160,6 +160,26 @@ echo -e "\n${YELLOW}>>> Шаг 2: Запуск ФРОНТЕНДА (Next.js)...${
 if ! docker compose up -d comandos-next; then
     echo -e "${RED}Ошибка запуска фронтенда.${NC}"
 fi
+
+# 9. Оптимизация Lighthouse (кэширование)
+echo -e "\n${YELLOW}>>> Оптимизация производительности (Lighthouse)...${NC}"
+docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
+
+# Comandos Optimization: Browser Caching
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/pdf "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresDefault "access plus 2 days"
+</IfModule>
+EOF' || true
 
 # 9. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"

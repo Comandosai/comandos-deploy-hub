@@ -137,6 +137,26 @@ if ! docker compose up -d; then
     exit 1
 fi
 
+# 9. Оптимизация Lighthouse (кэширование)
+echo -e "\n${YELLOW}>>> Оптимизация производительности (Lighthouse)...${NC}"
+docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
+
+# Comandos Optimization: Browser Caching
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/pdf "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresDefault "access plus 2 days"
+</IfModule>
+EOF' || true
+
 # 9. Настройка Traefik
 echo -e "\n${YELLOW}>>> Настройка Traefik (маршруты и сеть)...${NC}"
 TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
