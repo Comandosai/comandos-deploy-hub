@@ -65,9 +65,28 @@ if [ "$MODE" == "INSTALL" ]; then
     DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 fi
 
-# 4. Копирование ассетов
+# 4. Подготовка компонентов системы
 echo -e "\n${YELLOW}>>> Подготовка компонентов системы...${NC}"
-if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
+
+GITHUB_BASE="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack"
+
+download_if_missing() {
+    local file=$1
+    if [ ! -f "$file" ]; then
+        echo -e "${YELLOW}Файл $file не найден. Скачиваю из GitHub...${NC}"
+        curl -sL "$GITHUB_BASE/$file" -o "$file"
+        if [ ! -f "$file" ]; then
+            echo -e "${RED}Ошибка: не удалось скачать $file${NC}"
+            exit 1
+        fi
+    fi
+}
+
+download_if_missing "docker-compose.yml.j2"
+download_if_missing "comandos-wp.css"
+
+# Копирование (если мы в режиме локальной разработки)
+if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ] && [ -f "$SCRIPT_DIR/docker-compose.yml.j2" ]; then
     cp "$SCRIPT_DIR/docker-compose.yml.j2" .
     cp "$SCRIPT_DIR/comandos-wp.css" .
 fi
