@@ -141,9 +141,9 @@ fi
 echo -e "\n${YELLOW}>>> Обновление образов...${NC}"
 docker compose pull >/dev/null 2>&1 || true
 
-# 8. Запуск (сначала БД + WordPress)
-echo -e "\n${GREEN}>>> Запуск WordPress (БД + WP) в $INSTALL_DIR...${NC}"
-if ! docker compose up -d comandos-db comandos-wp; then
+# 8. Запуск системы
+echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
+if ! docker compose up -d; then
     echo -e "${RED}Ошибка запуска контейнеров. Проверьте логи: docker compose logs${NC}"
     exit 1
 fi
@@ -208,28 +208,7 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 10. Пауза для первичной установки WP
-echo -e "\n${YELLOW}>>> Завершите установку WordPress${NC}"
-echo -e "Откройте: https://${WP_DOMAIN}/wp-admin"
-read -p "Когда установка завершена — нажмите Enter, чтобы продолжить..."
-
-# 11. Ожидание готовности WP API и запуск Next
-echo -e "\n${YELLOW}>>> Ожидание готовности WordPress API...${NC}"
-WP_READY="false"
-for i in $(seq 1 60); do
-    if docker exec comandos-wp curl -s http://localhost/wp-json/wp/v2 >/dev/null 2>&1; then
-        WP_READY="true"
-        echo -e "${GREEN}WordPress API готов.${NC}"
-        break
-    fi
-    sleep 2
-done
-if [ "$WP_READY" != "true" ]; then
-    echo -e "${YELLOW}WP API пока не отвечает. Если Next не поднимется, проверьте установку WP и повторите restart.${NC}"
-fi
-
-echo -e "\n${YELLOW}>>> Запуск Next.js...${NC}"
-docker compose up -d comandos-next >/dev/null 2>&1 || true
+# 10. Финализация
 
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
