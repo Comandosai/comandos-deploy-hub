@@ -13,7 +13,7 @@ services:
     volumes:
       - comandos-db-data:/var/lib/mysql
     networks:
-      - comandos-network
+      - comandos-internal
 
   comandos-wp:
     image: wordpress:6.6-php8.2-apache
@@ -28,6 +28,7 @@ services:
       WORDPRESS_DB_NAME: wordpress
     networks:
       - comandos-network
+      - comandos-internal
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=comandos-network"
@@ -43,3 +44,5 @@ networks:
   comandos-network:
     external: true
     name: comandos-network
+  comandos-internal:
+    internal: true
