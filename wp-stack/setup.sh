@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.0        ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.3.3      ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
@@ -191,12 +191,6 @@ EOF_YAML
 fi
 
 # 10. Финализация
-echo -e "\n${GREEN}==============================================${NC}"
-echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
-echo -e "📦 WordPress: https://$WP_DOMAIN/wp-admin"
-echo -e "🔑 Пароль БД:  $DB_PASSWORD"
-echo -e "==============================================${NC}"
-
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
 echo -e "📦 WordPress: https://$WP_DOMAIN/wp-admin"
