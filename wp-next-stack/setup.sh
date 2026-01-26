@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS EXPERT ENGINE - INSTALLER v1.2    ${NC}"
+echo -e "${BLUE}   COMANDOS EXPERT ENGINE - INSTALLER v1.3.3  ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
