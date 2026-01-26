@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.3.3      ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.4.0      ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
@@ -21,14 +21,11 @@ if ! command -v docker &> /dev/null; then
     curl -fsSL https://get.docker.com | sh
 fi
 
-# Проверка портов 80 и 443
+# Проверка портов 80 и 443 (Информационная)
 check_ports() {
     for port in 80 443; do
         if ss -tuln | grep -q ":$port "; then
-            echo -e "${RED}ВНИМАНИЕ: Порт $port уже занят другим процессом!${NC}"
-            echo -e "${YELLOW}Это может помешать работе Traefik и получению SSL-сертификатов.${NC}"
-            read -p "Продолжить всё равно? (y/n): " confirm
-            if [[ ! $confirm =~ ^[Yy]$ ]]; then exit 1; fi
+            echo -e "${YELLOW}[INFO] Порт $port занят (нормально для Traefik).${NC}"
         fi
     done
 }

@@ -26,6 +26,12 @@ services:
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: {{DB_PASSWORD}}
       WORDPRESS_DB_NAME: wordpress
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/wp-json/wp/v2"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - comandos-network
       - comandos-internal
@@ -41,6 +47,9 @@ services:
     image: gansa1os/comandos-frontend:latest
     container_name: comandos-next
     restart: unless-stopped
+    depends_on:
+      comandos-wp:
+        condition: service_healthy
     networks:
       - comandos-network
     environment:
