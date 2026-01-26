@@ -61,3 +61,7 @@
 .article-body tr:hover td {
     background-color: #f8fafc !important;
 }
+
+/* Фикс для синих ссылок */
+a { color: #2563eb !important; text-decoration: underline !important; font-weight: 700 !important; }
+a:hover { color: #1d4ed8 !important; }
