@@ -347,9 +347,9 @@ table.modern-table {
     }
 
     /* Только большие картинки в контенте растягиваем */
-    .post-content img:not(.author-card img),
-    .article-part img:not(.author-card img),
-    .article-body img:not(.author-card img),
+    .post-content img,
+    .article-part img,
+    .article-body img,
     .single-thumb,
     .single-thumb img {
         margin-left: 0 !important;
@@ -360,13 +360,24 @@ table.modern-table {
         aspect-ratio: 16 / 10 !important;
     }
 
+    /* ФИКС: Принудительно возвращаем нормальный размер аватарке ВНУТРИ мобильного медиа-запроса */
+    .author-card img {
+        width: 80px !important;
+        height: 80px !important;
+        aspect-ratio: 1 / 1 !important;
+        border-radius: 50% !important;
+        margin: 0 auto 1rem !important;
+        display: block !important;
+        object-fit: cover !important;
+    }
+
     /* Компактный автор на мобиле */
     .author-card {
         flex-direction: column !important;
         align-items: center !important;
         text-align: center !important;
-        padding: 1rem !important;
-        gap: 1rem !important;
+        padding: 1.5rem !important;
+        gap: 0.5rem !important;
     }
 
     .single-post {
