@@ -51,11 +51,15 @@
 /* ======================================================
    ИЗОБРАЖЕНИЯ - Фикс CLS и симметрии
    ====================================================== */
-.post-content img {
+/* Основные изображения в контенте */
+.post-content img:not(.avatar):not(.author-card img) {
     max-width: 100% !important;
     height: auto !important;
     border-radius: 12px;
     margin: 2rem 0;
+    aspect-ratio: 1 / 1;
+    /* Предотвращает CLS */
+    object-fit: cover;
 }
 
 /* Hero Image */
