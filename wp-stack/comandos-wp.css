@@ -108,22 +108,35 @@
    MOBILE ADAPTATION
    ====================================================== */
 @media (max-width: 767px) {
+
+    html,
+    body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        position: relative;
+    }
+
     .site-inner {
         padding: 0 16px !important;
+        overflow-x: hidden !important;
     }
 
     .post-content table {
         display: table !important;
         width: 100% !important;
-        overflow-x: auto !important;
         margin: 1.5rem 0 !important;
     }
 
-    /* Оборачиваем таблицу в контейнер через CSS если нет обертки в HTML */
-    .wp-block-table {
-        overflow-x: auto !important;
-        width: 100% !important;
+    /* Принудительный контейнер для скролла */
+    .wp-block-table,
+    .table-container,
+    figure.wp-block-table {
         display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin-bottom: 20px !important;
     }
 
     .author-card {
