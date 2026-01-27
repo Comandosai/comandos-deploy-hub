@@ -29,22 +29,20 @@ add_action('wp_head', function() {
 
 // НЕКРИТИЧЕСКИЙ CSS: Загружаем асинхронно (не блокируем отрисовку)
 add_action('wp_enqueue_scripts', function () {
-    // Базовые стили темы - асинхронно
     wp_enqueue_style('autopipe-blog-style', get_stylesheet_uri(), [], '1.7');
-    wp_style_add_data('autopipe-blog-style', 'media', 'print');
-    wp_style_add_data('autopipe-blog-style', 'onload', "this.media='all'");
-    
-    // Comandos стили - асинхронно
     wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', [], '1.7');
-    wp_style_add_data('comandos-styles', 'media', 'print');
-    wp_style_add_data('comandos-styles', 'onload', "this.media='all'");
 });
 
-// Fallback для браузеров без JS
-add_action('wp_head', function() {
-    echo '<noscript><link rel="stylesheet" href="' . get_stylesheet_uri() . '"></noscript>';
-    echo '<noscript><link rel="stylesheet" href="' . get_template_directory_uri() . '/comandos-wp.css"></noscript>';
-}, 100);
+// ASYNC LOADING: Модифицируем HTML напрямую для асинхронной загрузки
+add_filter('style_loader_tag', function($html, $handle, $href) {
+    if ($handle === 'autopipe-blog-style' || $handle === 'comandos-styles') {
+        // Заменяем media='all' на media='print' с onload переключением
+        $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
+        // Добавляем noscript fallback
+        $html .= '<noscript><link rel="stylesheet" href="' . esc_url($href) . '"></noscript>';
+    }
+    return $html;
+}, 10, 3);
 
 add_action('after_setup_theme', function () {
     add_editor_style('comandos-wp.css');
