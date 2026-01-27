@@ -42,12 +42,18 @@ h1.post-title {
 }
 
 /* ИЗОБРАЖЕНИЯ - Центрирование и фикс прилипания */
+.post-content figure,
+.post-content .aligncenter {
+    margin: 3rem auto !important;
+    display: block !important;
+    text-align: center !important;
+}
+
 .post-content img {
     display: block !important;
     max-width: 100% !important;
     height: auto !important;
-    margin: 3rem auto !important;
-    /* Центрирование */
+    margin: 0 auto !important;
     border-radius: 12px !important;
 }
 
