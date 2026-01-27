@@ -1,0 +1,66 @@
+/**
+ * Critical CSS - Optimized for Lighthouse 100
+ * Inlined into head for instant rendering
+ */
+
+/* SYSTEM FONT STACK - Zero CLS */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* КРИТИЧНО: Резервируем место для Hero-изображения (фикс CLS) */
+.single-thumb,
+.single-thumb img {
+    aspect-ratio: 16 / 9 !important;
+    width: 100% !important;
+    object-fit: cover !important;
+}
+
+/* КРИТИЧНО: Резервируем место для контента */
+.post-content,
+.article-part,
+.article-body,
+.site-main {
+    min-height: 600px;
+}
+
+/* КРИТИЧНО: Резервируем место для таблиц */
+table {
+    min-height: 200px;
+    width: 100%;
+}
+
+/* ПРИНУДИТЕЛЬНЫЙ ФИКС АВАТАРКИ (В критическом CSS для уверенности) */
+.author-card img,
+.post-content .author-card img {
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 999px !important;
+    object-fit: cover !important;
+    margin: 0 !important;
+}
+
+/* МОБИЛЬНЫЕ КРИТИЧЕСКИЕ ПРАВКИ */
+@media (max-width: 767px) {
+    .site-inner {
+        padding: 0 16px !important;
+        overflow: hidden !important;
+    }
+
+    /* Нейтрализуем любые широкие таблицы сразу */
+    table {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .author-card {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+}
