@@ -9,7 +9,9 @@ body {
     padding: 0;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     font-family: serif;
     font-weight: 700;
     color: #0f172a;
@@ -56,6 +58,20 @@ p {
 
 .site-main {
     padding: 2rem 0;
+}
+
+/* КРИТИЧНО: Резервируем место для изображений (фикс CLS) */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.single-thumb,
+.single-thumb img {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    object-fit: cover;
 }
 
 /* Критичные ссылки */
