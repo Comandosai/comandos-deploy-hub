@@ -1,14 +1,25 @@
+/**
+ * Comandos WP CSS - Optimized for Lighthouse 100
+ * System fonts only - no external font loading
+ */
+
+/* SYSTEM FONT STACK - Zero CLS */
+:root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-serif: Georgia, 'Times New Roman', Times, serif;
+}
+
 /* Базовая типографика для WP */
 .post-content h2,
 .article-part h1,
 .article-part h2,
 .article-body h2 {
-    font-family: serif;
+    font-family: var(--font-serif);
     font-size: 1.85rem;
     font-weight: 700;
     margin-top: 3rem;
     margin-bottom: 1rem;
-    color: #0f172a;
+    color: #0d0f12;
     border-bottom: none;
     padding-bottom: 0;
     line-height: 1.2;
@@ -20,7 +31,7 @@
     font-size: 1.35rem;
     font-weight: 600;
     margin-top: 2rem;
-    color: #0f172a;
+    color: #0d0f12;
     margin-bottom: 0.75rem;
 }
 
@@ -36,7 +47,7 @@
 .post-content strong,
 .article-part strong,
 .article-body strong {
-    color: #0f172a;
+    color: #0d0f12;
 }
 
 /* Ссылки (как в Next.js) */
@@ -215,7 +226,7 @@ table.modern-table {
     padding: 14px 16px !important;
     text-align: left !important;
     font-weight: 700 !important;
-    color: #0f172a !important;
+    color: #0d0f12 !important;
     border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
     font-size: 0.95rem !important;
     vertical-align: bottom !important;
@@ -283,6 +294,9 @@ table.modern-table {
 
 /* Мобильная адаптивность */
 @media (max-width: 767px) {
+    .site-inner {
+        padding: 0 16px !important;
+    }
 
     .post-content table,
     .article-part table,
@@ -291,6 +305,10 @@ table.modern-table {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         border-radius: 8px;
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        min-width: 0 !important;
     }
 
     .post-content img,
@@ -298,11 +316,18 @@ table.modern-table {
     .article-body img,
     .single-thumb,
     .single-thumb img {
-        margin-left: -28px !important;
-        margin-right: -28px !important;
-        width: calc(100% + 56px) !important;
-        max-width: none !important;
-        border-radius: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 12px !important;
         aspect-ratio: 16 / 10 !important;
+    }
+
+    .single-post {
+        padding: 16px !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
     }
 }
