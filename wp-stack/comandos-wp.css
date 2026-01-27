@@ -79,7 +79,9 @@ h1.post-title {
     width: 100% !important;
     overflow-x: auto !important;
     border-radius: 8px !important;
-    border: 1px solid var(--slate-200) !important;
+    border: 1px solid transparent !important;
+    background: linear-gradient(var(--white), var(--white)) padding-box,
+        linear-gradient(to right, var(--primary), var(--slate-200)) border-box !important;
 }
 
 .post-content table {
@@ -113,12 +115,13 @@ h1.post-title {
     flex-direction: row !important;
     /* Декстоп: в ряд */
     align-items: center !important;
-    background: var(--slate-100) !important;
     border-radius: 20px !important;
     padding: 2rem !important;
     gap: 2rem !important;
     margin: 4rem 0 !important;
-    border: 1px solid var(--slate-200) !important;
+    border: 1px solid transparent !important;
+    background: linear-gradient(var(--slate-100), var(--slate-100)) padding-box,
+        linear-gradient(to right, var(--primary), var(--slate-200)) border-box !important;
 }
 
 .author-card img {
