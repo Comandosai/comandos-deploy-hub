@@ -48,13 +48,6 @@ add_action('after_setup_theme', function () {
     add_editor_style('comandos-wp.css');
 });
 
-// МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: Добавляем display=swap для всех Google Шрифтов
-add_filter('style_loader_tag', function($html, $handle, $href) {
-    if (strpos($href, 'fonts.googleapis.com') !== false) {
-        return str_replace('rel=\'stylesheet\'', 'rel=\'stylesheet\' media=\'print\' onload=\'this.media=\"all\"\'', $html);
-    }
-    return $html;
-}, 10, 3);
 
 // РАЗРЕШЕНИЕ WEBP: Добавляем поддержку WebP, если сервер старый
 add_filter('upload_mimes', function($mimes) {
