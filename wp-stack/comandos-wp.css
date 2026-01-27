@@ -1,175 +1,164 @@
 /**
- * Comandos WP CSS - Premium Version 2.0
- * Optimized for Lighthouse 100 & High-End Aesthetics
+ * Comandos WP CSS - Emergency Fix 2.1
+ * Restores Readability, Aesthetics and Performance
  */
 
-/* PRESETS */
 :root {
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
     --slate-900: #0f172a;
     --slate-800: #1e293b;
     --slate-600: #475569;
+    --slate-400: #94a3b8;
     --slate-200: #e2e8f0;
-    --white: #ffffff;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --slate-100: #f1f5f9;
+    --blue-600: #2563eb;
 }
 
-/* TYPOGRAPHY */
+/* ТИПОГРАФИКА */
 .post-content {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 1.125rem;
-    line-height: 1.8;
+    line-height: 1.75;
     color: var(--slate-800);
 }
 
-.post-content h2,
-.post-content h3 {
+.post-content h1.post-title,
+h1.post-title {
+    font-size: 3rem !important;
     color: var(--slate-900);
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    margin-top: 3rem;
+    margin-top: 1rem !important;
 }
 
 .post-content h2 {
-    font-size: 2rem;
-    border-left: 4px solid var(--primary);
-    padding-left: 1rem;
+    font-size: 1.75rem;
+    margin-top: 3rem;
+    margin-bottom: 1.25rem;
+    color: var(--slate-900);
 }
 
 .post-content h3 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    margin-top: 2rem;
+    color: var(--slate-900);
 }
 
-/* PREMIUM CARD: SINGLE POST */
-.single-post {
-    background: var(--white);
-    border-radius: 24px !important;
-    padding: 3rem !important;
-    box-shadow: var(--shadow-lg) !important;
-    border: 1px solid var(--slate-200) !important;
+/* ИЗОБРАЖЕНИЯ - Центрирование и фикс прилипания */
+.post-content img {
+    display: block !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 3rem auto !important;
+    /* Центрирование */
+    border-radius: 12px !important;
 }
 
-/* HERO IMAGE */
 .single-thumb {
-    box-shadow: var(--shadow-md);
-    transition: transform 0.3s ease;
+    width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    object-fit: cover !important;
+    border-radius: 16px !important;
+    margin: 2rem 0 3rem !important;
 }
 
-.single-thumb:hover {
-    transform: translateY(-4px);
-}
-
-/* IMAGES IN CONTENT */
-.post-content img:not(.avatar) {
-    border-radius: 20px !important;
-    box-shadow: var(--shadow-md);
-    margin: 3rem 0;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-}
-
-/* TABLES - MODERN & SCROLLABLE */
+/* ТАБЛИЦЫ - ВОЗВРАТ ЧИТАЕМОСТИ */
 .table-container,
 .wp-block-table {
     margin: 3rem 0 !important;
-    border-radius: 16px !important;
-    overflow: hidden !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    border-radius: 8px !important;
     border: 1px solid var(--slate-200) !important;
-    box-shadow: var(--shadow-sm) !important;
 }
 
 .post-content table {
-    margin: 0 !important;
-    border: none !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 0.95rem !important;
+}
+
+.post-content th,
+.post-content td {
+    padding: 16px !important;
+    border: 1px solid var(--slate-200) !important;
+    text-align: left !important;
 }
 
 .post-content th {
-    background: #f8fafc !important;
-    text-transform: uppercase !important;
-    font-size: 0.75rem !important;
-    letter-spacing: 0.05em !important;
-    color: var(--slate-600) !important;
+    background: var(--slate-100) !important;
+    font-weight: 700 !important;
+    color: var(--slate-900) !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
 }
 
-/* AUTHOR CARD - PREMIUM REWRITE */
+.post-content tr:nth-child(even) {
+    background: #fafafa !important;
+}
+
+/* КАРТОЧКА АВТОРА - ФИКС ДЕКСТОПА И МОБИЛКИ */
 .author-card {
     display: flex !important;
+    flex-direction: row !important;
+    /* Декстоп: в ряд */
     align-items: center !important;
-    background: linear-gradient(to right bottom, #f8fafc, #f1f5f9) !important;
-    border-radius: 24px !important;
+    background: var(--slate-100) !important;
+    border-radius: 20px !important;
     padding: 2rem !important;
     gap: 2rem !important;
     margin: 4rem 0 !important;
     border: 1px solid var(--slate-200) !important;
-    box-shadow: var(--shadow-md) !important;
 }
 
 .author-card img {
-    width: 100px !important;
-    height: 100px !important;
-    min-width: 100px !important;
+    width: 80px !important;
+    height: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
     border-radius: 50% !important;
-    border: 4px solid var(--white) !important;
-    box-shadow: var(--shadow-sm) !important;
+    margin: 0 !important;
     object-fit: cover !important;
+    border: 3px solid #fff !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.author-card div {
+    flex: 1 !important;
 }
 
 .author-card h3 {
     margin: 0 0 0.5rem 0 !important;
     font-size: 1.25rem !important;
-    color: var(--slate-900) !important;
 }
 
 .author-card p {
     margin: 0 !important;
     font-size: 1rem !important;
-    color: var(--slate-600) !important;
-    line-height: 1.6 !important;
+    line-height: 1.5 !important;
 }
 
-/* MOBILE OPTIMIZATION */
+/* МОБИЛЬНАЯ АДАПТАЦИЯ */
 @media (max-width: 767px) {
-    .single-post {
-        padding: 1.5rem !important;
-        border-radius: 16px !important;
-    }
-
     .author-card {
         flex-direction: column !important;
+        /* Мобайл: в колонку */
         text-align: center !important;
-        padding: 2rem 1.5rem !important;
     }
 
     .author-card img {
-        width: 80px !important;
-        height: 80px !important;
-        min-width: 80px !important;
-        margin: 0 auto !important;
+        margin: 0 auto 1.5rem !important;
     }
 
-    .post-content h2 {
-        font-size: 1.5rem;
+    .post-content h1.post-title,
+    h1.post-title {
+        font-size: 2.2rem !important;
     }
 
-    .post-content h3 {
-        font-size: 1.25rem;
+    .post-content p {
+        font-size: 1rem !important;
     }
 
-    /* ФИКС ШИРИНЫ И ПЕРЕПОЛНЕНИЯ */
+    /* Устранение горизонтального скролла */
     html,
     body {
         overflow-x: hidden !important;
-    }
-
-    .table-container,
-    .wp-block-table {
-        display: block !important;
-        width: 100% !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
     }
 }
