@@ -150,12 +150,21 @@
         padding: 1.5rem !important;
     }
 
+    /* ФИКС ГИГАНТСКОГО АВАТАРА НА МОБИЛКЕ */
     .author-card img {
-        margin-bottom: 1rem !important;
+        width: 80px !important;
+        height: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+        border-radius: 50% !important;
+        margin: 0 0 1rem 0 !important;
+        display: block !important;
+        object-fit: cover !important;
+        aspect-ratio: 1 / 1 !important;
     }
 
     /* Убираем отрицательные марджины, если они были */
-    .post-content img,
+    .post-content img:not(.author-card img),
     .post-content table {
         margin-left: 0 !important;
         margin-right: 0 !important;
