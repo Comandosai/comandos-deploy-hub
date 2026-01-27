@@ -280,6 +280,41 @@ table.modern-table {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+/* Специальное исключение для аватаров в карточке автора */
+.author-card img {
+    width: 64px !important;
+    height: 64px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50% !important;
+    margin: 0 !important;
+    object-fit: cover !important;
+    box-shadow: none !important;
+}
+
+.author-card {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+    padding: 1.5rem !important;
+    background: #f8fafc !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    margin: 3rem 0 !important;
+}
+
+.author-card h4 {
+    margin: 0 0 0.5rem 0 !important;
+    font-size: 1.1rem !important;
+    color: #0f172a !important;
+}
+
+.author-card p {
+    margin: 0 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+    color: #475569 !important;
+}
+
 /* Главное фото статьи (Hero) - 16:9 как в Next.js */
 .single-thumb,
 .single-thumb img {
@@ -311,9 +346,10 @@ table.modern-table {
         min-width: 0 !important;
     }
 
-    .post-content img,
-    .article-part img,
-    .article-body img,
+    /* Только большие картинки в контенте растягиваем */
+    .post-content img:not(.author-card img),
+    .article-part img:not(.author-card img),
+    .article-body img:not(.author-card img),
     .single-thumb,
     .single-thumb img {
         margin-left: 0 !important;
@@ -322,6 +358,15 @@ table.modern-table {
         max-width: 100% !important;
         border-radius: 12px !important;
         aspect-ratio: 16 / 10 !important;
+    }
+
+    /* Компактный автор на мобиле */
+    .author-card {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 1rem !important;
+        gap: 1rem !important;
     }
 
     .single-post {
