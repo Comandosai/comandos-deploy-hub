@@ -260,6 +260,7 @@ table.modern-table {
     width: 100% !important;
     height: auto !important;
     aspect-ratio: 3 / 2 !important;
+    /* Кропаем все фото в статьях */
     display: block;
     margin: 2.5rem auto;
     border-radius: 12px;
