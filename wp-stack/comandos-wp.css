@@ -197,13 +197,14 @@
     font-weight: bold;
 }
 
-/* Таблицы (Исправленные с приоритетом !important) */
+/* Таблицы (Десктоп) */
 .post-content table,
 .article-part table,
 .article-body table,
 table.modern-table {
     width: 100% !important;
-    min-width: 600px !important;
+    min-width: 600px;
+    /* НЕ ИСПОЛЬЗУЕМ !important ЗДЕСЬ, чтобы на мобиле перекрыть */
     border-collapse: separate !important;
     border-spacing: 0 !important;
     margin: 2.5rem 0 !important;
@@ -245,45 +246,27 @@ table.modern-table {
     white-space: normal !important;
 }
 
-.post-content th:first-child,
-.post-content td:first-child {
-    background-color: #fcfcfd !important;
-    font-weight: 600 !important;
-    color: #1e293b !important;
-}
-
-.article-part tr:last-child td,
-.article-body tr:last-child td,
-.post-content tr:last-child td {
-    border-bottom: none !important;
-}
-
-.article-part tr:nth-child(even) td,
-.article-body tr:nth-child(even) td,
-.post-content tr:nth-child(even) td {
-    background: #f8fafc !important;
-}
-
-/* Изображения в контенте - ПРИНУДИТЕЛЬНЫЙ КРОП 3:2 */
-/* Использование :not() для исключения аватаров сразу на верхнем уровне */
-.post-content img:not(.author-card img),
-.article-part img:not(.author-card img),
-.article-body img:not(.author-card img) {
-    width: 100% !important;
-    height: auto !important;
-    aspect-ratio: 3 / 2 !important;
+/* Изображения в контенте (Десктоп) */
+.post-content img,
+.article-part img,
+.article-body img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
     display: block;
     margin: 2.5rem auto;
     border-radius: 12px;
-    object-fit: cover !important;
-    object-position: center !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    object-fit: cover;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Специальное исключение для аватаров в карточке автора (Десктоп) */
+/* КРИТИЧНО: Специальные стили для автора, которые должны быть сильнее контентных */
+.author-card .avatar,
 .author-card img {
     width: 64px !important;
     height: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
     aspect-ratio: 1 / 1 !important;
     border-radius: 50% !important;
     margin: 0 !important;
@@ -302,99 +285,74 @@ table.modern-table {
     margin: 3rem 0 !important;
 }
 
-.author-card h4 {
-    margin: 0 0 0.5rem 0 !important;
-    font-size: 1.1rem !important;
-    color: #0f172a !important;
-}
-
-.author-card p {
-    margin: 0 !important;
-    font-size: 0.95rem !important;
-    line-height: 1.5 !important;
-    color: #475569 !important;
-}
-
-/* Главное фото статьи (Hero) - 16:9 как в Next.js */
+/* Герой страницы */
 .single-thumb,
 .single-thumb img {
     width: 100% !important;
     aspect-ratio: 16 / 9 !important;
     object-fit: cover !important;
-    object-position: center 25% !important;
     border-radius: 16px !important;
     margin-bottom: 3rem !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 
-/* Мобильная адаптивность */
+/* МОБИЛЬНАЯ ВЕРСИЯ */
 @media (max-width: 767px) {
 
-    /* СИММЕТРИЧНЫЕ ОТСТУПЫ КОНТЕЙНЕРА */
-    .site-inner,
-    .site-main .site-inner {
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-        margin: 0 !important;
+    /* Фикс переполнения */
+    html,
+    body {
+        overflow-x: hidden;
+        position: relative;
         width: 100% !important;
-        box-sizing: border-box !important;
     }
 
-    /* УБИРАЕМ ВСЕ ОТРИЦАТЕЛЬНЫЕ МАРЖИНЫ */
+    .site-inner {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        /* На всякий случай */
+    }
+
+    /* Все картинки и таблицы в контенте */
     .post-content img,
     .article-part img,
     .article-body img,
-    .single-thumb,
-    .single-thumb img,
     .post-content table,
     .article-part table,
     .article-body table {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
         width: 100% !important;
         max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
         box-sizing: border-box !important;
     }
 
-    /* ФИКС ТАБЛИЦ: Прокрутка без выезда за края */
     .post-content table,
     .article-part table,
     .article-body table {
-        display: block;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border-radius: 8px;
         min-width: 0 !important;
-        /* Важно для сжатия */
+        /* Перекрываем десктопный 600px */
+        display: block !important;
+        overflow-x: auto !important;
     }
 
-    /* ФИКС АВАТАРКИ: Принудительный круг и размер */
+    /* ФИНАЛЬНЫЙ ФИКС АВАТАРКИ */
     .author-card img {
         width: 80px !important;
         height: 80px !important;
         min-width: 80px !important;
-        min-height: 80px !important;
-        aspect-ratio: 1 / 1 !important;
-        border-radius: 999px !important;
-        /* Максимальный круг */
+        max-width: 80px !important;
+        border-radius: 99px !important;
         margin: 0 auto 15px !important;
         display: block !important;
-        object-fit: cover !important;
     }
 
-    /* Компактный автор на мобиле */
     .author-card {
         flex-direction: column !important;
         align-items: center !important;
         text-align: center !important;
         padding: 20px !important;
-        gap: 0 !important;
-    }
-
-    .single-post {
-        padding: 20px !important;
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-right: none !important;
     }
 }
