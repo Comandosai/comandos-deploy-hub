@@ -1,67 +1,307 @@
 /* Базовая типографика для WP */
-.article-part h2 { font-size: 2.2em; font-weight: 800; margin-top: 1.5em; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5em; }
-.article-part h3 { font-size: 1.6em; font-weight: 700; margin-top: 1.2em; color: #1e293b; }
-.article-part p { line-height: 1.7; margin-bottom: 1.2em; color: #334155; }
-.article-part strong { color: #0f172a; }
+.post-content h2,
+.article-part h1,
+.article-part h2,
+.article-body h2 {
+    font-family: serif;
+    font-size: 1.85rem;
+    font-weight: 700;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    color: #0f172a;
+    border-bottom: none;
+    padding-bottom: 0;
+    line-height: 1.2;
+}
+
+.post-content h3,
+.article-part h3,
+.article-body h3 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    color: #0f172a;
+    margin-bottom: 0.75rem;
+}
+
+.post-content p,
+.article-part p,
+.article-body p {
+    line-height: 1.75;
+    margin-bottom: 1.75rem;
+    color: #475569;
+    font-size: 1.15rem;
+}
+
+.post-content strong,
+.article-part strong,
+.article-body strong {
+    color: #0f172a;
+}
+
+/* Ссылки (как в Next.js) */
+.post-content a,
+.article-part a,
+.article-body a {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+    font-weight: 700 !important;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+}
+
+.post-content a:hover,
+.article-part a:hover,
+.article-body a:hover {
+    color: #1d4ed8 !important;
+    text-decoration-thickness: 2px !important;
+}
+
+/* Содержание (TOC like Next.js) */
+.toc-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 32px 0;
+}
+
+.toc-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    margin-bottom: 16px;
+    border: none !important;
+    padding: 0 !important;
+    display: block;
+}
+
+.toc-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toc-item {
+    position: relative;
+    padding-left: 18px !important;
+    margin: 0 !important;
+}
+
+.toc-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 3px;
+    height: 12px;
+    border-radius: 999px;
+    background: #2563eb;
+}
+
+.toc-link {
+    color: #334155 !important;
+    text-decoration: none !important;
+    font-size: 1rem;
+    font-weight: 500 !important;
+    transition: color 0.15s ease;
+}
+
+.toc-link:hover {
+    color: #2563eb !important;
+}
 
 /* Статистика */
-.ui-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
-.ui-stats > * { background: #f8fafc; border-left: 4px solid #6366f1; padding: 20px; border-radius: 0 12px 12px 0; font-weight: 500; }
+.post-content .ui-stats,
+.post-content .stats-grid,
+.ui-stats,
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 2rem 0;
+}
 
-/* Советы (Tip) */
-.ui-tip { background: #fffbeb; border: 1px solid #fef3c7; padding: 25px; border-radius: 16px; margin: 30px 0; position: relative; font-style: italic; }
-.ui-tip:before { content: "💡"; margin-right: 10px; font-style: normal; }
+.post-content .stat-item,
+.post-content .ui-stats>*,
+.stat-item,
+.ui-stats>* {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    color: #475569;
+}
+
+/* Советы (как callout в Next.js) */
+.post-content .ui-tip,
+.post-content .callout,
+.ui-tip,
+.callout {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #f97316;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 2rem 0;
+    color: #9a3412;
+    font-style: italic;
+}
 
 /* Чек-лист */
-.ui-checklist { background: #0f172a; color: #f8fafc; padding: 30px; border-radius: 20px; margin: 30px 0; }
-.ui-checklist ul { list-style: none !important; padding-left: 0 !important; }
-.ui-checklist li:before { content: "✅"; margin-right: 10px; }
-.ui-checklist li { margin-bottom: 10px; font-size: 1.1em; }
+.post-content .ui-checklist,
+.post-content .check-list,
+.ui-checklist,
+.check-list {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin: 1.25rem 0;
+}
 
-/* Таблицы */
-.article-part table { width: 100%; border-collapse: collapse; margin: 30px 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-.article-part thead { background: #0f172a; color: #ffffff; }
-.article-part th, .article-part td { padding: 15px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-.article-part tr:hover { background: #f1f5f9; }
+.post-content .ui-checklist li,
+.post-content .check-item,
+.ui-checklist li,
+.check-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: #f9fafb;
+    margin-bottom: 0.6rem;
+    color: #334155;
+}
 
-/* Дизайн таблиц для WordPress (Type 1 клиенты) */
-.article-body table {
+.post-content .ui-checklist li:before,
+.ui-checklist li:before {
+    content: "✓";
+    color: #22c55e;
+    font-weight: bold;
+}
+
+/* Таблицы (Исправленные с приоритетом !important) */
+.post-content table,
+.article-part table,
+.article-body table,
+table.modern-table {
     width: 100% !important;
+    min-width: 600px !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    margin: 30px 0 !important;
+    margin: 2.5rem 0 !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
     overflow: hidden !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    background: #fff !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04) !important;
 }
 
+.post-content thead,
+.article-part thead,
 .article-body thead {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
+    background: #f1f5f9 !important;
 }
 
-.article-body th, .article-body td {
-    padding: 15px 20px !important;
-    text-align: left !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-}
-
+.post-content th,
+.article-part th,
 .article-body th {
+    padding: 14px 16px !important;
+    text-align: left !important;
     font-weight: 700 !important;
-    text-transform: uppercase;
-    font-size: 0.85em;
-    letter-spacing: 0.05em;
+    color: #0f172a !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
+    font-size: 0.95rem !important;
+    vertical-align: bottom !important;
+    white-space: normal !important;
 }
 
-.article-body tr:last-child td {
+.post-content td,
+.article-part td,
+.article-body td {
+    padding: 14px 16px !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.05) !important;
+    text-align: left !important;
+    color: #475569 !important;
+    vertical-align: top !important;
+    line-height: 1.5 !important;
+    white-space: normal !important;
+}
+
+.post-content th:first-child,
+.post-content td:first-child {
+    background-color: #fcfcfd !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
+
+.article-part tr:last-child td,
+.article-body tr:last-child td,
+.post-content tr:last-child td {
     border-bottom: none !important;
 }
 
-.article-body tr:hover td {
-    background-color: #f8fafc !important;
+.article-part tr:nth-child(even) td,
+.article-body tr:nth-child(even) td,
+.post-content tr:nth-child(even) td {
+    background: #f8fafc !important;
 }
 
-/* Фикс для синих ссылок */
-a { color: #2563eb !important; text-decoration: underline !important; font-weight: 700 !important; }
-a:hover { color: #1d4ed8 !important; }
+/* Изображения в контенте - ПРИНУДИТЕЛЬНЫЙ КРОП 3:2 */
+.post-content img,
+.article-part img,
+.article-body img {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 3 / 2 !important;
+    display: block;
+    margin: 2.5rem auto;
+    border-radius: 12px;
+    object-fit: cover !important;
+    object-position: center !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Главное фото статьи (Hero) - 16:9 как в Next.js */
+.single-thumb,
+.single-thumb img {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    object-fit: cover !important;
+    object-position: center 25% !important;
+    border-radius: 16px !important;
+    margin-bottom: 3rem !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Мобильная адаптивность */
+@media (max-width: 767px) {
+
+    .post-content table,
+    .article-part table,
+    .article-body table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+    }
+
+    .post-content img,
+    .article-part img,
+    .article-body img,
+    .single-thumb,
+    .single-thumb img {
+        margin-left: -28px !important;
+        margin-right: -28px !important;
+        width: calc(100% + 56px) !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+        aspect-ratio: 16 / 10 !important;
+    }
+}

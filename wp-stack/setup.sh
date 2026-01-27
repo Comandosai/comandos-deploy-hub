@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.5.2      ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.6.0      ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
@@ -81,11 +81,13 @@ download_if_missing() {
 
 download_if_missing "docker-compose.yml.j2"
 download_if_missing "comandos-wp.css"
+download_if_missing "user-guide.md.j2"
 
 # Копирование (если мы в режиме локальной разработки)
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ] && [ -f "$SCRIPT_DIR/docker-compose.yml.j2" ]; then
     cp "$SCRIPT_DIR/docker-compose.yml.j2" .
     cp "$SCRIPT_DIR/comandos-wp.css" .
+    cp "$SCRIPT_DIR/user-guide.md.j2" .
 fi
 
 # 5. Генерация конфигов (только если новая установка)
@@ -108,6 +110,9 @@ sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
     -e "s|{{SSL_EMAIL}}|$SSL_EMAIL_ESC|g" \
     -e "s|{{DB_PASSWORD}}|$DB_PASSWORD_ESC|g" \
     docker-compose.yml.j2 > docker-compose.yml
+
+sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
+    user-guide.md.j2 > user-guide.md
 
 # 6. Очистка (только при переустановке)
 if [ "$MODE" == "INSTALL" ]; then
@@ -207,9 +212,46 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 10. Финализация
+# 10. Автоматизация темы и стилей
+echo -e "\n${YELLOW}>>> Настройка темы и стилей (Comandos)...${NC}"
+
+# Ждем пока WP распакует файлы (если это первая установка)
+echo -e "${YELLOW}Ожидание инициализации файлов WordPress...${NC}"
+sleep 5
+
+# Путь к теме внутри контейнера
+THEME_PATH="/var/www/html/wp-content/themes/twentytwentyfive"
+
+# Проверяем наличие темы twentytwentyfive (базовая в 6.6+)
+docker exec comandos-wp bash -c "[ -d $THEME_PATH ]" && {
+    echo -e "${GREEN}Интеграция comandos-wp.css в базовую тему...${NC}"
+    
+    # Копируем CSS в тему
+    docker cp comandos-wp.css comandos-wp:$THEME_PATH/comandos-wp.css
+    
+    # Добавляем подключение в functions.php темы
+    docker exec comandos-wp bash -c "cat <<EOF_PHP >> $THEME_PATH/functions.php
+
+/**
+ * Comandos Engine Optimization: Auto-inject CSS
+ */
+add_action('wp_enqueue_scripts', function() {
+    wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', array(), '1.1');
+});
+
+add_action('after_setup_theme', function() {
+    add_editor_style('comandos-wp.css');
+});
+EOF_PHP"
+    echo -e "${GREEN}Стили интегрированы успешно.${NC}"
+} || {
+    echo -e "${YELLOW}Базовая тема не найдена. Скопируйте comandos-wp.css вручную в вашу тему.${NC}"
+}
+
+# 11. Финализация
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
-echo -e "📦 WordPress: https://$WP_DOMAIN/wp-admin"
-echo -e "🔑 Пароль БД:  $DB_PASSWORD"
+echo -e "📦 WordPress: https://$WP_DOMAIN/"
+echo -e "🔑 Админка:   https://$WP_DOMAIN/wp-admin"
+echo -e "💡 Инструкция по n8n: См. файл user-guide.md"
 echo -e "==============================================${NC}"
