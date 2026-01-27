@@ -19,10 +19,32 @@ add_action('after_setup_theme', function () {
     );
 });
 
+// КРИТИЧЕСКИЙ CSS: Встраиваем inline для мгновенной отрисовки
+add_action('wp_head', function() {
+    $critical_css = file_get_contents(get_template_directory() . '/critical.css');
+    if ($critical_css) {
+        echo '<style id="critical-css">' . $critical_css . '</style>';
+    }
+}, 1);
+
+// НЕКРИТИЧЕСКИЙ CSS: Загружаем асинхронно (не блокируем отрисовку)
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('autopipe-blog-style', get_stylesheet_uri(), [], '1.6');
-    wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', [], '1.6');
+    // Базовые стили темы - асинхронно
+    wp_enqueue_style('autopipe-blog-style', get_stylesheet_uri(), [], '1.7');
+    wp_style_add_data('autopipe-blog-style', 'media', 'print');
+    wp_style_add_data('autopipe-blog-style', 'onload', "this.media='all'");
+    
+    // Comandos стили - асинхронно
+    wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', [], '1.7');
+    wp_style_add_data('comandos-styles', 'media', 'print');
+    wp_style_add_data('comandos-styles', 'onload', "this.media='all'");
 });
+
+// Fallback для браузеров без JS
+add_action('wp_head', function() {
+    echo '<noscript><link rel="stylesheet" href="' . get_stylesheet_uri() . '"></noscript>';
+    echo '<noscript><link rel="stylesheet" href="' . get_template_directory_uri() . '/comandos-wp.css"></noscript>';
+}, 100);
 
 add_action('after_setup_theme', function () {
     add_editor_style('comandos-wp.css');
