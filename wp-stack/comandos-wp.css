@@ -25,16 +25,6 @@
     line-height: 1.2;
 }
 
-.post-content h3,
-.article-part h3,
-.article-body h3 {
-    font-size: 1.35rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    color: #0d0f12;
-    margin-bottom: 0.75rem;
-}
-
 .post-content p,
 .article-part p,
 .article-body p {
@@ -42,12 +32,6 @@
     margin-bottom: 1.75rem;
     color: #475569;
     font-size: 1.15rem;
-}
-
-.post-content strong,
-.article-part strong,
-.article-body strong {
-    color: #0d0f12;
 }
 
 /* Ссылки (как в Next.js) */
@@ -58,153 +42,17 @@
     text-decoration: underline !important;
     font-weight: 700 !important;
     text-underline-offset: 2px;
-    transition: color 0.2s ease;
 }
 
-.post-content a:hover,
-.article-part a:hover,
-.article-body a:hover {
-    color: #1d4ed8 !important;
-    text-decoration-thickness: 2px !important;
-}
-
-/* Содержание (TOC like Next.js) */
-.toc-container {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 24px;
-    margin: 32px 0;
-}
-
-.toc-title {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #64748b;
-    margin-bottom: 16px;
-    border: none !important;
-    padding: 0 !important;
-    display: block;
-}
-
-.toc-list {
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.toc-item {
-    position: relative;
-    padding-left: 18px !important;
-    margin: 0 !important;
-}
-
-.toc-item::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 6px;
-    width: 3px;
-    height: 12px;
-    border-radius: 999px;
-    background: #2563eb;
-}
-
-.toc-link {
-    color: #334155 !important;
-    text-decoration: none !important;
-    font-size: 1rem;
-    font-weight: 500 !important;
-    transition: color 0.15s ease;
-}
-
-.toc-link:hover {
-    color: #2563eb !important;
-}
-
-/* Статистика */
-.post-content .ui-stats,
-.post-content .stats-grid,
-.ui-stats,
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin: 2rem 0;
-}
-
-.post-content .stat-item,
-.post-content .ui-stats>*,
-.stat-item,
-.ui-stats>* {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    padding: 16px;
-    border-radius: 12px;
-    text-align: center;
-    color: #475569;
-}
-
-/* Советы (как callout в Next.js) */
-.post-content .ui-tip,
-.post-content .callout,
-.ui-tip,
-.callout {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-left: 5px solid #f97316;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 2rem 0;
-    color: #9a3412;
-    font-style: italic;
-}
-
-/* Чек-лист */
-.post-content .ui-checklist,
-.post-content .check-list,
-.ui-checklist,
-.check-list {
-    list-style: none !important;
-    padding-left: 0 !important;
-    margin: 1.25rem 0;
-}
-
-.post-content .ui-checklist li,
-.post-content .check-item,
-.ui-checklist li,
-.check-item {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: #f9fafb;
-    margin-bottom: 0.6rem;
-    color: #334155;
-}
-
-.post-content .ui-checklist li:before,
-.ui-checklist li:before {
-    content: "✓";
-    color: #22c55e;
-    font-weight: bold;
-}
-
-/* Таблицы (Десктоп) */
+/* ======================================================
+   ТАБЛИЦЫ (Десктоп)
+   ====================================================== */
 .post-content table,
 .article-part table,
-.article-body table,
-table.modern-table {
+.article-body table {
     width: 100% !important;
-    min-width: 600px;
-    /* НЕ ИСПОЛЬЗУЕМ !important ЗДЕСЬ, чтобы на мобиле перекрыть */
+    min-width: 600px !important;
+    /* На десктопе фиксируем ширину */
     border-collapse: separate !important;
     border-spacing: 0 !important;
     margin: 2.5rem 0 !important;
@@ -215,23 +63,14 @@ table.modern-table {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04) !important;
 }
 
-.post-content thead,
-.article-part thead,
-.article-body thead {
-    background: #f1f5f9 !important;
-}
-
 .post-content th,
 .article-part th,
 .article-body th {
     padding: 14px 16px !important;
-    text-align: left !important;
+    background: #f1f5f9 !important;
     font-weight: 700 !important;
     color: #0d0f12 !important;
     border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
-    font-size: 0.95rem !important;
-    vertical-align: bottom !important;
-    white-space: normal !important;
 }
 
 .post-content td,
@@ -239,36 +78,50 @@ table.modern-table {
 .article-body td {
     padding: 14px 16px !important;
     border-bottom: 1px solid rgba(15, 23, 42, 0.05) !important;
-    text-align: left !important;
     color: #475569 !important;
-    vertical-align: top !important;
-    line-height: 1.5 !important;
-    white-space: normal !important;
 }
 
-/* Изображения в контенте (Десктоп) */
+/* ======================================================
+   ИЗОБРАЖЕНИЯ (Десктоп)
+   ====================================================== */
 .post-content img,
 .article-part img,
 .article-body img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 2;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 3 / 2 !important;
+    /* Кроп для всех контентных фото */
     display: block;
     margin: 2.5rem auto;
     border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    object-fit: cover !important;
 }
 
-/* КРИТИЧНО: Специальные стили для автора, которые должны быть сильнее контентных */
-.author-card .avatar,
-.author-card img {
+/* ГЕРОЙ (Hero Image) */
+.single-thumb,
+.single-thumb img {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    object-fit: cover !important;
+    border-radius: 16px !important;
+    margin-bottom: 3rem !important;
+}
+
+/* ======================================================
+   КАРТОЧКА АВТОРА (Specific Overrides)
+   Цель: Перекрыть .post-content img более высокой специфичностью
+   ====================================================== */
+.post-content .author-card img,
+.article-part .author-card img,
+.article-body .author-card img {
     width: 64px !important;
     height: 64px !important;
     min-width: 64px !important;
     max-width: 64px !important;
     aspect-ratio: 1 / 1 !important;
+    /* Принудительный квадрат */
     border-radius: 50% !important;
+    /* Делаем круг */
     margin: 0 !important;
     object-fit: cover !important;
     box-shadow: none !important;
@@ -285,74 +138,69 @@ table.modern-table {
     margin: 3rem 0 !important;
 }
 
-/* Герой страницы */
-.single-thumb,
-.single-thumb img {
-    width: 100% !important;
-    aspect-ratio: 16 / 9 !important;
-    object-fit: cover !important;
-    border-radius: 16px !important;
-    margin-bottom: 3rem !important;
-}
-
-/* МОБИЛЬНАЯ ВЕРСИЯ */
+/* ======================================================
+   МОБИЛЬНАЯ АДАПТАЦИЯ (Viewport < 768px)
+   ====================================================== */
 @media (max-width: 767px) {
 
-    /* Фикс переполнения */
-    html,
-    body {
-        overflow-x: hidden;
-        position: relative;
-        width: 100% !important;
-    }
-
+    /* Фикс контейнера (Симметрия) */
     .site-inner {
-        padding-left: 20px !important;
-        padding-right: 20px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        margin: 0 !important;
         width: 100% !important;
-        box-sizing: border-box !important;
-        overflow: hidden !important;
-        /* На всякий случай */
-    }
-
-    /* Все картинки и таблицы в контенте */
-    .post-content img,
-    .article-part img,
-    .article-body img,
-    .post-content table,
-    .article-part table,
-    .article-body table {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
         box-sizing: border-box !important;
     }
 
+    /* ФИКС ТАБЛИЦ: Нейтрализуем 600px */
     .post-content table,
     .article-part table,
     .article-body table {
         min-width: 0 !important;
-        /* Перекрываем десктопный 600px */
+        /* ПРИНУДИТЕЛЬНО СБРАСЫВАЕМ */
+        width: 100% !important;
         display: block !important;
         overflow-x: auto !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 
-    /* ФИНАЛЬНЫЙ ФИКС АВАТАРКИ */
-    .author-card img {
+    /* ФИКС КАРТИНКИ: Одним коридором с текстом */
+    .post-content img,
+    .article-part img,
+    .article-body img {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        aspect-ratio: 16 / 10 !important;
+        /* Чуть шире на мобиле */
+        border-radius: 12px !important;
+    }
+
+    /* ФИКС АВАТАРКИ НА МОБИЛЕ */
+    .post-content .author-card img {
         width: 80px !important;
         height: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
-        border-radius: 99px !important;
-        margin: 0 auto 15px !important;
+        margin: 0 auto 12px !important;
         display: block !important;
+        border-radius: 999px !important;
     }
 
     .author-card {
         flex-direction: column !important;
         align-items: center !important;
         text-align: center !important;
-        padding: 20px !important;
+        padding: 1.25rem !important;
+    }
+
+    /* Убираем лишние бордеры статьи на мобиле */
+    .single-post {
+        padding: 16px !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
     }
 }
