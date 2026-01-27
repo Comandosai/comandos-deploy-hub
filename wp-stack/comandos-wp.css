@@ -113,11 +113,17 @@
     }
 
     .post-content table {
-        display: block !important;
+        display: table !important;
+        width: 100% !important;
         overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-        white-space: nowrap;
-        /* Важно для скролла узких таблиц */
+        margin: 1.5rem 0 !important;
+    }
+
+    /* Оборачиваем таблицу в контейнер через CSS если нет обертки в HTML */
+    .wp-block-table {
+        overflow-x: auto !important;
+        width: 100% !important;
+        display: block !important;
     }
 
     .author-card {
