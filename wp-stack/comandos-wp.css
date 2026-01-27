@@ -11,6 +11,18 @@
     --slate-200: #e2e8f0;
     --slate-100: #f1f5f9;
     --blue-600: #2563eb;
+    --primary: #4f46e5;
+}
+
+/* CUSTOM SELECTION */
+::selection {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+::-moz-selection {
+    background: var(--primary);
+    color: #ffffff;
 }
 
 /* ТИПОГРАФИКА */
