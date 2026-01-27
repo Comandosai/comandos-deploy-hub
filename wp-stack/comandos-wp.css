@@ -1,173 +1,175 @@
 /**
- * Comandos WP CSS - Optimized for Lighthouse 100
+ * Comandos WP CSS - Premium Version 2.0
+ * Optimized for Lighthouse 100 & High-End Aesthetics
  */
 
+/* PRESETS */
 :root {
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --font-serif: Georgia, 'Times New Roman', Times, serif;
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --slate-900: #0f172a;
+    --slate-800: #1e293b;
+    --slate-600: #475569;
+    --slate-200: #e2e8f0;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
-/* Typography */
+/* TYPOGRAPHY */
+.post-content {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--slate-800);
+}
+
 .post-content h2,
 .post-content h3 {
-    font-family: var(--font-serif);
-    font-size: 1.85rem;
+    color: var(--slate-900);
     font-weight: 700;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    color: #0d0f12;
+    letter-spacing: -0.025em;
+    margin-top: 3rem;
 }
 
-.post-content p {
-    line-height: 1.75;
-    margin-bottom: 1.5rem;
-    color: #475569;
-    font-size: 1.125rem;
+.post-content h2 {
+    font-size: 2rem;
+    border-left: 4px solid var(--primary);
+    padding-left: 1rem;
 }
 
-/* ======================================================
-   ТАБЛИЦЫ - Фикс ширины и переполнения
-   ====================================================== */
+.post-content h3 {
+    font-size: 1.5rem;
+}
+
+/* PREMIUM CARD: SINGLE POST */
+.single-post {
+    background: var(--white);
+    border-radius: 24px !important;
+    padding: 3rem !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid var(--slate-200) !important;
+}
+
+/* HERO IMAGE */
+.single-thumb {
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s ease;
+}
+
+.single-thumb:hover {
+    transform: translateY(-4px);
+}
+
+/* IMAGES IN CONTENT */
+.post-content img:not(.avatar) {
+    border-radius: 20px !important;
+    box-shadow: var(--shadow-md);
+    margin: 3rem 0;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+/* TABLES - MODERN & SCROLLABLE */
+.table-container,
+.wp-block-table {
+    margin: 3rem 0 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--slate-200) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
 .post-content table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    margin: 2rem 0 !important;
-    border: 1px solid #e2e8f0 !important;
-    font-size: 1rem !important;
-}
-
-.post-content th,
-.post-content td {
-    padding: 12px 14px !important;
-    border: 1px solid #e2e8f0 !important;
-    text-align: left !important;
+    margin: 0 !important;
+    border: none !important;
 }
 
 .post-content th {
     background: #f8fafc !important;
-    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em !important;
+    color: var(--slate-600) !important;
 }
 
-/* ======================================================
-   ИЗОБРАЖЕНИЯ - Фикс CLS и симметрии
-   ====================================================== */
-/* Основные изображения в контенте */
-.post-content img:not(.avatar):not(.author-card img) {
-    max-width: 100% !important;
-    height: auto !important;
-    border-radius: 12px;
-    margin: 2rem 0;
-    aspect-ratio: 1 / 1;
-    /* Предотвращает CLS */
-    object-fit: cover;
-}
-
-/* Hero Image */
-.single-thumb {
-    width: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-    /* Возвращаем к 1:1 как в HTML */
-    object-fit: cover !important;
-    border-radius: 16px !important;
-    margin-bottom: 2.5rem !important;
-}
-
-/* ======================================================
-   КАРТОЧКА АВТОРА
-   ====================================================== */
+/* AUTHOR CARD - PREMIUM REWRITE */
 .author-card {
     display: flex !important;
-    align-items: flex-start !important;
-    gap: 1.5rem !important;
-    padding: 1.75rem !important;
-    background: #f8fafc !important;
-    border-radius: 16px !important;
-    border: 1px solid #e2e8f0 !important;
-    margin: 3.5rem 0 !important;
+    align-items: center !important;
+    background: linear-gradient(to right bottom, #f8fafc, #f1f5f9) !important;
+    border-radius: 24px !important;
+    padding: 2rem !important;
+    gap: 2rem !important;
+    margin: 4rem 0 !important;
+    border: 1px solid var(--slate-200) !important;
+    box-shadow: var(--shadow-md) !important;
 }
 
 .author-card img {
-    width: 80px !important;
-    height: 80px !important;
-    min-width: 80px !important;
+    width: 100px !important;
+    height: 100px !important;
+    min-width: 100px !important;
     border-radius: 50% !important;
-    margin: 0 !important;
+    border: 4px solid var(--white) !important;
+    box-shadow: var(--shadow-sm) !important;
     object-fit: cover !important;
-    aspect-ratio: 1 / 1 !important;
 }
 
 .author-card h3 {
-    margin-top: 0 !important;
+    margin: 0 0 0.5rem 0 !important;
     font-size: 1.25rem !important;
-    margin-bottom: 0.5rem !important;
+    color: var(--slate-900) !important;
 }
 
 .author-card p {
+    margin: 0 !important;
     font-size: 1rem !important;
-    margin-bottom: 0.75rem !important;
+    color: var(--slate-600) !important;
     line-height: 1.6 !important;
 }
 
-/* ======================================================
-   MOBILE ADAPTATION
-   ====================================================== */
+/* MOBILE OPTIMIZATION */
 @media (max-width: 767px) {
-
-    html,
-    body {
-        overflow-x: hidden !important;
-        width: 100% !important;
-        position: relative;
-    }
-
-    .site-inner {
-        padding: 0 16px !important;
-        overflow-x: hidden !important;
-    }
-
-    .post-content table {
-        display: table !important;
-        width: 100% !important;
-        margin: 1.5rem 0 !important;
-    }
-
-    /* Принудительный контейнер для скролла */
-    .wp-block-table,
-    .table-container,
-    figure.wp-block-table {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        margin-bottom: 20px !important;
+    .single-post {
+        padding: 1.5rem !important;
+        border-radius: 16px !important;
     }
 
     .author-card {
         flex-direction: column !important;
-        align-items: center !important;
         text-align: center !important;
-        padding: 1.5rem !important;
+        padding: 2rem 1.5rem !important;
     }
 
-    /* ФИКС ГИГАНТСКОГО АВАТАРА НА МОБИЛКЕ */
     .author-card img {
         width: 80px !important;
         height: 80px !important;
         min-width: 80px !important;
-        max-width: 80px !important;
-        border-radius: 50% !important;
-        margin: 0 0 1rem 0 !important;
-        display: block !important;
-        object-fit: cover !important;
-        aspect-ratio: 1 / 1 !important;
+        margin: 0 auto !important;
     }
 
-    /* Убираем отрицательные марджины, если они были */
-    .post-content img:not(.author-card img),
-    .post-content table {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+    .post-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .post-content h3 {
+        font-size: 1.25rem;
+    }
+
+    /* ФИКС ШИРИНЫ И ПЕРЕПОЛНЕНИЯ */
+    html,
+    body {
+        overflow-x: hidden !important;
+    }
+
+    .table-container,
+    .wp-block-table {
+        display: block !important;
         width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 }
