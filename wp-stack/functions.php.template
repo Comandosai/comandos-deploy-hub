@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+add_action('after_setup_theme', function () {
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support(
+        'html5',
+        [
+            'search-form',
+            'comment-form',
+            'comment-list',
+            'gallery',
+            'caption',
+            'style',
+            'script',
+        ]
+    );
+});
+
+add_action('wp_enqueue_scripts', function () {
+    wp_enqueue_style('autopipe-blog-style', get_stylesheet_uri(), [], '1.6');
+    wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', [], '1.6');
+});
+
+add_action('after_setup_theme', function () {
+    add_editor_style('comandos-wp.css');
+});
+
+// МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: Добавляем display=swap для всех Google Шрифтов
+add_filter('style_loader_tag', function($html, $handle, $href) {
+    if (strpos($href, 'fonts.googleapis.com') !== false) {
+        return str_replace('rel=\'stylesheet\'', 'rel=\'stylesheet\' media=\'print\' onload=\'this.media=\"all\"\'', $html);
+    }
+    return $html;
+}, 10, 3);
+
+// РАЗРЕШЕНИЕ WEBP: Добавляем поддержку WebP, если сервер старый
+add_filter('upload_mimes', function($mimes) {
+    $mimes['webp'] = 'image/webp';
+    return $mimes;
+});
+
+// ОПТИМИЗАЦИЯ КОНТЕНТА: Очистка инлайн-стилей и защита ссылок
+add_filter('the_content', function ($content) {
+    // 1. Удаление инлайн-стилей (style="...")
+    $content = preg_replace('/ style=("|\').*?("|\')/i', '', $content);
+    
+    // 2. Защита ссылок Telegram (nofollow + noindex)
+    $content = preg_replace_callback('/<a [^>]*?href=("|\')https?:\/\/t\.me\/.*?("|\')[^>]*?>(.*?)<\/a>/i', function ($matches) {
+        $link = $matches[0];
+        // Добавляем rel="nofollow noopener", если его нет
+        if (!str_contains($link, 'rel=')) {
+            $link = str_replace('<a ', '<a rel="nofollow noopener" ', $link);
+        } elseif (!str_contains($link, 'nofollow')) {
+            $link = preg_replace('/rel=("|\')(.*?)("|\')/i', 'rel=$1$2 nofollow noopener$3', $link);
+        }
+        return '<noindex>' . $link . '</noindex>';
+    }, $content);
+    
+    return $content;
+}, 999);

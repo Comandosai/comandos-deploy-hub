@@ -142,8 +142,8 @@ if ! docker compose up -d; then
     exit 1
 fi
 
-# 9. Оптимизация Lighthouse (кэширование)
-echo -e "\n${YELLOW}>>> Оптимизация производительности (Lighthouse)...${NC}"
+# 9. Оптимизация Lighthouse (кэширование и сжатие)
+echo -e "\n${YELLOW}>>> Оптимизация производительности (Lighthouse v2)...${NC}"
 docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
 
 # Comandos Optimization: Browser Caching
@@ -153,6 +153,7 @@ docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
   ExpiresByType image/jpeg "access plus 1 year"
   ExpiresByType image/gif "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
   ExpiresByType text/css "access plus 1 month"
   ExpiresByType application/pdf "access plus 1 month"
   ExpiresByType text/javascript "access plus 1 month"
@@ -160,6 +161,14 @@ docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresDefault "access plus 2 days"
 </IfModule>
+
+# Comandos Optimization: Gzip Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/x-javascript application/json
+</IfModule>
+
+# Comandos Optimization: WebP Rewrite Support (Placeholder)
+# (If WebP images exist, serve them. Requires advanced configuration or plugins)
 EOF' || true
 
 # 9. Настройка Traefik
