@@ -87,19 +87,38 @@ add_filter('upload_mimes', function($mimes) {
 
 /**
  * АВТО-ГЕНЕРАЦИЯ WEBP ПРИ ЗАГРУЗКЕ
- * Создает .webp копию для каждого загруженного файла
+ * Создает .webp копию для оригинала и всех уменьшенных размеров (thumbnails)
  */
 add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id) {
     $file = get_attached_file($attachment_id);
     if (!file_exists($file)) return $metadata;
 
     $info = pathinfo($file);
-    if (in_array(strtolower($info['extension']), ['jpg', 'jpeg', 'png'])) {
-        $webp_file = $info['dirname'] . '/' . $info['filename'] . '.webp';
-        
+    $dirname = $info['dirname'];
+    $extensions = ['jpg', 'jpeg', 'png'];
+
+    if (in_array(strtolower($info['extension']), $extensions)) {
+        // 1. Создаем WebP для оригинала
+        $webp_file = $dirname . '/' . $info['filename'] . '.webp';
         $editor = wp_get_image_editor($file);
         if (!is_wp_error($editor)) {
             $editor->save($webp_file, 'image/webp');
+        }
+
+        // 2. Создаем WebP для всех нарезанных размеров
+        if (!empty($metadata['sizes'])) {
+            foreach ($metadata['sizes'] as $size_info) {
+                $size_file = $dirname . '/' . $size_info['file'];
+                if (file_exists($size_file)) {
+                    $size_path = pathinfo($size_file);
+                    $size_webp = $dirname . '/' . $size_path['filename'] . '.webp';
+                    
+                    $size_editor = wp_get_image_editor($size_file);
+                    if (!is_wp_error($size_editor)) {
+                        $size_editor->save($size_webp, 'image/webp');
+                    }
+                }
+            }
         }
     }
     return $metadata;
@@ -118,16 +137,19 @@ add_filter('the_content', function ($content) {
     $content = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
         $img = $matches[0];
         
-        // Попытка заменить на .webp если файл существует
+        // Попытка заменить на .webp если файл существует (поддержка .jpg, .jpeg, .png)
         if (preg_match('/src="([^"]+)\.(jpg|jpeg|png)"/i', $img, $src_matches)) {
-            $url = $src_matches[1] . '.' . $src_matches[2];
-            $webp_url = $src_matches[1] . '.webp';
+            $url_base = $src_matches[1];
+            $ext = $src_matches[2];
+            $webp_url = $url_base . '.webp';
             
-            // Проверка существования файла на диске (упрощенно через URL -> Path)
-            $path = str_replace(content_url(), WP_CONTENT_DIR, $webp_url);
+            // Проверка существования файла на диске (через относительный путь от uploads)
+            $uploads = wp_get_upload_dir();
+            $path = str_replace($uploads['baseurl'], $uploads['basedir'], $webp_url);
+            
             if (file_exists($path)) {
-                $img = str_replace($url, $webp_url, $img);
-                // Также фиксим srcset если он есть
+                $img = str_replace($url_base . '.' . $ext, $webp_url, $img);
+                // Также фиксим srcset для адаптивных изображений
                 $img = preg_replace('/\.(jpg|jpeg|png)(?=[ ,"])/i', '.webp', $img);
             }
         }
