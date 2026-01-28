@@ -19,7 +19,7 @@ cd "$PRODUCT_DIR" || exit 1
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.8.0      ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v2.0.0      ${NC}"
 echo -e "${BLUE}   DIR: $INSTALL_DIR                          ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
@@ -230,13 +230,14 @@ EOF_YAML
 fi
 
 # 10. Глубокая интеграция темы и стилей (Comandos Premium)
-echo -e "\n${YELLOW}>>> Создание и активация темы Autopipe Blog...${NC}"
+echo -e "\n${YELLOW}>>> Создание и активация темы Comandos Blog...${NC}"
 
-# Ожидание готовности
-sleep 5
+# Ожидание готовности (базе данных нужно время)
+echo -e "${YELLOW}Ожидание инициализации базы данных (20с)...${NC}"
+sleep 20
 
 # Путь к нашей кастомной теме
-THEME_NAME="autopipe-blog"
+THEME_NAME="comandos-blog"
 THEME_DIR="/var/www/html/wp-content/themes/$THEME_NAME"
 
 # Создаем папку темы в контейнере
@@ -258,28 +259,16 @@ sync_file "single.php" "$THEME_DIR/single.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical.css" "$THEME_DIR/critical.css"
 
-# Попытка активации темы через WP-CLI (если он есть)
-echo -e "${YELLOW}Активация темы...${NC}"
-if docker exec comandos-wp command -v wp &> /dev/null; then
-    docker exec -u www-data comandos-wp wp theme activate "$THEME_NAME"
-else
-    # Если WP-CLI нет, создаем временный скрипт для активации через PHP
-    ACTIVATE_PHP="<?php 
-    require_once('/var/www/html/wp-load.php');
-    switch_theme('$THEME_NAME');
-    echo 'Theme $THEME_NAME activated successfully.';
-    ?>"
-    echo "$ACTIVATE_PHP" > activate_theme.php
-    docker cp activate_theme.php comandos-wp:/var/www/html/activate_theme.php
-    docker exec comandos-wp php /var/www/html/activate_theme.php
-    rm activate_theme.php
-fi
+# Прямая активация через базу данных (Гарантированный способ)
+echo -e "${YELLOW}Принудительная активация темы через SQL...${NC}"
+docker exec comandos-db mysql -uwordpress -p"$DB_PASSWORD" wordpress -e \
+"UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
 
 # 11. Финализация
 echo -e "\n${GREEN}==============================================${NC}"
 echo -e "✅ СИСТЕМА ОБНОВЛЕНА И ПЕРЕНЕСЕНА В: $INSTALL_DIR"
 echo -e "📦 WordPress: https://$WP_DOMAIN/"
-echo -e "🎨 Тема:      Autopipe Blog (Premium)"
+echo -e "🎨 Тема:      Comandos Blog (Premium v2.0)"
 echo -e "🔑 Админка:   https://$WP_DOMAIN/wp-admin"
 echo -e "💡 Совет:     Если дизайн не обновился, сбросьте кэш браузера (Ctrl+F5)"
 echo -e "==============================================${NC}"
