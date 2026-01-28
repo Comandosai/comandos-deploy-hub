@@ -230,13 +230,17 @@ EOF_YAML
 fi
 
 # 10. Глубокая интеграция темы и стилей (Comandos Premium)
-echo -e "\n${YELLOW}>>> Применение премиум-стилей и логики...${NC}"
+echo -e "\n${YELLOW}>>> Создание и активация темы Autopipe Blog...${NC}"
 
 # Ожидание готовности
 sleep 5
 
-# Путь внутри контейнера (всегда берем стандартную тему для инъекции если нет кастомной)
-THEME_DIR="/var/www/html/wp-content/themes/twentytwentyfive"
+# Путь к нашей кастомной теме
+THEME_NAME="autopipe-blog"
+THEME_DIR="/var/www/html/wp-content/themes/$THEME_NAME"
+
+# Создаем папку темы в контейнере
+docker exec comandos-wp mkdir -p "$THEME_DIR"
 
 sync_file() {
     local src=$1
@@ -244,7 +248,7 @@ sync_file() {
     docker cp "$src" comandos-wp:"$dest" && echo -e "${GREEN}Синхронизирован: $src${NC}"
 }
 
-# Копируем все файлы логики и оформления в тему
+# Копируем все файлы в нашу новую тему
 sync_file "comandos-wp.css" "$THEME_DIR/comandos-wp.css"
 sync_file "functions.php" "$THEME_DIR/functions.php"
 sync_file "header.php" "$THEME_DIR/header.php"
@@ -254,10 +258,28 @@ sync_file "single.php" "$THEME_DIR/single.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical.css" "$THEME_DIR/critical.css"
 
+# Попытка активации темы через WP-CLI (если он есть)
+echo -e "${YELLOW}Активация темы...${NC}"
+if docker exec comandos-wp command -v wp &> /dev/null; then
+    docker exec -u www-data comandos-wp wp theme activate "$THEME_NAME"
+else
+    # Если WP-CLI нет, создаем временный скрипт для активации через PHP
+    ACTIVATE_PHP="<?php 
+    require_once('/var/www/html/wp-load.php');
+    switch_theme('$THEME_NAME');
+    echo 'Theme $THEME_NAME activated successfully.';
+    ?>"
+    echo "$ACTIVATE_PHP" > activate_theme.php
+    docker cp activate_theme.php comandos-wp:/var/www/html/activate_theme.php
+    docker exec comandos-wp php /var/www/html/activate_theme.php
+    rm activate_theme.php
+fi
+
 # 11. Финализация
 echo -e "\n${GREEN}==============================================${NC}"
-echo -e "✅ СИСТЕМА РАЗВЕРНУТА В: $INSTALL_DIR"
+echo -e "✅ СИСТЕМА ОБНОВЛЕНА И ПЕРЕНЕСЕНА В: $INSTALL_DIR"
 echo -e "📦 WordPress: https://$WP_DOMAIN/"
+echo -e "🎨 Тема:      Autopipe Blog (Premium)"
 echo -e "🔑 Админка:   https://$WP_DOMAIN/wp-admin"
-echo -e "💡 Инструкция по n8n: См. файл user-guide.md"
+echo -e "💡 Совет:     Если дизайн не обновился, сбросьте кэш браузера (Ctrl+F5)"
 echo -e "==============================================${NC}"
