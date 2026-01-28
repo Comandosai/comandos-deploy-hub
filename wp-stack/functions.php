@@ -133,37 +133,60 @@ add_filter('the_content', function ($content) {
     $content = preg_replace('/<h4([^>]*)>Автор:/i', '<h3$1>Автор:', $content);
     $content = str_replace('</h4>', '</h3>', $content);
 
-    // 4. Оптимизация изображений: WebP + Lazy + Decoding
-    $content = preg_replace_callback('/<img([^>]+)>/i', function($matches) {
+/**
+ * УНИВЕРСАЛЬНАЯ ПОДМЕНА JPEG/PNG НА WEBP В HTML
+ * Автоматически находит изображения и заменяет их на .webp версии, если они существуют на диске
+ */
+function comandos_apply_webp_replacement($html) {
+    if (is_admin()) return $html;
+
+    return preg_replace_callback('/<img([^>]+)>/i', function($matches) {
         $img = $matches[0];
         
-        // Попытка заменить на .webp если файл существует (поддержка .jpg, .jpeg, .png)
+        // 1. Обработка основного src
         if (preg_match('/src="([^"]+)\.(jpg|jpeg|png)"/i', $img, $src_matches)) {
             $url_base = $src_matches[1];
             $ext = $src_matches[2];
             $webp_url = $url_base . '.webp';
             
-            // Проверка существования файла на диске (через относительный путь от uploads)
+            // Проверка существования файла на диске
             $uploads = wp_get_upload_dir();
             $path = str_replace($uploads['baseurl'], $uploads['basedir'], $webp_url);
             
             if (file_exists($path)) {
                 $img = str_replace($url_base . '.' . $ext, $webp_url, $img);
-                // Также фиксим srcset для адаптивных изображений
+                // 2. Обработка srcset для корректной работы адаптивности
                 $img = preg_replace('/\.(jpg|jpeg|png)(?=[ ,"])/i', '.webp', $img);
             }
         }
 
+        // 3. Добавление оптимизаций (Lazy + Async) если их нет
         if (strpos($img, 'loading=') === false) {
             $img = str_replace('<img ', '<img loading="lazy" ', $img);
         }
         if (strpos($img, 'decoding=') === false) {
             $img = str_replace('<img ', '<img decoding="async" ', $img);
         }
-        return $img;
-    }, $content);
 
-    // 5. Авто-определение карточки автора: добавляем класс .author-card-avatar к картинке
+        return $img;
+    }, $html);
+}
+
+// Применяем фильтр ко всем возможным выходам изображений
+add_filter('the_content', 'comandos_apply_webp_replacement', 999);
+add_filter('post_thumbnail_html', 'comandos_apply_webp_replacement', 999);
+add_filter('get_header_image_tag', 'comandos_apply_webp_replacement', 999);
+
+// ОПТИМИЗАЦИЯ КОНТЕНТА: Очистка инлайн-стилей и защита ссылок
+add_filter('the_content', function ($content) {
+    // 1. Удаление инлайн-стилей (style="...")
+    $content = preg_replace('/ style=("|\').*?("|\')/i', '', $content);
+    
+    // 2. Исправление иерархии заголовков в карточке автора (H4 -> H3)
+    $content = preg_replace('/<h4([^>]*)>Автор:/i', '<h3$1>Автор:', $content);
+    $content = str_replace('</h4>', '</h3>', $content);
+
+    // 3. Авто-определение карточки автора: добавляем обертку для аватара
     $content = preg_replace(
         '/(<img[^>]*src="[^"]*gravatar\.com[^>]*>)/i', 
         '<span class="author-avatar-wrapper">$1</span>', 
@@ -171,4 +194,4 @@ add_filter('the_content', function ($content) {
     );
 
     return $content;
-}, 999);
+}, 998); // Запускаем чуть раньше WebP фильтра
