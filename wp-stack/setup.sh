@@ -7,12 +7,20 @@ RED='\033[0;31m'
 NC='\033[0m'
 DEFAULT_CERT_RESOLVER="mytlschallenge"
 
-# Определяем, где лежит сам скрипт
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 0. Стандартизация директории
+BASE_DIR="$HOME/comandos"
+PRODUCT_DIR="$BASE_DIR/wordpress"
+
+# Создаем структуру если её нет
+mkdir -p "$PRODUCT_DIR"
+
+# Переходим в директорию продукта
+cd "$PRODUCT_DIR" || exit 1
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.6.0      ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v1.8.0      ${NC}"
+echo -e "${BLUE}   DIR: $INSTALL_DIR                          ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
 # 1. Проверка окружения
