@@ -30,8 +30,12 @@ body {
 }
 
 a {
-  color: inherit;
+  color: #4f46e5;
   text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 .site-header {

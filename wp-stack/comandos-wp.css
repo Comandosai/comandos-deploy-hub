@@ -22,6 +22,27 @@
     color: var(--slate-800);
 }
 
+/* ССЫЛКИ В ТЕКСТЕ */
+.post-content p a,
+.post-content li a,
+.post-content td a {
+    color: var(--primary) !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(79, 70, 229, 0.4) !important;
+    text-underline-offset: 4px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.post-content p a:hover,
+.post-content li a:hover,
+.post-content td a:hover {
+    color: #4338ca !important;
+    text-decoration-color: #4338ca !important;
+    background: rgba(79, 70, 229, 0.05) !important;
+    border-radius: 4px !important;
+}
+
 .post-content h1.post-title,
 h1.post-title {
     font-size: 3.2rem !important;
@@ -338,6 +359,7 @@ h1.post-title {
         overflow-x: hidden !important;
     }
 }
+
 /* БЛОКИ ОФФЕРОВ (CTA) - СТИЛИЗАЦИЯ ПОД TOC @ 4.0 */
 
 /* Hard CTA Box (Основное предложение) */
@@ -437,11 +459,11 @@ h1.post-title {
     .hard-cta-box {
         padding: 2.5rem 1.5rem !important;
     }
-    
+
     .hard-cta-box h3 {
         font-size: 1.5rem !important;
     }
-    
+
     .hard-cta-box .btn-primary,
     .hard-cta-box a[href*="http"] {
         width: 100% !important;
