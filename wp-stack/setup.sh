@@ -69,25 +69,28 @@ GITHUB_BASE="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/ma
 
 download_if_missing() {
     local file=$1
-    if [ ! -f "$file" ]; then
-        echo -e "${YELLOW}Файл $file не найден. Скачиваю из GitHub...${NC}"
-        curl -sL "$GITHUB_BASE/$file" -o "$file"
-        if [ ! -f "$file" ]; then
-            echo -e "${RED}Ошибка: не удалось скачать $file${NC}"
-            exit 1
-        fi
+    echo -e "${YELLOW}Проверка $file...${NC}"
+    curl -sL "$GITHUB_BASE/$file" -o "$file"
+    if [ ! -s "$file" ]; then
+        echo -e "${RED}Ошибка: не удалось скачать или файл пуст: $file${NC}"
+        exit 1
     fi
 }
 
-download_if_missing "docker-compose.yml.j2"
-download_if_missing "comandos-wp.css"
-download_if_missing "user-guide.md.j2"
+# Список файлов для полной премиум-сборки
+FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical.css")
 
-# Копирование (если мы в режиме локальной разработки)
-if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ] && [ -f "$SCRIPT_DIR/docker-compose.yml.j2" ]; then
-    cp "$SCRIPT_DIR/docker-compose.yml.j2" .
-    cp "$SCRIPT_DIR/comandos-wp.css" .
-    cp "$SCRIPT_DIR/user-guide.md.j2" .
+for file in "${FILES[@]}"; do
+    download_if_missing "$file"
+done
+
+# Копирование (если мы в режиме локальной разработки) - теперь для всех файлов
+if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
+    for file in "${FILES[@]}"; do
+        if [ -f "$SCRIPT_DIR/$file" ]; then
+            cp "$SCRIPT_DIR/$file" .
+        fi
+    done
 fi
 
 # 5. Генерация конфигов (только если новая установка)
@@ -135,12 +138,9 @@ fi
 echo -e "\n${YELLOW}>>> Обновление образов...${NC}"
 docker compose pull >/dev/null 2>&1 || true
 
-# 8. Запуск
-echo -e "\n${GREEN}>>> Запуск контейнеров в $INSTALL_DIR...${NC}"
-if ! docker compose up -d; then
-    echo -e "${RED}Ошибка запуска контейнеров. Проверьте логи: docker compose logs${NC}"
-    exit 1
-fi
+# 8. Запуск (или обновление)
+echo -e "\n${GREEN}>>> Запуск/Обновление контейнеров...${NC}"
+docker compose up -d
 
 # 9. Оптимизация Lighthouse (кэширование и сжатие)
 echo -e "\n${YELLOW}>>> Оптимизация производительности (Lighthouse v2)...${NC}"
@@ -221,41 +221,30 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 10. Автоматизация темы и стилей
-echo -e "\n${YELLOW}>>> Настройка темы и стилей (Comandos)...${NC}"
+# 10. Глубокая интеграция темы и стилей (Comandos Premium)
+echo -e "\n${YELLOW}>>> Применение премиум-стилей и логики...${NC}"
 
-# Ждем пока WP распакует файлы (если это первая установка)
-echo -e "${YELLOW}Ожидание инициализации файлов WordPress...${NC}"
+# Ожидание готовности
 sleep 5
 
-# Путь к теме внутри контейнера
-THEME_PATH="/var/www/html/wp-content/themes/twentytwentyfive"
+# Путь внутри контейнера (всегда берем стандартную тему для инъекции если нет кастомной)
+THEME_DIR="/var/www/html/wp-content/themes/twentytwentyfive"
 
-# Проверяем наличие темы twentytwentyfive (базовая в 6.6+)
-docker exec comandos-wp bash -c "[ -d $THEME_PATH ]" && {
-    echo -e "${GREEN}Интеграция comandos-wp.css в базовую тему...${NC}"
-    
-    # Копируем CSS в тему
-    docker cp comandos-wp.css comandos-wp:$THEME_PATH/comandos-wp.css
-    
-    # Добавляем подключение в functions.php темы
-    docker exec comandos-wp bash -c "cat <<EOF_PHP >> $THEME_PATH/functions.php
-
-/**
- * Comandos Engine Optimization: Auto-inject CSS
- */
-add_action('wp_enqueue_scripts', function() {
-    wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', array(), '1.1');
-});
-
-add_action('after_setup_theme', function() {
-    add_editor_style('comandos-wp.css');
-});
-EOF_PHP"
-    echo -e "${GREEN}Стили интегрированы успешно.${NC}"
-} || {
-    echo -e "${YELLOW}Базовая тема не найдена. Скопируйте comandos-wp.css вручную в вашу тему.${NC}"
+sync_file() {
+    local src=$1
+    local dest=$2
+    docker cp "$src" comandos-wp:"$dest" && echo -e "${GREEN}Синхронизирован: $src${NC}"
 }
+
+# Копируем все файлы логики и оформления в тему
+sync_file "comandos-wp.css" "$THEME_DIR/comandos-wp.css"
+sync_file "functions.php" "$THEME_DIR/functions.php"
+sync_file "header.php" "$THEME_DIR/header.php"
+sync_file "footer.php" "$THEME_DIR/footer.php"
+sync_file "index.php" "$THEME_DIR/index.php"
+sync_file "single.php" "$THEME_DIR/single.php"
+sync_file "style.css" "$THEME_DIR/style.css"
+sync_file "critical.css" "$THEME_DIR/critical.css"
 
 # 11. Финализация
 echo -e "\n${GREEN}==============================================${NC}"
