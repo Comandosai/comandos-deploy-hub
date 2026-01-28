@@ -16,7 +16,7 @@ services:
       - comandos-internal
 
   comandos-wp:
-    image: wordpress:6.6-php8.2-apache
+    image: wordpress:php8.2-apache
     container_name: comandos-wp
     restart: unless-stopped
     depends_on:
