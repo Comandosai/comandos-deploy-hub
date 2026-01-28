@@ -81,7 +81,7 @@ h1.post-title {
     border-radius: 8px !important;
     border: 1px solid transparent !important;
     background: linear-gradient(var(--white), var(--white)) padding-box,
-        linear-gradient(to right, var(--primary), var(--slate-200)) border-box !important;
+        linear-gradient(to right, rgba(79, 70, 229, 0.2), rgba(241, 245, 249, 0.2)) border-box !important;
 }
 
 .post-content table {
@@ -109,59 +109,219 @@ h1.post-title {
     background: #fafafa !important;
 }
 
-/* КАРТОЧКА АВТОРА - ФИКС ДЕКСТОПА И МОБИЛКИ */
+/* КАРТОЧКА АВТОРА - РОБАСТНЫЙ ФИКС ДЛЯ WP */
 .author-card {
     display: flex !important;
-    flex-direction: row !important;
-    /* Декстоп: в ряд */
     align-items: center !important;
+    justify-content: center !important;
     border-radius: 20px !important;
-    padding: 2rem !important;
-    gap: 2rem !important;
+    padding: 24px !important;
     margin: 4rem 0 !important;
     border: 1px solid transparent !important;
-    background: linear-gradient(var(--slate-100), var(--slate-100)) padding-box,
-        linear-gradient(to right, var(--primary), var(--slate-200)) border-box !important;
+    background: linear-gradient(var(--white), var(--white)) padding-box,
+        linear-gradient(to right, rgba(79, 70, 229, 0.15), rgba(241, 245, 249, 0.15)) border-box !important;
+    box-sizing: border-box !important;
 }
 
-.author-card img {
+/* Гибкая сетка для контента (Desktop) */
+.author-card,
+.author-card div {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 24px !important;
+    width: 100% !important;
+}
+
+/* Текстовые элементы внутри - всегда блоки */
+.author-card h3,
+.author-card h4,
+.author-card p,
+.author-card a {
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+
+/* Убираем мусор от WordPress */
+.author-card p:empty,
+.author-card br {
+    display: none !important;
+}
+
+/* АВАТАР - ВЕРСИЯ 3.9 (МАКСИМАЛЬНЫЙ ПРИОРИТЕТ) */
+.author-avatar-wrapper,
+.author-card .author-avatar-wrapper {
+    display: block !important;
     width: 80px !important;
     height: 80px !important;
     min-width: 80px !important;
     max-width: 80px !important;
+    margin: 0 auto 20px auto !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    aspect-ratio: 1 / 1 !important;
+}
+
+.author-avatar-wrapper img,
+.author-card img,
+.author-card .author-avatar-wrapper img {
+    all: revert !important;
+    display: block !important;
+    width: 80px !important;
+    /* Жесткий размер для победы над 100vw */
+    height: 80px !important;
+    /* Жесткий размер для победы над 100vw */
+    aspect-ratio: 1 / 1 !important;
+    object-fit: cover !important;
+    border: 3px solid var(--primary) !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2) !important;
     border-radius: 50% !important;
     margin: 0 !important;
-    object-fit: cover !important;
-    border: 3px solid #fff !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 0 !important;
 }
 
-.author-card div {
+.author-card .author-info,
+.author-card div div {
     flex: 1 !important;
+    min-width: 280px !important;
+    display: block !important;
+    /* Текстовая колонка */
 }
 
-.author-card h3 {
-    margin: 0 0 0.5rem 0 !important;
+.author-card h3,
+.author-card h4 {
+    margin: 0 0 8px 0 !important;
     font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    color: var(--slate-900) !important;
 }
 
 .author-card p {
-    margin: 0 !important;
+    margin: 0 0 12px 0 !important;
     font-size: 1rem !important;
-    line-height: 1.5 !important;
+    line-height: 1.6 !important;
+    color: var(--slate-600) !important;
+}
+
+.author-card a {
+    display: inline-block !important;
+    color: var(--primary) !important;
+    text-decoration: none !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    transition: transform 0.2s ease !important;
+}
+
+.author-card a:hover {
+    transform: translateX(5px) !important;
+}
+
+/* УПРОЩЕННЫЙ ФОРМАТ FAQ */
+.post-content summary {
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 0.75rem !important;
+    cursor: pointer !important;
+    color: var(--slate-900) !important;
+}
+
+.post-content details {
+    margin-bottom: 2rem !important;
+    padding-bottom: 1rem !important;
+    border-bottom: 1px solid var(--slate-100) !important;
+}
+
+.post-content details>*:not(summary) {
+    color: var(--slate-700) !important;
+    line-height: 1.6 !important;
+    font-size: 1.05rem !important;
+    padding-left: 1.5rem !important;
+}
+
+/* СОДЕРЖАНИЕ (TOC) - Стеклянный стиль (Сбалансированный) */
+.toc-box {
+    margin: 3rem 0 !important;
+    padding: 2.25rem !important;
+    border-radius: 20px !important;
+    border: 1px solid transparent !important;
+    /* Легкий голубоватый градиент фона (под цвет ссылок) */
+    background: linear-gradient(to bottom right, rgba(238, 242, 255, 0.9), rgba(245, 247, 255, 0.7)) padding-box,
+        linear-gradient(to right, rgba(79, 70, 229, 0.35), rgba(147, 197, 253, 0.25)) border-box !important;
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+.toc-box strong {
+    display: block !important;
+    font-size: 1.25rem !important;
+    margin-bottom: 1rem !important;
+    color: var(--slate-900) !important;
+}
+
+.toc-box ul {
+    margin: 0 !important;
+    padding-left: 1.25rem !important;
+    list-style-type: none !important;
+}
+
+.toc-box li {
+    margin-bottom: 0.5rem !important;
+}
+
+.toc-box a {
+    text-decoration: none !important;
+    color: var(--primary) !important;
+    font-weight: 500 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.toc-box a:hover {
+    opacity: 0.8 !important;
 }
 
 /* МОБИЛЬНАЯ АДАПТАЦИЯ */
 @media (max-width: 767px) {
+
+    /* МОБИЛЬНЫЙ ФИКС @ 3.9 */
     .author-card {
-        flex-direction: column !important;
-        /* Мобайл: в колонку */
+        display: block !important;
         text-align: center !important;
+        padding: 40px 24px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 4rem 0 !important;
     }
 
-    .author-card img {
-        margin: 0 auto 1.5rem !important;
+    /* Все элементы внутри карточки - центрированные блоки */
+    .author-card div,
+    .author-card .author-info {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        margin: 0 auto 12px auto !important;
+        padding: 0 !important;
+        flex: none !important;
     }
+
+    /* Исключаем обертку аватара из правила width: 100% */
+    .author-card .author-avatar-wrapper {
+        width: 80px !important;
+        margin: 0 auto 24px auto !important;
+        display: block !important;
+    }
+
+    .author-card h3,
+    .author-card h4,
+    .author-card p,
+    .author-card a {
+        text-align: center !important;
+        width: 100% !important;
+        margin: 0 auto 12px auto !important;
+        display: block !important;
+    }
+
 
     .post-content h1.post-title,
     h1.post-title {
@@ -176,5 +336,116 @@ h1.post-title {
     html,
     body {
         overflow-x: hidden !important;
+    }
+}
+/* БЛОКИ ОФФЕРОВ (CTA) - СТИЛИЗАЦИЯ ПОД TOC @ 4.0 */
+
+/* Hard CTA Box (Основное предложение) */
+.hard-cta-box {
+    margin: 4rem 0 !important;
+    padding: 3rem 2.5rem !important;
+    border-radius: 24px !important;
+    border: 1px solid transparent !important;
+    /* Стеклянный голубоватый фон как в TOC */
+    background: linear-gradient(to bottom right, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.9)) padding-box,
+        linear-gradient(to right, #4f46e5, #93c5fd) border-box !important;
+    box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.1) !important;
+    text-align: center !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.hard-cta-box h3 {
+    color: #0f172a !important;
+    margin: 0 0 1.5rem 0 !important;
+    font-size: 1.75rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+}
+
+.hard-cta-box p {
+    font-size: 1.1rem !important;
+    line-height: 1.7 !important;
+    color: #475569 !important;
+    margin: 0 auto 2.5rem auto !important;
+    max-width: 700px;
+}
+
+/* Кнопка в Hard CTA */
+.hard-cta-box .btn-primary,
+.hard-cta-box a[href*="http"] {
+    display: inline-block !important;
+    background: #4f46e5 !important;
+    color: #fff !important;
+    padding: 18px 40px !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    text-decoration: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3) !important;
+    border: none !important;
+}
+
+.hard-cta-box .btn-primary:hover,
+.hard-cta-box a[href*="http"]:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4) !important;
+    background: #4338ca !important;
+    color: #fff !important;
+}
+
+/* Soft CTA Box (Ad Box) */
+.ad-box {
+    margin: 3.5rem 0 !important;
+    padding: 24px 32px !important;
+    background: #f8fafc !important;
+    border-left: 5px solid #4f46e5 !important;
+    border-radius: 4px 20px 20px 4px !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+}
+
+.ad-box p {
+    margin: 0 0 16px 0 !important;
+    font-size: 1.1rem !important;
+    color: #1e293b !important;
+    line-height: 1.6 !important;
+}
+
+.ad-box strong {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+.ad-box a {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: #4f46e5 !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    font-size: 1.05rem !important;
+    gap: 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+.ad-box a:hover {
+    gap: 15px !important;
+    opacity: 0.9 !important;
+}
+
+@media (max-width: 767px) {
+    .hard-cta-box {
+        padding: 2.5rem 1.5rem !important;
+    }
+    
+    .hard-cta-box h3 {
+        font-size: 1.5rem !important;
+    }
+    
+    .hard-cta-box .btn-primary,
+    .hard-cta-box a[href*="http"] {
+        width: 100% !important;
+        padding: 16px 20px !important;
+        box-sizing: border-box !important;
     }
 }
