@@ -19,7 +19,7 @@ cd "$PRODUCT_DIR" || exit 1
 INSTALL_DIR=$(pwd)
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v2.0.0      ${NC}"
+echo -e "${BLUE}   COMANDOS WP ENGINE - INSTALLER v2.2.0      ${NC}"
 echo -e "${BLUE}   DIR: $INSTALL_DIR                          ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 
@@ -229,12 +229,8 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 10. Глубокая интеграция темы и стилей (Comandos Premium)
-echo -e "\n${YELLOW}>>> Создание и активация темы Comandos Blog...${NC}"
-
-# Ожидание готовности (базе данных нужно время)
-echo -e "${YELLOW}Ожидание инициализации базы данных (20с)...${NC}"
-sleep 20
+# 10. Глубокая интеграция темы (Comandos Premium)
+echo -e "\n${YELLOW}>>> Подготовка темы Comandos Blog...${NC}"
 
 # Путь к нашей кастомной теме
 THEME_NAME="comandos-blog"
@@ -259,16 +255,24 @@ sync_file "single.php" "$THEME_DIR/single.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical.css" "$THEME_DIR/critical.css"
 
-# Прямая активация через базу данных (Гарантированный способ)
-echo -e "${YELLOW}Принудительная активация темы через SQL...${NC}"
+# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ
+echo -e "\n${BLUE}==============================================${NC}"
+echo -e "${YELLOW}ШАГ 1:${NC} Перейдите по ссылке: ${GREEN}https://$WP_DOMAIN/wp-admin/install.php${NC}"
+echo -e "${YELLOW}ШАГ 2:${NC} Завершите установку WordPress (создайте админа)."
+echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы."
+echo -e "${BLUE}==============================================${NC}"
+
+read -p "Нажмите [ENTER] после завершения установки в браузере..."
+
+echo -e "\n${YELLOW}>>> Принудительная активация темы через SQL...${NC}"
 docker exec comandos-db mysql -uwordpress -p"$DB_PASSWORD" wordpress -e \
 "UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
 
 # 11. Финализация
 echo -e "\n${GREEN}==============================================${NC}"
-echo -e "✅ СИСТЕМА ОБНОВЛЕНА И ПЕРЕНЕСЕНА В: $INSTALL_DIR"
+echo -e "✅ СИСТЕМА ГОТОВА И ПЕРЕНЕСЕНА В: $INSTALL_DIR"
 echo -e "📦 WordPress: https://$WP_DOMAIN/"
-echo -e "🎨 Тема:      Comandos Blog (Premium v2.0)"
+echo -e "🎨 Тема:      Comandos Blog (Premium v2.2.0)"
 echo -e "🔑 Админка:   https://$WP_DOMAIN/wp-admin"
 echo -e "💡 Совет:     Если дизайн не обновился, сбросьте кэш браузера (Ctrl+F5)"
 echo -e "==============================================${NC}"
