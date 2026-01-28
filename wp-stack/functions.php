@@ -124,15 +124,6 @@ add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id
     return $metadata;
 }, 10, 2);
 
-// ОПТИМИЗАЦИЯ КОНТЕНТА: Очистка инлайн-стилей и защита ссылок
-add_filter('the_content', function ($content) {
-    // 1. Удаление инлайн-стилей (style="...")
-    $content = preg_replace('/ style=("|\').*?("|\')/i', '', $content);
-    
-    // 3. Исправление иерархии заголовков в карточке автора (H4 -> H3)
-    $content = preg_replace('/<h4([^>]*)>Автор:/i', '<h3$1>Автор:', $content);
-    $content = str_replace('</h4>', '</h3>', $content);
-
 /**
  * УНИВЕРСАЛЬНАЯ ПОДМЕНА JPEG/PNG НА WEBP В HTML
  * Автоматически находит изображения и заменяет их на .webp версии, если они существуют на диске
