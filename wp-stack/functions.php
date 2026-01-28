@@ -58,6 +58,26 @@ add_action('after_setup_theme', function () {
     add_editor_style('comandos-wp.css');
 });
 
+/**
+ * РЕГИСТРАЦИЯ SEO METADATA ДЛЯ REST API
+ * Позволяет внешним инструментам (n8n) сохранять данные Yoast SEO через API
+ */
+add_action('init', function() {
+    $meta_fields = [
+        '_yoast_wpseo_title',
+        '_yoast_wpseo_metadesc',
+        '_yoast_wpseo_focuskw'
+    ];
+
+    foreach ($meta_fields as $field) {
+        register_meta('post', $field, [
+            'show_in_rest' => true,
+            'single'       => true,
+            'type'         => 'string',
+        ]);
+    }
+});
+
 
 // РАЗРЕШЕНИЕ WEBP: Добавляем поддержку WebP
 add_filter('upload_mimes', function($mimes) {
