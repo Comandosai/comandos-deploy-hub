@@ -26,7 +26,7 @@ ORIGINAL_DIR=""
 EXTERNAL_IP=""
 
 # Версии ПО
-N8N_VERSION="1.76.1"
+N8N_VERSION="latest"
 POSTGRES_VERSION="16-alpine"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
@@ -57,7 +57,6 @@ print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
 
-# Функция для корректного чтения ввода при использовании curl | bash
 smart_read() {
     local prompt=$1
     local var_name=$2
@@ -83,28 +82,12 @@ check_dependencies() {
 
 check_system_requirements() {
     print_header "Проверка системы"
-    # Метрика в МБ для точности
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
     if [ "$TOTAL_RAM" -lt 1800 ]; then
         print_error "Меньше 2 ГБ ОЗУ ($TOTAL_RAM МБ). Установка прервана."
         exit 1
     fi
     print_success "ОЗУ: $TOTAL_RAM МБ - OK"
-}
-
-check_ubuntu_version() {
-    print_header "Проверка ОС"
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        case $VERSION_ID in
-            "20.04"|"22.04"|"24.04")
-                print_success "Ubuntu $VERSION_ID LTS - Поддерживается"
-                ;;
-            *)
-                print_warning "Версия Ubuntu $VERSION_ID официально не тестировалась, но попробуем..."
-                ;;
-        esac
-    fi
 }
 
 check_ports() {
@@ -146,7 +129,6 @@ check_dns_and_ip() {
 load_existing_config() {
     if [ -f "$PROJECT_DIR/.env" ]; then
         print_info "Загрузка существующих настроек из .env..."
-        # Загружаем переменные корректно
         set -a
         [ -f "$PROJECT_DIR/.env" ] && . "$PROJECT_DIR/.env"
         set +a
@@ -181,10 +163,23 @@ gather_user_input() {
     while [ -z "$ADMIN_PASSWORD" ]; do
         smart_read "Придумайте пароль для входа в n8n: " ADMIN_PASSWORD true
     done
+
+    # Вытаскиваем существующий ключ шифрования, если он есть
+    if [ -f "$PROJECT_DIR/n8n_data/config" ]; then
+        print_info "Обнаружен существующий конфиг n8n. Извлекаем ключ шифрования..."
+        EXISTING_KEY=$(grep -oP '"encryptionKey":\s*"\K[^"]+' "$PROJECT_DIR/n8n_data/config" || echo "")
+        if [ -n "$EXISTING_KEY" ]; then
+            ENCRYPTION_KEY="$EXISTING_KEY"
+            print_success "Ключ шифрования восстановлен."
+        fi
+    fi
+
+    if [ -z "${ENCRYPTION_KEY:-}" ]; then
+        ENCRYPTION_KEY=$(openssl rand -hex 32)
+    fi
     
-    ENCRYPTION_KEY=$(openssl rand -hex 32)
-    REDIS_PASSWORD=$(openssl rand -hex 16)
-    POSTGRES_PASSWORD=$(openssl rand -hex 16)
+    REDIS_PASSWORD=${REDIS_PASSWORD:-$(openssl rand -hex 16)}
+    POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}
 }
 
 create_config_files() {
@@ -198,23 +193,37 @@ create_config_files() {
     local n8n_mem_limit=$((system_ram_mb / 2))
     local n8n_old_space=$((n8n_mem_limit * 80 / 100))
 
-    if [ ! -f .env ] || [[ ${change_cfg:-"n"} =~ ^[Yy]$ ]]; then
-        cat > .env << EOF
+    cat > .env << EOF
 DOMAIN_NAME=$DOMAIN
 SSL_EMAIL=$SSL_EMAIL
 GENERIC_TIMEZONE=Europe/Moscow
-N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-$ENCRYPTION_KEY}
+N8N_ENCRYPTION_KEY=$ENCRYPTION_KEY
 N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET:-$(openssl rand -hex 32)}
-REDIS_PASSWORD=${REDIS_PASSWORD:-$REDIS_PASSWORD}
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-$POSTGRES_PASSWORD}
+REDIS_PASSWORD=$REDIS_PASSWORD
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 DB_TYPE=postgresdb
 DB_POSTGRESDB_HOST=postgres
 DB_POSTGRESDB_DATABASE=n8n
 DB_POSTGRESDB_USER=n8n
-DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-$POSTGRES_PASSWORD}
+DB_POSTGRESDB_PASSWORD=$POSTGRES_PASSWORD
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 EOF
-    fi
+
+    # Создание traefik_dynamic.yml по ТЗ
+    cat > traefik_dynamic.yml << EOF
+http:
+  routers:
+    n8n-router:
+      rule: "Host(\`$DOMAIN\`)"
+      entryPoints: ["websecure"]
+      service: "n8n-service"
+      tls: { certResolver: "mytlschallenge" }
+  services:
+    n8n-service:
+      loadBalancer:
+        servers:
+          - url: "http://n8n-docker-pro-n8n-1:5678"
+EOF
 
     cat > docker-compose.yml << EOF
 version: '3.8'
@@ -223,8 +232,7 @@ services:
     image: traefik:$TRAEFIK_VERSION
     restart: always
     command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.websecure.address=:443"
@@ -235,6 +243,7 @@ services:
     volumes:
       - traefik_data:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik_dynamic.yml:/etc/traefik/dynamic.yml:ro
 
   postgres:
     image: postgres:$POSTGRES_VERSION
@@ -263,15 +272,12 @@ services:
 
   n8n:
     build: .
+    image: comandos-n8n:latest
+    container_name: n8n-docker-pro-n8n-1
     restart: always
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(\`\${DOMAIN_NAME}\`)"
-      - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.tls.certresolver=mytlschallenge"
     environment:
       - N8N_HOST=\${DOMAIN_NAME}
       - N8N_PORT=5678
@@ -296,10 +302,13 @@ services:
 
   n8n-worker:
     build: .
-    command: worker
+    image: comandos-n8n:latest
+    entrypoint: /bin/sh
+    command: -c "n8n worker"
     restart: always
     depends_on: [n8n]
     environment:
+      - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_DATABASE=n8n
@@ -318,7 +327,7 @@ volumes:
 EOF
 
     cat > Dockerfile << EOF
-FROM n8nio/n8n:$N8N_VERSION
+FROM n8nio/n8n:latest
 USER root
 RUN apk add --no-cache python3 py3-pip make g++ build-base cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev font-noto font-noto-cjk font-noto-emoji terminus-font ttf-dejavu ttf-freefont ttf-font-awesome ttf-liberation
 RUN ln -sf python3 /usr/bin/python
@@ -331,29 +340,24 @@ EOF
 start_services() {
     print_header "Запуск сервисов"
     cd "$PROJECT_DIR"
-    print_info "Сборка образа и запуск (это может занять 1-3 минуты)..."
+    print_info "Подтягивание последних образов и сборка..."
+    docker compose pull
     docker compose up -d --build
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
-    print_info "Логин: $SSL_EMAIL"
 }
 
 main() {
-    if [ "$EUID" -ne 0 ]; then print_error "Нужен sudo! Запустите: sudo bash <(curl ...)"; exit 1; fi
-    
+    if [ "$EUID" -ne 0 ]; then print_error "Нужен sudo!"; exit 1; fi
     print_logo
     ORIGINAL_DIR=$(pwd)
-    
     check_dependencies
-    check_ubuntu_version
     check_system_requirements
     check_ports
     install_docker
     gather_user_input
     create_config_files
     start_services
-    
-    print_header "Установка завершена успешно"
 }
 
 case "${1:-}" in
