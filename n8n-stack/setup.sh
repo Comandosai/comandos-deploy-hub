@@ -26,7 +26,7 @@ ORIGINAL_DIR=""
 EXTERNAL_IP=""
 
 # Версии ПО
-N8N_VERSION="latest-debian"
+N8N_VERSION="1-debian"
 POSTGRES_VERSION="16-alpine"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
@@ -333,11 +333,11 @@ EOF
     cat > Dockerfile << EOF
 FROM n8nio/n8n:$N8N_VERSION
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     python3 python3-pip make g++ build-essential \
     libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
-    fonts-noto fonts-noto-cjk fonts-noto-color-emoji \
-    xfonts-terminus fonts-dejavu fonts-freefont-ttf \
+    fonts-noto fonts-noto-cjk fonts-dejavu fonts-freefont-ttf \
     fonts-font-awesome fonts-liberation && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN ln -sf python3 /usr/bin/python
