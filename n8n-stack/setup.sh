@@ -166,9 +166,13 @@ gather_user_input() {
         smart_read "Введите Email для SSL-сертификата: " SSL_EMAIL
     done
 
-    ADMIN_PASSWORD=""
-    while [ -z "$ADMIN_PASSWORD" ]; do
-        smart_read "Придумайте пароль для входа в n8n: " ADMIN_PASSWORD true
+    while true; do
+        smart_read "Придумайте пароль администратора n8n (мин. 8 символов, цифра, заглавная буква): " ADMIN_PASSWORD true
+        if [[ ${#ADMIN_PASSWORD} -ge 8 && "$ADMIN_PASSWORD" =~ [0-9] && "$ADMIN_PASSWORD" =~ [A-Z] ]]; then
+            break
+        else
+            print_error "Пароль слишком простой! Требования: минимум 8 символов, хотя бы одна цифра и одна заглавная буква (A-Z)."
+        fi
     done
 
     # Вытаскиваем существующий ключ шифрования, если он есть
