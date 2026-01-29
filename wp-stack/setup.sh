@@ -287,29 +287,33 @@ sync_file() {
     local src=$1
     local dest=$2
     docker cp "$src" comandos-wp:"$dest" && echo -e "${GREEN}Синхронизирован: $src${NC}"
+    docker exec comandos-wp chown www-data:www-data "$dest"
 }
 
 # Копируем все файлы в нашу новую тему
 sync_file "comandos-wp.css" "$THEME_DIR/comandos-wp.css"
 sync_file "functions.php" "$THEME_DIR/functions.php"
-sync_file "header.php" "$THEME_DIR/header.php"
-sync_file "footer.php" "$THEME_DIR/footer.php"
-sync_file "index.php" "$THEME_DIR/index.php"
 sync_file "single.php" "$THEME_DIR/single.php"
-sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical.css" "$THEME_DIR/critical.css"
 
-# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ
-echo -e "\n${BLUE}==============================================${NC}"
-echo -e "${YELLOW}ШАГ 1:${NC} Перейдите по ссылке: ${GREEN}https://$WP_DOMAIN/wp-admin/install.php${NC}"
-echo -e "${YELLOW}ШАГ 2:${NC} Завершите установку WordPress (создайте админа)."
-echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы."
-echo -e "${BLUE}==============================================${NC}"
+# Пытаемся регенерировать миниатюры (если есть wp-cli)
+print_info "Попытка регенерации миниатюр для новых размеров..."
+docker exec comandos-wp wp media regenerate --yes --allow-root 2>/dev/null || print_warning "WP-CLI не найден, пропустил регенерацию."
 
-read -p "Нажмите [ENTER] после завершения установки в браузере..."
+# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ
+if [ "$MODE" == "INSTALL" ]; then
+    echo -e "\n${BLUE}==============================================${NC}"
+    echo -e "${YELLOW}ШАГ 1:${NC} Перейдите по ссылке: ${GREEN}https://$WP_DOMAIN/wp-admin/install.php${NC}"
+    echo -e "${YELLOW}ШАГ 2:${NC} Завершите установку WordPress (создайте админа)."
+    echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы."
+    echo -e "${BLUE}==============================================${NC}"
+    read -p "Нажмите [ENTER] после завершения установки в браузере..."
+fi
 
 print_warning "Принудительная активация темы через SQL..."
-docker exec comandos-db mysql -uwordpress -p"$DB_PASSWORD" wordpress -e \
+# Пытаемся найти пароль БД в .env или берем из переменной
+DB_PASS_SQL="${DB_PASSWORD:-$(grep DB_PASSWORD .env | cut -d= -f2)}"
+docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
 "UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
 
 # 11. Финализация
