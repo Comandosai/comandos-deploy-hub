@@ -142,9 +142,16 @@ gather_user_input() {
     print_header "Настройка n8n PRO"
     
     if load_existing_config && [ -n "$DOMAIN" ]; then
+        print_info "Обнаружена существующая установка n8n PRO."
         print_warning "Текущий домен: $DOMAIN"
-        smart_read "Изменить настройки проекта? (y/N): " change_cfg
-        if [[ ! $change_cfg =~ ^[Yy]$ ]]; then return 0; fi
+        smart_read "Хотите использовать старые настройки (домен, email, пароли)? (Y/n): " use_old
+        if [[ $use_old =~ ^[Nn]$ ]]; then 
+            DOMAIN=""
+            SSL_EMAIL=""
+            ADMIN_PASSWORD=""
+        else
+            return 0 
+        fi
     fi
 
     DOMAIN=""
