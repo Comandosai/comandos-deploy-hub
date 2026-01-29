@@ -5,6 +5,10 @@ declare(strict_types=1);
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
+    
+    // КАСТОМНЫЕ РАЗМЕРЫ (Для идеальной производительности Lighthouse)
+    add_image_size('comandos-thumb', 500, 281, true); // 16:9 для "Читайте также"
+    
     add_theme_support(
         'html5',
         [
@@ -17,6 +21,36 @@ add_action('after_setup_theme', function () {
             'script',
         ]
     );
+});
+
+// УДАЛЕНИЕ EMOJIS (Убирает лишние JS/CSS запросы)
+add_action('init', function() {
+    remove_action('wp_head', 'print_emoji_detection_script', 7);
+    remove_action('admin_print_scripts', 'print_emoji_detection_script');
+    remove_action('wp_print_styles', 'print_emoji_styles');
+    remove_action('admin_print_styles', 'print_emoji_styles');
+    remove_filter('the_content_feed', 'wp_staticize_emoji');
+    remove_filter('comment_text_rss', 'wp_staticize_emoji');
+    remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
+    add_filter('tiny_mce_plugins', function($plugins) {
+        if (is_array($plugins)) { return array_diff($plugins, ['wpemoji']); }
+        return [];
+    });
+    add_filter('wp_resource_hints', function($urls, $relation_type) {
+        if ('dns-prefetch' === $relation_type) {
+            $emoji_svg_url = apply_filters('emoji_svg_url', 'https://s.w.org/images/core/emoji/14.0.0/svg/');
+            $urls = array_diff($urls, [$emoji_svg_url]);
+        }
+        return $urls;
+    }, 10, 2);
+});
+
+// КЭШИРОВАНИЕ ЗАГОЛОВКОВ (Для Lighthouse Best Practices)
+add_action('send_headers', function() {
+    if (!is_admin()) {
+        header('Cache-Control: public, max-age=31536000, immutable');
+        header('X-Content-Type-Options: nosniff');
+    }
 });
 
 // КРИТИЧЕСКИЙ CSS: Встраиваем inline для мгновенной отрисовки
@@ -32,6 +66,21 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style('comandos-blog-style', get_stylesheet_uri(), [], '4.1');
     wp_enqueue_style('comandos-custom-styles', get_template_directory_uri() . '/comandos-wp.css', [], '4.1');
 });
+
+/**
+ * Функция для получения похожих статей по категориям
+ */
+function comandos_get_related_posts($post_id, $count = 3) {
+    $categories = wp_get_post_categories($post_id);
+    if (empty($categories)) return [];
+
+    return get_posts([
+        'category__in'   => $categories,
+        'post__not_in'   => [$post_id],
+        'posts_per_page' => $count,
+        'orderby'        => 'rand'
+    ]);
+}
 
 // ASYNC LOADING: Модифицируем HTML напрямую для асинхронной загрузки
 add_filter('style_loader_tag', function($html, $handle, $href) {
@@ -185,4 +234,4 @@ add_filter('the_content', function ($content) {
     );
 
     return $content;
-}, 998); // Запускаем чуть раньше WebP фильтра
+}, 998);

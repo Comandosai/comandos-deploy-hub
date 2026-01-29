@@ -192,7 +192,7 @@ docker compose up -d
 print_header "ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ (Lighthouse v2.4.5)..."
 docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
 
-# Comandos Optimization: Browser Caching
+# Comandos Optimization: Browser Caching & Performance
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/jpg "access plus 1 year"
@@ -206,6 +206,12 @@ docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
   ExpiresByType application/x-javascript "access plus 1 month"
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresDefault "access plus 2 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf)$">
+    Header set Cache-Control "max-age=31536000, public"
+  </FilesMatch>
 </IfModule>
 
 # Comandos Optimization: Gzip Compression

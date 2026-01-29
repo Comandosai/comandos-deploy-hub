@@ -12,6 +12,28 @@
     --slate-100: #f1f5f9;
     --blue-600: #2563eb;
     --primary: #4f46e5;
+    --white: #ffffff;
+}
+
+/* СТАБИЛИЗАЦИЯ ШАПКИ И ОТСТУПОВ (CLS FIX) */
+.site-header {
+    min-height: 80px;
+    /* Фиксируем минимальную высоту шапки */
+    display: flex;
+    align-items: center;
+    background: #fff;
+}
+
+.site-main {
+    padding-top: 2rem !important;
+}
+
+.site-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ТИПОГРАФИКА */
@@ -79,18 +101,20 @@ h1.post-title {
     display: block !important;
     max-width: 100% !important;
     height: auto !important;
-    margin: 0 auto !important;
+    margin: 1.5rem auto !important;
     border-radius: 12px !important;
-    aspect-ratio: 3 / 2 !important;
-    object-fit: cover !important;
+    /* Убрали жесткий aspect-ratio 3/2, чтобы не было CLS при несовпадении пропорций */
+    object-fit: contain !important;
 }
 
 .single-thumb {
     width: 100% !important;
-    aspect-ratio: 3 / 2 !important;
+    aspect-ratio: 16 / 9 !important;
     object-fit: cover !important;
     border-radius: 16px !important;
-    margin: 2rem 0 3rem !important;
+    margin: 1rem 0 2rem !important;
+    background: var(--slate-100);
+    /* Плейсхолдер до загрузки */
 }
 
 /* ТАБЛИЦЫ - ВОЗВРАТ ЧИТАЕМОСТИ */
@@ -469,5 +493,86 @@ h1.post-title {
         width: 100% !important;
         padding: 16px 20px !important;
         box-sizing: border-box !important;
+    }
+}
+
+/* БЛОК «ЧИТАЙТЕ ТАКЖЕ» @ 4.1 */
+.related-posts {
+    margin: 5rem 0 3rem !important;
+    padding-top: 3rem !important;
+    border-top: 1px solid var(--slate-100) !important;
+}
+
+.related-title {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: var(--slate-900) !important;
+    margin-bottom: 2rem !important;
+    letter-spacing: -0.02em !important;
+}
+
+.related-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+}
+
+.related-item {
+    text-decoration: none !important;
+    display: block !important;
+    transition: all 0.3s ease !important;
+}
+
+.related-item:hover {
+    transform: translateY(-5px) !important;
+}
+
+.related-thumb-wrapper {
+    width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: var(--slate-100) !important;
+    margin-bottom: 12px !important;
+}
+
+.related-thumb {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: transform 0.5s ease !important;
+}
+
+.related-item:hover .related-thumb {
+    transform: scale(1.05) !important;
+}
+
+.related-item-title {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    color: var(--slate-800) !important;
+    margin: 0 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    /* Стандартное свойство */
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    transition: color 0.2s ease !important;
+}
+
+.related-item:hover .related-item-title {
+    color: var(--primary) !important;
+}
+
+@media (max-width: 767px) {
+    .related-grid {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+
+    .related-posts {
+        margin-top: 4rem !important;
     }
 }

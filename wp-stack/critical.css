@@ -28,11 +28,11 @@ a {
 
 /* ЗАГОЛОВКИ */
 h1.post-title {
-    font-size: 2.8rem !important;
+    font-size: 3.2rem !important;
     line-height: 1.2 !important;
     font-weight: 800 !important;
     margin-bottom: 2rem !important;
-    letter-spacing: -0.03em !important;
+    letter-spacing: -0.04em !important;
 }
 
 /* ФИКС CLS: Резервирование для шапки */
@@ -44,13 +44,13 @@ h1.post-title {
 
 /* ФИКС CLS: Hero-изображение */
 .single-thumb {
-    aspect-ratio: 3 / 2 !important;
+    aspect-ratio: 16 / 9 !important;
     width: 100% !important;
     height: auto !important;
     background: #f1f5f9;
     border-radius: 12px !important;
     display: block;
-    margin: 2rem 0 !important;
+    margin: 1rem 0 2rem !important;
 }
 
 /* ТАБЛИЦЫ - Базовая структура для CLS */

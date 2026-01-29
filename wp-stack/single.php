@@ -16,6 +16,35 @@ get_header();
       <div class="post-content">
         <?php the_content(); ?>
       </div>
+
+      <!-- Блок Читайте также -->
+      <?php
+      $related_posts = comandos_get_related_posts(get_the_ID());
+      if ($related_posts) : ?>
+        <section class="related-posts">
+          <h3 class="related-title">Читайте также</h3>
+          <div class="related-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+            <?php foreach ($related_posts as $post) : setup_postdata($post); ?>
+              <a href="<?php the_permalink(); ?>" class="related-item" style="text-decoration: none; display: block;">
+                <div class="related-thumb-wrapper" style="width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #f1f5f9; margin-bottom: 12px;">
+                  <?php if (has_post_thumbnail()) : ?>
+                    <?php the_post_thumbnail('comandos-thumb', [
+                      'class' => 'related-thumb', 
+                      'style' => 'width: 100%; height: 100%; object-fit: cover;',
+                      'width' => '500',
+                      'height' => '281'
+                    ]); ?>
+                  <?php else : ?>
+                    <div class="related-thumb-placeholder" style="width: 100%; height: 100%; background: #e2e8f0;"></div>
+                  <?php endif; ?>
+                </div>
+                <h4 class="related-item-title" style="font-size: 1rem; font-weight: 700; line-height: 1.4; color: #1e293b; margin: 0;"><?php the_title(); ?></h4>
+              </a>
+            <?php endforeach; wp_reset_postdata(); ?>
+          </div>
+        </section>
+      <?php endif; ?>
+
       <a class="back-link" href="<?php echo esc_url(home_url('/')); ?>">← Назад к списку</a>
     </article>
   <?php endwhile; ?>
