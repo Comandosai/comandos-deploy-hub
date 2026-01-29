@@ -333,7 +333,13 @@ EOF
     cat > Dockerfile << EOF
 FROM n8nio/n8n:$N8N_VERSION
 USER root
-RUN apk add --no-cache python3 py3-pip make g++ build-base cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev font-noto font-noto-cjk font-noto-emoji terminus-font ttf-dejavu ttf-freefont ttf-font-awesome ttf-liberation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip make g++ build-essential \
+    libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
+    fonts-noto fonts-noto-cjk fonts-noto-color-emoji \
+    xfonts-terminus fonts-dejavu fonts-freefont-ttf \
+    fonts-font-awesome fonts-liberation && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN ln -sf python3 /usr/bin/python
 USER node
 EOF
