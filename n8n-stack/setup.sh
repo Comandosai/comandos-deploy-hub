@@ -226,7 +226,6 @@ http:
 EOF
 
     cat > docker-compose.yml << EOF
-version: '3.8'
 services:
   traefik:
     image: traefik:$TRAEFIK_VERSION
@@ -272,7 +271,6 @@ services:
 
   n8n:
     build: .
-    image: comandos-n8n:latest
     container_name: n8n-docker-pro-n8n-1
     restart: always
     depends_on:
@@ -302,7 +300,6 @@ services:
 
   n8n-worker:
     build: .
-    image: comandos-n8n:latest
     entrypoint: /bin/sh
     command: -c "n8n worker"
     restart: always
@@ -327,7 +324,7 @@ volumes:
 EOF
 
     cat > Dockerfile << EOF
-FROM n8nio/n8n:latest
+FROM n8nio/n8n:$N8N_VERSION
 USER root
 RUN apk add --no-cache python3 py3-pip make g++ build-base cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev font-noto font-noto-cjk font-noto-emoji terminus-font ttf-dejavu ttf-freefont ttf-font-awesome ttf-liberation
 RUN ln -sf python3 /usr/bin/python
@@ -340,11 +337,17 @@ EOF
 start_services() {
     print_header "Запуск сервисов"
     cd "$PROJECT_DIR"
-    print_info "Сборка образа и запуск (автоматическое обновление до последней версии)..."
-    # Сначала пытаемся подтянуть только внешние образы (postgres, redis, traefik), игнорируя ошибки для локальных
-    docker compose pull postgres redis traefik || true
-    # Собираем локальный образ, принудительно обновляя базовый n8nio/n8n:latest
-    docker compose up -d --build --pull
+    print_info "Подготовка образов и запуск..."
+    
+    # 1. Тянем только внешние готовые образы
+    docker compose pull postgres redis traefik
+    
+    # 2. Собираем локальный n8n, принудительно обновляя базовый n8nio/n8n:latest
+    docker compose build --pull
+    
+    # 3. Запускаем всё
+    docker compose up -d
+    
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
 }
