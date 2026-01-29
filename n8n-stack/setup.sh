@@ -26,7 +26,7 @@ ORIGINAL_DIR=""
 EXTERNAL_IP=""
 
 # Версии ПО
-N8N_VERSION="latest"
+N8N_VERSION="latest-debian"
 POSTGRES_VERSION="16-alpine"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
