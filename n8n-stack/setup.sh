@@ -68,6 +68,7 @@ smart_read() {
         echo
     else
         read -rp "$prompt" value < /dev/tty
+    fi
     eval "$var_name=\"\$value\""
 }
 
@@ -75,29 +76,47 @@ check_dependencies() {
     print_header "Проверка зависимостей"
     if ! command -v lsof &> /dev/null; then
         print_info "Установка lsof..."
-        apt-get update -qq && apt-get install -y -qq lsof > /dev/null
+        apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq lsof > /dev/null
     fi
     print_success "Зависимости проверены"
 }
 
 check_system_requirements() {
     print_header "Проверка системы"
+    # Метрика в МБ для точности
     TOTAL_RAM=$(free -m | awk '/^Mem:/{print $2}')
     if [ "$TOTAL_RAM" -lt 1800 ]; then
-        print_error "Меньше 2 ГБ ОЗУ. Установка не рекомендуется."
+        print_error "Меньше 2 ГБ ОЗУ ($TOTAL_RAM МБ). Установка прервана."
         exit 1
     fi
-    print_success "ОЗУ: $TOTAL_RAM МБ"
+    print_success "ОЗУ: $TOTAL_RAM МБ - OK"
+}
+
+check_ubuntu_version() {
+    print_header "Проверка ОС"
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        case $VERSION_ID in
+            "20.04"|"22.04"|"24.04")
+                print_success "Ubuntu $VERSION_ID LTS - Поддерживается"
+                ;;
+            *)
+                print_warning "Версия Ubuntu $VERSION_ID официально не тестировалась, но попробуем..."
+                ;;
+        esac
+    fi
 }
 
 check_ports() {
     print_header "Проверка портов"
+    local conflict=false
     for port in 80 443; do
         if lsof -Pi :"$port" -sTCP:LISTEN -t >/dev/null ; then
             print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
-            exit 1
+            conflict=true
         fi
     done
+    if [ "$conflict" = true ]; then exit 1; fi
     print_success "Порты 80, 443 свободны"
 }
 
@@ -119,43 +138,49 @@ check_dns_and_ip() {
     
     if [ -z "$resolved_ip" ]; then
         print_error "Домен $DOMAIN не направлен на этот сервер."
-        print_warning "Создайте A-запись для домена, указывающую на $EXTERNAL_IP"
-        smart_read "Нажмите Enter, когда создадите запись... " dummy
+        print_warning "Создайте A-запись для домена, указывающую на IP: $EXTERNAL_IP"
+        smart_read "Нажмите Enter, когда создадите запись (или Ctrl+C для отмены)... " dummy
     fi
 }
 
 load_existing_config() {
     if [ -f "$PROJECT_DIR/.env" ]; then
         print_info "Загрузка существующих настроек из .env..."
+        # Загружаем переменные корректно
         set -a
-        source "$PROJECT_DIR/.env"
+        [ -f "$PROJECT_DIR/.env" ] && . "$PROJECT_DIR/.env"
         set +a
-        DOMAIN=$DOMAIN_NAME
+        DOMAIN=${DOMAIN_NAME:-""}
         return 0
     fi
     return 1
 }
 
 gather_user_input() {
-    print_header "Настройка"
+    print_header "Настройка n8n PRO"
     
-    if load_existing_config; then
+    if load_existing_config && [ -n "$DOMAIN" ]; then
         print_warning "Текущий домен: $DOMAIN"
-        smart_read "Изменить настройки? (y/N): " change_cfg
+        smart_read "Изменить настройки проекта? (y/N): " change_cfg
         if [[ ! $change_cfg =~ ^[Yy]$ ]]; then return 0; fi
     fi
 
+    DOMAIN=""
     while [[ ! $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
-        smart_read "Введите домен (например, n8n.example.com): " DOMAIN
+        smart_read "Введите домен для n8n (например: n8n.bash.ru): " DOMAIN
     done
 
     check_dns_and_ip
 
+    SSL_EMAIL=""
     while [[ ! $SSL_EMAIL =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
-        smart_read "Введите Email (для SSL): " SSL_EMAIL
+        smart_read "Введите Email для SSL-сертификата: " SSL_EMAIL
     done
 
-    smart_read "Придумайте пароль администратора: " ADMIN_PASSWORD true
+    ADMIN_PASSWORD=""
+    while [ -z "$ADMIN_PASSWORD" ]; do
+        smart_read "Придумайте пароль для входа в n8n: " ADMIN_PASSWORD true
+    done
     
     ENCRYPTION_KEY=$(openssl rand -hex 32)
     REDIS_PASSWORD=$(openssl rand -hex 16)
@@ -163,7 +188,7 @@ gather_user_input() {
 }
 
 create_config_files() {
-    print_header "Создание конфигурации"
+    print_header "Создание файлов конфигурации"
     mkdir -p "$PROJECT_DIR/n8n_data" "$PROJECT_DIR/postgres_data" "$PROJECT_DIR/redis_data" "$PROJECT_DIR/output"
     chown -R 1000:1000 "$PROJECT_DIR/n8n_data" "$PROJECT_DIR/output"
     
@@ -173,7 +198,8 @@ create_config_files() {
     local n8n_mem_limit=$((system_ram_mb / 2))
     local n8n_old_space=$((n8n_mem_limit * 80 / 100))
 
-    cat > .env << EOF
+    if [ ! -f .env ] || [[ ${change_cfg:-"n"} =~ ^[Yy]$ ]]; then
+        cat > .env << EOF
 DOMAIN_NAME=$DOMAIN
 SSL_EMAIL=$SSL_EMAIL
 GENERIC_TIMEZONE=Europe/Moscow
@@ -188,6 +214,7 @@ DB_POSTGRESDB_USER=n8n
 DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-$POSTGRES_PASSWORD}
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 EOF
+    fi
 
     cat > docker-compose.yml << EOF
 version: '3.8'
@@ -302,23 +329,31 @@ EOF
 }
 
 start_services() {
-    print_header "Запуск"
+    print_header "Запуск сервисов"
     cd "$PROJECT_DIR"
+    print_info "Сборка образа и запуск (это может занять 1-3 минуты)..."
     docker compose up -d --build
-    print_success "Система запущена! Доступ: https://$DOMAIN"
+    print_success "Система запущена!"
+    print_info "Доступ: https://$DOMAIN"
+    print_info "Логин: $SSL_EMAIL"
 }
 
 main() {
-    if [ "$EUID" -ne 0 ]; then print_error "Нужен sudo!"; exit 1; fi
+    if [ "$EUID" -ne 0 ]; then print_error "Нужен sudo! Запустите: sudo bash <(curl ...)"; exit 1; fi
+    
     print_logo
     ORIGINAL_DIR=$(pwd)
+    
     check_dependencies
+    check_ubuntu_version
     check_system_requirements
     check_ports
     install_docker
     gather_user_input
     create_config_files
     start_services
+    
+    print_header "Установка завершена успешно"
 }
 
 case "${1:-}" in
