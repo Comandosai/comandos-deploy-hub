@@ -296,9 +296,15 @@ sync_file "functions.php" "$THEME_DIR/functions.php"
 sync_file "single.php" "$THEME_DIR/single.php"
 sync_file "critical.css" "$THEME_DIR/critical.css"
 
-# Пытаемся регенерировать миниатюры (если есть wp-cli)
-print_info "Попытка регенерации миниатюр для новых размеров..."
-docker exec comandos-wp wp media regenerate --yes --allow-root 2>/dev/null || print_warning "WP-CLI не найден, пропустил регенерацию."
+# Установка WP-CLI и регенерация миниатюр
+print_info "Установка WP-CLI и регенерация миниатюр..."
+docker exec -u 0 comandos-wp bash -c "
+  if [ ! -f /usr/local/bin/wp ]; then
+    curl -sSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
+    chmod +x /usr/local/bin/wp
+  fi
+  wp media regenerate --yes --allow-root
+" || print_warning "Не удалось запустить регенерацию миниатюр."
 
 # ИНТЕРАКТИВНАЯ АКТИВАЦИЯ
 if [ "$MODE" == "INSTALL" ]; then
