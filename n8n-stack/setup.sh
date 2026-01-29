@@ -340,9 +340,11 @@ EOF
 start_services() {
     print_header "Запуск сервисов"
     cd "$PROJECT_DIR"
-    print_info "Подтягивание последних образов и сборка..."
-    docker compose pull
-    docker compose up -d --build
+    print_info "Сборка образа и запуск (автоматическое обновление до последней версии)..."
+    # Сначала пытаемся подтянуть только внешние образы (postgres, redis, traefik), игнорируя ошибки для локальных
+    docker compose pull postgres redis traefik || true
+    # Собираем локальный образ, принудительно обновляя базовый n8nio/n8n:latest
+    docker compose up -d --build --pull
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
 }
