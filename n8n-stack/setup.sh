@@ -331,17 +331,22 @@ volumes:
 EOF
 
     cat > Dockerfile << EOF
-FROM n8nio/n8n:$N8N_VERSION
+FROM node:20-bookworm-slim
 USER root
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     python3 python3-pip make g++ build-essential \
     libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
     fonts-noto fonts-noto-cjk fonts-dejavu fonts-freefont-ttf \
-    fonts-font-awesome fonts-liberation && \
+    fonts-font-awesome fonts-liberation \
+    tini && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN npm install -g n8n@latest
 RUN ln -sf python3 /usr/bin/python
 USER node
+WORKDIR /home/node
+ENTRYPOINT ["tini", "--"]
+CMD ["n8n"]
 EOF
 
     cd "$ORIGINAL_DIR"
