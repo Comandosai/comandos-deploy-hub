@@ -302,12 +302,8 @@ print_header "ПОДГОТОВКА ТЕМЫ И ПЛАГИНОВ COMANDOS..."
 # Путь к нашей кастомной теме и плагину
 THEME_NAME="comandos-blog"
 THEME_DIR="/var/www/html/wp-content/themes/$THEME_NAME"
-PLUGIN_NAME="comandos-seo-helper"
-PLUGIN_DIR="/var/www/html/wp-content/plugins/$PLUGIN_NAME"
-
 # Создаем папки
 docker exec comandos-wp mkdir -p "$THEME_DIR"
-docker exec comandos-wp mkdir -p "$PLUGIN_DIR"
 
 sync_file() {
     local src=$1
@@ -330,18 +326,11 @@ sync_file "search.php" "$THEME_DIR/search.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical-wp.css" "$THEME_DIR/critical-wp.css"
 
-# Копируем плагин
-sync_file "comandos-seo-helper.php" "$PLUGIN_DIR/comandos-seo-helper.php"
-
-# Установка WP-CLI и регенерация миниатюр + активация плагина
-print_info "Установка WP-CLI и настройка..."
 docker exec -u 0 comandos-wp bash -c "
   if [ ! -f /usr/local/bin/wp ]; then
     curl -sSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
     chmod +x /usr/local/bin/wp
   fi
-  # Активируем плагин принудительно
-  wp plugin activate $PLUGIN_NAME --allow-root || true
   # Регенерация миниатюр
   wp media regenerate --yes --allow-root
 " || print_warning "Не удалось завершить настройку через WP-CLI."
