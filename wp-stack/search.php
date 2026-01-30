@@ -3,8 +3,8 @@ get_header();
 ?>
 
 <div class="blog-header">
-  <h1 class="page-title"><?php echo esc_html(get_theme_mod('blog_title', 'Блог Comandos')); ?></h1>
-  <p class="page-description"><?php echo esc_html(get_theme_mod('blog_description', 'Полезные статьи об ИИ, автоматизации и бизнесе на маркетплейсах.')); ?></p>
+  <h1 class="page-title"><?php echo esc_html("Результаты поиска для: " . get_search_query()); ?></h1>
+  <p class="page-description"><?php echo esc_html(sprintf("Найдено записей: %d", $wp_query->found_posts)); ?></p>
 </div>
 
 <div class="category-filters-container">

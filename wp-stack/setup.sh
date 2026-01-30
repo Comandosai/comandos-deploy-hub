@@ -124,7 +124,7 @@ download_if_missing() {
 }
 
 # Список файлов для полной премиум-сборки
-FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical.css")
+FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical-wp.css" "archive.php" "search.php")
 
 for file in "${FILES[@]}"; do
     download_if_missing "$file"
@@ -294,7 +294,13 @@ sync_file() {
 sync_file "comandos-wp.css" "$THEME_DIR/comandos-wp.css"
 sync_file "functions.php" "$THEME_DIR/functions.php"
 sync_file "single.php" "$THEME_DIR/single.php"
-sync_file "critical.css" "$THEME_DIR/critical.css"
+sync_file "header.php" "$THEME_DIR/header.php"
+sync_file "footer.php" "$THEME_DIR/footer.php"
+sync_file "index.php" "$THEME_DIR/index.php"
+sync_file "archive.php" "$THEME_DIR/archive.php"
+sync_file "search.php" "$THEME_DIR/search.php"
+sync_file "style.css" "$THEME_DIR/style.css"
+sync_file "critical-wp.css" "$THEME_DIR/critical-wp.css"
 
 # Установка WP-CLI и регенерация миниатюр
 print_info "Установка WP-CLI и регенерация миниатюр..."

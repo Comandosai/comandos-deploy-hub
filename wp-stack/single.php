@@ -10,9 +10,18 @@ get_header();
         </time>
       </div>
       <h1 class="post-title"><?php the_title(); ?></h1>
+      
       <?php if (has_post_thumbnail()) : ?>
-        <?php the_post_thumbnail('large', ['class' => 'single-thumb']); ?>
+        <div class="post-hero">
+          <?php the_post_thumbnail('full', [
+              'class' => 'single-thumb',
+              'loading' => 'eager',
+              'fetchpriority' => 'high',
+              'decoding' => 'async'
+          ]); ?>
+        </div>
       <?php endif; ?>
+
       <div class="post-content">
         <?php the_content(); ?>
       </div>
@@ -23,10 +32,10 @@ get_header();
       if ($related_posts) : ?>
         <section class="related-posts">
           <h3 class="related-title">Читайте также</h3>
-          <div class="related-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+          <div class="related-grid">
             <?php foreach ($related_posts as $post) : setup_postdata($post); ?>
-              <a href="<?php the_permalink(); ?>" class="related-item" style="text-decoration: none; display: block;">
-                <div class="related-thumb-wrapper" style="width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #f1f5f9; margin-bottom: 12px;">
+              <a href="<?php the_permalink(); ?>" class="related-item">
+                <div class="related-thumb-wrapper">
                   <?php if (has_post_thumbnail()) : ?>
                     <?php the_post_thumbnail('comandos-thumb', [
                       'class' => 'related-thumb', 

@@ -3,8 +3,12 @@ get_header();
 ?>
 
 <div class="blog-header">
-  <h1 class="page-title"><?php echo esc_html(get_theme_mod('blog_title', 'Блог Comandos')); ?></h1>
-  <p class="page-description"><?php echo esc_html(get_theme_mod('blog_description', 'Полезные статьи об ИИ, автоматизации и бизнесе на маркетплейсах.')); ?></p>
+  <h1 class="page-title"><?php echo get_the_archive_title(); ?></h1>
+  <?php if (get_the_archive_description()) : ?>
+    <div class="page-description">
+      <?php echo wp_kses_post(get_the_archive_description()); ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <div class="category-filters-container">
