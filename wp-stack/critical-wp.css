@@ -170,8 +170,7 @@ body {
 /* ФИКС CLS: Главное изображение */
 .single-thumb,
 .single-thumb img {
-    /* BRUTE FORCE: 16/9 from User Setting (v100) */
-    aspect-ratio: 16 / 9 !important;
+    aspect-ratio: var(--img-aspect-ratio, 16 / 9) !important;
     width: 100% !important;
     height: auto !important;
     object-fit: cover !important;
@@ -252,7 +251,7 @@ body {
 /* ФИКС CLS: Related Posts Containment (vNUCLEAR) */
 .related-thumb-wrapper {
     width: 100% !important;
-    aspect-ratio: 16 / 9 !important;
+    aspect-ratio: var(--img-aspect-ratio, 16 / 9) !important;
     overflow: hidden !important;
     background-color: #f1f5f9 !important;
     /* Skeleton placeholder */
