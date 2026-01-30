@@ -139,7 +139,7 @@ download_if_missing() {
 }
 
 # Список файлов для полной премиум-сборки
-FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical-wp.css" "archive.php" "search.php" "comandos-seo-helper.php")
+FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical-wp.css" "archive.php" "search.php")
 
 for file in "${FILES[@]}"; do
     download_if_missing "$file"
@@ -203,39 +203,47 @@ docker compose pull >/dev/null 2>&1 || true
 print_success "Запуск/Обновление контейнеров..."
 docker compose up -d
 
-# 9. Оптимизация Lighthouse (кэширование и сжатие)
-print_header "ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ (Lighthouse v2.4.5)..."
-docker exec comandos-wp bash -c 'cat <<EOF >> .htaccess
+# 9. Оптимизация Lighthouse (кэширование и сжатие v4.1)
+print_header "ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ (Lighthouse 98+)..."
+docker exec comandos-wp bash -c 'cat <<EOF > .htaccess
 
-# Comandos Optimization: Browser Caching & Performance
+# Comandos Optimization: Browser Caching (v4.1 Immutable)
 <IfModule mod_expires.c>
   ExpiresActive On
+  ExpiresDefault "access plus 1 year"
   ExpiresByType image/jpg "access plus 1 year"
   ExpiresByType image/jpeg "access plus 1 year"
   ExpiresByType image/gif "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
   ExpiresByType image/webp "access plus 1 year"
-  ExpiresByType text/css "access plus 1 month"
-  ExpiresByType application/pdf "access plus 1 month"
-  ExpiresByType text/javascript "access plus 1 month"
-  ExpiresByType application/x-javascript "access plus 1 month"
   ExpiresByType image/x-icon "access plus 1 year"
-  ExpiresDefault "access plus 2 days"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType application/x-javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf)$">
-    Header set Cache-Control "max-age=31536000, public"
+  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|woff2)$">
+    Header set Cache-Control "max-age=31536000, public, immutable"
   </FilesMatch>
 </IfModule>
 
 # Comandos Optimization: Gzip Compression
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/x-javascript application/json
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/x-javascript application/json font/woff2
 </IfModule>
 
-# Comandos Optimization: WebP Rewrite Support (Placeholder)
-# (If WebP images exist, serve them. Requires advanced configuration or plugins)
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
 EOF' || true
 
 # 9. Настройка Traefik

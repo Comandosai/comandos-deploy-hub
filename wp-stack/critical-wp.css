@@ -180,7 +180,62 @@ body {
     border-radius: 20px;
 }
 
+/* ФИКС CLS: Главная страница (Сетка и Заголовок) */
+.blog-header {
+    text-align: center;
+    padding: 4rem 0 3rem;
+}
+
+.page-title {
+    font-size: 3.5rem !important;
+    font-weight: 900 !important;
+    margin-bottom: 1rem !important;
+    font-family: 'Unbounded', sans-serif !important;
+}
+
+.posts {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 48px 32px !important;
+    margin-bottom: 4rem !important;
+}
+
+.post-card {
+    background: #fff !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.post-thumb {
+    width: 100% !important;
+    aspect-ratio: var(--img-aspect-ratio) !important;
+    background: #f1f5f9 !important;
+}
+
+.post-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+@media (max-width: 1024px) {
+    .posts {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 24px !important;
+    }
+
+    .page-title {
+        font-size: 2.5rem !important;
+    }
+}
+
 @media (max-width: 767px) {
+    .posts {
+        grid-template-columns: 1fr !important;
+    }
+
     .site-inner {
         padding: 0 16px !important;
     }
