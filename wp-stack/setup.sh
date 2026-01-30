@@ -82,14 +82,14 @@ if [ -f ".env" ]; then
     print_header "ОБНАРУЖЕНА СУЩЕСТВУЮЩАЯ УСТАНОВКА!"
     echo -e "1) ${GREEN}Обновить${NC} (сохранить базу данных и настройки)"
     echo -e "2) ${RED}Переустановить${NC} (СТЕРЕТЬ ВСЁ и начать заново)"
-    read -p "Выберите вариант (1/2): " choice
+    read -p "Выберите вариант (1/2): " choice < /dev/tty
     if [ "$choice" == "1" ]; then
         MODE="UPDATE"
         source .env
         print_success "Режим ОБНОВЛЕНИЯ активирован."
     else
         print_error "ВНИМАНИЕ: Все данные будут удалены!"
-        read -p "Вы уверены? (y/n): " confirm
+        read -p "Вы уверены? (y/n): " confirm < /dev/tty
         if [[ ! $confirm =~ ^[Yy]$ ]]; then exit 1; fi
     fi
 fi
@@ -99,10 +99,10 @@ if [ "$MODE" == "INSTALL" ]; then
     echo -e "\n${YELLOW}>>> Настройка домена${NC}"
     clean_url() { echo "$1" | sed -e 's|^[^/]*//||' -e 's|/.*$||'; }
 
-    read -p "WP Domain (blog.site.com): " RAW_WP
+    read -p "WP Domain (blog.site.com): " RAW_WP < /dev/tty
     WP_DOMAIN=$(clean_url "$RAW_WP")
 
-    read -p "SSL Email: " SSL_EMAIL
+    read -p "SSL Email: " SSL_EMAIL < /dev/tty
     
     DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 fi
@@ -330,7 +330,7 @@ if [ "$MODE" == "INSTALL" ]; then
     echo -e "${YELLOW}ШАГ 2:${NC} Завершите установку WordPress (создайте админа)."
     echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы."
     echo -e "${BLUE}==============================================${NC}"
-    read -p "Нажмите [ENTER] после завершения установки в браузере..."
+    read -p "Нажмите [ENTER] после завершения установки в браузере..." < /dev/tty
 fi
 
 print_warning "Принудительная активация темы через SQL..."
