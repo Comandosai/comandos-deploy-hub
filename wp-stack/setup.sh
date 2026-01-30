@@ -43,6 +43,21 @@ print_info() {
     echo -e "${BLUE}ℹ $1${NC}"
 }
 
+# Функция для надежного ввода через /dev/tty (для работы через curl | bash)
+ask_user() {
+    local prompt=$1
+    local var_name=$2
+    local extra_opt=$3
+    
+    # Пытаемся читать из /dev/tty напрямую
+    if [ -c /dev/tty ]; then
+        read $extra_opt -p "$prompt" "$var_name" < /dev/tty
+    else
+        # Fallback если /dev/tty нет (редкий случай)
+        read $extra_opt -p "$prompt" "$var_name"
+    fi
+}
+
 # 0. Стандартизация директории
 BASE_DIR="$HOME/comandos"
 PRODUCT_DIR="$BASE_DIR/wordpress"
@@ -82,14 +97,14 @@ if [ -f ".env" ]; then
     print_header "ОБНАРУЖЕНА СУЩЕСТВУЮЩАЯ УСТАНОВКА!"
     echo -e "1) ${GREEN}Обновить${NC} (сохранить базу данных и настройки)"
     echo -e "2) ${RED}Переустановить${NC} (СТЕРЕТЬ ВСЁ и начать заново)"
-    read -p "Выберите вариант (1/2): " choice < /dev/tty
+    ask_user "Выберите вариант (1/2): " choice
     if [ "$choice" == "1" ]; then
         MODE="UPDATE"
         source .env
         print_success "Режим ОБНОВЛЕНИЯ активирован."
     else
         print_error "ВНИМАНИЕ: Все данные будут удалены!"
-        read -p "Вы уверены? (y/n): " confirm < /dev/tty
+        ask_user "Вы уверены? (y/n): " confirm
         if [[ ! $confirm =~ ^[Yy]$ ]]; then exit 1; fi
     fi
 fi
@@ -99,10 +114,10 @@ if [ "$MODE" == "INSTALL" ]; then
     echo -e "\n${YELLOW}>>> Настройка домена${NC}"
     clean_url() { echo "$1" | sed -e 's|^[^/]*//||' -e 's|/.*$||'; }
 
-    read -p "WP Domain (blog.site.com): " RAW_WP < /dev/tty
+    ask_user "WP Domain (blog.site.com): " RAW_WP
     WP_DOMAIN=$(clean_url "$RAW_WP")
 
-    read -p "SSL Email: " SSL_EMAIL < /dev/tty
+    ask_user "SSL Email: " SSL_EMAIL
     
     DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 fi
@@ -330,7 +345,7 @@ if [ "$MODE" == "INSTALL" ]; then
     echo -e "${YELLOW}ШАГ 2:${NC} Завершите установку WordPress (создайте админа)."
     echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы."
     echo -e "${BLUE}==============================================${NC}"
-    read -p "Нажмите [ENTER] после завершения установки в браузере..." < /dev/tty
+    ask_user "Нажмите [ENTER] после завершения установки в браузере..." dummy
 fi
 
 print_warning "Принудительная активация темы через SQL..."
