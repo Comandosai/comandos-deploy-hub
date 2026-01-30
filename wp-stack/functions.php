@@ -48,46 +48,38 @@ add_action('init', function() {
     }
 });
 
-// LCP OPTIMIZATION: Responsive Preload (vNUCLEAR v3.5 - Home & Single support)
+// LCP OPTIMIZATION: Responsive Preload (vNUCLEAR v3 - Verified WebP)
 add_action('wp_head', function() {
-    $thumb_ids = [];
-    
     if (is_single() && has_post_thumbnail()) {
-        $thumb_ids[] = get_post_thumbnail_id();
-    } elseif (is_home() || is_archive() || is_search()) {
-        // На главной и архивах прелоадим первые 2 поста для мгновенного LCP
-        global $wp_query;
-        if (!empty($wp_query->posts)) {
-            for ($i = 0; $i < min(2, count($wp_query->posts)); $i++) {
-                if (has_post_thumbnail($wp_query->posts[$i]->ID)) {
-                    $thumb_ids[] = get_post_thumbnail_id($wp_query->posts[$i]->ID);
-                }
-            }
-        }
-    }
-
-    if (empty($thumb_ids)) return;
-
-    $upload_dir = wp_get_upload_dir();
-    $base_url = $upload_dir['baseurl'];
-    $base_path = $upload_dir['basedir'];
-
-    foreach ($thumb_ids as $thumb_id) {
+        $thumb_id = get_post_thumbnail_id();
+        $upload_dir = wp_get_upload_dir();
+        $base_url = $upload_dir['baseurl'];
+        $base_path = $upload_dir['basedir'];
+        
+        // 1. Получаем стандартные WP srcset/sizes
         $srcset = wp_get_attachment_image_srcset($thumb_id, 'full');
         $sizes = wp_get_attachment_image_sizes($thumb_id, 'full');
         
         if ($srcset) {
+            // Разбираем srcset и проверяем каждый файл
             $sources = explode(',', $srcset);
             $new_sources = [];
+            
             foreach ($sources as $source) {
                 if (empty($source)) continue;
-                $parts = preg_split('/\s+/', trim($source));
+                
+                $parts = preg_split('/\s+/', $source);
                 if (count($parts) >= 1) {
                     $url = $parts[0];
                     $Descriptor = isset($parts[1]) ? ' ' . $parts[1] : '';
+                    
+                    // Попытка найти WebP (поддержка query params)
                     if (preg_match('/\.(jpg|jpeg|png)(\?.*)?$/i', $url)) {
                         $webp_candidate = preg_replace('/\.(jpg|jpeg|png)/i', '.webp', $url);
-                        $path_check = str_replace($base_url, $base_path, strtok($webp_candidate, '?'));
+                        $path_cand = str_replace($base_url, $base_path, $webp_candidate);
+                        $path_check = strtok($path_cand, '?');
+                        
+                        // Если WebP существует - берем его. В противном случае - берем оригинал (JPG/PNG)
                         if (file_exists($path_check)) {
                             $new_sources[] = $webp_candidate . $Descriptor;
                         } else {
@@ -98,14 +90,18 @@ add_action('wp_head', function() {
                     }
                 }
             }
+            
             if (!empty($new_sources)) {
                 $final_srcset = implode(', ', $new_sources);
                 echo '<link rel="preload" as="image" imagesrcset="' . esc_attr($final_srcset) . '" imagesizes="' . esc_attr($sizes) . '" fetchpriority="high" />' . "\n";
             }
+            
         } else {
-             $img_url = wp_get_attachment_url($thumb_id);
+             // Логика для изображений без srcset (Fallback)
+             $img_url = get_the_post_thumbnail_url(null, 'full');
              $webp_url = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $img_url);
              $path_cand = str_replace($base_url, $base_path, $webp_url);
+             
              if (file_exists($path_cand)) {
                  echo '<link rel="preload" as="image" href="' . esc_url($webp_url) . '" fetchpriority="high" />' . "\n";
              } else {
