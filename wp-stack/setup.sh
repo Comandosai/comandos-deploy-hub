@@ -124,7 +124,7 @@ download_if_missing() {
 }
 
 # Список файлов для полной премиум-сборки
-FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical-wp.css" "archive.php" "search.php")
+FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical-wp.css" "archive.php" "search.php" "comandos-seo-helper.php")
 
 for file in "${FILES[@]}"; do
     download_if_missing "$file"
@@ -273,24 +273,29 @@ ${TLS_BLOCK}
 EOF_YAML
 fi
 
-# 10. Глубокая интеграция темы (Comandos Premium)
-print_header "ПОДГОТОВКА ТЕМЫ COMANDOS BLOG..."
+# 10. Глубокая интеграция темы и плагинов (Comandos Premium)
+print_header "ПОДГОТОВКА ТЕМЫ И ПЛАГИНОВ COMANDOS..."
 
-# Путь к нашей кастомной теме
+# Путь к нашей кастомной теме и плагину
 THEME_NAME="comandos-blog"
 THEME_DIR="/var/www/html/wp-content/themes/$THEME_NAME"
+PLUGIN_NAME="comandos-seo-helper"
+PLUGIN_DIR="/var/www/html/wp-content/plugins/$PLUGIN_NAME"
 
-# Создаем папку темы в контейнере
+# Создаем папки
 docker exec comandos-wp mkdir -p "$THEME_DIR"
+docker exec comandos-wp mkdir -p "$PLUGIN_DIR"
 
 sync_file() {
     local src=$1
     local dest=$2
-    docker cp "$src" comandos-wp:"$dest" && echo -e "${GREEN}Синхронизирован: $src${NC}"
-    docker exec comandos-wp chown www-data:www-data "$dest"
+    if [ -f "$src" ]; then
+        docker cp "$src" comandos-wp:"$dest" && echo -e "${GREEN}Синхронизирован: $src${NC}"
+        docker exec comandos-wp chown www-data:www-data "$dest"
+    fi
 }
 
-# Копируем все файлы в нашу новую тему
+# Копируем тему
 sync_file "comandos-wp.css" "$THEME_DIR/comandos-wp.css"
 sync_file "functions.php" "$THEME_DIR/functions.php"
 sync_file "single.php" "$THEME_DIR/single.php"
@@ -302,17 +307,23 @@ sync_file "search.php" "$THEME_DIR/search.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical-wp.css" "$THEME_DIR/critical-wp.css"
 
-# Установка WP-CLI и регенерация миниатюр
-print_info "Установка WP-CLI и регенерация миниатюр..."
+# Копируем плагин
+sync_file "comandos-seo-helper.php" "$PLUGIN_DIR/comandos-seo-helper.php"
+
+# Установка WP-CLI и регенерация миниатюр + активация плагина
+print_info "Установка WP-CLI и настройка..."
 docker exec -u 0 comandos-wp bash -c "
   if [ ! -f /usr/local/bin/wp ]; then
     curl -sSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
     chmod +x /usr/local/bin/wp
   fi
+  # Активируем плагин принудительно
+  wp plugin activate $PLUGIN_NAME --allow-root || true
+  # Регенерация миниатюр
   wp media regenerate --yes --allow-root
-" || print_warning "Не удалось запустить регенерацию миниатюр."
+" || print_warning "Не удалось завершить настройку через WP-CLI."
 
-# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ
+# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ ТЕМЫ
 if [ "$MODE" == "INSTALL" ]; then
     echo -e "\n${BLUE}==============================================${NC}"
     echo -e "${YELLOW}ШАГ 1:${NC} Перейдите по ссылке: ${GREEN}https://$WP_DOMAIN/wp-admin/install.php${NC}"
@@ -323,7 +334,6 @@ if [ "$MODE" == "INSTALL" ]; then
 fi
 
 print_warning "Принудительная активация темы через SQL..."
-# Пытаемся найти пароль БД в .env или берем из переменной
 DB_PASS_SQL="${DB_PASSWORD:-$(grep DB_PASSWORD .env | cut -d= -f2)}"
 docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
 "UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
