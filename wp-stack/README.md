@@ -7,13 +7,12 @@
 - `docker-compose.yml.j2` — шаблон с плейсхолдерами домена
 - `comandos-wp.css` — стили для WordPress (таблицы/блоки)
 
-## Быстрый старт
+## Быстрый старт (Установка одной командой)
 ```bash
-git clone https://github.com/Comandosai/comandos-deploy-hub.git
-cd comandos-deploy-hub/wp-stack
-chmod +x setup.sh
-./setup.sh
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack/setup.sh | bash
 ```
+
+*Для установки не требуется наличие Git. Достаточно Docker и Curl.*
 
 ## Вопросы установщика
 - WP Domain (пример: `blog.mysite.com`)
