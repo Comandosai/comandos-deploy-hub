@@ -577,7 +577,7 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $s
         $style_ratio = $ratio_setting;
     }
 
-    // 3. Инъекция стиля
+    // 3. Инъекция стиля и ПЕРЕСЧЕТ атрибутов (Уничтожение CLS)
     if (!empty($style_ratio)) {
         $style = "aspect-ratio: $style_ratio;";
         
@@ -585,6 +585,19 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $s
             $attr['style'] .= ' ' . $style;
         } else {
             $attr['style'] = $style;
+        }
+
+        // Если это не "Original", подменяем width/height для браузера
+        if ($ratio_setting !== 'none' && $ratio_setting !== '') {
+            $parts = explode('/', $style_ratio);
+            if (count($parts) === 2) {
+                $w_ratio = (float)trim($parts[0]);
+                $h_ratio = (float)trim($parts[1]);
+                
+                // Ставим базовые значения, сохраняющие пропорцию (например, 800x600 для 4/3)
+                $attr['width'] = 800;
+                $attr['height'] = round(800 * ($h_ratio / $w_ratio));
+            }
         }
     }
     
