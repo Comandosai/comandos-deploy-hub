@@ -630,3 +630,284 @@ add_filter('get_the_archive_title', function ($title) {
 add_action('customize_register', function ($wp_customize) {
     $wp_customize->get_control('blogdescription')->description = 'Этот текст не виден на сайте, но ОЧЕНЬ важен для Google и Яндекса. Он попадает в мета-теги и заголовок вкладки браузера.';
 });
+
+/**
+ * EXTRA PERFORMANCE: Merged from mu-plugins
+ */
+add_action('wp_head', function () {
+    if (!is_single()) {
+        return;
+    }
+
+    echo <<<'CSS'
+<style>
+  .article-body {
+      max-width: 760px !important;
+      margin: 0 auto !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      font-size: 18px !important;
+      line-height: 1.6 !important;
+      color: #2c2c2c !important;
+  }
+
+  .article-body a {
+      color: #0066cc !important;
+      text-decoration: underline !important;
+      font-weight: 600 !important;
+      border-bottom: none !important;
+      box-shadow: none !important;
+  }
+  .article-body a:hover {
+      color: #004499 !important;
+      text-decoration: none !important;
+  }
+
+  .article-body figure, .wp-block-image {
+      margin: 40px 0 !important;
+      display: block !important;
+      text-align: center !important;
+  }
+  .article-body img {
+      max-width: 100% !important;
+      height: auto !important;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+  }
+  .article-body figcaption {
+      margin-top: 10px !important;
+      font-size: 14px !important;
+      color: #666 !important;
+      font-style: italic !important;
+      text-align: center !important;
+  }
+
+  .ui-grid-stats {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+      gap: 20px !important;
+      margin: 40px 0 !important;
+  }
+  .ui-stat-card {
+      background: #ffffff !important;
+      border: 1px solid #e0e0e0 !important;
+      border-radius: 12px !important;
+      padding: 20px !important;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+      text-align: left !important;
+  }
+  .ui-stat-value {
+      display: block !important;
+      font-size: 32px !important;
+      font-weight: 800 !important;
+      color: #111 !important;
+      margin-bottom: 5px !important;
+      line-height: 1.1 !important;
+  }
+  .ui-stat-label {
+      font-size: 15px !important;
+      color: #555 !important;
+      line-height: 1.4 !important;
+  }
+
+  .ui-callout {
+      background: #f8f9fa !important;
+      border-left: 5px solid #333 !important;
+      padding: 20px !important;
+      margin: 30px 0 !important;
+      border-radius: 4px 12px 12px 4px !important;
+      display: flex !important;
+      gap: 15px !important;
+      align-items: flex-start !important;
+  }
+  .ui-callout-warn { border-left-color: #ff9800 !important; background: #fff8e1 !important; }
+
+  .ui-callout-icon { font-size: 24px !important; line-height: 1 !important; }
+  .ui-callout-content { font-size: 17px !important; color: #333 !important; margin: 0 !important; }
+  .ui-callout-content p { margin: 0 !important; }
+
+  .ui-table-wrapper {
+      overflow-x: auto !important;
+      margin: 30px 0 !important;
+      border: 1px solid #eee !important;
+      border-radius: 8px !important;
+  }
+  .ui-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 15px !important;
+      min-width: 600px !important;
+  }
+  .ui-table th {
+      background: #f4f4f4 !important;
+      text-align: left !important;
+      padding: 12px 15px !important;
+      font-weight: 700 !important;
+      border-bottom: 2px solid #ddd !important;
+      color: #333 !important;
+  }
+  .ui-table td {
+      padding: 12px 15px !important;
+      border-bottom: 1px solid #eee !important;
+      color: #333 !important;
+  }
+  .ui-table tr:nth-child(even) { background-color: #fafafa !important; }
+
+  .ui-checklist { list-style: none !important; padding: 0 !important; margin: 30px 0 !important; }
+  .ui-check-item {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 12px !important;
+      margin-bottom: 12px !important;
+      padding: 10px !important;
+      background: #fff !important;
+      border: 1px solid #eee !important;
+      border-radius: 8px !important;
+  }
+  .ui-check-box {
+      min-width: 20px !important;
+      height: 20px !important;
+      background: #e6fffa !important;
+      border: 2px solid #00b894 !important;
+      border-radius: 4px !important;
+      position: relative !important;
+      top: 3px !important;
+  }
+  .ui-check-box:after {
+      content: '✓'; position: absolute; left: 3px; top: -3px; color: #00b894; font-weight: bold;
+  }
+
+  .article-body h2 { margin-top: 50px !important; font-size: 28px !important; font-weight: 800 !important; }
+  .article-body h3 { margin-top: 35px !important; font-size: 22px !important; font-weight: 700 !important; }
+
+  .ui-faq-list {
+      margin: 40px 0 !important;
+      display: grid !important;
+      gap: 15px !important;
+  }
+
+  .ui-faq-item {
+      background: #ffffff !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 12px !important;
+      padding: 24px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+      transition: all 0.2s ease !important;
+  }
+  .ui-faq-item:hover {
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
+      transform: translateY(-2px) !important;
+  }
+
+  .ui-faq-question {
+      font-size: 19px !important;
+      font-weight: 700 !important;
+      color: #111 !important;
+      margin-bottom: 12px !important;
+      display: flex !important;
+      gap: 12px !important;
+      align-items: baseline !important;
+      line-height: 1.4 !important;
+  }
+
+  .ui-faq-question:before {
+      content: "Q.";
+      font-family: serif !important;
+      font-size: 24px !important;
+      color: #3b82f6 !important;
+      font-weight: 900 !important;
+  }
+
+  .ui-faq-answer {
+      font-size: 16px !important;
+      color: #4b5563 !important;
+      margin-left: 36px !important;
+      line-height: 1.6 !important;
+  }
+  .ui-faq-answer p { margin: 0 !important; }
+</style>
+CSS;
+});
+
+/**
+ * EXTRA STYLES: Merged from Comandos Styles Injector
+ */
+function comandos_force_styles() {
+    echo "<!-- Comandos Styles Injector v1.4 -->";
+    echo "<style id=\"comandos-inline-css\">
+        /* 1. СИНИЕ ССЫЛКИ В КОНТЕНТЕ */
+        .entry-content a:not(.hard-cta-box a), 
+        .post-content a:not(.hard-cta-box a), 
+        .article-text-block a, 
+        .article-part a, 
+        .prose-expert a {
+            color: #2563eb !important;
+            text-decoration: underline !important;
+            font-weight: 700 !important;
+        }
+        .entry-content a:hover, .post-content a:hover, .article-text-block a:hover, .article-part a:hover, .prose-expert a:hover {
+            color: #1d4ed8 !important;
+        }
+        h1 a, h2 a, h3 a, .site-title a, .widget a {
+            color: inherit !important;
+            text-decoration: inherit !important;
+            font-weight: inherit !important;
+        }
+
+        /* 2. МОБИЛЬНАЯ ОПТИМИЗАЦИЯ (Расширяем коридор) */
+        @media (max-width: 767px) {
+            /* Убираем эффект карточки у основного контейнера */
+            .single-post, .article-wrapper, main article, .post-container {
+                margin: 0 !important;
+                padding: 16px 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: transparent !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* Картинки на всю ширину (Исключая аватары и логотипы) */
+            .entry-content img:not(.avatar):not(.header-custom-logo), 
+            .post-content img:not(.avatar):not(.header-custom-logo), 
+            figure:not(.avatar), 
+            .wp-block-image img:not(.avatar) {
+                width: 100vw !important;
+                max-width: 100vw !important;
+                margin-left: -16px !important; /* Компенсируем отступ родителя */
+                margin-right: -16px !important;
+                border-radius: 0 !important;
+                height: auto !important;
+                display: block;
+            }
+
+            /* Фикс аватара в этом же блоке для надежности */
+            .avatar, .author-avatar-wrapper img {
+                width: 80px !important;
+                height: 80px !important;
+                min-width: 80px !important;
+                max-width: 80px !important;
+                aspect-ratio: 1 / 1 !important;
+                border-radius: 50% !important;
+                margin: 0 !important;
+                display: inline-block !important;
+            }
+
+            /* Текст с комфортными отступами */
+            .entry-content p, .post-content p, .entry-content h2, .post-content h2, 
+            .entry-content h3, .post-content h3, .entry-content ul, .post-content ul,
+            .entry-content ol, .post-content ol, .article-title, .post-header-info {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+
+            /* Исправление для списков, чтобы маркеры не улетали */
+            .entry-content ul, .post-content ul, .entry-content ol, .post-content ol {
+                padding-left: 40px !important;
+            }
+        }
+    </style>";
+}
+
+add_action("wp_head", "comandos_force_styles", 999);
+add_action("wp_footer", "comandos_force_styles", 999);
