@@ -48,71 +48,7 @@ add_action('init', function() {
     }
 });
 
-// LCP OPTIMIZATION: Responsive Preload (vNUCLEAR v3.1 - Verified WebP)
-add_action('wp_head', function() {
-    $thumb_id = null;
-    $size = 'full';
-
-    if (is_single() && has_post_thumbnail()) {
-        $thumb_id = get_post_thumbnail_id();
-        $size = 'full';
-    } elseif ((is_home() || is_archive() || is_front_page()) && have_posts()) {
-        global $wp_query;
-        // Берем ID первой записи в цикле
-        $first_post_id = $wp_query->posts[0]->ID ?? null;
-        if ($first_post_id && has_post_thumbnail($first_post_id)) {
-            $thumb_id = get_post_thumbnail_id($first_post_id);
-            $size = 'medium_large'; // На главной используем этот размер
-        }
-    }
-
-    if ($thumb_id) {
-        $upload_dir = wp_get_upload_dir();
-        $base_url = $upload_dir['baseurl'];
-        $base_path = $upload_dir['basedir'];
-        
-        $srcset = wp_get_attachment_image_srcset($thumb_id, $size);
-        $sizes = wp_get_attachment_image_sizes($thumb_id, $size);
-        
-        if ($srcset) {
-            $sources = explode(',', $srcset);
-            $new_sources = [];
-            foreach ($sources as $source) {
-                if (empty($source)) continue;
-                $parts = preg_split('/\s+/', $source);
-                if (count($parts) >= 1) {
-                    $url = $parts[0];
-                    $Descriptor = isset($parts[1]) ? ' ' . $parts[1] : '';
-                    if (preg_match('/\.(jpg|jpeg|png)(\?.*)?$/i', $url)) {
-                        $webp_candidate = preg_replace('/\.(jpg|jpeg|png)/i', '.webp', $url);
-                        $path_cand = str_replace($base_url, $base_path, $webp_candidate);
-                        $path_check = strtok($path_cand, '?');
-                        if (file_exists($path_check)) {
-                            $new_sources[] = $webp_candidate . $Descriptor;
-                        } else {
-                            $new_sources[] = $source;
-                        }
-                    } else {
-                        $new_sources[] = $source;
-                    }
-                }
-            }
-            if (!empty($new_sources)) {
-                $final_srcset = implode(', ', $new_sources);
-                echo '<link rel="preload" as="image" imagesrcset="' . esc_attr($final_srcset) . '" imagesizes="' . esc_attr($sizes) . '" fetchpriority="high" />' . "\n";
-            }
-        } else {
-             $img_url = get_the_post_thumbnail_url($thumb_id, $size);
-             $webp_url = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $img_url);
-             $path_cand = str_replace($base_url, $base_path, $webp_url);
-             if (file_exists($path_cand)) {
-                 echo '<link rel="preload" as="image" href="' . esc_url($webp_url) . '" fetchpriority="high" />' . "\n";
-             } else {
-                 echo '<link rel="preload" as="image" href="' . esc_url($img_url) . '" fetchpriority="high" />' . "\n";
-             }
-        }
-    }
-}, 1);
+// LCP OPTIMIZATION: Rely on fetchpriority in <img> tags (Removed manual preload due to URL mismatch risk)
 
 // ГАРМОНИЯ СЕТКИ: Делаем количество постов кратным 3 (12 постов на странице)
 add_action('pre_get_posts', function ($query) {
@@ -154,14 +90,14 @@ add_action('wp_enqueue_scripts', function() {
 
 // БЕЗОПАСНЫЕ ЗАГОЛОВКИ (Удалено send_headers т.к. блокировало Кастомайзер)
 
-// КРИТИЧЕСКИЙ CSS: Встраиваем inline для мгновенной отрисовки
+// КРИТИЧЕСКИЙ CSS: Встраиваем inline для мгновенной отрисовки (Priority 0)
 add_action('wp_head', function() {
     $critical_css_file = get_template_directory() . '/critical-wp.css';
     if (file_exists($critical_css_file)) {
         $critical_css = file_get_contents($critical_css_file);
         echo '<style id="critical-css">' . $critical_css . '</style>';
     }
-}, 2);
+}, -100);
 
 // НЕКРИТИЧЕСКИЙ CSS: Загружаем асинхронно
 add_action('wp_enqueue_scripts', function () {
@@ -228,16 +164,9 @@ add_action('wp_enqueue_scripts', function() {
 });
 
 add_action('wp_head', function() {
-    // 1. Preconnects
     echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
     echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-    
-    // 2. Preloads (Критические шрифты для FCP)
-    // Мы берем прямые ссылки на WOFF2 из Google Fonts для реального предзагрузки
-    // Но так как ссылки динамические, используем preload для самого CSS файла или осторожно
-    // В данном случае лучше сделать preload основных весов Google Fonts
-    echo '<link rel="preload" href="' . comandos_get_google_fonts_url() . '" as="style">' . "\n";
-}, 0);
+}, -90);
 
 
 
