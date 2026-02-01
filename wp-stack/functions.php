@@ -450,12 +450,12 @@ add_action('customize_register', function ($wp_customize) {
         'priority' => 30,
     ]);
 
-    $wp_customize->add_setting('brand_color', ['default' => '#c7f560', 'transport' => 'refresh']);
+    $wp_customize->add_setting('brand_color', ['default' => '#c7f560', 'transport' => 'postMessage']);
     $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'brand_color', [
         'label' => 'Цвет бренда', 'section' => 'comandos_design',
     ]));
 
-    $wp_customize->add_setting('bg_color', ['default' => '#ffffff', 'transport' => 'refresh']);
+    $wp_customize->add_setting('bg_color', ['default' => '#ffffff', 'transport' => 'postMessage']);
     $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'bg_color', [
         'label' => 'Цвет фона', 'section' => 'comandos_design',
     ]));
@@ -485,6 +485,19 @@ add_action('customize_register', function ($wp_customize) {
             '16 / 9' => '16:9 (Кино)',
         ],
     ]);
+});
+
+/** 
+ * ПОДКЛЮЧЕНИЕ СКРИПТА ДЛЯ ЖИВОГО ПРЕДПРОСМОТРА (v5.8) 
+ */ 
+add_action("customize_preview_init", function() { 
+    wp_enqueue_script( 
+        "comandos-customize-preview", 
+        get_template_directory_uri() . "/js/customize-preview.js", 
+        ["customize-preview", "jquery"], 
+        "1.1", 
+        true 
+    ); 
 });
 
 // Старый блок comandos-dynamic-css удален и объединен с блоком выше (v5.7)

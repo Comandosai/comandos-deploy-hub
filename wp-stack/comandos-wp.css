@@ -15,6 +15,8 @@ input,
     transition-property: transform, opacity !important;
 }
 
+/* :root moved to functions.php for dynamic Customizer support (v5.8) */
+/*
 :root {
     --primary-dark: #2a3800;
     --slate-950: #050505;
@@ -23,6 +25,7 @@ input,
     --slate-600: #4a4a4a;
     --slate-100: #f5f5f7;
 }
+*/
 
 body {
     background-color: var(--white);
@@ -160,8 +163,8 @@ body {
 }
 
 .post-card {
-    background: #fff;
-    border: 1px solid #f0f0f0;
+    background: var(--white, #fff);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 24px;
     overflow: hidden;
     display: flex;
