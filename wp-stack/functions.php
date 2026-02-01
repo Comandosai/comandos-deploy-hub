@@ -48,38 +48,45 @@ add_action('init', function() {
     }
 });
 
-// LCP OPTIMIZATION: Responsive Preload (vNUCLEAR v3 - Verified WebP)
+// LCP OPTIMIZATION: Responsive Preload (vNUCLEAR v3.1 - Verified WebP)
 add_action('wp_head', function() {
+    $thumb_id = null;
+    $size = 'full';
+
     if (is_single() && has_post_thumbnail()) {
         $thumb_id = get_post_thumbnail_id();
+        $size = 'full';
+    } elseif ((is_home() || is_archive() || is_front_page()) && have_posts()) {
+        global $wp_query;
+        // Берем ID первой записи в цикле
+        $first_post_id = $wp_query->posts[0]->ID ?? null;
+        if ($first_post_id && has_post_thumbnail($first_post_id)) {
+            $thumb_id = get_post_thumbnail_id($first_post_id);
+            $size = 'medium_large'; // На главной используем этот размер
+        }
+    }
+
+    if ($thumb_id) {
         $upload_dir = wp_get_upload_dir();
         $base_url = $upload_dir['baseurl'];
         $base_path = $upload_dir['basedir'];
         
-        // 1. Получаем стандартные WP srcset/sizes
-        $srcset = wp_get_attachment_image_srcset($thumb_id, 'full');
-        $sizes = wp_get_attachment_image_sizes($thumb_id, 'full');
+        $srcset = wp_get_attachment_image_srcset($thumb_id, $size);
+        $sizes = wp_get_attachment_image_sizes($thumb_id, $size);
         
         if ($srcset) {
-            // Разбираем srcset и проверяем каждый файл
             $sources = explode(',', $srcset);
             $new_sources = [];
-            
             foreach ($sources as $source) {
                 if (empty($source)) continue;
-                
                 $parts = preg_split('/\s+/', $source);
                 if (count($parts) >= 1) {
                     $url = $parts[0];
                     $Descriptor = isset($parts[1]) ? ' ' . $parts[1] : '';
-                    
-                    // Попытка найти WebP (поддержка query params)
                     if (preg_match('/\.(jpg|jpeg|png)(\?.*)?$/i', $url)) {
                         $webp_candidate = preg_replace('/\.(jpg|jpeg|png)/i', '.webp', $url);
                         $path_cand = str_replace($base_url, $base_path, $webp_candidate);
                         $path_check = strtok($path_cand, '?');
-                        
-                        // Если WebP существует - берем его. В противном случае - берем оригинал (JPG/PNG)
                         if (file_exists($path_check)) {
                             $new_sources[] = $webp_candidate . $Descriptor;
                         } else {
@@ -90,18 +97,14 @@ add_action('wp_head', function() {
                     }
                 }
             }
-            
             if (!empty($new_sources)) {
                 $final_srcset = implode(', ', $new_sources);
                 echo '<link rel="preload" as="image" imagesrcset="' . esc_attr($final_srcset) . '" imagesizes="' . esc_attr($sizes) . '" fetchpriority="high" />' . "\n";
             }
-            
         } else {
-             // Логика для изображений без srcset (Fallback)
-             $img_url = get_the_post_thumbnail_url(null, 'full');
+             $img_url = get_the_post_thumbnail_url($thumb_id, $size);
              $webp_url = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $img_url);
              $path_cand = str_replace($base_url, $base_path, $webp_url);
-             
              if (file_exists($path_cand)) {
                  echo '<link rel="preload" as="image" href="' . esc_url($webp_url) . '" fetchpriority="high" />' . "\n";
              } else {
@@ -138,9 +141,15 @@ add_action('init', function() {
     });
 }, 1);
 
-// Отключение Classic Theme Styles
+// Отключение Classic Theme Styles, WP Embed и Jquery Migrate
 add_action('wp_enqueue_scripts', function() {
     wp_dequeue_style('classic-theme-styles');
+    wp_deregister_script('wp-embed');
+    // Отключаем jquery-migrate для уменьшения JS-нагрузки и рефлоу
+    if (!is_admin() && isset($GLOBALS['wp_scripts']->registered['jquery'])) {
+        $scripts = $GLOBALS['wp_scripts'];
+        $scripts->registered['jquery']->deps = array_diff($scripts->registered['jquery']->deps, ['jquery-migrate']);
+    }
 }, 20);
 
 // БЕЗОПАСНЫЕ ЗАГОЛОВКИ (Удалено send_headers т.к. блокировало Кастомайзер)
