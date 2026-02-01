@@ -156,7 +156,7 @@ add_filter('style_loader_tag', function($html, $handle, $href) {
 
 // ОПТИМИЗИРОВАННЫЕ ШРИФТЫ (Только нужные веса)
 function comandos_get_google_fonts_url() {
-    return "https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Unbounded:wght@900&display=optional";
+    return "https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Unbounded:wght@900&display=swap";
 }
 
 add_action('wp_enqueue_scripts', function() {
