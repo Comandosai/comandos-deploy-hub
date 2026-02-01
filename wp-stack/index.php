@@ -32,7 +32,16 @@ get_header();
           <?php if (has_post_thumbnail()) : ?>
             <div class="post-thumb" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
               <a href="<?php the_permalink(); ?>">
-                <?php the_post_thumbnail('medium_large'); ?>
+                <?php 
+                global $wp_query;
+                $attr = [];
+                if ($wp_query->current_post === 0) {
+                    $attr['loading'] = 'eager';
+                    $attr['fetchpriority'] = 'high';
+                    $attr['class'] = 'lcp-image';
+                }
+                the_post_thumbnail('medium_large', $attr); 
+                ?>
               </a>
             </div>
           <?php endif; ?>
