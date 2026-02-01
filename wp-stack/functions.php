@@ -90,13 +90,37 @@ add_action('wp_enqueue_scripts', function() {
 
 // БЕЗОПАСНЫЕ ЗАГОЛОВКИ (Удалено send_headers т.к. блокировало Кастомайзер)
 
-// КРИТИЧЕСКИЙ CSS: Встраиваем inline для мгновенной отрисовки (Priority 0)
+// ULTIMATE CSS: Unified Critical & Dynamic Variables (v5.7)
 add_action('wp_head', function() {
+    // 1. Данные из Кастомайзера
+    $brand_color = get_theme_mod('brand_color', '#c5ed00');
+    $bg_color    = get_theme_mod('bg_color', '#ffffff');
+    $aspect_ratio = get_theme_mod('global_img_aspect_ratio', 'none');
+    $css_aspect_ratio = ($aspect_ratio === 'none') ? 'auto' : $aspect_ratio;
+
+    // 2. Чтение критического CSS
+    $critical_css = '';
     $critical_css_file = get_template_directory() . '/critical-wp.css';
     if (file_exists($critical_css_file)) {
         $critical_css = file_get_contents($critical_css_file);
-        echo '<style id="critical-css">' . $critical_css . '</style>';
     }
+
+    // 3. Вывод единого блока (Минимизация CLS и задержек LCP)
+    ?>
+    <style id="comandos-ultimate-css">
+        :root {
+            --primary: <?php echo esc_attr($brand_color); ?>;
+            --white: <?php echo esc_attr($bg_color); ?>;
+            --img-aspect-ratio: <?php echo esc_attr($css_aspect_ratio); ?>;
+            --slate-100: #f1f5f9;
+            --slate-900: #0f172a;
+            --slate-800: #333333;
+            --primary-glow-light: color-mix(in srgb, var(--primary) 20%, transparent);
+        }
+        <?php echo $critical_css; ?>
+        body { background-color: var(--white) !important; }
+    </style>
+    <?php
 }, -100);
 
 // НЕКРИТИЧЕСКИЙ CSS: Загружаем асинхронно
@@ -463,36 +487,7 @@ add_action('customize_register', function ($wp_customize) {
     ]);
 });
 
-/**
- * ИНЪЕКЦИЯ ДИНАМИЧЕСКИХ ПЕРЕМЕННЫХ
- */
-add_action('wp_head', function () {
-    $brand_color = get_theme_mod('brand_color', '#c7f560');
-    $bg_color    = get_theme_mod('bg_color', '#ffffff');
-    $aspect_ratio = get_theme_mod('global_img_aspect_ratio', 'none');
-    $css_aspect_ratio = ($aspect_ratio === 'none') ? 'auto' : $aspect_ratio;
-    ?>
-    <style id="comandos-dynamic-css">
-        :root {
-            --primary: <?php echo esc_attr($brand_color); ?>;
-            --white: <?php echo esc_attr($bg_color); ?>;
-            --img-aspect-ratio: <?php echo esc_attr($css_aspect_ratio); ?>;
-            --slate-100: #f1f5f9;
-            --slate-900: #111111;
-            --slate-800: #333333;
-            --header-bg: rgba(255, 255, 255, 0.9);
-            --header-border: rgba(0, 0, 0, 0.1);
-            --header-text: #111111;
-            
-            /* Полупрозрачные версии брендового цвета для подсветки */
-            --primary-glow-light: color-mix(in srgb, var(--primary) 20%, transparent);
-            --primary-glow-medium: color-mix(in srgb, var(--primary) 30%, transparent);
-            --primary-glow-strong: color-mix(in srgb, var(--primary) 40%, transparent);
-        }
-        body { background-color: var(--white) !important; }
-    </style>
-    <?php
-}, -110);
+// Старый блок comandos-dynamic-css удален и объединен с блоком выше (v5.7)
 
 // ИНЪЕКЦИЯ ASPECT-RATIO (FIX CLS для 'Original' и Custom)
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
