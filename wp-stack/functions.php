@@ -492,7 +492,7 @@ add_action('wp_head', function () {
         body { background-color: var(--white) !important; }
     </style>
     <?php
-}, 0);
+}, -110);
 
 // ИНЪЕКЦИЯ ASPECT-RATIO (FIX CLS для 'Original' и Custom)
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
