@@ -6,6 +6,8 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+DEFAULT_CERT_RESOLVER="myresolver"
+
 print_logo() {
     echo -e "${BLUE}"
     cat << "EOF"
@@ -288,11 +290,13 @@ version: '3'
 
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:latest
     container_name: traefik
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    environment:
+      - DOCKER_API_VERSION=1.44
     networks:
       - comandos-network
     ports:
@@ -332,7 +336,7 @@ EOF_TRAEFIK
             print_success "Traefik успешно установлен и запущен!"
             
             # Небольшая пауза, чтобы Traefik инициализировался
-            sleep 5
+            sleep 10
         fi
     fi
     
