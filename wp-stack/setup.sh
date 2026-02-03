@@ -130,6 +130,13 @@ GITHUB_BASE="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/ma
 
 download_if_missing() {
     local file=$1
+    local dir=$(dirname "$file")
+    
+    # Создаем подпапку локально, если её нет
+    if [ "$dir" != "." ]; then
+        mkdir -p "$dir"
+    fi
+    
     print_info "Проверка $file..."
     curl -sL "$GITHUB_BASE/$file" -o "$file"
     if [ ! -s "$file" ]; then
@@ -138,8 +145,16 @@ download_if_missing() {
     fi
 }
 
-# Список файлов для полной премиум-сборки
-FILES=("docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" "functions.php" "header.php" "footer.php" "index.php" "single.php" "style.css" "critical-wp.css" "archive.php" "search.php")
+# Список файлов для полной премиум-сборки (включая все подпапки)
+FILES=(
+    "docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" 
+    "functions.php" "header.php" "footer.php" "index.php" "single.php" 
+    "style.css" "critical-wp.css" "archive.php" "search.php"
+    "inc/critical-css.php" "inc/customizer.php" "inc/enqueue.php" 
+    "inc/optimization.php" "inc/performance.php" "inc/setup.php"
+    "template-parts/header/branding.php" "template-parts/header/navigation.php" "template-parts/header/search.php"
+    "assets/fonts/unbounded-900.woff2" "assets/fonts/inter-400-subset.woff2" "assets/fonts/inter-700-subset.woff2" "assets/fonts/inter-900-subset.woff2"
+)
 
 for file in "${FILES[@]}"; do
     download_if_missing "$file"
