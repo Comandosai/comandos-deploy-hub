@@ -3,8 +3,8 @@ get_header();
 ?>
 
 <div class="blog-header">
-  <h1 class="page-title"><?php echo esc_html(get_theme_mod('blog_title', 'Блог Comandos')); ?></h1>
-  <p class="page-description"><?php echo esc_html(get_theme_mod('blog_description', 'Полезные статьи об ИИ, автоматизации и бизнесе на маркетплейсах.')); ?></p>
+  <h1 class="page-title"><?php echo esc_html(get_theme_mod('blog_title', get_bloginfo('name'))); ?></h1>
+  <p class="page-description"><?php echo esc_html(get_theme_mod('blog_description', get_bloginfo('description'))); ?></p>
 </div>
 
 <div class="category-filters-container">
@@ -38,6 +38,7 @@ get_header();
                 if ($wp_query->current_post === 0) {
                     $attr['loading'] = 'eager';
                     $attr['fetchpriority'] = 'high';
+                    $attr['decoding'] = 'async';
                     $attr['class'] = 'lcp-image';
                 }
                 the_post_thumbnail('medium_large', $attr); 

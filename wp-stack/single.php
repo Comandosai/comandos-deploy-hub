@@ -15,9 +15,10 @@ get_header();
         <div class="post-hero">
           <?php the_post_thumbnail('full', [
               'class' => 'single-thumb',
-              'loading' => 'eager',
-              'fetchpriority' => 'high',
-              'decoding' => 'async'
+              'loading' => 'eager', 
+              'fetchpriority' => 'high', 
+              'decoding' => 'async',
+              'sizes' => '(max-width: 480px) 100vw, (max-width: 767px) 100vw, 1024px'
           ]); ?>
         </div>
       <?php endif; ?>

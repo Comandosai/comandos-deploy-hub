@@ -1,0 +1,106 @@
+<?php
+/**
+ * Critical CSS and Dynamic Theme Variables
+ *
+ * @package Comandos_Blog
+ */
+
+declare(strict_types=1);
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Unified Critical & Dynamic Variables Injection
+ */
+add_action('wp_head', function() {
+    // 1. Data from Customizer
+    $brand_color = get_theme_mod('brand_color', '#c7f560');
+    $bg_color    = get_theme_mod('bg_color', '#ffffff');
+    $aspect_ratio = get_theme_mod('global_img_aspect_ratio', 'none');
+    $css_aspect_ratio = ($aspect_ratio === 'none') ? 'auto' : $aspect_ratio;
+
+    // 2. Read Critical CSS File (v131.0 - Unified Cache)
+    // We use critical-desktop.css for EVERYONE to ensure Nginx cache hits (TTFB optimization).
+    // The file contains responsive @media queries.
+    $critical_file = 'critical-desktop.css';
+    $critical_css = '';
+    $critical_css_file = get_template_directory() . '/' . $critical_file;
+    if (file_exists($critical_css_file)) {
+        $critical_css = file_get_contents($critical_css_file);
+    }
+    // Debug
+    $critical_css .= '/* Loaded: ' . $critical_file . ' */';
+
+    // 3. Smart Contrast Logic
+    $hex = str_replace('#', '', $bg_color);
+    if (strlen($hex) == 3) {
+        $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
+        $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
+        $b = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
+    } else {
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+    }
+    $brightness = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
+    $text_color = ($brightness > 128) ? '#000000' : '#ffffff';
+
+    // 3.5. Layering Logic (v130.0 - Global Fix)
+    // Singular view: Post, Page, Attachment
+    if (is_singular() || is_single() || is_page()) {
+        $body_bg_val = '#ffffff'; 
+        $post_bg_val = $bg_color; 
+        $view_mode = 'singular';
+    } else {
+        $body_bg_val = $bg_color; 
+        $post_bg_val = '#ffffff'; 
+        $view_mode = 'listing';
+    }
+
+    // 4. Output Unified block
+    ?>
+    <style id="comandos-v21-swap">
+        /* v16.0 View Mode: <?php echo $view_mode; ?> */
+        :root {
+            --primary: <?php echo esc_attr($brand_color); ?> !important;
+            --white: #ffffff !important;
+            --body-bg: <?php echo esc_attr($body_bg_val); ?> !important;
+            --post-bg: <?php echo esc_attr($post_bg_val); ?> !important;
+            --bg-color: <?php echo esc_attr($post_bg_val); ?> !important;
+            --text-color: #000000 !important;
+            --img-aspect-ratio: <?php echo esc_attr($css_aspect_ratio); ?> !important;
+            --slate-100: #f1f5f9;
+            --slate-700: #334155 !important;
+            --slate-800: #1e293b !important;
+            --slate-900: #0f172a !important;
+            --slate-950: #020617 !important;
+            --primary-glow-light: color-mix(in srgb, var(--primary) 20%, transparent);
+        }
+        body { background: var(--body-bg) !important; }
+        * { hyphens: none !important; -webkit-hyphens: none !important; word-break: normal !important; overflow-wrap: normal !important; }
+        <?php echo $critical_css; ?>
+        
+        /* FORCED LCP OPTIMIZATION (v131.0) - Cache Safe */
+        .single-thumb, .single-thumb img {
+            width: 100% !important;
+            height: auto !important;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transition: none !important;
+            will-change: transform;
+        }
+        
+        /* INLINE FONTS (v135.0) - Optional for zero LS */
+        @font-face {
+            font-family: 'Unbounded';
+            font-style: normal;
+            font-weight: 900;
+            font-display: optional;
+            src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
+        }
+    </style>
+    <?php
+}, -100);

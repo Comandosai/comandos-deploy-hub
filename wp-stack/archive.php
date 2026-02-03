@@ -3,12 +3,24 @@ get_header();
 ?>
 
 <div class="blog-header">
-  <h1 class="page-title"><?php echo get_the_archive_title(); ?></h1>
-  <?php if (get_the_archive_description()) : ?>
-    <div class="page-description">
-      <?php echo wp_kses_post(get_the_archive_description()); ?>
-    </div>
-  <?php endif; ?>
+  <h1 class="page-title">
+    <?php 
+    if (is_category() || is_tag() || is_author() || is_date()) {
+        echo get_the_archive_title();
+    } else {
+        bloginfo('name');
+    }
+    ?>
+  </h1>
+  <div class="page-description">
+    <?php 
+    if (is_category() || is_tag() || is_author() || is_date()) {
+        echo get_the_archive_description();
+    } else {
+        bloginfo('description');
+    }
+    ?>
+  </div>
 </div>
 
 <div class="category-filters-container">

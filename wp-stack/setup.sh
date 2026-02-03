@@ -314,7 +314,7 @@ sync_file() {
     fi
 }
 
-# Копируем тему
+# Копируем тему и её компоненты (с поддержкой папок)
 sync_file "comandos-wp.css" "$THEME_DIR/comandos-wp.css"
 sync_file "functions.php" "$THEME_DIR/functions.php"
 sync_file "single.php" "$THEME_DIR/single.php"
@@ -325,6 +325,20 @@ sync_file "archive.php" "$THEME_DIR/archive.php"
 sync_file "search.php" "$THEME_DIR/search.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical-wp.css" "$THEME_DIR/critical-wp.css"
+
+# НОВОЕ: Рекурсивное копирование папок оптимизации и ассетов
+if [ -d "inc" ]; then
+    docker cp inc/ comandos-wp:"$THEME_DIR/" && echo -e "${GREEN}Синхронизирована папка: inc/${NC}"
+fi
+if [ -d "assets" ]; then
+    docker cp assets/ comandos-wp:"$THEME_DIR/" && echo -e "${GREEN}Синхронизирована папка: assets/${NC}"
+fi
+if [ -d "template-parts" ]; then
+    docker cp template-parts/ comandos-wp:"$THEME_DIR/" && echo -e "${GREEN}Синхронизирована папка: template-parts/${NC}"
+fi
+
+# Установка прав
+docker exec comandos-wp chown -R www-data:www-data "$THEME_DIR"
 
 docker exec -u 0 comandos-wp bash -c "
   if [ ! -f /usr/local/bin/wp ]; then

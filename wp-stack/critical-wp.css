@@ -1,273 +1,436 @@
-/**
- * Critical CSS - Optimized for Lighthouse 100 (v51.0)
- */
+/* 1. LOCAL FONTS LOCK (v94.0) */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: optional;
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
+}
 
-/* SYSTEM FONT STACK */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: optional;
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+    color: var(--text-color, #000000) !important;
+    hyphens: none !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    -webkit-hyphens: none !important;
+}
+
+/* 2. BASE STYLES (MOBILE DEFAULT) < 768px */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
+    color: var(--text-color, #000000) !important;
+    hyphens: none !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    -webkit-hyphens: none !important;
+    background: var(--body-bg, #ffffff) !important;
 }
 
-/* ФИКС CLS: Логотип и Шапка */
-.header-custom-logo {
-    width: 64px !important;
-    height: 64px !important;
-    aspect-ratio: 1 / 1 !important;
-    display: block !important;
-    border-radius: 12px;
+body.single {
+    background: var(--body-bg) !important;
 }
 
-.header-site-title {
-    font-size: 1.4rem !important;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--slate-900, #0f172a);
-    /* replaced var(--slate-900) */
-    margin-left: 15px;
-    /* Gap logic from .header-logo-link */
-}
-
+/* Header (Aligned with main CSS) */
 .site-header {
-    height: 120px !important;
-    /* STRICT LOCK: Changed from min-height */
-    /* SYNC WITH ASYNC CSS v72 */
-    display: flex !important;
-    align-items: flex-start !important;
-    padding-top: 40px !important;
-    background: transparent !important;
-    overflow: hidden !important;
-    /* CONTAINMENT */
+    position: relative;
+    top: 0;
+    padding-top: 40px;
+    min-height: 120px;
+    z-index: 1000;
+    box-sizing: border-box;
+    contain: layout;
+    background: transparent;
 }
 
-.header-main-wrapper {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    width: 100% !important;
-    height: 100% !important;
+.blog-header {
+    min-height: 180px;
+    /* Reserve space for H1 + Subtitle on Mobile */
+    margin-bottom: 20px;
 }
 
-/* ФИКС CLS: Flex layout для логотипа и текста */
-.header-branding,
-.header-logo-link {
-    display: flex !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-}
-
-/* ФИКС МЕНЮ (v60.3 NUCLEAR) */
-.header-navigation,
-.header-navigation div,
-.header-navigation ul {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: center !important;
-    list-style: none !important;
-    list-style-type: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    gap: 32px !important;
-}
-
-.header-navigation li {
-    display: block !important;
-    list-style: none !important;
-    list-style-type: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.header-navigation a {
-    text-decoration: none !important;
-    color: var(--slate-900, #1f2937) !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    white-space: nowrap !important;
+@media (min-width: 1024px) {
+    .blog-header {
+        min-height: 120px;
+    }
 }
 
 @media (max-width: 1024px) {
-    .header-custom-logo {
-        width: 36px !important;
-        height: 36px !important;
-    }
-
     .site-header {
-        height: 80px !important;
-        /* STRICT LOCK: Changed from min-height */
-        /* SYNC with commands-wp.css v12 Mobile/Tablet */
-        padding: 15px 0 !important;
-        /* SYNC with commands-wp.css v12 Mobile/Tablet */
-        overflow: hidden !important;
-        /* CONTAINMENT */
-    }
-
-    .header-site-title {
-        font-size: 1.1rem !important;
-        /* SYNC with commands-wp.css */
-        font-family: sans-serif !important;
-        /* FALLBACK STABILITY */
+        min-height: 120px !important;
+        /* Lock height to match desktop and main CSS */
+        padding-top: 20px;
     }
 }
 
-/* ФИКС CLS: Контент (Заголовки и Мета) */
-.post-meta {
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: var(--slate-800, #334155);
-    /* Re-applied: Increased contrast from #64748b */
-    min-height: 20px;
+.header-main-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .header-main-wrapper {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start !important;
+    }
+
+    .header-search-wrapper {
+        width: 100%;
+        flex: 1 1 auto;
+    }
+
+    .header-site-title {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .header-custom-logo {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Mobile Corridor Expansion (v11.1) */
+@media (max-width: 767px) {
+    .site-inner {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+}
+
+/* Header Search (Aligned) */
+.header-search-wrapper {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 1 300px;
+}
+
+/* CLS FIX v95.0 (Search Form) */
+.header-search-form {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    width: 100%;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Global Aspect Ratio Lock (v95.0) */
+img[class*="wp-image-"],
+.post-content img {
+    height: auto;
+    max-width: 100%;
+    aspect-ratio: attr(width) / attr(height);
+}
+
+.header-custom-logo {
+    width: 64px;
+    height: 64px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    object-fit: contain;
+    transition: none !important;
+    /* CLS FIX v88.0 */
+}
+
+.header-site-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--slate-900, #0f172a) !important;
+    margin-left: 12px;
+}
+
+/* 2.2 CONTENT TYPOGRAPHY FORCE */
+.post-content,
+.post-content p,
+.post-content li,
+.post-content blockquote,
+.entry-content p,
+.entry-content li {
+    color: #000000 !important;
+}
+
+/* Single Post (Mobile) */
+article.single-post {
+    width: 100%;
+    padding: 20px 16px;
+    /* Reduced internal spacing for mobile corridor */
+    box-sizing: border-box;
+    background: var(--post-bg, #f1f5f9) !important;
+    /* DYNAMIC CONTENT AREA */
+    border-radius: 20px;
+    /* Slightly sharper for mobile edge usage */
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .post-hero {
     width: 100%;
-    max-width: 1000px;
-    margin: 0 auto 3.5rem;
-    /* Critical for layout stability */
-    border-radius: 32px;
+    margin-bottom: 1.5rem;
+    border-radius: 20px;
     overflow: hidden;
-    /* Box shadow omitted to save bytes, but margin/size is critical */
-}
-
-/* Default Grid Title (Archive/Cards) */
-.post-title {
-    font-size: 1.5rem !important;
-    /* Reduced for Grid */
-    line-height: 1.3 !important;
-    font-weight: 700 !important;
-    color: var(--slate-900, #0f172a) !important;
-    margin-bottom: 0.5rem !important;
-}
-
-/* Single Hero Title (Large) */
-.post-hero .post-title {
-    font-size: 3.5rem !important;
-    /* SYNC with Desktop Async */
-    line-height: 1.1 !important;
-    font-weight: 900 !important;
-    margin-bottom: 1rem !important;
-    /* v3.5 Design */
-    color: var(--slate-900, #0f172a) !important;
-    min-height: 140px !important;
-    /* INCREASED: Space for 2-3 lines of text */
-    display: block !important;
-    contain: layout !important;
 }
 
 @media (max-width: 767px) {
-    .post-title {
-        font-size: 2.2rem !important;
-        /* SYNC with comandos-wp.css */
-        line-height: 1.3 !important;
-        min-height: 120px !important;
-        /* Adjusted for larger font */
+    .post-hero {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px !important;
+    }
+
+    .post-content img,
+    .wp-block-image img,
+    .single-thumb img {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px !important;
     }
 }
 
-/* ФИКС CLS: Главное изображение */
+.post-title {
+    font-size: 2.0rem;
+    /* Mobile size */
+    line-height: 1.2;
+    font-weight: 900;
+    color: var(--text-color, #000000) !important;
+    margin-bottom: 1rem;
+    min-height: 80px;
+    /* Reduced for mobile */
+    display: block;
+    hyphens: none !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    /* Allow breaking long words but NOT hyphenation */
+    -webkit-hyphens: none !important;
+}
+
 .single-thumb,
 .single-thumb img {
-    /* BRUTE FORCE: 16/9 from User Setting (v100) */
-    aspect-ratio: 16 / 9 !important;
-    width: 100% !important;
-    height: auto !important;
-    object-fit: cover !important;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
     display: block;
-    background: var(--slate-100, #f1f5f9);
-    border-radius: 20px;
+    background: #f1f5f9;
 }
 
-@media (max-width: 767px) {
-    .site-inner {
-        padding: 0 16px !important;
-    }
-}
-
-/* ФИКС CLS: Резервирование места под рекомендации v62.1 */
-.related-posts {
-    min-height: 400px;
-    contain: content;
-}
-
-.related-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 24px !important;
-}
-
-@media (max-width: 767px) {
-    .related-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .related-posts {
-        min-height: 800px;
-    }
-}
-
-/* --- LAYOUT STABILIZATION v71.0 --- */
-body {
-    contain: layout;
-}
-
-.site-main {
-    contain: layout;
-    min-height: 100vh;
-    padding-top: 2rem !important;
-    /* SYNC WITH ASYNC */
-}
-
-/* Резервирование пространства для контента статьи */
-.single-post {
-    min-height: 2000px;
-    max-width: 850px !important;
-    /* DESKTOP STABILIZATION: Prevent width snapping */
-    margin: 0 auto !important;
+/* 2.1 TABLES AS WHITE CARDS */
+.entry-content table,
+.post-content table,
+article table {
     width: 100% !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff !important;
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 2rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.post-content {
-    min-height: 1200px;
+.entry-content th,
+article th {
+    background: #f8fafc;
+    padding: 16px;
+    font-weight: 700;
+    text-align: left;
+    border-bottom: 1px solid #edf2f7;
 }
 
-.toc-box {
-    min-height: 480px !important;
-    contain: layout;
+.entry-content td,
+article td {
+    padding: 16px;
+    border-bottom: 1px solid #f7fafc;
+    color: var(--text-color, #000000);
 }
 
-@media (max-width: 767px) {
-    .single-post {
-        min-height: 3000px;
+.entry-content tr:last-child td,
+article tr:last-child td {
+    border-bottom: none;
+}
+
+/* Accessibility */
+.back-link,
+.back-link:visited {
+    color: var(--white, #ffffff) !important;
+    /* Text matches corridor background (Stencil Effect) */
+    background-color: var(--slate-950, #0f172a);
+    /* Dark Background */
+    /* Pill Shape & Spacing */
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    margin-top: 1rem;
+    transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease !important;
+    display: inline-block;
+}
+
+.back-link:hover {
+    color: #000000 !important;
+    /* Black Text */
+    background-color: var(--primary) !important;
+    /* Brand Background */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Posts Grid (Mobile - 1 Column) */
+.posts {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Mobile default */
+    gap: 32px;
+    margin-bottom: 4rem;
+}
+
+.posts .post-card {
+    background: #ffffff !important;
+    /* CARD LOCK: ALWAYS WHITE (v112.0) */
+    border-radius: 24px;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.post-card,
+.post-card *,
+.post-card p,
+.post-card span,
+.post-card .post-info,
+.post-card .post-date,
+.post-card .post-category {
+    color: #000000 !important;
+}
+
+.post-thumb img {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    object-fit: cover;
+    background: #f1f5f9;
+}
+
+
+/* 3. TABLET OVERRIDES (768px - 1023px) */
+@media (min-width: 768px) {
+
+    /* Header */
+    .site-header {
+        height: 100px;
+        padding-top: 25px;
+        transition: none !important;
+        /* CLS FIX v88.0 */
     }
 
-    .post-content {
-        min-height: 1800px;
-    }
-
-    .toc-box {
-        min-height: 900px !important;
-        contain: layout;
+    /* Grid - 2 Columns */
+    .posts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px;
     }
 }
 
-/* ФИКС CLS: Related Posts Containment (vNUCLEAR) */
-.related-thumb-wrapper {
-    width: 100% !important;
-    aspect-ratio: 16 / 9 !important;
-    overflow: hidden !important;
-    background-color: var(--slate-100, #f1f5f9) !important;
-    /* Skeleton placeholder */
-    border-radius: 12px;
-    display: block !important;
-    margin-bottom: 12px;
-}
 
-.related-thumb {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+/* 4. DESKTOP ISOLATION (1024px+) */
+@media (min-width: 1024px) {
+
+    /* Header */
+    .site-header {
+        height: 120px;
+        padding-top: 40px;
+        transition: none !important;
+        /* CLS FIX v88.0 */
+    }
+
+    .header-main-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header-custom-logo {
+        width: 64px;
+        height: 64px;
+        transition: none !important;
+        /* CLS FIX v88.0 */
+    }
+
+    .header-site-title {
+        font-size: 1.4rem;
+        color: var(--text-color, #000000);
+        margin-left: 15px;
+    }
+
+    /* Single Post */
+    article.single-post {
+        max-width: 1000px;
+        margin: 2rem auto;
+        /* Center on "Desk" */
+        padding: 40px;
+        /* More breathing room */
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+        /* Lifted effect */
+        background: var(--post-bg) !important;
+        /* DYNAMIC CORRIDOR (v125.0) */
+        border-radius: 32px;
+    }
+
+    .post-hero {
+        margin-bottom: 2.5rem;
+        border-radius: 24px;
+    }
+
+    .post-title {
+        font-size: 3.5rem;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        min-height: 140px;
+    }
+
+    /* Grid - 3 Columns */
+    .posts {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 48px 32px;
+    }
 }
