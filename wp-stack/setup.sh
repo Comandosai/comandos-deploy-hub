@@ -344,7 +344,10 @@ EOF_TRAEFIK
         echo -e "${YELLOW}Пропускаю настройку маршрутов (Traefik не установлен).${NC}"
         echo -e "${RED}ВАЖНО: Сайт может быть недоступен извне без прокси-сервера!${NC}"
     fi
-else
+fi
+
+# БЛОК 2: Генерация конфига
+if [ ! -z "$TRAEFIK_ID" ]; then
     docker network connect comandos-network "$TRAEFIK_ID" 2>/dev/null || true
 
     TRAEFIK_RESOLVER=$(docker inspect "$TRAEFIK_ID" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' \
