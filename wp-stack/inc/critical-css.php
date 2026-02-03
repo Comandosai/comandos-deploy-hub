@@ -47,16 +47,19 @@ add_action('wp_head', function() {
     $brightness = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
     $text_color = ($brightness > 128) ? '#000000' : '#ffffff';
 
-    // 3.5. Layering Logic (v130.0 - Global Fix)
-    // Singular view: Post, Page, Attachment
-    if (is_singular() || is_single() || is_page()) {
-        $body_bg_val = '#ffffff'; 
-        $post_bg_val = $bg_color; 
-        $view_mode = 'singular';
-    } else {
+    // 3.5. Layering Logic (v132.0 - Forced Mode Fix)
+    // Listing mode must be active on home, front page, and archives
+    $is_listing = is_home() || is_front_page() || is_archive() || is_search();
+    
+    if ($is_listing) {
         $body_bg_val = $bg_color; 
         $post_bg_val = '#ffffff'; 
         $view_mode = 'listing';
+    } else {
+        // Only then we consider singular views
+        $body_bg_val = '#ffffff'; 
+        $post_bg_val = $bg_color; 
+        $view_mode = 'singular';
     }
 
     // 4. Output Unified block
@@ -64,18 +67,18 @@ add_action('wp_head', function() {
     <style id="comandos-v21-swap">
         /* v16.0 View Mode: <?php echo $view_mode; ?> */
         :root {
-            --primary: <?php echo esc_attr($brand_color); ?> !important;
-            --white: #ffffff !important;
-            --body-bg: <?php echo esc_attr($body_bg_val); ?> !important;
-            --post-bg: <?php echo esc_attr($post_bg_val); ?> !important;
-            --bg-color: <?php echo esc_attr($post_bg_val); ?> !important;
-            --text-color: #000000 !important;
-            --img-aspect-ratio: <?php echo esc_attr($css_aspect_ratio); ?> !important;
+            --primary: <?php echo esc_attr($brand_color); ?>;
+            --white: #ffffff;
+            --body-bg: <?php echo esc_attr($body_bg_val); ?>;
+            --post-bg: <?php echo esc_attr($post_bg_val); ?>;
+            --bg-color: <?php echo esc_attr($bg_color); ?>;
+            --text-color: <?php echo esc_attr($text_color); ?>;
+            --img-aspect-ratio: <?php echo esc_attr($css_aspect_ratio); ?>;
             --slate-100: #f1f5f9;
-            --slate-700: #334155 !important;
-            --slate-800: #1e293b !important;
-            --slate-900: #0f172a !important;
-            --slate-950: #020617 !important;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --slate-950: #020617;
             --primary-glow-light: color-mix(in srgb, var(--primary) 20%, transparent);
         }
         body { background: var(--body-bg) !important; }
@@ -99,7 +102,7 @@ add_action('wp_head', function() {
             font-style: normal;
             font-weight: 900;
             font-display: optional;
-            src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
+            src: url('/wp-content/themes/autopipe-blog/assets/fonts/unbounded-900.woff2') format('woff2');
         }
     </style>
     <?php

@@ -64,7 +64,9 @@ add_action('customize_register', function ($wp_customize) {
  */
 add_action('wp_head', function() {
     if (is_customize_preview()) {
-        echo '<script>window.comandos_is_singular = ' . (is_singular() || is_single() || is_page() ? 'true' : 'false') . ';</script>';
+        $is_listing = is_home() || is_front_page() || is_archive() || is_search();
+        $is_singular = (is_singular() || is_single() || is_page()) && !$is_listing;
+        echo '<script>window.comandos_is_singular = ' . ($is_singular ? 'true' : 'false') . ';</script>';
     }
 });
 
