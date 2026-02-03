@@ -364,11 +364,18 @@ else
 EOF
 )
 
-    DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
-    if [ -z "$DYNAMIC_DIR" ]; then
-        # Если ставим свой Traefik, путь должен быть тут:
-        DYNAMIC_DIR="$BASE_DIR/traefik/dynamic"
+    # Если мы только что поставили Traefik сами - мы точно знаем путь
+    if [ ! -z "$install_traefik_choice" ] && [[ $install_traefik_choice =~ ^[Yy]$ ]]; then
+         DYNAMIC_DIR="$BASE_DIR/traefik/dynamic"
+    else
+         # Иначе пытаемся определить через Docker Inspect (для внешнего Traefik)
+         DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
     fi
+    # Fallback, если всё сломалось
+    if [ -z "$DYNAMIC_DIR" ]; then
+        DYNAMIC_DIR="/root/traefik-dynamic"
+    fi
+    
     mkdir -p "$DYNAMIC_DIR"
     echo -e "${GREEN}Traefik ID: ${TRAEFIK_ID}${NC}"
     echo -e "${GREEN}Dynamic dir: ${DYNAMIC_DIR}${NC}"
