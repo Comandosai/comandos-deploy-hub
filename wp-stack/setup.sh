@@ -366,7 +366,8 @@ EOF
 
     DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
     if [ -z "$DYNAMIC_DIR" ]; then
-        DYNAMIC_DIR="/root/traefik-dynamic"
+        # Если ставим свой Traefik, путь должен быть тут:
+        DYNAMIC_DIR="$BASE_DIR/traefik/dynamic"
     fi
     mkdir -p "$DYNAMIC_DIR"
     echo -e "${GREEN}Traefik ID: ${TRAEFIK_ID}${NC}"
