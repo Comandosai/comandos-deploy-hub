@@ -266,7 +266,80 @@ EOF' || true
 print_header "НАСТРОЙКА TRAEFIK (МАРШРУТЫ И СЕТЬ)..."
 TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
 if [ -z "$TRAEFIK_ID" ]; then
-    echo -e "${YELLOW}Traefik контейнер не найден, пропускаю настройку маршрутов.${NC}"
+    echo -e "${YELLOW}Traefik контейнер не найден.${NC}"
+    
+    # Спрашиваем про установку Traefik ТОЛЬКО если это режим INSTALL
+    if [ "$MODE" == "INSTALL" ]; then
+        echo -e "\n${BLUE}==============================================${NC}"
+        echo -e "${YELLOW}ВНИМАНИЕ: Для доступа к сайту из интернета нужен Traefik!${NC}"
+        echo -e "Хотите установить и настроить Traefik автоматически? (Рекомендуется)"
+        ask_user "Установить Traefik? (y/n): " install_traefik_choice
+        
+        if [[ $install_traefik_choice =~ ^[Yy]$ ]]; then
+            print_info "Установка Traefik..."
+            mkdir -p "$BASE_DIR/traefik"
+            mkdir -p "$BASE_DIR/traefik/dynamic"
+            touch "$BASE_DIR/traefik/acme.json"
+            chmod 600 "$BASE_DIR/traefik/acme.json"
+            
+            # Создаем docker-compose для Traefik
+            cat <<EOF_TRAEFIK > "$BASE_DIR/traefik/docker-compose.yml"
+version: '3'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - comandos-network
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acme.json:/acme.json
+      - ./dynamic:/dynamic_conf
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/dynamic_conf"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=$SSL_EMAIL"
+      - "--certificatesresolvers.myresolver.acme.storage=/acme.json"
+
+networks:
+  comandos-network:
+    external: true
+EOF_TRAEFIK
+
+            # Запускаем Traefik
+            print_info "Запуск Traefik..."
+            docker compose -f "$BASE_DIR/traefik/docker-compose.yml" up -d
+            
+            # Получаем ID только что запущенного контейнера
+            TRAEFIK_ID=$(docker ps --format '{{.ID}}' --filter "name=traefik")
+            print_success "Traefik успешно установлен и запущен!"
+            
+            # Небольшая пауза, чтобы Traefik инициализировался
+            sleep 5
+        fi
+    fi
+    
+    if [ -z "$TRAEFIK_ID" ]; then
+        echo -e "${YELLOW}Пропускаю настройку маршрутов (Traefik не установлен).${NC}"
+        echo -e "${RED}ВАЖНО: Сайт может быть недоступен извне без прокси-сервера!${NC}"
+    fi
 else
     docker network connect comandos-network "$TRAEFIK_ID" 2>/dev/null || true
 
