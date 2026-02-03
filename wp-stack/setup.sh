@@ -154,6 +154,7 @@ FILES=(
     "inc/optimization.php" "inc/performance.php" "inc/setup.php"
     "template-parts/header/branding.php" "template-parts/header/navigation.php" "template-parts/header/search.php"
     "assets/fonts/unbounded-900.woff2" "assets/fonts/inter-400-subset.woff2" "assets/fonts/inter-700-subset.woff2" "assets/fonts/inter-900-subset.woff2"
+    "js/customize-preview.js"
 )
 
 for file in "${FILES[@]}"; do
@@ -350,6 +351,9 @@ if [ -d "assets" ]; then
 fi
 if [ -d "template-parts" ]; then
     docker cp template-parts/ comandos-wp:"$THEME_DIR/" && echo -e "${GREEN}Синхронизирована папка: template-parts/${NC}"
+fi
+if [ -d "js" ]; then
+    docker cp js/ comandos-wp:"$THEME_DIR/" && echo -e "${GREEN}Синхронизирована папка: js/${NC}"
 fi
 
 # Установка прав

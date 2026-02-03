@@ -24,7 +24,7 @@ add_action('wp_head', function() {
     // 2. Read Critical CSS File (v131.0 - Unified Cache)
     // We use critical-desktop.css for EVERYONE to ensure Nginx cache hits (TTFB optimization).
     // The file contains responsive @media queries.
-    $critical_file = 'critical-desktop.css';
+    $critical_file = 'critical-wp.css';
     $critical_css = '';
     $critical_css_file = get_template_directory() . '/' . $critical_file;
     if (file_exists($critical_css_file)) {
@@ -102,7 +102,7 @@ add_action('wp_head', function() {
             font-style: normal;
             font-weight: 900;
             font-display: optional;
-            src: url('/wp-content/themes/autopipe-blog/assets/fonts/unbounded-900.woff2') format('woff2');
+            src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
         }
     </style>
     <?php
