@@ -15,6 +15,13 @@ input,
     transition-property: transform, opacity !important;
 }
 
+/* --- CLS STABILIZATION (v68.0) --- */
+img {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: attr(width) / attr(height);
+}
+
 /* :root moved to functions.php for dynamic Customizer support (v5.8) */
 /*
 :root {
@@ -1332,7 +1339,7 @@ figcaption,
     font-family: 'Inter';
     font-style: normal;
     font-weight: 400;
-    font-display: optional;
+    font-display: swap;
     src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
 }
 
@@ -1341,7 +1348,7 @@ figcaption,
     font-family: 'Inter';
     font-style: normal;
     font-weight: 700;
-    font-display: optional;
+    font-display: swap;
     src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
 }
 
@@ -1349,7 +1356,7 @@ figcaption,
     font-family: 'Inter';
     font-style: normal;
     font-weight: 800;
-    font-display: optional;
+    font-display: swap;
     src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-800-subset.woff2') format('woff2');
 }
 
@@ -1357,7 +1364,7 @@ figcaption,
     font-family: 'Inter';
     font-style: normal;
     font-weight: 900;
-    font-display: optional;
+    font-display: swap;
     src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-900-subset.woff2') format('woff2');
 }
 
@@ -1365,7 +1372,7 @@ figcaption,
     font-family: 'Unbounded';
     font-style: normal;
     font-weight: 900;
-    font-display: optional;
+    font-display: swap;
     src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
 }
 
