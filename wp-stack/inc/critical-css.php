@@ -24,7 +24,7 @@ add_action('wp_head', function() {
     // 2. Read Critical CSS File (v131.0 - Unified Cache)
     // We use critical-desktop.css for EVERYONE to ensure Nginx cache hits (TTFB optimization).
     // The file contains responsive @media queries.
-    $critical_file = 'critical-wp.css';
+    $critical_file = 'critical-desktop.css';
     $critical_css = '';
     $critical_css_file = get_template_directory() . '/' . $critical_file;
     if (file_exists($critical_css_file)) {
@@ -64,8 +64,8 @@ add_action('wp_head', function() {
 
     // 4. Output Unified block
     ?>
-    <style id="comandos-v21-swap">
-        /* v16.0 View Mode: <?php echo $view_mode; ?> */
+    <style id="comandos-v22-final">
+        /* v22.0 View Mode: <?php echo $view_mode; ?> */
         :root {
             --primary: <?php echo esc_attr($brand_color); ?>;
             --white: #ffffff;
@@ -96,13 +96,27 @@ add_action('wp_head', function() {
             will-change: transform;
         }
         
-        /* INLINE FONTS (v135.0) - Optional for zero LS */
+        /* INLINE FONTS (v138.0) - Optional for zero LS */
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 400;
+            font-display: optional;
+            src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 700;
+            font-display: optional;
+            src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
+        }
         @font-face {
             font-family: 'Unbounded';
             font-style: normal;
             font-weight: 900;
             font-display: optional;
-            src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
+            src: url('/wp-content/themes/autopipe-blog/assets/fonts/unbounded-900.woff2') format('woff2');
         }
     </style>
     <?php

@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
  */
 add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style('comandos-blog-style', get_stylesheet_uri(), [], '103.0');
-    wp_enqueue_style('comandos-custom-styles', get_template_directory_uri() . '/comandos-wp.css', [], '137.0');
+    wp_enqueue_style('comandos-custom-styles', get_template_directory_uri() . '/comandos-wp.css', [], '140.0');
 });
 
 /**
