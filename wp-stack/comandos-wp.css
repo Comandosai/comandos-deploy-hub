@@ -1333,7 +1333,7 @@ figcaption,
     font-style: normal;
     font-weight: 400;
     font-display: optional;
-    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
 }
 
 /* ASYNC FONTS LOADER (v103.0) */
@@ -1342,7 +1342,7 @@ figcaption,
     font-style: normal;
     font-weight: 700;
     font-display: optional;
-    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
 }
 
 @font-face {
@@ -1350,7 +1350,7 @@ figcaption,
     font-style: normal;
     font-weight: 800;
     font-display: optional;
-    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-800-subset.woff2') format('woff2');
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-800-subset.woff2') format('woff2');
 }
 
 @font-face {
@@ -1358,7 +1358,7 @@ figcaption,
     font-style: normal;
     font-weight: 900;
     font-display: optional;
-    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-900-subset.woff2') format('woff2');
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-900-subset.woff2') format('woff2');
 }
 
 @font-face {
@@ -1366,7 +1366,7 @@ figcaption,
     font-style: normal;
     font-weight: 900;
     font-display: optional;
-    src: url('/wp-content/themes/autopipe-blog/assets/fonts/unbounded-wght.ttf') format('truetype');
+    src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
 }
 
 /* HIDE SEARCH ON MOBILE FOR ARTICLES (v135.0) */

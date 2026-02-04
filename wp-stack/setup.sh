@@ -72,7 +72,7 @@ cd "$PRODUCT_DIR" || exit 1
 INSTALL_DIR=$(pwd)
 
 print_logo
-print_header "COMANDOS WP ENGINE - INSTALLER v2.4.5"
+print_header "COMANDOS WP ENGINE - INSTALLER v2.4.6"
 print_info "DIR: $INSTALL_DIR"
 echo
 
@@ -151,11 +151,11 @@ download_if_missing() {
 FILES=(
     "docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" 
     "functions.php" "header.php" "footer.php" "index.php" "single.php" 
-    "style.css" "critical-wp.css" "archive.php" "search.php"
+    "style.css" "critical-desktop.css" "critical-mobile.css" "archive.php" "search.php"
     "inc/critical-css.php" "inc/customizer.php" "inc/enqueue.php" 
     "inc/optimization.php" "inc/performance.php" "inc/setup.php"
     "template-parts/header/branding.php" "template-parts/header/navigation.php" "template-parts/header/search.php"
-    "assets/fonts/unbounded-900.woff2" "assets/fonts/inter-400-subset.woff2" "assets/fonts/inter-700-subset.woff2" "assets/fonts/inter-900-subset.woff2"
+    "assets/fonts/unbounded-900.woff2" "assets/fonts/inter-400-subset.woff2" "assets/fonts/inter-700-subset.woff2" "assets/fonts/inter-800-subset.woff2" "assets/fonts/inter-900-subset.woff2"
     "js/customize-preview.js"
 )
 
@@ -428,7 +428,8 @@ sync_file "index.php" "$THEME_DIR/index.php"
 sync_file "archive.php" "$THEME_DIR/archive.php"
 sync_file "search.php" "$THEME_DIR/search.php"
 sync_file "style.css" "$THEME_DIR/style.css"
-sync_file "critical-wp.css" "$THEME_DIR/critical-wp.css"
+sync_file "critical-desktop.css" "$THEME_DIR/critical-desktop.css"
+sync_file "critical-mobile.css" "$THEME_DIR/critical-mobile.css"
 
 # НОВОЕ: Рекурсивное копирование папок оптимизации и ассетов
 if [ -d "inc" ]; then
@@ -475,7 +476,7 @@ docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
 echo -e "\n"
 print_header "СИСТЕМА ГОТОВА И ПЕРЕНЕСЕНА!"
 print_info "WordPress: https://$WP_DOMAIN/"
-print_info "Тема:      Comandos Blog (Premium v2.4.5)"
+print_info "Тема:      Comandos Blog (Premium v2.4.6)"
 print_info "Админка:   https://$WP_DOMAIN/wp-admin"
 print_warning "Совет: Если дизайн не обновился, сбросьте кэш (Ctrl+F5 или Cmd+Shift+R на Mac)"
 echo -e "${BLUE}================================================${NC}"

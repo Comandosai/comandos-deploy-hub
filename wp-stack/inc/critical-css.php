@@ -102,21 +102,21 @@ add_action('wp_head', function() {
             font-style: normal;
             font-weight: 400;
             font-display: optional;
-            src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
+            src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
         }
         @font-face {
             font-family: 'Inter';
             font-style: normal;
             font-weight: 700;
             font-display: optional;
-            src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
+            src: url('/wp-content/themes/comandos-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
         }
         @font-face {
             font-family: 'Unbounded';
             font-style: normal;
             font-weight: 900;
             font-display: optional;
-            src: url('/wp-content/themes/autopipe-blog/assets/fonts/unbounded-900.woff2') format('woff2');
+            src: url('/wp-content/themes/comandos-blog/assets/fonts/unbounded-900.woff2') format('woff2');
         }
     </style>
     <?php

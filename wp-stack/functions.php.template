@@ -29,13 +29,13 @@ add_action('wp_head', function() {
 
 // НЕКРИТИЧЕСКИЙ CSS: Загружаем асинхронно (не блокируем отрисовку)
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('autopipe-blog-style', get_stylesheet_uri(), [], '1.7');
+    wp_enqueue_style('comandos-blog-style', get_stylesheet_uri(), [], '1.7');
     wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', [], '1.7');
 });
 
 // ASYNC LOADING: Модифицируем HTML напрямую для асинхронной загрузки
 add_filter('style_loader_tag', function($html, $handle, $href) {
-    if ($handle === 'autopipe-blog-style' || $handle === 'comandos-styles') {
+    if ($handle === 'comandos-blog-style' || $handle === 'comandos-styles') {
         // Заменяем media='all' на media='print' с onload переключением
         $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
         // Добавляем noscript fallback
