@@ -13,12 +13,11 @@ get_header();
       
       <?php if (has_post_thumbnail()) : ?>
         <div class="post-hero">
-          <?php the_post_thumbnail('full', [
+          <?php the_post_thumbnail('large', [
               'class' => 'single-thumb',
               'loading' => 'eager', 
               'fetchpriority' => 'high', 
-              'decoding' => 'async',
-              'sizes' => '(max-width: 480px) 100vw, (max-width: 767px) 100vw, 1024px'
+              'decoding' => 'async'
           ]); ?>
         </div>
       <?php endif; ?>

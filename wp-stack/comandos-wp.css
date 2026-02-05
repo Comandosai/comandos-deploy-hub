@@ -19,7 +19,9 @@ input,
 img {
     max-width: 100%;
     height: auto;
+    /* Резервируем пропорции на основе атрибутов width/height из HTML */
     aspect-ratio: attr(width) / attr(height);
+    display: block;
 }
 
 /* :root moved to functions.php for dynamic Customizer support (v5.8) */
@@ -380,6 +382,15 @@ body {
 .single-thumb,
 .post-thumb img {
     aspect-ratio: var(--img-aspect-ratio) !important;
+}
+
+/* Принудительный aspect-ratio для главных миниатюр в статьях (обычно 16:9) */
+.single-thumb,
+.wp-post-image {
+    aspect-ratio: 16 / 9 !important;
+    background-color: #f7f7f7;
+    /* Светлая заглушка */
+    object-fit: cover;
 }
 
 /* ИЗОЛЯЦИЯ АВАТАРОВ (Всегда 1:1) */
