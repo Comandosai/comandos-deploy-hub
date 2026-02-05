@@ -40,6 +40,8 @@ get_header();
                     $attr['fetchpriority'] = 'high';
                     $attr['decoding'] = 'async';
                     $attr['class'] = 'lcp-image';
+                    $attr['width'] = '1024';
+                    $attr['height'] = '683';
                 }
                 the_post_thumbnail('medium_large', $attr); 
                 ?>
