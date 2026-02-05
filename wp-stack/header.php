@@ -12,6 +12,21 @@
   <!-- Предзагрузка критических шрифтов для устранения прыжков -->
   <link rel="preload" href="<?php echo get_template_directory_uri(); ?>/assets/fonts/inter-400-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="<?php echo get_template_directory_uri(); ?>/assets/fonts/unbounded-900.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+  /* Zero-CLS Hard Lock */
+  .site-header { height: 70px !important; display: flex !important; align-items: center !important; }
+  .header-custom-logo { width: 40px !important; height: 40px !important; }
+  .post-hero {
+      display: block !important;
+      width: 100% !important;
+      aspect-ratio: 1.46 / 1 !important;
+      background: #f3f4f6 !important;
+      margin-bottom: 30px !important;
+  }
+  body, h1, h2, h3, h4, h5, h6, p, li, a { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; 
+  }
+  </style>
   <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
