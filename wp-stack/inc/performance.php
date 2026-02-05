@@ -63,14 +63,4 @@ add_action('wp_head', function() {
             echo '<link rel="preload" as="image" href="' . esc_url(comandos_get_webp_url($logo_src)) . '" fetchpriority="high">' . "\n";
         }
     }
-
-    // Preload Inter fonts (Standard for the theme)
-    $fonts = [
-        'inter-400-subset.woff2',
-        'inter-700-subset.woff2',
-        'inter-900-subset.woff2'
-    ];
-    foreach ($fonts as $font) {
-        echo '<link rel="preload" href="' . esc_url(get_theme_file_uri('assets/fonts/' . $font)) . '" as="font" type="font/woff2" crossorigin>' . "\n";
-    }
 }, 1);
