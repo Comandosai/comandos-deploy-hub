@@ -52,17 +52,26 @@ add_action('wp_enqueue_scripts', function() {
  */
 
 /**
- * LCP FIX: Disable Lazy Load for the first 4 images (Logo, Hero, etc.).
+ * LCP FIX: Zero-CLS Hard Lock для первого изображения.
+ * Форсирует eager loading и высокий приоритет для первой картинки в цикле.
  */
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
     if (is_admin()) return $attr;
-    static $counter = 0;
-    $counter++;
-    if ($counter <= 4 || (is_single() && strpos($attr['class'] ?? '', 'single-thumb') !== false)) {
+    
+    static $first_img = true;
+    if (is_singular() && in_the_loop() && $first_img) {
         $attr['loading'] = 'eager';
         $attr['fetchpriority'] = 'high';
         $attr['decoding'] = 'async';
+        $first_img = false;
     }
+    
+    // Fallback для логотипа и других важных элементов вне цикла
+    if (strpos($attr['class'] ?? '', 'custom-logo') !== false || strpos($attr['class'] ?? '', 'single-thumb') !== false) {
+        $attr['loading'] = 'eager';
+        $attr['fetchpriority'] = 'high';
+    }
+    
     return $attr;
 }, 10, 3);
 

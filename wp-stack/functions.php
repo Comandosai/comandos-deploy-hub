@@ -78,5 +78,3 @@ add_filter('wp_calculate_image_sizes', function($sizes, $size) {
     return $sizes;
 }, 10, 2);
 
-/** Оптимизация загрузки первого фото (Hero) **/
-require_once get_template_directory() . '/inc/perf-fix.php';
