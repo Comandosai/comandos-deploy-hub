@@ -1,11 +1,11 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Comandos Blog functions and definitions
  *
  * @package Comandos_Blog
  */
-
-declare(strict_types=1);
 
 /**
  * 📂 THEME DECOMPOSITION (v11.0 Gold Standard)
