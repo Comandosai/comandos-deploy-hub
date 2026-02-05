@@ -149,7 +149,7 @@ download_if_missing() {
 
 # Список файлов для полной премиум-сборки (включая все подпапки)
 FILES=(
-    "docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" 
+    "docker-compose.yml.j2" "comandos-wp.css" "user-guide.md.j2" ".htaccess"
     "functions.php" "header.php" "footer.php" "index.php" "single.php" 
     "style.css" "critical-desktop.css" "critical-mobile.css" "archive.php" "search.php"
     "inc/critical-css.php" "inc/customizer.php" "inc/enqueue.php" 
@@ -430,6 +430,7 @@ sync_file "search.php" "$THEME_DIR/search.php"
 sync_file "style.css" "$THEME_DIR/style.css"
 sync_file "critical-desktop.css" "$THEME_DIR/critical-desktop.css"
 sync_file "critical-mobile.css" "$THEME_DIR/critical-mobile.css"
+sync_file ".htaccess" "/var/www/html/.htaccess"
 
 # НОВОЕ: Рекурсивное копирование папок оптимизации и ассетов
 if [ -d "inc" ]; then
