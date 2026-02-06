@@ -220,8 +220,9 @@ DB_POSTGRESDB_PASSWORD=$POSTGRES_PASSWORD
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 EOF
 
-    # Создание traefik_dynamic.yml по ТЗ
-    cat > traefik_dynamic.yml << EOF
+    # Создание папки и конфига для модульного Traefik
+    mkdir -p traefik_dynamic
+    cat > traefik_dynamic/n8n.yml << EOF
 http:
   routers:
     n8n-router:
@@ -242,7 +243,8 @@ services:
     image: traefik:$TRAEFIK_VERSION
     restart: always
     command:
-      - "--providers.file.filename=/etc/traefik/dynamic.yml"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.websecure.address=:443"
@@ -253,7 +255,7 @@ services:
     volumes:
       - traefik_data:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik_dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./traefik_dynamic:/etc/traefik/dynamic:ro
 
   postgres:
     image: postgres:$POSTGRES_VERSION
