@@ -466,6 +466,9 @@ docker exec -u 0 comandos-wp bash -c "
     curl -sSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
     chmod +x /usr/local/bin/wp
   fi
+  # Установка и активация базовых плагинов
+  wp plugin install indexnow --activate --allow-root
+  
   # Регенерация миниатюр
   wp media regenerate --yes --allow-root
 " || print_warning "Не удалось завершить настройку через WP-CLI."
