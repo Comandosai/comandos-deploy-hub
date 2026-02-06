@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ==============================================================================
-# n8n PRO Installer by COMANDOS AI
-# Оптимизировано для Ubuntu/Debian. PostgreSQL + Redis + Python + Fonts.
+# n8n Installer by COMANDOS AI
+# PostgreSQL + Redis + Worker. Стандартная установка.
 # ==============================================================================
 
 set -euo pipefail
@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Глобальные переменные
-PROJECT_DIR="n8n-docker-pro"
+PROJECT_DIR="n8n"
 DOMAIN=""
 SSL_EMAIL=""
 ADMIN_PASSWORD=""
@@ -26,7 +26,7 @@ ORIGINAL_DIR=""
 EXTERNAL_IP=""
 
 # Версии ПО
-N8N_VERSION="1-debian"
+N8N_IMAGE="docker.n8n.io/n8nio/n8n"
 POSTGRES_VERSION="16-alpine"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
@@ -139,10 +139,10 @@ load_existing_config() {
 }
 
 gather_user_input() {
-    print_header "Настройка n8n PRO"
+    print_header "Настройка n8n"
     
     if load_existing_config && [ -n "$DOMAIN" ]; then
-        print_info "Обнаружена существующая установка n8n PRO."
+        print_info "Обнаружена существующая установка n8n."
         print_warning "Текущий домен: $DOMAIN"
         smart_read "Хотите использовать старые настройки (домен, email, пароли)? (Y/n): " use_old
         if [[ $use_old =~ ^[Nn]$ ]]; then 
@@ -234,7 +234,7 @@ http:
     n8n-service:
       loadBalancer:
         servers:
-          - url: "http://n8n-docker-pro-n8n-1:5678"
+          - url: "http://n8n:5678"
 EOF
 
     cat > docker-compose.yml << EOF
@@ -283,8 +283,7 @@ services:
       retries: 5
 
   n8n:
-    build: .
-    container_name: n8n-docker-pro-n8n-1
+    image: $N8N_IMAGE
     restart: always
     depends_on:
       postgres: { condition: service_healthy }
@@ -312,9 +311,8 @@ services:
       - ./output:/data/output
 
   n8n-worker:
-    build: .
-    entrypoint: /bin/sh
-    command: -c "n8n worker"
+    image: $N8N_IMAGE
+    command: worker
     restart: always
     depends_on: [n8n]
     environment:
@@ -336,40 +334,18 @@ volumes:
   traefik_data:
 EOF
 
-    cat > Dockerfile << EOF
-FROM node:20-bookworm-slim
-USER root
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    python3 python3-pip make g++ build-essential \
-    libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
-    fonts-noto fonts-noto-cjk fonts-dejavu fonts-freefont-ttf \
-    fonts-font-awesome fonts-liberation \
-    tini && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN npm install -g n8n@latest
-RUN ln -sf python3 /usr/bin/python
-USER node
-WORKDIR /home/node
-ENTRYPOINT ["tini", "--"]
-CMD ["n8n"]
-EOF
-
     cd "$ORIGINAL_DIR"
 }
 
 start_services() {
     print_header "Запуск сервисов"
     cd "$PROJECT_DIR"
-    print_info "Подготовка образов и запуск..."
+    print_info "Загрузка образов и запуск..."
     
-    # 1. Тянем только внешние готовые образы
-    docker compose pull postgres redis traefik
+    # Тянем все образы
+    docker compose pull
     
-    # 2. Собираем локальный n8n, принудительно обновляя базовый n8nio/n8n:latest
-    docker compose build --pull
-    
-    # 3. Запускаем всё
+    # Запускаем
     docker compose up -d
     
     print_success "Система запущена!"
