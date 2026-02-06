@@ -350,13 +350,25 @@ fi
 if [ ! -z "$TRAEFIK_ID" ]; then
     docker network connect comandos-network "$TRAEFIK_ID" 2>/dev/null || true
 
+    # Пытаемся вытащить имя резолвера из Cmd или Entrypoint (с поддержкой разных форматов)
     TRAEFIK_RESOLVER=$(docker inspect "$TRAEFIK_ID" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' \
-        | tr -d '[],"' | tr ' ' '\n' | grep -oE -- '--certificatesresolvers\\.[^=. ]+' | head -n1 | sed 's/--certificatesresolvers\\.//')
+        | tr -d '[],"' | tr ' ' '\n' | grep -oE -- 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
 
+    # Если не нашли — пробуем через логи (иногда там мелькает) или используем умный fallback
+    if [ -z "$TRAEFIK_RESOLVER" ]; then
+        # Список популярных имен в нашей экосистеме
+        for known in "mytlschallenge" "myresolver" "letsencrypt" "comandos-resolver"; do
+            if docker logs --tail 100 "$TRAEFIK_ID" 2>&1 | grep -q "$known"; then
+                TRAEFIK_RESOLVER="$known"
+                break
+            fi
+        done
+    fi
+
+    # Если всё еще пусто — берем дефолт
     if [ -z "$TRAEFIK_RESOLVER" ]; then
         TRAEFIK_RESOLVER="$DEFAULT_CERT_RESOLVER"
         echo -e "${YELLOW}certResolver не найден. Использую по умолчанию: ${TRAEFIK_RESOLVER}${NC}"
-        echo -e "${YELLOW}Если TLS не выдаётся, проверьте: открыты 80/443, DNS A/AAAA, Cloudflare proxy.${NC}"
     else
         echo -e "${GREEN}Найден certResolver Traefik: ${TRAEFIK_RESOLVER}${NC}"
     fi
