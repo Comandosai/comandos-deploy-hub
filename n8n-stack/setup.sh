@@ -93,13 +93,23 @@ check_system_requirements() {
 check_ports() {
     print_header "Проверка портов"
     local conflict=false
+    local busy_ports=()
     for port in 80 443; do
         if lsof -Pi :"$port" -sTCP:LISTEN -t >/dev/null ; then
-            print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
             conflict=true
+            busy_ports+=("$port")
         fi
     done
-    if [ "$conflict" = true ]; then exit 1; fi
+    if [ "$conflict" = true ]; then
+        if command -v docker &> /dev/null && docker ps --format '{{.Names}}' | grep -qi 'traefik'; then
+            print_info "Порты ${busy_ports[*]} заняты Traefik — это нормально. Продолжаю..."
+            return 0
+        fi
+        for port in "${busy_ports[@]}"; do
+            print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
+        done
+        exit 1
+    fi
     print_success "Порты 80, 443 свободны"
 }
 
