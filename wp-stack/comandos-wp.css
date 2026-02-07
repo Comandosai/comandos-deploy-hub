@@ -380,11 +380,17 @@ body {
     }
 }
 
-/* ПРИМЕНЕНИЕ КАСТОМНЫХ ПРОПОРЦИЙ ИЗ НАСТРОЕК (v61.0) */
-.post-content img:not(.avatar):not(.header-custom-logo),
+/* ПРИМЕНЕНИЕ КАСТОМНЫХ ПРОПОРЦИЙ ИЗ НАСТРОЕК (v61.1) */
 .single-thumb,
 .post-thumb img {
     aspect-ratio: var(--img-aspect-ratio) !important;
+}
+
+/* КОНТЕНТНЫЕ ИЗОБРАЖЕНИЯ: ТОЛЬКО ОРИГИНАЛЬНЫЕ ПРОПОРЦИИ */
+.wp-block-image img,
+.post-content img:not(.avatar):not(.header-custom-logo) {
+    aspect-ratio: auto !important;
+    object-fit: unset !important;
 }
 
 /* ИЗОЛЯЦИЯ АВАТАРОВ (Всегда 1:1) */
