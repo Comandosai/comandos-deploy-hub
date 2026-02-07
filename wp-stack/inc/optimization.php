@@ -7,6 +7,11 @@
 
 declare(strict_types=1);
 
+// FORCE IMAGE QUALITY (v68.0 PageSpeed optimization)
+add_filter('wp_editor_set_quality', function($quality) { return 65; });
+add_filter('webp_quality', function($quality) { return 65; });
+add_filter('avif_quality', function($quality) { return 50; });
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -52,26 +57,17 @@ add_action('wp_enqueue_scripts', function() {
  */
 
 /**
- * LCP FIX: Zero-CLS Hard Lock для первого изображения.
- * Форсирует eager loading и высокий приоритет для первой картинки в цикле.
+ * LCP FIX: Disable Lazy Load for the first 4 images (Logo, Hero, etc.).
  */
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
     if (is_admin()) return $attr;
-    
-    static $first_img = true;
-    if (is_singular() && in_the_loop() && $first_img) {
+    static $counter = 0;
+    $counter++;
+    if ($counter <= 4 || (is_single() && strpos($attr['class'] ?? '', 'single-thumb') !== false)) {
         $attr['loading'] = 'eager';
         $attr['fetchpriority'] = 'high';
         $attr['decoding'] = 'async';
-        $first_img = false;
     }
-    
-    // Fallback для логотипа и других важных элементов вне цикла
-    if (strpos($attr['class'] ?? '', 'custom-logo') !== false || strpos($attr['class'] ?? '', 'single-thumb') !== false) {
-        $attr['loading'] = 'eager';
-        $attr['fetchpriority'] = 'high';
-    }
-    
     return $attr;
 }, 10, 3);
 
@@ -91,14 +87,26 @@ add_filter('wp_img_tag_add_loading_attr', function($value, $image, $context) {
 }, 10, 3);
 
 /**
- * Force WebP for Logo.
+ * Force AVIF/WebP for Logo.
  */
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
     if (is_admin()) return $attr;
     if (strpos($attr['class'] ?? '', 'custom-logo') !== false || strpos($attr['class'] ?? '', 'header-custom-logo') !== false) {
-        $attr['src'] = str_ireplace('.png', '.webp', $attr['src']);
-        if (isset($attr['srcset'])) {
-            $attr['srcset'] = str_ireplace('.png', '.webp', $attr['srcset']);
+        $uploads_dir = wp_get_upload_dir();
+        $base_url = $uploads_dir['baseurl'];
+        $base_path = $uploads_dir['basedir'];
+
+        $formats = ['avif', 'webp'];
+        foreach ($formats as $fmt) {
+            $new_url = str_ireplace('.png', '.' . $fmt, $attr['src']);
+            $check_path = str_replace($base_url, $base_path, $new_url);
+            if (file_exists($check_path)) {
+                $attr['src'] = $new_url;
+                if (isset($attr['srcset'])) {
+                    $attr['srcset'] = str_ireplace('.png', '.' . $fmt, $attr['srcset']);
+                }
+                break;
+            }
         }
     }
     return $attr;
@@ -129,10 +137,11 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $s
 }, 20, 3);
 
 /**
- * WebP Support and Auto-Generation.
+ * AVIF & WebP Support and Auto-Generation.
  */
 add_filter('upload_mimes', function($mimes) {
     $mimes['webp'] = 'image/webp';
+    $mimes['avif'] = 'image/avif';
     return $mimes;
 });
 
@@ -143,17 +152,31 @@ add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id
     $dirname = $info['dirname'];
     $extensions = ['jpg', 'jpeg', 'png'];
     if (in_array(strtolower($info['extension']), $extensions)) {
-        $webp_file = $dirname . '/' . $info['filename'] . '.webp';
-        $editor = wp_get_image_editor($file);
-        if (!is_wp_error($editor)) { $editor->save($webp_file, 'image/webp'); }
-        if (!empty($metadata['sizes'])) {
-            foreach ($metadata['sizes'] as $size_info) {
-                $size_file = $dirname . '/' . $size_info['file'];
-                if (file_exists($size_file)) {
-                    $size_path = pathinfo($size_file);
-                    $size_webp = $dirname . '/' . $size_path['filename'] . '.webp';
-                    $size_editor = wp_get_image_editor($size_file);
-                    if (!is_wp_error($size_editor)) { $size_editor->save($size_webp, 'image/webp'); }
+        $formats = [
+            'avif' => 50,
+            'webp' => 65
+        ];
+
+        foreach ($formats as $format => $quality) {
+            $new_file = $dirname . '/' . $info['filename'] . '.' . $format;
+            $editor = wp_get_image_editor($file);
+            if (!is_wp_error($editor)) { 
+                $editor->set_quality($quality);
+                $editor->save($new_file, 'image/' . $format); 
+            }
+
+            if (!empty($metadata['sizes'])) {
+                foreach ($metadata['sizes'] as $size_info) {
+                    $size_file = $dirname . '/' . $size_info['file'];
+                    if (file_exists($size_file)) {
+                        $size_path = pathinfo($size_file);
+                        $size_new = $dirname . '/' . $size_path['filename'] . '.' . $format;
+                        $size_editor = wp_get_image_editor($size_file);
+                        if (!is_wp_error($size_editor)) { 
+                            $size_editor->set_quality($quality);
+                            $size_editor->save($size_new, 'image/' . $format); 
+                        }
+                    }
                 }
             }
         }
@@ -162,58 +185,97 @@ add_filter('wp_generate_attachment_metadata', function($metadata, $attachment_id
 }, 10, 2);
 
 /**
- * Replace JPEG/PNG with WebP in HTML.
+ * Replace JPEG/PNG with AVIF/WebP in HTML (AVIF prioritizes).
  */
-function comandos_apply_webp_replacement($html) {
+function comandos_apply_modern_format_replacement($html) {
     if (is_admin()) return $html;
     return preg_replace_callback('/<img([^>]+)>/i', function($matches) {
         $img = $matches[0];
         $uploads_dir = wp_get_upload_dir();
         $base_url = $uploads_dir['baseurl'];
         $base_path = $uploads_dir['basedir'];
+        
+        $formats = ['avif', 'webp'];
+
         if (preg_match('/src="([^"]+)\.(jpg|jpeg|png)(\?.*)?"/i', $img, $src_matches)) {
-            $url_old = $src_matches[1] . '.' . $src_matches[2] . ($src_matches[3] ?? '');
-            $url_webp = $src_matches[1] . '.webp' . ($src_matches[3] ?? '');
-            $url_check = $src_matches[1] . '.webp';
-            $path_webp = str_replace($base_url, $base_path, $url_check);
-            if (file_exists($path_webp)) { $img = str_replace($url_old, $url_webp, $img); }
+            $url_without_ext = $src_matches[1];
+            $ext = $src_matches[2];
+            $query = $src_matches[3] ?? '';
+            $url_old = $url_without_ext . '.' . $ext . $query;
+
+            foreach ($formats as $fmt) {
+                $url_new = $url_without_ext . '.' . $fmt . $query;
+                $path_check = str_replace($base_url, $base_path, $url_without_ext . '.' . $fmt);
+                if (file_exists($path_check)) {
+                    $img = str_replace($url_old, $url_new, $img);
+                    break;
+                }
+            }
         }
+
         if (preg_match('/srcset="([^"]+)"/i', $img, $srcset_matches)) {
             $old_srcset = $srcset_matches[1];
             $sources = explode(',', $old_srcset);
-            $new_sources = [];
-            $changed = false;
-            foreach ($sources as $source) {
-                $source = trim($source);
-                if (empty($source)) continue;
-                $parts = preg_split('/\s+/', $source);
-                if (count($parts) >= 1) {
+            $best_srcset = $old_srcset;
+            
+            foreach ($formats as $fmt) {
+                $new_sources = [];
+                $all_found = true;
+                foreach ($sources as $source) {
+                    $source = trim($source);
+                    if (empty($source)) continue;
+                    $parts = preg_split('/\s+/', $source);
                     $url = $parts[0];
-                    $Descriptor = isset($parts[1]) ? ' ' . $parts[1] : '';
-                    if (preg_match('/\.(jpg|jpeg|png)(\?.*)?$/i', $url)) {
-                        $webp_candidate = preg_replace('/\.(jpg|jpeg|png)/i', '.webp', $url);
-                        $webp_path_url = strtok($webp_candidate, '?');
-                        $webp_path_cand = str_replace($base_url, $base_path, $webp_path_url);
-                        if (file_exists($webp_path_cand)) {
-                            $new_sources[] = $webp_candidate . $Descriptor;
-                            $changed = true;
-                        } else { $new_sources[] = $source; }
-                    } else { $new_sources[] = $source; }
+                    $descriptor = isset($parts[1]) ? ' ' . $parts[1] : '';
+                    
+                    if (preg_match('/\.(jpg|jpeg|png)(\?.*)?$/i', $url, $url_parts)) {
+                        $url_cand = preg_replace('/\.(jpg|jpeg|png)/i', '.' . $fmt, $url);
+                        $path_cand = str_replace($base_url, $base_path, strtok($url_cand, '?'));
+                        if (file_exists($path_cand)) {
+                            $new_sources[] = $url_cand . $descriptor;
+                        } else {
+                            $all_found = false;
+                            break;
+                        }
+                    } else {
+                        $new_sources[] = $source;
+                    }
+                }
+                
+                if ($all_found && !empty($new_sources)) {
+                    $best_srcset = implode(', ', $new_sources);
+                    break; // Found all sources for the best format
                 }
             }
-            if ($changed) {
-                $new_srcset = implode(', ', $new_sources);
-                $img = str_replace($old_srcset, $new_srcset, $img);
+            $img = str_replace($old_srcset, $best_srcset, $img);
+        }
+
+        // CLS DEEP FIX v108.0: Prevent sizes="auto" and force eager for hero
+        $is_hero = strpos($img, 'single-thumb') !== false;
+        
+        if ($is_hero) {
+            $img = preg_replace('/sizes="auto"/i', 'sizes="(max-width: 800px) 100vw, 800px"', $img);
+            $img = preg_replace('/loading="lazy"/i', 'loading="eager"', $img);
+            
+            // Critical: Add fetchpriority if missing for hero
+            if (strpos($img, 'fetchpriority=') === false) {
+                $img = str_replace('<img ', '<img fetchpriority="high" ', $img);
             }
         }
-        if (strpos($img, 'loading=') === false) { $img = str_replace('<img ', '<img loading="lazy" ', $img); }
+
+        if (strpos($img, 'loading=') === false) { 
+            $loading_type = $is_hero ? 'eager' : 'lazy';
+            $img = str_replace('<img ', '<img loading="' . $loading_type . '" ', $img); 
+        }
         if (strpos($img, 'decoding=') === false) { $img = str_replace('<img ', '<img decoding="async" ', $img); }
+        
         return $img;
     }, $html);
 }
-add_filter('the_content', 'comandos_apply_webp_replacement', 999);
-add_filter('post_thumbnail_html', 'comandos_apply_webp_replacement', 999);
-add_filter('get_header_image_tag', 'comandos_apply_webp_replacement', 999);
+add_filter('the_content', 'comandos_apply_modern_format_replacement', 999);
+add_filter('post_thumbnail_html', 'comandos_apply_modern_format_replacement', 999);
+add_filter('get_header_image_tag', 'comandos_apply_modern_format_replacement', 999);
+
 
 /**
  * CONTENT OPTIMIZATION: Fix header hierarchy and author layout.

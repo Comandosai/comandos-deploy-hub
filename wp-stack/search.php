@@ -32,7 +32,7 @@ get_header();
           <?php if (has_post_thumbnail()) : ?>
             <div class="post-thumb" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
               <a href="<?php the_permalink(); ?>">
-                <?php the_post_thumbnail('medium_large'); ?>
+                <?php the_post_thumbnail('comandos-grid'); ?>
               </a>
             </div>
           <?php endif; ?>

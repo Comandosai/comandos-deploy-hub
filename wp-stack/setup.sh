@@ -8,6 +8,15 @@ NC='\033[0m'
 
 DEFAULT_CERT_RESOLVER="myresolver"
 
+# Paths for local snapshot (full WP clone)
+SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SNAPSHOT_DIR="$SCRIPT_DIR/snapshot"
+SNAPSHOT_TAR="wordpress_data.tar.gz"
+SNAPSHOT_DB="wordpress_db.sql.gz"
+SNAPSHOT_URL="${COMANDOS_SNAPSHOT_URL:-}"
+SNAPSHOT_DB_URL="${COMANDOS_SNAPSHOT_DB_URL:-}"
+RESTORE_SNAPSHOT="${COMANDOS_RESTORE_SNAPSHOT:-false}"
+
 print_logo() {
     echo -e "${BLUE}"
     cat << "EOF"
@@ -60,6 +69,46 @@ ask_user() {
     fi
 }
 
+detect_snapshot() {
+    if [ -f "$SNAPSHOT_DIR/$SNAPSHOT_TAR" ] && [ -f "$SNAPSHOT_DIR/$SNAPSHOT_DB" ]; then
+        return 0
+    fi
+
+    if [ -n "$SNAPSHOT_URL" ] && [ -n "$SNAPSHOT_DB_URL" ]; then
+        print_info "Скачивание snapshot..."
+        mkdir -p "$SNAPSHOT_DIR"
+        curl -fsSL "$SNAPSHOT_URL" -o "$SNAPSHOT_DIR/$SNAPSHOT_TAR"
+        curl -fsSL "$SNAPSHOT_DB_URL" -o "$SNAPSHOT_DIR/$SNAPSHOT_DB"
+        if [ -s "$SNAPSHOT_DIR/$SNAPSHOT_TAR" ] && [ -s "$SNAPSHOT_DIR/$SNAPSHOT_DB" ]; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+wait_for_db() {
+    local tries=30
+    while ! docker exec comandos-db mysqladmin ping -uwordpress -p"$DB_PASSWORD" --silent >/dev/null 2>&1; do
+        tries=$((tries-1))
+        if [ $tries -le 0 ]; then
+            print_warning "DB не отвечает, продолжаю без ожидания."
+            return 1
+        fi
+        sleep 2
+    done
+    return 0
+}
+
+ensure_wp_cli() {
+    docker exec -u 0 comandos-wp bash -c '
+      if [ ! -f /usr/local/bin/wp ]; then
+        curl -sSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
+        chmod +x /usr/local/bin/wp
+      fi
+    '
+}
+
 # 0. Стандартизация директории
 BASE_DIR="$HOME/comandos"
 PRODUCT_DIR="$BASE_DIR/wordpress"
@@ -72,7 +121,7 @@ cd "$PRODUCT_DIR" || exit 1
 INSTALL_DIR=$(pwd)
 
 print_logo
-print_header "COMANDOS WP ENGINE - INSTALLER v2.4.6"
+print_header "COMANDOS WP ENGINE - INSTALLER v2.5.1"
 print_info "DIR: $INSTALL_DIR"
 echo
 
@@ -164,12 +213,24 @@ for file in "${FILES[@]}"; do
 done
 
 # Копирование (если мы в режиме локальной разработки) - теперь для всех файлов
-if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
+if [ -n "$SCRIPT_DIR" ] && [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     for file in "${FILES[@]}"; do
         if [ -f "$SCRIPT_DIR/$file" ]; then
             cp "$SCRIPT_DIR/$file" .
         fi
     done
+fi
+
+# Обнаружение snapshot (полный клон сайта) — только если явно включено
+if [ "$RESTORE_SNAPSHOT" == "true" ]; then
+    if detect_snapshot; then
+        print_success "Найден snapshot. Будет восстановление полного сайта."
+    else
+        print_warning "RESTORE_SNAPSHOT=true, но snapshot не найден. Продолжаю обычную установку."
+        RESTORE_SNAPSHOT="false"
+    fi
+else
+    print_info "Snapshot restore отключен. Будет чистая установка."
 fi
 
 # 5. Генерация конфигов (только если новая установка)
@@ -221,7 +282,37 @@ docker compose pull >/dev/null 2>&1 || true
 print_success "Запуск/Обновление контейнеров..."
 docker compose up -d
 
+# 8.5 Восстановление полного сайта из snapshot (если найден)
+if [ "$MODE" == "INSTALL" ] && [ "$RESTORE_SNAPSHOT" == "true" ]; then
+    print_header "ВОССТАНОВЛЕНИЕ САЙТА ИЗ SNAPSHOT..."
+    wait_for_db
+
+    print_info "Копирование файлов сайта..."
+    docker exec comandos-wp bash -c "rm -rf /var/www/html/* /var/www/html/.[!.]* /var/www/html/..?*"
+    docker cp "$SNAPSHOT_DIR/$SNAPSHOT_TAR" comandos-wp:/tmp/wordpress_data.tar.gz
+    docker exec comandos-wp bash -c "tar -xzf /tmp/wordpress_data.tar.gz -C /var/www/html && rm -f /tmp/wordpress_data.tar.gz"
+    docker exec -u 0 comandos-wp chown -R www-data:www-data /var/www/html
+
+    print_info "Импорт базы данных..."
+    docker exec comandos-db mysql -uroot -p"$DB_PASSWORD" -e "DROP DATABASE IF EXISTS wordpress; CREATE DATABASE wordpress CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL ON wordpress.* TO 'wordpress'@'%'; FLUSH PRIVILEGES;"
+    docker cp "$SNAPSHOT_DIR/$SNAPSHOT_DB" comandos-db:/tmp/wordpress_db.sql.gz
+    docker exec comandos-db bash -c "gunzip -c /tmp/wordpress_db.sql.gz | mysql -uwordpress -p\"$DB_PASSWORD\" wordpress"
+    docker exec comandos-db rm -f /tmp/wordpress_db.sql.gz
+
+    ensure_wp_cli
+
+    OLD_URL=$(docker exec comandos-wp bash -c "wp option get home --allow-root" || true)
+    if [ -n "$OLD_URL" ]; then
+        print_info "Обновление домена: $OLD_URL -> https://$WP_DOMAIN"
+        docker exec comandos-wp bash -c "wp search-replace \"$OLD_URL\" \"https://$WP_DOMAIN\" --all-tables --skip-columns=guid --allow-root"
+        docker exec comandos-wp bash -c "wp option update home \"https://$WP_DOMAIN\" --allow-root"
+        docker exec comandos-wp bash -c "wp option update siteurl \"https://$WP_DOMAIN\" --allow-root"
+        docker exec comandos-wp bash -c "wp rewrite flush --hard --allow-root"
+    fi
+fi
+
 # 9. Оптимизация Lighthouse (кэширование и сжатие v4.1)
+if [ "$RESTORE_SNAPSHOT" != "true" ]; then
 print_header "ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ (Lighthouse 98+)..."
 docker exec comandos-wp bash -c 'cat <<EOF > .htaccess
 
@@ -263,6 +354,7 @@ RewriteRule . /index.php [L]
 </IfModule>
 # END WordPress
 EOF' || true
+fi
 
 # 9. Настройка Traefik
 print_header "НАСТРОЙКА TRAEFIK (МАРШРУТЫ И СЕТЬ)..."
@@ -413,10 +505,11 @@ EOF_YAML
 fi
 
 # 10. Глубокая интеграция темы и плагинов (Comandos Premium)
+if [ "$RESTORE_SNAPSHOT" != "true" ]; then
 print_header "ПОДГОТОВКА ТЕМЫ И ПЛАГИНОВ COMANDOS..."
 
 # Путь к нашей кастомной теме и плагину
-THEME_NAME="comandos-blog"
+THEME_NAME="comandos-ai-blog"
 THEME_DIR="/var/www/html/wp-content/themes/$THEME_NAME"
 # Создаем папки
 docker exec comandos-wp mkdir -p "$THEME_DIR"
@@ -461,38 +554,48 @@ fi
 # Установка прав
 docker exec comandos-wp chown -R www-data:www-data "$THEME_DIR"
 
-docker exec -u 0 comandos-wp bash -c "
-  if [ ! -f /usr/local/bin/wp ]; then
-    curl -sSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp
-    chmod +x /usr/local/bin/wp
-  fi
-  # Установка и активация базовых плагинов
-  wp plugin install indexnow --activate --allow-root
-  
-  # Регенерация миниатюр
-  wp media regenerate --yes --allow-root
-" || print_warning "Не удалось завершить настройку через WP-CLI."
-
-# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ ТЕМЫ
+# ИНТЕРАКТИВНАЯ АКТИВАЦИЯ ТЕМЫ И ПЛАГИНОВ
 if [ "$MODE" == "INSTALL" ]; then
     echo -e "\n${BLUE}==============================================${NC}"
     echo -e "${YELLOW}ШАГ 1:${NC} Перейдите по ссылке: ${GREEN}https://$WP_DOMAIN/wp-admin/install.php${NC}"
     echo -e "${YELLOW}ШАГ 2:${NC} Завершите установку WordPress (создайте админа)."
-    echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы."
+    echo -e "${YELLOW}ШАГ 3:${NC} Вернитесь сюда и нажмите ${BLUE}[ENTER]${NC} для активации темы и плагинов."
     echo -e "${BLUE}==============================================${NC}"
     ask_user "Нажмите [ENTER] после завершения установки в браузере..." dummy
-fi
 
-print_warning "Принудительная активация темы через SQL..."
-DB_PASS_SQL="${DB_PASSWORD:-$(grep DB_PASSWORD .env | cut -d= -f2)}"
-docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
-"UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
+    ensure_wp_cli
+
+    print_info "Активация темы..."
+    if ! docker exec comandos-wp bash -c "wp theme activate $THEME_NAME --allow-root"; then
+        print_warning "WP-CLI не смог активировать тему. Пробую через SQL..."
+        DB_PASS_SQL="${DB_PASSWORD:-$(grep DB_PASSWORD .env | cut -d= -f2)}"
+        docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
+        "UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
+    fi
+
+    print_info "Установка и активация плагинов..."
+    docker exec comandos-wp bash -c "wp plugin install wordpress-seo wp-graphql indexnow --activate --allow-root" || true
+    docker exec comandos-wp bash -c "wp plugin install https://github.com/ashhitch/wp-graphql-yoast-seo/archive/refs/tags/v5.0.0.zip --activate --allow-root" || true
+
+    print_info "Очистка дефолтного контента (пустой сайт)..."
+    docker exec comandos-wp bash -c 'IDS=$(wp post list --post_type=post,page --format=ids --allow-root); if [ -n "$IDS" ]; then wp post delete $IDS --force --allow-root; fi'
+    docker exec comandos-wp bash -c 'CIDS=$(wp comment list --format=ids --allow-root); if [ -n "$CIDS" ]; then wp comment delete $CIDS --force --allow-root; fi'
+    docker exec comandos-wp bash -c 'wp plugin delete akismet hello --allow-root >/dev/null 2>&1 || true'
+
+    print_info "Удаление стандартных тем WordPress..."
+    docker exec comandos-wp bash -c "wp theme list --field=name --allow-root | grep -v \"^${THEME_NAME}$\" | xargs -r wp theme delete --allow-root" || true
+fi
+fi
 
 # 11. Финализация
 echo -e "\n"
 print_header "СИСТЕМА ГОТОВА И ПЕРЕНЕСЕНА!"
 print_info "WordPress: https://$WP_DOMAIN/"
-print_info "Тема:      Comandos Blog (Premium v2.4.6)"
+if [ "$RESTORE_SNAPSHOT" == "true" ]; then
+print_info "Режим:     Полный клон (snapshot)"
+else
+print_info "Тема:      Comandos AI Blog (Premium v2.5.1)"
+fi
 print_info "Админка:   https://$WP_DOMAIN/wp-admin"
 print_warning "Совет: Если дизайн не обновился, сбросьте кэш (Ctrl+F5 или Cmd+Shift+R на Mac)"
 echo -e "${BLUE}================================================${NC}"

@@ -44,7 +44,7 @@ add_action('customize_register', function ($wp_customize) {
     ]);
 
     // Aspect Ratio Control
-    $wp_customize->add_setting('global_img_aspect_ratio', ['default' => 'none', 'transport' => 'refresh']);
+    $wp_customize->add_setting('global_img_aspect_ratio', ['default' => '3 / 2', 'transport' => 'refresh']);
     $wp_customize->add_control('global_img_aspect_ratio', [
         'label'   => 'Пропорции изображений',
         'section' => 'comandos_design',

@@ -15,15 +15,6 @@ input,
     transition-property: transform, opacity !important;
 }
 
-/* --- CLS STABILIZATION (v68.0) --- */
-img {
-    max-width: 100%;
-    height: auto;
-    /* Резервируем пропорции на основе атрибутов width/height из HTML */
-    aspect-ratio: attr(width) / attr(height);
-    display: block;
-}
-
 /* :root moved to functions.php for dynamic Customizer support (v5.8) */
 /*
 :root {
@@ -193,6 +184,9 @@ body {
     height: 100%;
     transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    /* LCP & Rendering Optimization v89.0 */
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 500px;
 }
 
 .post-card:hover {
@@ -384,15 +378,6 @@ body {
     aspect-ratio: var(--img-aspect-ratio) !important;
 }
 
-/* Принудительный aspect-ratio для главных миниатюр в статьях (обычно 16:9) */
-.single-thumb,
-.wp-post-image {
-    aspect-ratio: 16 / 9 !important;
-    background-color: #f7f7f7;
-    /* Светлая заглушка */
-    object-fit: cover;
-}
-
 /* ИЗОЛЯЦИЯ АВАТАРОВ (Всегда 1:1) */
 .author-avatar-wrapper,
 .wp-block-avatar {
@@ -429,6 +414,12 @@ body {
         padding: 24px 16px !important;
         border-radius: 20px !important;
     }
+
+    .post-title {
+        font-size: 2.0rem !important;
+        min-height: 80px !important;
+        /* Sync with critical CSS v97.0 */
+    }
 }
 
 .post-header {
@@ -443,6 +434,8 @@ body {
     margin-bottom: 1rem;
     font-family: 'Unbounded', sans-serif;
     letter-spacing: -0.03em;
+    min-height: 140px;
+    /* Sync with critical CSS v97.0 */
     hyphens: none !important;
     -webkit-hyphens: none !important;
 }
@@ -561,8 +554,84 @@ body {
     }
 }
 
+/* --- QUICK SUMMARY BLOCK (v4.2 / v4.5) --- */
+.summary-card,
+.stats-box {
+    background: color-mix(in srgb, var(--primary) 7%, white) !important;
+    border-left: 5px solid var(--primary) !important;
+    border-radius: 0 24px 24px 0 !important;
+    padding: 32px 40px !important;
+    margin: 4rem 0 !important;
+    position: relative !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02) !important;
+}
 
+.summary-card::before,
+.stats-box::before {
+    content: '\26A1' !important;
+    /* Молния */
+    position: absolute !important;
+    top: -20px !important;
+    left: -18px !important;
+    background: var(--primary) !important;
+    color: #000 !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    font-size: 1.3rem !important;
+    box-shadow: 0 8px 20px var(--primary-glow-strong) !important;
+    z-index: 2 !important;
+}
 
+.summary-card h2,
+.stats-box h2,
+.summary-card h3,
+.stats-box h3,
+.summary-card h4,
+.stats-box h4,
+.summary-card p strong:first-child,
+.stats-box p strong:first-child {
+    font-family: 'Unbounded', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    color: #000 !important;
+    margin-top: 0 !important;
+    margin-bottom: 24px !important;
+    display: block !important;
+    letter-spacing: -0.02em !important;
+}
+
+.summary-card ul,
+.stats-box ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.summary-card li,
+.stats-box li {
+    position: relative !important;
+    padding-left: 28px !important;
+    margin-bottom: 16px !important;
+    font-size: 1.15rem !important;
+    line-height: 1.5 !important;
+    color: #1a1a1a !important;
+}
+
+.summary-card li::before,
+.stats-box li::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 10px !important;
+    width: 8px !important;
+    height: 8px !important;
+    background: var(--primary) !important;
+    border-radius: 50% !important;
+}
 
 @media (max-width: 768px) {
     .toc-box {
@@ -742,7 +811,9 @@ body {
 
 .custom-logo {
     max-height: 32px !important;
-    width: auto !important;
+    width: 32px !important;
+    /* Force size for CLS v96.0 */
+    height: 32px !important;
     display: block;
     transition: transform 0.3s ease;
 }
@@ -767,7 +838,8 @@ body {
 /* --- SIMPLIFIED PREMIUM HEADER (v8.1) --- */
 .site-header {
     background: transparent;
-    padding: 15px 0;
+    padding: 40px 0 15px;
+    /* Sync with critical CSS desktop padding-top: 40px */
     border: none !important;
     position: relative;
     z-index: 1000;
@@ -1102,8 +1174,6 @@ blockquote p {
 .author-card a[href*="/author/"]:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 16px rgba(197, 239, 49, 0.4) !important;
-    background: #d4f45d !important;
-    /* Slightly brighter on hover */
 }
 
 .author-card img {
@@ -1270,21 +1340,46 @@ figcaption,
     line-height: 1.6;
 }
 
-
-/* Стабилизация изображений */
-.post-hero {
-    position: relative !important;
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: optional;
+    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-400-subset.woff2') format('woff2');
 }
 
-.post-hero img {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+/* ASYNC FONTS LOADER (v103.0) */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: optional;
+    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-700-subset.woff2') format('woff2');
 }
 
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 800;
+    font-display: optional;
+    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-800-subset.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 900;
+    font-display: optional;
+    src: url('/wp-content/themes/autopipe-blog/assets/fonts/inter-900-subset.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Unbounded';
+    font-style: normal;
+    font-weight: 900;
+    font-display: optional;
+    src: url('/wp-content/themes/autopipe-blog/assets/fonts/unbounded-wght.ttf') format('truetype');
+}
 
 /* HIDE SEARCH ON MOBILE FOR ARTICLES (v135.0) */
 @media (max-width: 767px) {

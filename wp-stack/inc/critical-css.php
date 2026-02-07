@@ -95,6 +95,7 @@ add_action('wp_head', function() {
             transition: none !important;
             will-change: transform;
         }
+        
     </style>
-    <?php
+<?php
 }, -100);

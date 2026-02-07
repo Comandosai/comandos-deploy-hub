@@ -21,6 +21,7 @@ add_action('after_setup_theme', function () {
     
     // КАСТОМНЫЕ РАЗМЕРЫ (Без жесткой обрезки для сохранения пропорций)
     add_image_size('comandos-thumb', 500, 281, false); 
+    add_image_size('comandos-grid', 650, 450, false); 
     
     add_theme_support(
         'html5',

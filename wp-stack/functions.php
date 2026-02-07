@@ -1,11 +1,11 @@
 <?php
-declare(strict_types=1);
-
 /**
  * Comandos Blog functions and definitions
  *
  * @package Comandos_Blog
  */
+
+declare(strict_types=1);
 
 /**
  * 📂 THEME DECOMPOSITION (v11.0 Gold Standard)
@@ -66,15 +66,3 @@ add_filter('get_the_archive_title', function ($title) {
     }
     return wp_strip_all_tags($title);
 });
-
-/**
- * Оптимизация атрибута sizes (CLS & Performance)
- */
-add_filter('wp_calculate_image_sizes', function($sizes, $size) {
-    $width = $size[0];
-    if ($width >= 300) {
-        return '(max-width: 480px) 95vw, (max-width: 768px) 90vw, (max-width: 1200px) 700px, 1024px';
-    }
-    return $sizes;
-}, 10, 2);
-
