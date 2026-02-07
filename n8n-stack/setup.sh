@@ -24,8 +24,6 @@ REDIS_PASSWORD=""
 POSTGRES_PASSWORD=""
 ORIGINAL_DIR=""
 EXTERNAL_IP=""
-MODE="INSTALL"
-SELF_UPDATE_URL="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/n8n-stack/setup.sh"
 
 # Версии ПО
 N8N_IMAGE="docker.n8n.io/n8nio/n8n"
@@ -95,23 +93,13 @@ check_system_requirements() {
 check_ports() {
     print_header "Проверка портов"
     local conflict=false
-    local busy_ports=()
     for port in 80 443; do
         if lsof -Pi :"$port" -sTCP:LISTEN -t >/dev/null ; then
+            print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
             conflict=true
-            busy_ports+=("$port")
         fi
     done
-    if [ "$conflict" = true ]; then
-        if command -v docker &> /dev/null && docker ps --format '{{.Names}}' | grep -qi 'traefik'; then
-            print_info "Порты ${busy_ports[*]} заняты Traefik — это нормально. Продолжаю..."
-            return 0
-        fi
-        for port in "${busy_ports[@]}"; do
-            print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
-        done
-        exit 1
-    fi
+    if [ "$conflict" = true ]; then exit 1; fi
     print_success "Порты 80, 443 свободны"
 }
 
@@ -150,61 +138,20 @@ load_existing_config() {
     return 1
 }
 
-maybe_self_update() {
-    if [ -n "${COMANDOS_SKIP_SELF_UPDATE:-}" ]; then
-        return 0
-    fi
-    if [ ! -f "$ORIGINAL_DIR/$PROJECT_DIR/.env" ]; then
-        return 0
-    fi
-    if ! command -v curl &> /dev/null; then
-        return 0
-    fi
-    local tmp
-    tmp=$(mktemp)
-    if curl -fsSL "$SELF_UPDATE_URL" -o "$tmp"; then
-        if [ -f "$0" ] && cmp -s "$tmp" "$0"; then
-            rm -f "$tmp"
-            return 0
-        fi
-        chmod +x "$tmp"
-        COMANDOS_SKIP_SELF_UPDATE=1 exec bash "$tmp" "$@"
-    fi
-    rm -f "$tmp"
-}
-
-detect_install_mode() {
-    if [ -f "$ORIGINAL_DIR/$PROJECT_DIR/.env" ]; then
-        print_header "ОБНАРУЖЕНА СУЩЕСТВУЮЩАЯ УСТАНОВКА!"
-        echo -e "1) ${GREEN}Обновить${NC} (сохранить базу и настройки)"
-        echo -e "2) ${RED}Переустановить${NC} (СТЕРЕТЬ ВСЁ и начать заново)"
-        smart_read "Выберите вариант (1/2): " choice
-        if [ "$choice" == "1" ]; then
-            MODE="UPDATE"
-            load_existing_config
-            print_success "Режим ОБНОВЛЕНИЯ активирован."
-        else
-            MODE="REINSTALL"
-            print_error "ВНИМАНИЕ: Все данные будут удалены!"
-            smart_read "Вы уверены? (y/n): " confirm
-            if [[ ! $confirm =~ ^[Yy]$ ]]; then exit 1; fi
-        fi
-    fi
-}
-
-wipe_existing_install() {
-    print_warning "Удаление предыдущей установки..."
-    if [ -f "$ORIGINAL_DIR/$PROJECT_DIR/docker-compose.yml" ]; then
-        (cd "$ORIGINAL_DIR/$PROJECT_DIR" && docker compose down -v) || true
-    fi
-    rm -rf "$ORIGINAL_DIR/$PROJECT_DIR"
-}
-
 gather_user_input() {
     print_header "Настройка n8n"
-    if [ "$MODE" == "UPDATE" ]; then
-        print_info "Использую текущие настройки из .env."
-        return 0
+    
+    if load_existing_config && [ -n "$DOMAIN" ]; then
+        print_info "Обнаружена существующая установка n8n."
+        print_warning "Текущий домен: $DOMAIN"
+        smart_read "Хотите использовать старые настройки (домен, email, пароли)? (Y/n): " use_old
+        if [[ $use_old =~ ^[Nn]$ ]]; then 
+            DOMAIN=""
+            SSL_EMAIL=""
+            ADMIN_PASSWORD=""
+        else
+            return 0 
+        fi
     fi
 
     DOMAIN=""
@@ -409,15 +356,10 @@ main() {
     if [ "$EUID" -ne 0 ]; then print_error "Нужен sudo!"; exit 1; fi
     print_logo
     ORIGINAL_DIR=$(pwd)
-    maybe_self_update "$@"
     check_dependencies
     check_system_requirements
     check_ports
     install_docker
-    detect_install_mode
-    if [ "$MODE" == "REINSTALL" ]; then
-        wipe_existing_install
-    fi
     gather_user_input
     create_config_files
     start_services
