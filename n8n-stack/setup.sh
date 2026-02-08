@@ -26,7 +26,7 @@ ORIGINAL_DIR=""
 EXTERNAL_IP=""
 
 # Версии ПО
-N8N_IMAGE="docker.n8n.io/n8nio/n8n"
+N8N_IMAGE="docker.n8n.io/n8nio/n8n:1.123.5"
 POSTGRES_VERSION="16-alpine"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
@@ -305,7 +305,7 @@ services:
       - QUEUE_BULL_REDIS_PASSWORD=\${REDIS_PASSWORD}
       - EXECUTIONS_MODE=queue
       - NODE_OPTIONS=\${NODE_OPTIONS}
-      - N8N_RUNNERS_ENABLED=true
+      - N8N_RUNNERS_ENABLED=false
     volumes:
       - ./n8n_data:/home/node/.n8n
       - ./output:/data/output
