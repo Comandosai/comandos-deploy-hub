@@ -346,7 +346,9 @@ body {
     }
 }
 
-.single-thumb {
+.single-thumb,
+.wp-block-image img,
+.post-content img:not(.avatar):not(.header-custom-logo) {
     width: 100% !important;
     /* Резервируем место на основе атрибутов (v59) */
     aspect-ratio: auto attr(width) / attr(height) !important;
@@ -354,17 +356,6 @@ body {
     height: auto !important;
     display: block;
     border-radius: 20px;
-}
-
-.wp-block-image img,
-.post-content img:not(.avatar):not(.header-custom-logo) {
-    width: 100% !important;
-    /* Резервируем место на основе атрибутов (v59) */
-    aspect-ratio: auto attr(width) / attr(height) !important;
-    height: auto !important;
-    display: block;
-    border-radius: 20px;
-    object-fit: unset !important;
 }
 
 @media (max-width: 767px) {
@@ -380,17 +371,11 @@ body {
     }
 }
 
-/* ПРИМЕНЕНИЕ КАСТОМНЫХ ПРОПОРЦИЙ ИЗ НАСТРОЕК (v61.1) */
+/* ПРИМЕНЕНИЕ КАСТОМНЫХ ПРОПОРЦИЙ ИЗ НАСТРОЕК (v61.0) */
+.post-content img:not(.avatar):not(.header-custom-logo),
 .single-thumb,
 .post-thumb img {
     aspect-ratio: var(--img-aspect-ratio) !important;
-}
-
-/* КОНТЕНТНЫЕ ИЗОБРАЖЕНИЯ: ТОЛЬКО ОРИГИНАЛЬНЫЕ ПРОПОРЦИИ */
-.wp-block-image img,
-.post-content img:not(.avatar):not(.header-custom-logo) {
-    aspect-ratio: auto !important;
-    object-fit: unset !important;
 }
 
 /* ИЗОЛЯЦИЯ АВАТАРОВ (Всегда 1:1) */
