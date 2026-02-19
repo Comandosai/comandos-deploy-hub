@@ -24,6 +24,11 @@ REDIS_PASSWORD=""
 POSTGRES_PASSWORD=""
 ORIGINAL_DIR=""
 EXTERNAL_IP=""
+TRAEFIK_CONTAINER=""
+TRAEFIK_DYNAMIC_DIR=""
+TRAEFIK_NETWORK="comandos-network"
+TRAEFIK_RESOLVER="mytlschallenge"
+EXISTING_TRAEFIK=false
 
 # Версии ПО
 N8N_IMAGE="docker.n8n.io/n8nio/n8n:1.123.5"
@@ -91,16 +96,44 @@ check_system_requirements() {
 }
 
 check_ports() {
-    print_header "Проверка портов"
+    print_header "Проверка портов и Traefik"
+    
+    # Ищем существующий Traefik
+    TRAEFIK_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i "traefik" | head -n1 || echo "")
+    
+    if [ -n "$TRAEFIK_CONTAINER" ]; then
+        print_success "Обнаружен работающий Traefik: $TRAEFIK_CONTAINER"
+        EXISTING_TRAEFIK=true
+        
+        # Пытаемся определить динамическую директорию
+        TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
+        
+        # Пытаемся определить сеть
+        local detected_net=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}{{end}}' | head -n1)
+        if [ -n "$detected_net" ]; then TRAEFIK_NETWORK="$detected_net"; fi
+        
+        # Пытаемся определить резолвер
+        local detected_resolver=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' | grep -oE 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
+        if [ -n "$detected_resolver" ]; then TRAEFIK_RESOLVER="$detected_resolver"; fi
+        
+        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER"
+    fi
+
     local conflict=false
     for port in 80 443; do
         if lsof -Pi :"$port" -sTCP:LISTEN -t >/dev/null ; then
-            print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
-            conflict=true
+            if [ "$EXISTING_TRAEFIK" = true ]; then
+                print_info "Порт $port занят (нормально для существующего Traefik)."
+            else
+                print_error "Порт $port занят. Освободите его (возможно, работает nginx)."
+                conflict=true
+            fi
         fi
     done
     if [ "$conflict" = true ]; then exit 1; fi
-    print_success "Порты 80, 443 свободны"
+    if [ "$EXISTING_TRAEFIK" = false ]; then
+        print_success "Порты 80, 443 свободны"
+    fi
 }
 
 install_docker() {
@@ -237,8 +270,19 @@ http:
           - url: "http://n8n:5678"
 EOF
 
+    # Экспорт в существующий Traefik, если он есть
+    if [ "$EXISTING_TRAEFIK" = true ] && [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+        print_info "Копирование конфигурации n8n в $TRAEFIK_DYNAMIC_DIR..."
+        cp traefik_dynamic/n8n.yml "$TRAEFIK_DYNAMIC_DIR/n8n.yml"
+        docker network connect "$TRAEFIK_NETWORK" n8n 2>/dev/null || true
+    fi
+
     cat > docker-compose.yml << EOF
 services:
+EOF
+
+    if [ "$EXISTING_TRAEFIK" = false ]; then
+        cat >> docker-compose.yml << EOF
   traefik:
     image: traefik:$TRAEFIK_VERSION
     restart: always
@@ -256,7 +300,14 @@ services:
       - traefik_data:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik_dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - default
+      - $TRAEFIK_NETWORK
 
+EOF
+    fi
+
+    cat >> docker-compose.yml << EOF
   postgres:
     image: postgres:$POSTGRES_VERSION
     restart: always
@@ -265,6 +316,8 @@ services:
       - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
       - POSTGRES_DB=n8n
     volumes: ["./postgres_data:/var/lib/postgresql/data"]
+    networks:
+      - default
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h localhost -U n8n"]
       interval: 5s
@@ -276,6 +329,8 @@ services:
     restart: always
     command: redis-server --requirepass \${REDIS_PASSWORD}
     volumes: ["./redis_data:/data"]
+    networks:
+      - default
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "\${REDIS_PASSWORD}", "ping"]
       interval: 5s
@@ -309,6 +364,9 @@ services:
     volumes:
       - ./n8n_data:/home/node/.n8n
       - ./output:/data/output
+    networks:
+      - default
+      - $TRAEFIK_NETWORK
 
   n8n-worker:
     image: $N8N_IMAGE
@@ -329,10 +387,17 @@ services:
     volumes:
       - ./n8n_data:/home/node/.n8n
       - ./output:/data/output
+    networks:
+      - default
+
+networks:
+  $TRAEFIK_NETWORK:
+    external: true
 
 volumes:
   traefik_data:
 EOF
+
 
     cd "$ORIGINAL_DIR"
 }
@@ -347,6 +412,31 @@ start_services() {
     
     # Запускаем
     docker compose up -d
+    
+    # Если Traefik был внешний, убедимся, что сеть подключена
+    if [ "$EXISTING_TRAEFIK" = true ]; then
+        docker network connect "$TRAEFIK_NETWORK" "$TRAEFIK_CONTAINER" 2>/dev/null || true
+        docker network connect "$TRAEFIK_NETWORK" n8n 2>/dev/null || true
+        
+        # Пересоздаем динамический конфиг с правильным резолвером
+        cat > traefik_dynamic/n8n.yml << EOF
+http:
+  routers:
+    n8n-router:
+      rule: "Host(\`$DOMAIN\`)"
+      entryPoints: ["websecure"]
+      service: "n8n-service"
+      tls: { certResolver: "$TRAEFIK_RESOLVER" }
+  services:
+    n8n-service:
+      loadBalancer:
+        servers:
+          - url: "http://n8n:5678"
+EOF
+        if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+            cp traefik_dynamic/n8n.yml "$TRAEFIK_DYNAMIC_DIR/n8n.yml"
+        fi
+    fi
     
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
