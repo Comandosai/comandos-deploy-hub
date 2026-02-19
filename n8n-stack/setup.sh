@@ -106,17 +106,39 @@ check_ports() {
         EXISTING_TRAEFIK=true
         
         # Пытаемся определить динамическую директорию
-        TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
+        TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /dynamic/ {print $2; exit}')
+        
+        # Fallback: ищем через команду Traefik
+        if [ -z "$TRAEFIK_DYNAMIC_DIR" ]; then
+            TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}}' | tr -d '[]",\n' | grep -oP '(?<=providers\.file\.directory=)[^ ]+' | head -n1)
+            # Это путь внутри контейнера, найдем хостовый путь
+            if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+                local host_path=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "'"$TRAEFIK_DYNAMIC_DIR"'"}}{{.Source}}{{end}}{{end}}')
+                if [ -n "$host_path" ]; then
+                    TRAEFIK_DYNAMIC_DIR="$host_path"
+                fi
+            fi
+        fi
+        
+        # Fallback 2: известные пути в экосистеме Comandos
+        if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
+            for known_dir in "$HOME/comandos/traefik/dynamic" "$HOME/traefik/dynamic" "/root/comandos/traefik/dynamic"; do
+                if [ -d "$known_dir" ]; then
+                    TRAEFIK_DYNAMIC_DIR="$known_dir"
+                    break
+                fi
+            done
+        fi
         
         # Пытаемся определить сеть
-        local detected_net=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}{{end}}' | head -n1)
+        local detected_net=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range $net, $conf := .NetworkSettings.Networks}}{{$net}}{{end}}' | tr ' ' '\n' | grep -v '^bridge$' | head -n1)
         if [ -n "$detected_net" ]; then TRAEFIK_NETWORK="$detected_net"; fi
         
         # Пытаемся определить резолвер
-        local detected_resolver=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' | grep -oE 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
+        local detected_resolver=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' | tr ' ' '\n' | grep -oE 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
         if [ -n "$detected_resolver" ]; then TRAEFIK_RESOLVER="$detected_resolver"; fi
         
-        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER"
+        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER, Dynamic=$TRAEFIK_DYNAMIC_DIR"
     fi
 
     local conflict=false
@@ -262,20 +284,13 @@ http:
       rule: "Host(\`$DOMAIN\`)"
       entryPoints: ["websecure"]
       service: "n8n-service"
-      tls: { certResolver: "mytlschallenge" }
+      tls: { certResolver: "$TRAEFIK_RESOLVER" }
   services:
     n8n-service:
       loadBalancer:
         servers:
           - url: "http://n8n:5678"
 EOF
-
-    # Экспорт в существующий Traefik, если он есть
-    if [ "$EXISTING_TRAEFIK" = true ] && [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
-        print_info "Копирование конфигурации n8n в $TRAEFIK_DYNAMIC_DIR..."
-        cp traefik_dynamic/n8n.yml "$TRAEFIK_DYNAMIC_DIR/n8n.yml"
-        docker network connect "$TRAEFIK_NETWORK" n8n 2>/dev/null || true
-    fi
 
     cat > docker-compose.yml << EOF
 services:
@@ -413,28 +428,21 @@ start_services() {
     # Запускаем
     docker compose up -d
     
-    # Если Traefik был внешний, убедимся, что сеть подключена
+    # Если Traefik был внешний, копируем конфиг ПОСЛЕ запуска
     if [ "$EXISTING_TRAEFIK" = true ]; then
-        docker network connect "$TRAEFIK_NETWORK" "$TRAEFIK_CONTAINER" 2>/dev/null || true
-        docker network connect "$TRAEFIK_NETWORK" n8n 2>/dev/null || true
+        # Если динамическая папка так и не определена, последняя попытка
+        if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
+            print_warning "Не удалось найти динамическую папку Traefik автоматически."
+            smart_read "Укажите путь к динамической папке Traefik (напр.: /root/comandos/traefik/dynamic): " TRAEFIK_DYNAMIC_DIR
+        fi
         
-        # Пересоздаем динамический конфиг с правильным резолвером
-        cat > traefik_dynamic/n8n.yml << EOF
-http:
-  routers:
-    n8n-router:
-      rule: "Host(\`$DOMAIN\`)"
-      entryPoints: ["websecure"]
-      service: "n8n-service"
-      tls: { certResolver: "$TRAEFIK_RESOLVER" }
-  services:
-    n8n-service:
-      loadBalancer:
-        servers:
-          - url: "http://n8n:5678"
-EOF
-        if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+        if [ -n "$TRAEFIK_DYNAMIC_DIR" ] && [ -d "$TRAEFIK_DYNAMIC_DIR" ]; then
+            print_info "Копирование конфигурации n8n в $TRAEFIK_DYNAMIC_DIR..."
             cp traefik_dynamic/n8n.yml "$TRAEFIK_DYNAMIC_DIR/n8n.yml"
+            print_success "Маршрут n8n добавлен в Traefik!"
+        else
+            print_error "Папка $TRAEFIK_DYNAMIC_DIR не найдена. Скопируйте файл вручную:"
+            print_error "  cp $(pwd)/traefik_dynamic/n8n.yml <путь-к-динамической-папке>/n8n.yml"
         fi
     fi
     
