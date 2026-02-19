@@ -382,6 +382,14 @@ EOF
     networks:
       - default
       - $TRAEFIK_NETWORK
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=$TRAEFIK_NETWORK"
+      - "traefik.http.routers.n8n-router.rule=Host(\`$DOMAIN\`)"
+      - "traefik.http.routers.n8n-router.entrypoints=websecure"
+      - "traefik.http.routers.n8n-router.tls=true"
+      - "traefik.http.routers.n8n-router.tls.certresolver=$TRAEFIK_RESOLVER"
+      - "traefik.http.services.n8n-service.loadbalancer.server.port=5678"
 
   n8n-worker:
     image: $N8N_IMAGE
