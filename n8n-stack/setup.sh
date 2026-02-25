@@ -168,6 +168,17 @@ install_docker() {
     print_success "Docker готов"
 }
 
+ensure_traefik_network() {
+    print_header "Проверка Docker-сети"
+    if ! docker network inspect "$TRAEFIK_NETWORK" >/dev/null 2>&1; then
+        print_info "Создаю сеть $TRAEFIK_NETWORK..."
+        docker network create "$TRAEFIK_NETWORK" >/dev/null
+        print_success "Сеть $TRAEFIK_NETWORK создана"
+    else
+        print_success "Сеть $TRAEFIK_NETWORK уже существует"
+    fi
+}
+
 check_dns_and_ip() {
     EXTERNAL_IP=$(curl -s --max-time 10 https://ifconfig.me || echo "")
     print_info "Проверка домена $DOMAIN..."
@@ -466,6 +477,7 @@ main() {
     check_system_requirements
     check_ports
     install_docker
+    ensure_traefik_network
     gather_user_input
     create_config_files
     start_services
