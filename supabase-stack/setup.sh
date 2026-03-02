@@ -20,6 +20,7 @@ MODE="local"
 DOMAIN=""
 SSL_EMAIL=""
 DASHBOARD_USERNAME="comandos"
+DASHBOARD_PASSWORD_OVERRIDE=""
 SERVER_IP=""
 EXTERNAL_URL=""
 BACKUP_RETENTION_DAYS=14
@@ -60,6 +61,15 @@ smart_read() {
     read -rp "$prompt" value < /dev/tty || true
   fi
 
+  eval "$var_name=\"\$value\""
+}
+
+smart_read_secret() {
+  local prompt="$1"
+  local var_name="$2"
+  local value=""
+  read -rsp "$prompt" value < /dev/tty || true
+  echo
   eval "$var_name=\"\$value\""
 }
 
@@ -188,6 +198,7 @@ gather_user_input() {
   fi
 
   smart_read "Имя пользователя Dashboard" DASHBOARD_USERNAME "${DASHBOARD_USERNAME:-comandos}"
+  smart_read_secret "Пароль Dashboard (Enter = авто-генерация): " DASHBOARD_PASSWORD_OVERRIDE
   BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-14}"
   print_info "Срок хранения backup: ${BACKUP_RETENTION_DAYS} дней (меняется в .env: BACKUP_RETENTION_DAYS)"
   print_info "Обнаружен IP сервера: ${SERVER_IP} (используется автоматически)"
@@ -262,6 +273,9 @@ configure_env() {
   fi
 
   set_env_key "DASHBOARD_USERNAME" "$DASHBOARD_USERNAME"
+  if [ -n "${DASHBOARD_PASSWORD_OVERRIDE:-}" ]; then
+    set_env_key "DASHBOARD_PASSWORD" "$DASHBOARD_PASSWORD_OVERRIDE"
+  fi
   set_env_key "POOLER_TENANT_ID" "$(openssl rand -hex 8)"
   set_env_key "BACKUP_RETENTION_DAYS" "$BACKUP_RETENTION_DAYS"
 
@@ -392,6 +406,45 @@ set_compose_context() {
 
 compose_run() {
   docker compose "${COMPOSE_FILES[@]}" "$@"
+}
+
+run_with_progress() {
+  local title="$1"
+  shift
+  local log_file
+  local pid
+  local rc
+  local i=0
+  local width=28
+
+  log_file=$(mktemp)
+  ("$@" >"$log_file" 2>&1) &
+  pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    local filled=$((i % (width + 1)))
+    local empty=$((width - filled))
+    local left right
+    left=$(printf '%*s' "$filled" '' | tr ' ' '█')
+    right=$(printf '%*s' "$empty" '')
+    printf "\r${BLUE}%s [%s%s]${NC}" "$title" "$left" "$right"
+    sleep 0.2
+    i=$((i + 1))
+  done
+
+  wait "$pid" || rc=$?
+  rc=${rc:-0}
+
+  if [ "$rc" -eq 0 ]; then
+    printf "\r${GREEN}✓ %s завершено%*s${NC}\n" "$title" 20 ""
+    rm -f "$log_file"
+    return 0
+  fi
+
+  printf "\r${RED}✗ %s: ошибка${NC}\n" "$title"
+  tail -n 120 "$log_file"
+  rm -f "$log_file"
+  return "$rc"
 }
 
 setup_maintenance_timer() {
@@ -647,8 +700,8 @@ start_stack() {
   print_header "Запуск Supabase"
   cd "$PROJECT_DIR"
   set_compose_context
-  compose_run pull
-  compose_run up -d
+  run_with_progress "Загрузка образов Supabase" compose_run pull
+  run_with_progress "Запуск контейнеров Supabase" compose_run up -d
   print_success "Supabase запущен"
 }
 
