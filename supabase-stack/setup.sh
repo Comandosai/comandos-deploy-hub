@@ -541,21 +541,28 @@ read_env_value() {
 }
 
 n8n_get_base_url() {
-  local container_id
-  local container_ip
+  local candidates primary fallback
+  local container_id container_name container_ip url
 
-  container_id=$(docker ps --format '{{.ID}} {{.Names}}' | awk '$2 ~ /n8n/ {print $1; exit}')
-  if [ -z "$container_id" ]; then
-    return 1
-  fi
+  candidates=$(docker ps --format '{{.ID}} {{.Names}}' | awk '$2 ~ /n8n/ {print $1" "$2}')
+  [ -z "${candidates:-}" ] && return 1
 
-  container_ip=$(docker inspect "$container_id" --format '{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}' \
-    | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
-  if [ -z "$container_ip" ]; then
-    return 1
-  fi
+  primary=$(printf '%s\n' "$candidates" | awk '$2 !~ /(worker|webhook|queue|redis|postgres)/ {print $1" "$2}')
+  fallback=$(printf '%s\n' "$candidates")
 
-  echo "http://${container_ip}:5678"
+  while read -r container_id container_name; do
+    [ -z "${container_id:-}" ] && continue
+    container_ip=$(docker inspect "$container_id" --format '{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}' \
+      | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+    [ -z "${container_ip:-}" ] && continue
+    url="http://${container_ip}:5678"
+    if curl -fsS --max-time 3 "$url/rest/settings" >/dev/null 2>&1; then
+      echo "$url"
+      return 0
+    fi
+  done <<< "$(printf '%s\n%s\n' "$primary" "$fallback" | awk '!seen[$0]++')"
+
+  return 1
 }
 
 n8n_find_bootstrap_env() {
@@ -633,12 +640,14 @@ bootstrap_n8n_credentials() {
     print_info "n8n не обнаружен. Автосоздание credentials пропущено."
     return 0
   fi
+  print_info "Найден n8n API: $base_url"
 
   local bootstrap_env
   if ! bootstrap_env=$(n8n_find_bootstrap_env); then
     print_info "Файл .bootstrap.env для n8n не найден. Автосоздание credentials пропущено."
     return 0
   fi
+  print_info "Найден bootstrap-файл: $bootstrap_env"
 
   set -a
   . "$bootstrap_env"
@@ -824,6 +833,10 @@ case "${1:-}" in
     ;;
   --health)
     health_check
+    ;;
+  --bootstrap-n8n)
+    require_root
+    bootstrap_n8n_credentials
     ;;
   *)
     main_install
