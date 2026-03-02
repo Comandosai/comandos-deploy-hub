@@ -1,10 +1,48 @@
 # Comandos Supabase Stack
 
-Установочный стек Supabase в стиле Comandos:
-- корректная генерация ключей Supabase (JWT-ключи ANON/SERVICE_ROLE),
-- режим с доменом и без домена,
-- weekly maintenance (чистка docker/journal логов + retention backup),
-- best-effort автосоздание credentials в n8n (если n8n обнаружен).
+Production-oriented инсталлятор self-hosted Supabase под экосистему Comandos.
+
+## Что это
+
+`supabase-stack` — не просто `docker compose up`, а установщик, который:
+- поднимает официальный Supabase Docker stack,
+- адаптируется к окружению (Traefik / без Traefik, домен / без домена),
+- снижает риск падений из-за логов и конфликтов портов,
+- встраивается в ваш `n8n-stack-v2` (best-effort auto-credentials).
+
+## Ключевые фишки
+
+- Официальный стек Supabase:
+  - используется `supabase/supabase` (`docker/`) как база,
+  - не самодельный “урезанный compose”.
+
+- Корректные ключи Supabase:
+  - генерация через `utils/generate-keys.sh`,
+  - валидные JWT `ANON_KEY` / `SERVICE_ROLE_KEY`.
+
+- Два режима деплоя:
+  - `public`: с доменом (интеграция с найденным Traefik),
+  - `local`: без домена (Enter) на `http://<server-ip>:8000`.
+
+- Устойчивость в mixed-окружениях:
+  - автообход занятых портов (`POSTGRES_PORT`, `POOLER_PROXY_PORT_TRANSACTION`),
+  - особенно полезно, когда на сервере уже есть n8n/Postgres.
+
+- Нормальный UX на долгих шагах:
+  - монотонный прогресс-бар на `pull`/`up`,
+  - явные статусные блоки.
+
+- Автообслуживание:
+  - weekly systemd maintenance,
+  - чистка тяжелых docker json-логов,
+  - retention старых backup файлов.
+
+- Best-effort интеграция с n8n:
+  - если найден рабочий n8n API + `.bootstrap.env`,
+  - автоматически создаются/обновляются credentials:
+    - `Supabase Internal` (`supabaseApi`),
+    - `Supabase Postgres` (`postgres`).
+  - если n8n не найден, установка не падает.
 
 ## Быстрый запуск
 
@@ -12,41 +50,53 @@
 curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/supabase-stack/setup.sh | sudo bash
 ```
 
-или локально:
+Локально:
 
 ```bash
 cd supabase-stack
 sudo ./setup.sh
 ```
 
-## Режимы установки
-
-- С доменом: вводите домен и email. Если обнаружен Traefik, добавляется HTTPS-роут.
-- Без домена: нажмите Enter на запросе домена, стек поднимется в local-режиме на `http://<server-ip>:8000`.
-
 ## Команды управления
 
 ```bash
-./setup.sh            # установка/обновление
-./setup.sh --stop     # остановка
-./setup.sh --logs     # логи
-./setup.sh --backup   # backup postgres
-./setup.sh --update   # backup + pull + up -d
-./setup.sh --health   # smoke-check
+./setup.sh                  # install/update
+./setup.sh --stop           # stop stack
+./setup.sh --logs           # follow logs
+./setup.sh --backup         # manual postgres backup
+./setup.sh --update         # backup + pull + up -d
+./setup.sh --health         # smoke-check stack/API
+./setup.sh --bootstrap-n8n  # rerun n8n credential bootstrap
 ```
 
-## Что выводится в конце
+## Что получает пользователь в конце
 
-- URL Supabase/Studio,
-- IP сервера,
-- данные Postgres (host/port/db/user/password),
-- `ANON_KEY` и `SERVICE_ROLE_KEY`,
-- путь данных и путь backup.
+Инсталлятор печатает готовые блоки для copy/paste:
 
-## Примечания
+- `Supabase Credential (n8n -> Supabase node)`:
+  - `Host`
+  - `Service Role Secret`
 
-- Скрипт не падает, если n8n отсутствует: просто пишет, что интеграция пропущена.
-- Для n8n auto-credentials требуется доступ к n8n API и найденный `.bootstrap.env`.
+- `Postgres Credential (n8n -> Postgres node)`:
+  - `Host`
+  - `Port`
+  - `Database`
+  - `User` (`postgres.<POOLER_TENANT_ID>`)
+  - `Password`
+
+Плюс:
+- Studio URL + login/password,
+- пути данных и backup директории.
+
+## Примечания по n8n
+
+- Для auto-bootstrap нужен доступ к n8n API и файл `.bootstrap.env`.
+- Поиск `.bootstrap.env` выполняется по нескольким каталогам (`/root`, `/opt`, `/home`, `/srv`, `/data`, `/var/www`).
+- Если bootstrap не отработал при установке n8n, credentials можно создать повторно через:
+
+```bash
+./setup.sh --bootstrap-n8n
+```
 
 ## Compliance (RU, 152-ФЗ)
 
