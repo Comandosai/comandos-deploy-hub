@@ -414,29 +414,36 @@ run_with_progress() {
   local log_file
   local pid
   local rc
-  local i=0
   local width=28
+  local start_ts now elapsed pct filled empty bar
+  local max_visible_seconds=180
 
   log_file=$(mktemp)
   ("$@" >"$log_file" 2>&1) &
   pid=$!
+  start_ts=$(date +%s)
 
   while kill -0 "$pid" 2>/dev/null; do
-    local filled=$((i % (width + 1)))
-    local empty=$((width - filled))
-    local left right
-    left=$(printf '%*s' "$filled" '' | tr ' ' '█')
-    right=$(printf '%*s' "$empty" '')
-    printf "\r${BLUE}%s [%s%s]${NC}" "$title" "$left" "$right"
-    sleep 0.2
-    i=$((i + 1))
+    now=$(date +%s)
+    elapsed=$((now - start_ts))
+    pct=$((elapsed * 95 / max_visible_seconds))
+    [ "$pct" -gt 95 ] && pct=95
+    [ "$pct" -lt 3 ] && pct=3
+    filled=$((pct * width / 100))
+    empty=$((width - filled))
+    bar="$(printf '%*s' "$filled" '' | tr ' ' '█')$(printf '%*s' "$empty" '')"
+    printf "\r${BLUE}%s [%s] %3d%%${NC}" "$title" "$bar" "$pct"
+    sleep 0.5
   done
 
   wait "$pid" || rc=$?
   rc=${rc:-0}
 
   if [ "$rc" -eq 0 ]; then
-    printf "\r${GREEN}✓ %s завершено%*s${NC}\n" "$title" 20 ""
+    filled=$width
+    bar="$(printf '%*s' "$filled" '' | tr ' ' '█')"
+    printf "\r${GREEN}%s [%s] 100%%${NC}\n" "$title" "$bar"
+    printf "${GREEN}✓ %s завершено${NC}\n" "$title"
     rm -f "$log_file"
     return 0
   fi
@@ -567,14 +574,14 @@ n8n_get_base_url() {
 
 n8n_find_bootstrap_env() {
   local candidate
-  for candidate in /root/n8n/.bootstrap.env /opt/n8n/.bootstrap.env; do
+  for candidate in /root/n8n/.bootstrap.env /opt/n8n/.bootstrap.env /srv/n8n/.bootstrap.env /data/n8n/.bootstrap.env; do
     if [ -f "$candidate" ]; then
       echo "$candidate"
       return 0
     fi
   done
 
-  candidate=$(find /root /opt /home -maxdepth 4 -type f -name '.bootstrap.env' 2>/dev/null | head -n1 || true)
+  candidate=$(find /root /opt /home /srv /data /var/www -maxdepth 8 -type f -name '.bootstrap.env' 2>/dev/null | head -n1 || true)
   if [ -n "$candidate" ]; then
     echo "$candidate"
     return 0
