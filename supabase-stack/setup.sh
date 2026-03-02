@@ -188,13 +188,9 @@ gather_user_input() {
   fi
 
   smart_read "Имя пользователя Dashboard" DASHBOARD_USERNAME "${DASHBOARD_USERNAME:-comandos}"
-  smart_read "Срок хранения backup (дней)" BACKUP_RETENTION_DAYS "${BACKUP_RETENTION_DAYS:-14}"
-
-  if [ -n "$SERVER_IP" ]; then
-    local override_ip
-    smart_read "IP сервера для финального вывода (Enter = авто)" override_ip "$SERVER_IP"
-    SERVER_IP="$override_ip"
-  fi
+  BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-14}"
+  print_info "Срок хранения backup: ${BACKUP_RETENTION_DAYS} дней (меняется в .env: BACKUP_RETENTION_DAYS)"
+  print_info "Обнаружен IP сервера: ${SERVER_IP} (используется автоматически)"
 
   if [ "$MODE" = "local" ]; then
     check_ports_local_mode
@@ -658,11 +654,12 @@ start_stack() {
 
 print_summary() {
   print_header "Готово: данные для подключения"
-  local postgres_password anon_key service_key pg_port
+  local postgres_password anon_key service_key pg_port dashboard_password
   postgres_password=$(read_env_value "POSTGRES_PASSWORD")
   anon_key=$(read_env_value "ANON_KEY")
   service_key=$(read_env_value "SERVICE_ROLE_KEY")
   pg_port=$(read_env_value "POSTGRES_PORT")
+  dashboard_password=$(read_env_value "DASHBOARD_PASSWORD")
 
   if [ "$MODE" = "public" ] && [ "$EXISTING_TRAEFIK" = true ]; then
     EXTERNAL_URL="https://${DOMAIN}"
@@ -676,6 +673,10 @@ print_summary() {
 URL Supabase: ${EXTERNAL_URL}
 Studio URL: ${EXTERNAL_URL}
 Server IP: ${SERVER_IP}
+
+Вход в Studio (через браузер):
+  username: ${DASHBOARD_USERNAME}
+  password: ${dashboard_password}
 
 PostgreSQL (через Supavisor):
   host: ${SERVER_IP}
