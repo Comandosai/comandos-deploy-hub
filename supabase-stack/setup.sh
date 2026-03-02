@@ -681,11 +681,13 @@ bootstrap_n8n_credentials() {
     return 0
   fi
 
-  local service_role pg_password pg_port pg_host supabase_host
+  local service_role pg_password pg_port pg_host supabase_host pooler_tenant pg_user
   service_role=$(read_env_value "SERVICE_ROLE_KEY")
   pg_password=$(read_env_value "POSTGRES_PASSWORD")
   pg_port=$(read_env_value "POSTGRES_PORT")
-  pg_host="supabase-supavisor"
+  pooler_tenant=$(read_env_value "POOLER_TENANT_ID")
+  pg_user="postgres.${pooler_tenant}"
+  pg_host="supabase-pooler"
 
   if [ "$MODE" = "public" ] && [ "$EXISTING_TRAEFIK" = true ]; then
     supabase_host="https://${DOMAIN}"
@@ -695,7 +697,7 @@ bootstrap_n8n_credentials() {
 
   local supa_json pg_json
   supa_json=$(jq -cn --arg host "$supabase_host" --arg serviceRole "$service_role" '{host:$host,serviceRole:$serviceRole}')
-  pg_json=$(jq -cn --arg host "$pg_host" --arg database "postgres" --arg user "postgres" --arg password "$pg_password" --argjson port "${pg_port:-5432}" \
+  pg_json=$(jq -cn --arg host "$pg_host" --arg database "postgres" --arg user "$pg_user" --arg password "$pg_password" --argjson port "${pg_port:-5432}" \
     '{host:$host,database:$database,user:$user,password:$password,maxConnections:100,allowUnauthorizedCerts:false,ssl:"disable",port:$port,sshTunnel:false,sshAuthenticateWith:"password",sshHost:"localhost",sshPort:22,sshUser:"root",sshPassword:"",privateKey:"",passphrase:""}')
 
   n8n_ensure_credential "$base_url" "$api_key" "Supabase Internal" "supabaseApi" "$supa_json" || true
@@ -716,11 +718,13 @@ start_stack() {
 
 print_summary() {
   print_header "COMANDOS | Готовые Credentials"
-  local postgres_password service_key pg_port dashboard_password
+  local postgres_password service_key pg_port dashboard_password pooler_tenant pg_user
   postgres_password=$(read_env_value "POSTGRES_PASSWORD")
   service_key=$(read_env_value "SERVICE_ROLE_KEY")
   pg_port=$(read_env_value "POSTGRES_PORT")
   dashboard_password=$(read_env_value "DASHBOARD_PASSWORD")
+  pooler_tenant=$(read_env_value "POOLER_TENANT_ID")
+  pg_user="postgres.${pooler_tenant}"
 
   if [ "$MODE" = "public" ] && [ "$EXISTING_TRAEFIK" = true ]; then
     EXTERNAL_URL="https://${DOMAIN}"
@@ -738,7 +742,7 @@ print_summary() {
   echo "   Host: ${SERVER_IP}"
   echo "   Port: ${pg_port:-5432}"
   echo "   Database: postgres"
-  echo "   User: postgres"
+  echo "   User: ${pg_user}"
   echo "   Password: ${postgres_password}"
   echo
   echo -e "${BLUE}Studio (браузер):${NC} ${EXTERNAL_URL}"
