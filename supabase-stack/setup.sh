@@ -653,10 +653,9 @@ start_stack() {
 }
 
 print_summary() {
-  print_header "Готово: данные для подключения"
-  local postgres_password anon_key service_key pg_port dashboard_password
+  print_header "COMANDOS | Готовые Credentials"
+  local postgres_password service_key pg_port dashboard_password
   postgres_password=$(read_env_value "POSTGRES_PASSWORD")
-  anon_key=$(read_env_value "ANON_KEY")
   service_key=$(read_env_value "SERVICE_ROLE_KEY")
   pg_port=$(read_env_value "POSTGRES_PORT")
   dashboard_password=$(read_env_value "DASHBOARD_PASSWORD")
@@ -669,36 +668,31 @@ print_summary() {
     EXTERNAL_URL="http://${SERVER_IP}:8000"
   fi
 
-  cat << EOT
-URL Supabase: ${EXTERNAL_URL}
-Studio URL: ${EXTERNAL_URL}
-Server IP: ${SERVER_IP}
-
-Вход в Studio (через браузер):
-  username: ${DASHBOARD_USERNAME}
-  password: ${dashboard_password}
-
-PostgreSQL (через Supavisor):
-  host: ${SERVER_IP}
-  port: ${pg_port:-5432}
-  database: postgres
-  user: postgres
-  password: ${postgres_password}
-
-Supabase keys:
-  ANON_KEY: ${anon_key}
-  SERVICE_ROLE_KEY: ${service_key}
-
-Локальный путь данных: $(realpath "$PROJECT_DIR")
-Бэкапы: $(realpath "$PROJECT_DIR/backups" 2>/dev/null || echo "$PROJECT_DIR/backups")
-
-Compliance note (RU, 152-ФЗ):
-  Если вы обрабатываете персональные данные граждан РФ, оцените применимость требований
-  152-ФЗ и связанных норм (включая локализацию ПДн) к вашему сценарию.
-  При необходимости размещайте инфраструктуру на серверах в РФ и согласуйте требования
-  с вашим юристом/специалистом по ИБ.
-  Этот скрипт не является юридической консультацией.
-EOT
+  echo -e "${GREEN}1) Supabase Credential (n8n -> Supabase node)${NC}"
+  echo "   Host: ${EXTERNAL_URL}"
+  echo "   Service Role Secret: ${service_key}"
+  echo
+  echo -e "${GREEN}2) Postgres Credential (n8n -> Postgres node)${NC}"
+  echo "   Host: ${SERVER_IP}"
+  echo "   Port: ${pg_port:-5432}"
+  echo "   Database: postgres"
+  echo "   User: postgres"
+  echo "   Password: ${postgres_password}"
+  echo
+  echo -e "${BLUE}Studio (браузер):${NC} ${EXTERNAL_URL}"
+  echo "  login: ${DASHBOARD_USERNAME}"
+  echo "  password: ${dashboard_password}"
+  echo
+  echo -e "${BLUE}Сервисные пути:${NC}"
+  echo "  Data dir: $(realpath "$PROJECT_DIR")"
+  echo "  Backups: $(realpath "$PROJECT_DIR/backups" 2>/dev/null || echo "$PROJECT_DIR/backups")"
+  echo
+  echo "Compliance note (RU, 152-ФЗ):"
+  echo "  Если вы обрабатываете персональные данные граждан РФ, оцените применимость требований"
+  echo "  152-ФЗ и связанных норм (включая локализацию ПДн) к вашему сценарию."
+  echo "  При необходимости размещайте инфраструктуру на серверах в РФ и согласуйте требования"
+  echo "  с вашим юристом/специалистом по ИБ."
+  echo "  Этот скрипт не является юридической консультацией."
 }
 
 health_check() {
