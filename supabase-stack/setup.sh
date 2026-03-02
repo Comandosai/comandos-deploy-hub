@@ -73,6 +73,26 @@ smart_read_secret() {
   eval "$var_name=\"\$value\""
 }
 
+is_port_busy() {
+  local port="$1"
+  lsof -Pi :"$port" -sTCP:LISTEN -t >/dev/null 2>&1
+}
+
+find_free_port_from() {
+  local port="$1"
+  local max_tries=50
+  local i=0
+  while [ "$i" -lt "$max_tries" ]; do
+    if ! is_port_busy "$port"; then
+      echo "$port"
+      return 0
+    fi
+    port=$((port + 1))
+    i=$((i + 1))
+  done
+  return 1
+}
+
 require_root() {
   if [ "$EUID" -ne 0 ]; then
     print_error "Нужен запуск от root/sudo"
@@ -270,6 +290,32 @@ configure_env() {
 
   if grep -q '^POSTGRES_PASSWORD=your-super-secret' "$PROJECT_DIR/.env" || ! grep -q '^ANON_KEY=eyJ' "$PROJECT_DIR/.env"; then
     generate_secure_keys
+  fi
+
+  # If host ports are already occupied (common when n8n/Postgres is already installed),
+  # pick free host ports for Supavisor exposure to avoid startup failure.
+  if ! docker ps --format '{{.Names}}' | grep -qx 'supabase-pooler'; then
+    local current_pg_port current_tx_port free_pg_port free_tx_port
+    current_pg_port=$(read_env_value "POSTGRES_PORT")
+    current_tx_port=$(read_env_value "POOLER_PROXY_PORT_TRANSACTION")
+    current_pg_port="${current_pg_port:-5432}"
+    current_tx_port="${current_tx_port:-6543}"
+
+    if is_port_busy "$current_pg_port"; then
+      free_pg_port=$(find_free_port_from "$((current_pg_port + 1))" || true)
+      if [ -n "${free_pg_port:-}" ]; then
+        set_env_key "POSTGRES_PORT" "$free_pg_port"
+        print_warning "Порт ${current_pg_port} занят. Для Supabase выбран POSTGRES_PORT=${free_pg_port}"
+      fi
+    fi
+
+    if is_port_busy "$current_tx_port"; then
+      free_tx_port=$(find_free_port_from "$((current_tx_port + 1))" || true)
+      if [ -n "${free_tx_port:-}" ]; then
+        set_env_key "POOLER_PROXY_PORT_TRANSACTION" "$free_tx_port"
+        print_warning "Порт ${current_tx_port} занят. Для Supabase выбран POOLER_PROXY_PORT_TRANSACTION=${free_tx_port}"
+      fi
+    fi
   fi
 
   set_env_key "DASHBOARD_USERNAME" "$DASHBOARD_USERNAME"
@@ -704,7 +750,7 @@ bootstrap_n8n_credentials() {
 
   local supa_json pg_json
   supa_json=$(jq -cn --arg host "$supabase_host" --arg serviceRole "$service_role" '{host:$host,serviceRole:$serviceRole}')
-  pg_json=$(jq -cn --arg host "$pg_host" --arg database "postgres" --arg user "$pg_user" --arg password "$pg_password" --argjson port "${pg_port:-5432}" \
+  pg_json=$(jq -cn --arg host "$pg_host" --arg database "postgres" --arg user "$pg_user" --arg password "$pg_password" --argjson port 5432 \
     '{host:$host,database:$database,user:$user,password:$password,maxConnections:100,allowUnauthorizedCerts:false,ssl:"disable",port:$port,sshTunnel:false,sshAuthenticateWith:"password",sshHost:"localhost",sshPort:22,sshUser:"root",sshPassword:"",privateKey:"",passphrase:""}')
 
   n8n_ensure_credential "$base_url" "$api_key" "Supabase Internal" "supabaseApi" "$supa_json" || true
