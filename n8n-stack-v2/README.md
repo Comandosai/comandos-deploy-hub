@@ -73,10 +73,37 @@
 
 Запускается по `systemd timer` раз в неделю (воскресенье, 05:00).
 
+## Команды для пользователей
+
+### Установка с нуля
+```bash
+cd /root
+git clone https://github.com/Comandosai/comandos-deploy-hub.git
+cd /root/comandos-deploy-hub/n8n-stack-v2
+sudo ./setup.sh
+```
+
+### Обновление существующего стека
+```bash
+cd /root/comandos-deploy-hub
+git pull --ff-only origin main
+cd /root/comandos-deploy-hub/n8n-stack-v2
+sudo ./setup.sh
+```
+
+На апдейте выбирайте использование существующих настроек (домен/ключи/пароли), чтобы пройти обновление без ручной перенастройки.
+
+## Что обновляется автоматически
+- Postgres запускается на образе `pgvector/pgvector:16-alpine`.
+- После старта стек автоматически применяет:
+  - `CREATE EXTENSION IF NOT EXISTS vector;`
+  - создание таблицы `public.comandos_embeddings` (если её нет)
+  - создание индекса `comandos_embeddings_created_at_idx` (если его нет)
+- Старые данные в `postgres_data/` сохраняются, миграция выполняется идемпотентно.
+
 ## Быстрый старт
 ```bash
-git clone https://github.com/Comandosai/comandos-deploy-hub.git
-cd comandos-deploy-hub/n8n-stack-v2
+cd /root/comandos-deploy-hub/n8n-stack-v2
 sudo ./setup.sh
 ```
 

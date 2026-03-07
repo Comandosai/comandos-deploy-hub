@@ -674,6 +674,50 @@ install_community_nodes_from_file() {
     rm -f "$response_file"
 }
 
+ensure_vector_storage() {
+    print_header "Инициализация pgvector"
+    cd "$PROJECT_DIR"
+
+    local max_attempts=20
+    local attempt=1
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        if docker compose exec -T postgres psql -U n8n -d n8n -c "SELECT 1;" >/dev/null 2>&1; then
+            break
+        fi
+        if [ "$attempt" -eq "$max_attempts" ]; then
+            print_warning "PostgreSQL не готов для миграции pgvector. Пропускаю шаг."
+            cd "$ORIGINAL_DIR"
+            return 0
+        fi
+        sleep 3
+        attempt=$((attempt + 1))
+    done
+
+    if docker compose exec -T postgres psql -U n8n -d n8n <<'SQL' >/dev/null 2>&1
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS public.comandos_embeddings (
+  id BIGSERIAL PRIMARY KEY,
+  source TEXT,
+  content TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  embedding vector(1536) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS comandos_embeddings_created_at_idx
+  ON public.comandos_embeddings (created_at);
+SQL
+    then
+        print_success "pgvector и таблица comandos_embeddings готовы."
+    else
+        print_warning "Не удалось применить миграцию pgvector автоматически."
+    fi
+
+    cd "$ORIGINAL_DIR"
+}
+
 post_deploy_bootstrap() {
     print_header "Пост-настройка n8n"
 
@@ -959,6 +1003,7 @@ start_services() {
         fi
     fi
 
+    ensure_vector_storage
     post_deploy_bootstrap
     
     print_success "Система запущена!"
