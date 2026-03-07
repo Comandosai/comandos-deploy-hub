@@ -561,15 +561,6 @@ EOF
 }
 
 get_n8n_internal_base_url() {
-    # Для production сначала пробуем домен по HTTPS.
-    # Это нужно для корректной передачи secure-cookie.
-    if [ -n "${DOMAIN:-}" ]; then
-        if curl -fsS --max-time 8 "https://$DOMAIN/rest/settings" >/dev/null 2>&1; then
-            echo "https://$DOMAIN"
-            return 0
-        fi
-    fi
-
     local container_id
     local container_ip
     container_id=$(docker compose ps -q n8n 2>/dev/null || true)
@@ -586,6 +577,16 @@ get_n8n_internal_base_url() {
     fi
 
     echo "http://$container_ip:5678"
+}
+
+get_n8n_bootstrap_base_url() {
+    # Для bootstrap всегда используем домен по HTTPS:
+    # secure-cookie/CSRF в современных версиях n8n стабильно работает именно так.
+    if [ -n "${DOMAIN:-}" ]; then
+        echo "https://$DOMAIN"
+        return 0
+    fi
+    return 1
 }
 
 wait_for_n8n_api() {
@@ -953,14 +954,14 @@ post_deploy_bootstrap() {
     local auth_response
     local auth_token=""
 
-    base_url=$(get_n8n_internal_base_url || true)
+    base_url=$(get_n8n_bootstrap_base_url || true)
     if [ -z "$base_url" ]; then
-        print_warning "Не удалось определить внутренний адрес n8n. Пропускаю пост-настройку."
+        print_warning "Не удалось определить HTTPS-домен n8n для bootstrap. Пропускаю пост-настройку."
         return 0
     fi
 
     if ! wait_for_n8n_api "$base_url"; then
-        print_warning "API n8n недоступен после запуска. Пропускаю пост-настройку."
+        print_warning "API n8n по HTTPS недоступен после запуска. Пропускаю пост-настройку."
         return 0
     fi
 
@@ -1077,6 +1078,7 @@ fi
 
 set -a
 . ".bootstrap.env"
+[ -f ".env" ] && . ".env"
 set +a
 
 if [ -z "${BOOTSTRAP_EMAIL:-}" ] || [ -z "${BOOTSTRAP_PASSWORD:-}" ]; then
@@ -1086,20 +1088,11 @@ fi
 
 NPM_AUTHOR="${NPM_AUTHOR:-comandos_ai}"
 
-container_id=$(docker compose ps -q n8n 2>/dev/null || true)
-if [ -z "$container_id" ]; then
-  echo "n8n container is not running"
+if [ -z "${DOMAIN_NAME:-}" ]; then
+  echo "DOMAIN_NAME is required in .env"
   exit 1
 fi
-
-container_ip=$(docker inspect "$container_id" --format '{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}' \
-  | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
-  | head -n1 || true)
-if [ -z "$container_ip" ]; then
-  echo "Failed to resolve n8n container IP"
-  exit 1
-fi
-base_url="http://$container_ip:5678"
+base_url="https://${DOMAIN_NAME}"
 
 for i in {1..60}; do
   if curl -fsS "$base_url/rest/settings" >/dev/null 2>&1; then
