@@ -43,6 +43,7 @@ ENABLE_AUTO_UPDATE=false
 IS_UPGRADE=false
 ENABLE_WEEKLY_NODES_UPDATE=false
 NPM_AUTHOR="comandos_ai"
+NPM_SCOPE="@comandosai"
 
 print_logo() {
     echo -e "${BLUE}"
@@ -828,7 +829,7 @@ install_community_nodes_from_npm_author() {
         if [ -z "$payload" ]; then
             break
         fi
-        echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-' || true >> "$packages_file"
+        echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-|^@comandosai/n8n-nodes-' || true >> "$packages_file"
         count=$(echo "$payload" | jq '.objects | length')
         if [ "$count" -lt "$size" ]; then
             break
@@ -837,7 +838,7 @@ install_community_nodes_from_npm_author() {
     done
 
     if [ ! -s "$packages_file" ]; then
-        print_warning "Не найдены пакеты n8n-nodes-* для автора $NPM_AUTHOR."
+        print_warning "Не найдены пакеты n8n-nodes-* для автора $NPM_AUTHOR (включая scoped @comandosai)."
         rm -f "$response_file" "$packages_file"
         return 0
     fi
@@ -1108,7 +1109,7 @@ from=0
 size=250
 while true; do
   payload=$(curl -fsS "https://registry.npmjs.org/-/v1/search?text=maintainer:${NPM_AUTHOR}&size=${size}&from=${from}")
-  echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-' || true >> "$packages_file"
+  echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-|^@comandosai/n8n-nodes-' || true >> "$packages_file"
   count=$(echo "$payload" | jq '.objects | length')
   if [ "$count" -lt "$size" ]; then
     break
