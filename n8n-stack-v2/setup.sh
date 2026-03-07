@@ -546,6 +546,15 @@ EOF
 }
 
 get_n8n_internal_base_url() {
+    # Для production сначала пробуем домен по HTTPS.
+    # Это нужно для корректной передачи secure-cookie.
+    if [ -n "${DOMAIN:-}" ]; then
+        if curl -fsS --max-time 8 "https://$DOMAIN/rest/settings" >/dev/null 2>&1; then
+            echo "https://$DOMAIN"
+            return 0
+        fi
+    fi
+
     local container_id
     local container_ip
     container_id=$(docker compose ps -q n8n 2>/dev/null || true)
@@ -640,9 +649,10 @@ ensure_credential() {
 ensure_credential_session() {
     local base_url="$1"
     local cookie_file="$2"
-    local cred_name="$3"
-    local cred_type="$4"
-    local cred_data_json="$5"
+    local auth_token="$3"
+    local cred_name="$4"
+    local cred_type="$5"
+    local cred_data_json="$6"
     local list_json=""
     local credential_id=""
     local list_endpoint=""
@@ -651,6 +661,9 @@ ensure_credential_session() {
     # Пробуем session-based эндпоинты (в зависимости от версии n8n).
     for endpoint in "/rest/credentials" "/api/v1/credentials"; do
         list_json=$(curl -fsS -b "$cookie_file" "$base_url${endpoint}?limit=250" 2>/dev/null || true)
+        if [ -z "$list_json" ] && [ -n "$auth_token" ]; then
+            list_json=$(curl -fsS -H "Authorization: Bearer $auth_token" "$base_url${endpoint}?limit=250" 2>/dev/null || true)
+        fi
         if [ -n "$list_json" ]; then
             list_endpoint="$endpoint"
             item_endpoint="$endpoint"
@@ -673,6 +686,12 @@ ensure_credential_session() {
             print_success "Credential '$cred_name' обновлён (session API)."
             return 0
         fi
+        if [ -n "$auth_token" ] && curl -fsS -H "Authorization: Bearer $auth_token" -H "Content-Type: application/json" \
+            -X PATCH "$base_url${item_endpoint}/$credential_id" \
+            --data "{\"name\":\"$cred_name\",\"type\":\"$cred_type\",\"data\":$cred_data_json,\"isPartialData\":false}" >/dev/null 2>&1; then
+            print_success "Credential '$cred_name' обновлён (Bearer API)."
+            return 0
+        fi
         print_warning "Не удалось обновить credential '$cred_name' через session API."
         return 1
     fi
@@ -683,6 +702,12 @@ ensure_credential_session() {
         print_success "Credential '$cred_name' создан (session API)."
         return 0
     fi
+    if [ -n "$auth_token" ] && curl -fsS -H "Authorization: Bearer $auth_token" -H "Content-Type: application/json" \
+        -X POST "$base_url${item_endpoint}" \
+        --data "{\"name\":\"$cred_name\",\"type\":\"$cred_type\",\"data\":$cred_data_json}" >/dev/null 2>&1; then
+        print_success "Credential '$cred_name' создан (Bearer API)."
+        return 0
+    fi
 
     print_warning "Не удалось создать credential '$cred_name' через session API."
     return 1
@@ -691,6 +716,7 @@ ensure_credential_session() {
 install_community_nodes_from_file() {
     local base_url="$1"
     local cookie_file="$2"
+    local auth_token="${3:-}"
     local custom_nodes_file="$ORIGINAL_DIR/custom/community-nodes.txt"
     local pkg
     local response_file
@@ -718,6 +744,14 @@ install_community_nodes_from_file() {
             -H "Content-Type: application/json" \
             -X POST "$base_url/rest/community-packages" \
             --data "{\"name\":\"$pkg\",\"verify\":false}" || true)
+
+        if [ "$http_code" != "200" ] && [ -n "$auth_token" ]; then
+            http_code=$(curl -sS -o "$response_file" -w "%{http_code}" \
+                -H "Authorization: Bearer $auth_token" \
+                -H "Content-Type: application/json" \
+                -X POST "$base_url/rest/community-packages" \
+                --data "{\"name\":\"$pkg\",\"verify\":false}" || true)
+        fi
 
         if [ "$http_code" = "200" ]; then
             print_success "Пакет '$pkg' установлен."
@@ -791,6 +825,8 @@ post_deploy_bootstrap() {
     local pg_data_json
     local redis_data_json
     local auth_file
+    local auth_response
+    local auth_token=""
 
     base_url=$(get_n8n_internal_base_url || true)
     if [ -z "$base_url" ]; then
@@ -822,13 +858,15 @@ post_deploy_bootstrap() {
         fi
         print_success "Owner setup выполнен автоматически."
     else
-        if ! curl -fsS -c "$cookie_file" -H "Content-Type: application/json" \
+        auth_response=$(curl -fsS -c "$cookie_file" -H "Content-Type: application/json" \
             -X POST "$base_url/rest/login" \
-            --data "{\"emailOrLdapLoginId\":\"$SSL_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" >/dev/null 2>&1; then
+            --data "{\"emailOrLdapLoginId\":\"$SSL_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" 2>/dev/null || true)
+        if [ -z "$auth_response" ]; then
             print_warning "Не удалось выполнить логин в n8n (email/пароль). Пропускаю пост-настройку."
             rm -f "$cookie_file"
             return 0
         fi
+        auth_token=$(echo "$auth_response" | jq -r '.data.accessToken // .data.token // .accessToken // .token // empty' 2>/dev/null || true)
         print_success "Успешный логин в n8n API."
     fi
 
@@ -852,11 +890,11 @@ EOF
         ensure_credential "$base_url" "$api_key" "Redis Internal" "redis" "$redis_data_json" || true
     else
         print_warning "Не удалось получить Public API key. Пробую session API для credentials."
-        ensure_credential_session "$base_url" "$cookie_file" "Postgres Internal" "postgres" "$pg_data_json" || true
-        ensure_credential_session "$base_url" "$cookie_file" "Redis Internal" "redis" "$redis_data_json" || true
+        ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Postgres Internal" "postgres" "$pg_data_json" || true
+        ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Redis Internal" "redis" "$redis_data_json" || true
     fi
 
-    install_community_nodes_from_file "$base_url" "$cookie_file"
+    install_community_nodes_from_file "$base_url" "$cookie_file" "$auth_token"
     rm -f "$cookie_file"
 }
 
