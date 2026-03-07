@@ -631,6 +631,10 @@ ensure_credential() {
             print_success "Credential '$cred_name' обновлён."
             return 0
         fi
+        if credential_exists_in_db "$cred_name"; then
+            print_info "Credential '$cred_name' уже существует в БД. Оставляю как есть."
+            return 0
+        fi
         print_warning "Не удалось обновить credential '$cred_name'."
         return 1
     fi
@@ -642,8 +646,20 @@ ensure_credential() {
         return 0
     fi
 
+    if credential_exists_in_db "$cred_name"; then
+        print_info "Credential '$cred_name' уже существует в БД. Оставляю как есть."
+        return 0
+    fi
     print_warning "Не удалось создать credential '$cred_name'."
     return 1
+}
+
+credential_exists_in_db() {
+    local cred_name="$1"
+    local exists
+    exists=$(docker compose exec -T postgres psql -U n8n -d n8n -tAc \
+        "SELECT 1 FROM credentials_entity WHERE name = '$cred_name' LIMIT 1;" 2>/dev/null | tr -d '[:space:]' || true)
+    [ "$exists" = "1" ]
 }
 
 ensure_credential_session() {
@@ -692,6 +708,10 @@ ensure_credential_session() {
             print_success "Credential '$cred_name' обновлён (Bearer API)."
             return 0
         fi
+        if credential_exists_in_db "$cred_name"; then
+            print_info "Credential '$cred_name' уже существует в БД. Оставляю как есть."
+            return 0
+        fi
         print_warning "Не удалось обновить credential '$cred_name' через session API."
         return 1
     fi
@@ -709,7 +729,21 @@ ensure_credential_session() {
         return 0
     fi
 
+    if credential_exists_in_db "$cred_name"; then
+        print_info "Credential '$cred_name' уже существует в БД. Оставляю как есть."
+        return 0
+    fi
     print_warning "Не удалось создать credential '$cred_name' через session API."
+    return 1
+}
+
+install_community_node_via_npm() {
+    local pkg="$1"
+    if docker compose exec -T n8n sh -lc "cd /home/node/.n8n && npm install --omit=dev \"$pkg\"" >/dev/null 2>&1; then
+        print_success "Пакет '$pkg' установлен через npm fallback."
+        return 0
+    fi
+    print_warning "npm fallback для '$pkg' завершился ошибкой."
     return 1
 }
 
@@ -762,10 +796,12 @@ install_community_nodes_from_file() {
         if [[ "$message" == *"already installed"* ]]; then
             print_info "Пакет '$pkg' уже установлен."
         else
-            print_warning "Не удалось установить '$pkg' (HTTP $http_code). ${message:-Проверьте логи n8n.}"
+            print_warning "Не удалось установить '$pkg' через API (HTTP $http_code). Пробую npm fallback."
+            install_community_node_via_npm "$pkg" || true
         fi
     done < "$custom_nodes_file"
 
+    docker compose restart n8n n8n-worker >/dev/null 2>&1 || true
     rm -f "$response_file"
 }
 
