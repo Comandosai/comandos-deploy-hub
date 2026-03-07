@@ -11,6 +11,12 @@
 - `Redis`
 - `Traefik` (или интеграция с уже существующим)
 
+## Фиксированный путь деплоя (правило)
+Стек всегда разворачивается в один путь:
+- `/root/n8n`
+
+Это обязательное правило, чтобы не терять credentials/данные при обновлениях из-за разных директорий.
+
 ## Главная фишка
 Главная идея стека: **инфраструктура сама адаптируется к окружению**.
 
@@ -89,6 +95,8 @@ cd /root/comandos-deploy-hub/n8n-stack-v2
 sudo ./setup.sh
 ```
 
+После запуска все рабочие файлы будут в `/root/n8n`.
+
 ### Обновление существующего стека
 ```bash
 cd /root/comandos-deploy-hub
@@ -138,10 +146,10 @@ sudo ./setup.sh
 - лог обновлений: `/var/log/n8n-community-sync.log`
 
 ## Структура данных
-- `n8n_data/` — данные n8n (workflow, credentials, config)
-- `postgres_data/` — база PostgreSQL
-- `redis_data/` — Redis
-- `output/` — общая файловая папка (доступна в n8n как `/data/output`)
+- `/root/n8n/n8n_data/` — данные n8n (workflow, credentials, config)
+- `/root/n8n/postgres_data/` — база PostgreSQL
+- `/root/n8n/redis_data/` — Redis
+- `/root/n8n/output/` — общая файловая папка (доступна в n8n как `/data/output`)
 
 ## Для поста (готовый тезис)
 Если нужно описать коротко:

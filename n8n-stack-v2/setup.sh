@@ -15,7 +15,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Глобальные переменные
-PROJECT_DIR="n8n"
+# ВАЖНО: фиксированный путь деплоя, чтобы не терять credentials/данные из-за разных директорий.
+PROJECT_DIR="/root/n8n"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOMAIN=""
 SSL_EMAIL=""
@@ -70,6 +71,18 @@ print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
+
+ensure_fixed_project_dir() {
+    local legacy_dir="$SCRIPT_DIR/n8n"
+
+    # Если старый каталог в папке репозитория существует, переносим его в фиксированный путь.
+    if [ ! -d "$PROJECT_DIR" ] && [ -d "$legacy_dir" ]; then
+        print_warning "Обнаружен legacy-путь установки: $legacy_dir"
+        print_info "Перенос установки в фиксированный путь: $PROJECT_DIR"
+        mv "$legacy_dir" "$PROJECT_DIR"
+        print_success "Перенос завершён."
+    fi
+}
 
 smart_read() {
     local prompt=$1
@@ -1221,6 +1234,8 @@ main() {
     if [ "$EUID" -ne 0 ]; then print_error "Нужен sudo!"; exit 1; fi
     print_logo
     ORIGINAL_DIR=$(pwd)
+    ensure_fixed_project_dir
+    print_info "Фиксированный путь деплоя: $PROJECT_DIR"
     check_dependencies
     check_system_requirements
     check_ports
