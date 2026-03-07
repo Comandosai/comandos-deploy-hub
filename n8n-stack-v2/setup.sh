@@ -33,6 +33,7 @@ EXISTING_TRAEFIK=false
 # Версии ПО
 N8N_IMAGE="n8nio/n8n:latest"
 POSTGRES_VERSION="16-alpine"
+POSTGRES_IMAGE="pgvector/pgvector"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
 
@@ -389,7 +390,7 @@ EOF
 
     cat >> docker-compose.yml << EOF
   postgres:
-    image: postgres:$POSTGRES_VERSION
+    image: $POSTGRES_IMAGE:$POSTGRES_VERSION
     restart: always
     environment:
       - POSTGRES_USER=n8n
