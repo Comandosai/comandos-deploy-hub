@@ -252,6 +252,16 @@ gather_user_input() {
                 SSL_EMAIL=""
                 ADMIN_PASSWORD=""
             else
+                print_info "Для пост-настройки нужны текущие данные входа администратора n8n."
+                if [ -n "${SSL_EMAIL:-}" ]; then
+                    smart_read "Email администратора n8n [${SSL_EMAIL}]: " existing_admin_email
+                    if [ -n "${existing_admin_email:-}" ]; then
+                        SSL_EMAIL="$existing_admin_email"
+                    fi
+                else
+                    smart_read "Email администратора n8n: " SSL_EMAIL
+                fi
+                smart_read "Введите текущий пароль администратора n8n (для автосоздания credentials и установки нод): " ADMIN_PASSWORD true
                 return 0 
             fi
         fi
