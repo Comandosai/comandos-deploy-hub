@@ -781,7 +781,7 @@ post_deploy_bootstrap() {
         print_success "Успешный логин в n8n API."
     fi
 
-    auth_file="$PROJECT_DIR/.bootstrap.env"
+    auth_file=".bootstrap.env"
     cat > "$auth_file" << EOF
 BOOTSTRAP_EMAIL=$SSL_EMAIL
 BOOTSTRAP_PASSWORD=$ADMIN_PASSWORD
