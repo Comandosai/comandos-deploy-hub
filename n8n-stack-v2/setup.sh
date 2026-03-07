@@ -806,6 +806,80 @@ install_community_nodes_from_file() {
     rm -f "$response_file"
 }
 
+install_community_nodes_from_npm_author() {
+    local base_url="$1"
+    local cookie_file="$2"
+    local auth_token="${3:-}"
+    local response_file
+    local packages_file
+    local payload
+    local pkg
+    local install_code
+    local message
+    local from=0
+    local size=250
+
+    print_header "Установка community-нод из npm автора $NPM_AUTHOR"
+    response_file=$(mktemp)
+    packages_file=$(mktemp)
+
+    while true; do
+        payload=$(curl -fsS "https://registry.npmjs.org/-/v1/search?text=maintainer:${NPM_AUTHOR}&size=${size}&from=${from}" 2>/dev/null || true)
+        if [ -z "$payload" ]; then
+            break
+        fi
+        echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-' || true >> "$packages_file"
+        count=$(echo "$payload" | jq '.objects | length')
+        if [ "$count" -lt "$size" ]; then
+            break
+        fi
+        from=$((from + size))
+    done
+
+    if [ ! -s "$packages_file" ]; then
+        print_warning "Не найдены пакеты n8n-nodes-* для автора $NPM_AUTHOR."
+        rm -f "$response_file" "$packages_file"
+        return 0
+    fi
+
+    sort -u "$packages_file" -o "$packages_file"
+    print_info "Найдено пакетов: $(wc -l < "$packages_file")"
+
+    while IFS= read -r pkg; do
+        [ -z "$pkg" ] && continue
+
+        install_code=$(curl -sS -o "$response_file" -w "%{http_code}" -b "$cookie_file" \
+            -H "Content-Type: application/json" \
+            -X POST "$base_url/rest/community-packages" \
+            --data "{\"name\":\"$pkg\",\"verify\":false}" || true)
+
+        if [ "$install_code" != "200" ] && [ -n "$auth_token" ]; then
+            install_code=$(curl -sS -o "$response_file" -w "%{http_code}" \
+                -H "Authorization: Bearer $auth_token" \
+                -H "Content-Type: application/json" \
+                -X POST "$base_url/rest/community-packages" \
+                --data "{\"name\":\"$pkg\",\"verify\":false}" || true)
+        fi
+
+        if [ "$install_code" = "200" ]; then
+            print_success "Пакет '$pkg' установлен."
+            continue
+        fi
+
+        message=$(jq -r '.message // empty' "$response_file" 2>/dev/null || true)
+        if [[ "$message" == *"already installed"* ]]; then
+            print_info "Пакет '$pkg' уже установлен."
+            continue
+        fi
+
+        print_warning "API-установка '$pkg' не удалась (HTTP $install_code). Пробую npm fallback."
+        install_community_node_via_npm "$pkg" || true
+    done < "$packages_file"
+
+    docker compose restart n8n n8n-worker >/dev/null 2>&1 || true
+    rm -f "$response_file" "$packages_file"
+}
+
 ensure_vector_storage() {
     print_header "Инициализация pgvector"
 
@@ -932,6 +1006,7 @@ EOF
     fi
 
     install_community_nodes_from_file "$base_url" "$cookie_file" "$auth_token"
+    install_community_nodes_from_npm_author "$base_url" "$cookie_file" "$auth_token"
     rm -f "$cookie_file"
 }
 
