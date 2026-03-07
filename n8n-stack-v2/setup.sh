@@ -637,6 +637,57 @@ ensure_credential() {
     return 1
 }
 
+ensure_credential_session() {
+    local base_url="$1"
+    local cookie_file="$2"
+    local cred_name="$3"
+    local cred_type="$4"
+    local cred_data_json="$5"
+    local list_json=""
+    local credential_id=""
+    local list_endpoint=""
+    local item_endpoint=""
+
+    # Пробуем session-based эндпоинты (в зависимости от версии n8n).
+    for endpoint in "/rest/credentials" "/api/v1/credentials"; do
+        list_json=$(curl -fsS -b "$cookie_file" "$base_url${endpoint}?limit=250" 2>/dev/null || true)
+        if [ -n "$list_json" ]; then
+            list_endpoint="$endpoint"
+            item_endpoint="$endpoint"
+            break
+        fi
+    done
+
+    if [ -z "$list_json" ]; then
+        print_warning "Не удалось получить список credentials через session API."
+        return 1
+    fi
+
+    credential_id=$(echo "$list_json" | jq -r --arg n "$cred_name" --arg t "$cred_type" \
+        '(.data // .)[]? | select(.name == $n and .type == $t) | .id' | head -n1)
+
+    if [ -n "$credential_id" ]; then
+        if curl -fsS -b "$cookie_file" -H "Content-Type: application/json" \
+            -X PATCH "$base_url${item_endpoint}/$credential_id" \
+            --data "{\"name\":\"$cred_name\",\"type\":\"$cred_type\",\"data\":$cred_data_json,\"isPartialData\":false}" >/dev/null 2>&1; then
+            print_success "Credential '$cred_name' обновлён (session API)."
+            return 0
+        fi
+        print_warning "Не удалось обновить credential '$cred_name' через session API."
+        return 1
+    fi
+
+    if curl -fsS -b "$cookie_file" -H "Content-Type: application/json" \
+        -X POST "$base_url${item_endpoint}" \
+        --data "{\"name\":\"$cred_name\",\"type\":\"$cred_type\",\"data\":$cred_data_json}" >/dev/null 2>&1; then
+        print_success "Credential '$cred_name' создан (session API)."
+        return 0
+    fi
+
+    print_warning "Не удалось создать credential '$cred_name' через session API."
+    return 1
+}
+
 install_community_nodes_from_file() {
     local base_url="$1"
     local cookie_file="$2"
@@ -791,20 +842,19 @@ EOF
     print_info "Файл bootstrap-доступа сохранён: $auth_file"
 
     api_key=$(get_public_api_key "$base_url" "$cookie_file" || true)
-    if [ -z "$api_key" ]; then
-        print_warning "Не удалось получить Public API key. Пропускаю автосоздание credentials."
-        install_community_nodes_from_file "$base_url" "$cookie_file"
-        rm -f "$cookie_file"
-        return 0
-    fi
-
     pg_data_json=$(jq -cn --arg host "postgres" --arg database "n8n" --arg user "n8n" --arg password "$POSTGRES_PASSWORD" \
         '{host:$host,database:$database,user:$user,password:$password,maxConnections:100,allowUnauthorizedCerts:false,ssl:"disable",port:5432,sshTunnel:false,sshAuthenticateWith:"password",sshHost:"localhost",sshPort:22,sshUser:"root",sshPassword:"",privateKey:"",passphrase:""}')
     redis_data_json=$(jq -cn --arg host "redis" --arg password "$REDIS_PASSWORD" \
         '{password:$password,user:"",host:$host,port:6379,database:0,ssl:false,disableTlsVerification:false}')
 
-    ensure_credential "$base_url" "$api_key" "Postgres Internal" "postgres" "$pg_data_json" || true
-    ensure_credential "$base_url" "$api_key" "Redis Internal" "redis" "$redis_data_json" || true
+    if [ -n "$api_key" ]; then
+        ensure_credential "$base_url" "$api_key" "Postgres Internal" "postgres" "$pg_data_json" || true
+        ensure_credential "$base_url" "$api_key" "Redis Internal" "redis" "$redis_data_json" || true
+    else
+        print_warning "Не удалось получить Public API key. Пробую session API для credentials."
+        ensure_credential_session "$base_url" "$cookie_file" "Postgres Internal" "postgres" "$pg_data_json" || true
+        ensure_credential_session "$base_url" "$cookie_file" "Redis Internal" "redis" "$redis_data_json" || true
+    fi
 
     install_community_nodes_from_file "$base_url" "$cookie_file"
     rm -f "$cookie_file"
