@@ -612,9 +612,10 @@ get_public_api_key() {
     local expires_at
 
     expires_at=$(($(date +%s) + 86400))
+    local key_label="bootstrap-credentials-$(date +%s)"
     key_response=$(curl -fsS -b "$cookie_file" -H "Content-Type: application/json" \
         -X POST "$base_url/rest/api-keys" \
-        --data "{\"label\":\"bootstrap-credentials\",\"expiresAt\":$expires_at,\"scopes\":[\"credential:list\",\"credential:create\",\"credential:update\",\"credential:delete\"]}" 2>/dev/null || true)
+        --data "{\"label\":\"$key_label\",\"expiresAt\":$expires_at,\"scopes\":[\"credential:list\",\"credential:create\",\"credential:update\",\"credential:delete\"]}" 2>/dev/null || true)
 
     if [ -z "$key_response" ]; then
         return 1
@@ -1011,13 +1012,16 @@ EOF
     redis_data_json=$(jq -cn --arg host "redis" --arg password "$REDIS_PASSWORD" \
         '{password:$password,user:"",host:$host,port:6379,database:0,ssl:false,disableTlsVerification:false}')
 
+    # Основной путь: session API (лучше совместимость между версиями n8n).
+    ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Postgres Internal" "postgres" "$pg_data_json" || true
+    ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Redis Internal" "redis" "$redis_data_json" || true
+
+    # Дополнительный fallback: Public API key.
     if [ -n "$api_key" ]; then
         ensure_credential "$base_url" "$api_key" "Postgres Internal" "postgres" "$pg_data_json" || true
         ensure_credential "$base_url" "$api_key" "Redis Internal" "redis" "$redis_data_json" || true
     else
-        print_warning "Не удалось получить Public API key. Пробую session API для credentials."
-        ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Postgres Internal" "postgres" "$pg_data_json" || true
-        ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Redis Internal" "redis" "$redis_data_json" || true
+        print_warning "Не удалось получить Public API key. Продолжаю только через session API."
     fi
 
     install_community_nodes_from_file "$base_url" "$cookie_file" "$auth_token"
