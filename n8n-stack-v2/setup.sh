@@ -829,7 +829,7 @@ install_community_nodes_from_npm_author() {
         if [ -z "$payload" ]; then
             break
         fi
-        echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-|^@comandosai/n8n-nodes-' || true >> "$packages_file"
+        echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-|^@comandosai/n8n-nodes-' >> "$packages_file" || true
         count=$(echo "$payload" | jq '.objects | length')
         if [ "$count" -lt "$size" ]; then
             break
@@ -1109,7 +1109,7 @@ from=0
 size=250
 while true; do
   payload=$(curl -fsS "https://registry.npmjs.org/-/v1/search?text=maintainer:${NPM_AUTHOR}&size=${size}&from=${from}")
-  echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-|^@comandosai/n8n-nodes-' || true >> "$packages_file"
+  echo "$payload" | jq -r '.objects[].package.name' | grep -E '^n8n-nodes-|^@comandosai/n8n-nodes-' >> "$packages_file" || true
   count=$(echo "$payload" | jq '.objects | length')
   if [ "$count" -lt "$size" ]; then
     break
