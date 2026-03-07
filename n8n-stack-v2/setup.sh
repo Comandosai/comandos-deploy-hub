@@ -16,6 +16,7 @@ NC='\033[0m'
 
 # Глобальные переменные
 PROJECT_DIR="n8n"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOMAIN=""
 SSL_EMAIL=""
 ADMIN_PASSWORD=""
@@ -751,7 +752,7 @@ install_community_nodes_from_file() {
     local base_url="$1"
     local cookie_file="$2"
     local auth_token="${3:-}"
-    local custom_nodes_file="$ORIGINAL_DIR/custom/community-nodes.txt"
+    local custom_nodes_file="$SCRIPT_DIR/custom/community-nodes.txt"
     local pkg
     local response_file
     local http_code
