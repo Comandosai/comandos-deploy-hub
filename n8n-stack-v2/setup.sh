@@ -676,7 +676,6 @@ install_community_nodes_from_file() {
 
 ensure_vector_storage() {
     print_header "Инициализация pgvector"
-    cd "$PROJECT_DIR"
 
     local max_attempts=20
     local attempt=1
@@ -687,7 +686,6 @@ ensure_vector_storage() {
         fi
         if [ "$attempt" -eq "$max_attempts" ]; then
             print_warning "PostgreSQL не готов для миграции pgvector. Пропускаю шаг."
-            cd "$ORIGINAL_DIR"
             return 0
         fi
         sleep 3
@@ -714,8 +712,6 @@ SQL
     else
         print_warning "Не удалось применить миграцию pgvector автоматически."
     fi
-
-    cd "$ORIGINAL_DIR"
 }
 
 post_deploy_bootstrap() {
