@@ -252,10 +252,29 @@ gather_user_input() {
         # Проверка версии: если нет переменных v2, считаем что это v1
         if ! grep -q "N8N_RUNNERS_MODE" "$PROJECT_DIR/.env" 2>/dev/null; then
             print_warning "Обнаружена старая версия n8n v1."
-            smart_read "Желаете обновить её до v2 со всеми исправлениями? (Y/n): " upgrade_confirm
+            smart_read "Будет выполнено обновление с вашей версии до последней версии v2. Подтвердить обновление? (Y/n): " upgrade_confirm
             if [[ ! $upgrade_confirm =~ ^[Nn]$ ]]; then
                 IS_UPGRADE=true
                 print_info "Режим обновления активирован."
+
+                # В режиме апгрейда включаем автоопции без дополнительных вопросов.
+                ENABLE_AUTO_UPDATE=true
+                ENABLE_WEEKLY_NODES_UPDATE=true
+                print_info "Автообновление и weekly sync будут включены автоматически."
+
+                # При апгрейде сохраняем существующие домен/почту, запрашиваем только текущий пароль администратора.
+                if [ -z "${DOMAIN:-}" ]; then
+                    print_error "Не найден DOMAIN в текущем .env. Обновление невозможно."
+                    exit 1
+                fi
+
+                if [ -z "${SSL_EMAIL:-}" ]; then
+                    smart_read "Введите Email администратора n8n: " SSL_EMAIL
+                fi
+
+                print_info "Для безопасного обновления нужен текущий пароль администратора n8n."
+                smart_read "Введите текущий пароль администратора n8n: " ADMIN_PASSWORD true
+                return 0
             fi
         fi
 
