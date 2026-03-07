@@ -50,11 +50,12 @@
 
 Это убирает ручной “первый час” настройки в UI.
 
-### 5) Автоустановка community-нод
-Можно заранее положить список пакетов в:
-- `custom/community-nodes.txt`
+### 5) Автоустановка community-нод (только ваши пакеты)
+По умолчанию при пост-настройке ставятся только пакеты вашего npm-профиля:
+- `https://www.npmjs.com/~comandos_ai`
+- формат пакетов: `@comandosai/n8n-nodes-*`
 
-И при деплое они установятся автоматически.
+Лишние публичные пакеты по умолчанию не устанавливаются.
 
 ### 6) Продовые дефолты
 - воркер с управляемой конкурентностью (`N8N_WORKERS_CONCURRENCY`, по умолчанию `3`)
@@ -67,7 +68,7 @@
 - `https://www.npmjs.com/~comandos_ai`
 
 Что делает синк:
-- ищет пакеты автора `comandos_ai` (`n8n-nodes-*`),
+- ищет пакеты автора `comandos_ai` (`@comandosai/n8n-nodes-*` и `n8n-nodes-*`),
 - ставит новые пакеты,
 - для уже установленных выполняет update до последней версии.
 
@@ -75,10 +76,15 @@
 
 ## Команды для пользователей
 
+### Одна универсальная команда (установка или обновление)
+```bash
+bash -c 'set -e; cd /root; [ -d /root/comandos-deploy-hub/.git ] || git clone git@github.com:Comandosai/comandos-deploy-hub.git /root/comandos-deploy-hub; cd /root/comandos-deploy-hub; git pull --ff-only origin main; cd n8n-stack-v2; chmod +x setup.sh; sudo ./setup.sh'
+```
+
 ### Установка с нуля
 ```bash
 cd /root
-git clone https://github.com/Comandosai/comandos-deploy-hub.git
+git clone git@github.com:Comandosai/comandos-deploy-hub.git
 cd /root/comandos-deploy-hub/n8n-stack-v2
 sudo ./setup.sh
 ```
@@ -117,9 +123,11 @@ sudo ./setup.sh
 
 ```txt
 # one package per line
-n8n-nodes-evolution-api
-n8n-nodes-globals
+@comandosai/n8n-nodes-media
+@comandosai/n8n-nodes-doc-extract
 ```
+
+Важно: `custom/community-nodes.txt` — это ручной override-список. Добавляйте туда только нужные пакеты, иначе скрипт поставит все, что указано в файле.
 
 ## Еженедельная синхронизация (npm профиль)
 При установке скрипт может включить weekly sync community-нод из профиля `comandos_ai`.
