@@ -32,7 +32,7 @@ EXISTING_TRAEFIK=false
 
 # Версии ПО
 N8N_IMAGE="n8nio/n8n:latest"
-POSTGRES_VERSION="16-alpine"
+POSTGRES_VERSION="pg16"
 POSTGRES_IMAGE="pgvector/pgvector"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
