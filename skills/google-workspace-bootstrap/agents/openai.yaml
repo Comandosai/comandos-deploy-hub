@@ -1,0 +1,4 @@
+interface:
+  display_name: Google Workspace Bootstrap
+  short_description: Bootstrap Drive workspaces and native Sheets copies.
+  default_prompt: Set up a Google Workspace workspace folder, docs subfolder, and native copies of the template Sheets for a new case.
