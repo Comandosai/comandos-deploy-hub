@@ -24,10 +24,19 @@ Use it when the user says things like:
 - ask only for the missing access data;
 - if Supabase does not exist, ask for server access and deploy flow;
 - if personal data is involved, require `RU server`.
-4. Run the local runner as an internal step.
+4. Run the local runner as an internal step on the local execution host.
 5. Send prepared docs to `commandos-api`.
 6. Receive `chunks + embeddings`.
-7. Write results to `Supabase`.
+7. Write results to remote `Supabase`.
+
+## Execution rule
+
+- The default execution host is the local machine where the agent can access source files and outbound internet.
+- The `Supabase` server is the database target, not the default place where ingestion should run.
+- Do not move the ingestion step onto the `Supabase` server just because the database lives there.
+- If the DB-reachable host cannot reach `api.comandos.ai`, switch to hybrid mode:
+  - fetch runtime JSON on an internet-reachable host;
+  - then import that JSON into `Supabase`.
 
 ## Do not
 

@@ -6,3 +6,5 @@
 2. Для разбиения сырых документов используй `skills/doc-splitter-launcher/SKILL.md`.
 3. Для загрузки в `Supabase` используй `skills/vector-ingestion-launcher/SKILL.md`.
 4. Если есть персональные данные, требуй `RU server` для production-развертывания.
+5. Запускай ingestion runner на локальном execution-host, где есть доступ к файлам и к `api.comandos.ai`.
+6. Не переноси основной ingestion flow на сервер с `Supabase`, если это не специально подготовленный execution-host.

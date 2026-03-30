@@ -31,3 +31,15 @@ This is the bundle entrypoint for:
 - Keep the user inside the current bundle runtime path.
 - If the project involves personal data, require a Russian server for production `Supabase`.
 - Do not make the user manually run `node` in the normal flow; treat the runner as an internal implementation detail.
+
+## Execution Placement Rules
+
+- The ingestion runner must execute on the local execution host where:
+  - the agent can read the source files;
+  - outbound internet access to `api.comandos.ai` is available.
+- Do not run the main ingestion flow on the `Supabase` server by default.
+- Treat the `Supabase` server as the storage target, not as the primary execution host.
+- Normal path:
+  - local docs -> local runner -> `api.comandos.ai` -> local runner -> remote `Supabase`
+- Fallback path:
+  - if the DB-reachable host cannot access `api.comandos.ai`, get the runtime result JSON on a machine with internet access and then import that JSON into `Supabase`.
