@@ -28,6 +28,6 @@ This is the bundle entrypoint for:
 
 ## Rules
 
-- Do not send the user into old `registry_rows` / Google Docs / n8n fallback paths for the new `Supabase` runtime unless they explicitly ask for legacy compatibility.
+- Keep the user inside the current bundle runtime path.
 - If the project involves personal data, require a Russian server for production `Supabase`.
 - Do not make the user manually run `node` in the normal flow; treat the runner as an internal implementation detail.

@@ -45,7 +45,6 @@
 - `docs`
 - `product_memory`, если нужно
 - `products_live`, если в источнике есть реальные factual live rows
-Не делай `registry_rows`.
 ```
 
 ### Шаг 2. Запустить ingestion flow
@@ -75,7 +74,7 @@
 
 - просить пользователя вручную запускать `node`;
 - предлагать собирать произвольную таблицу от себя;
-- уводить flow в старый Google Docs / n8n registry layer, если пользователь запускает новый `Supabase`-based runtime.
+- уводить flow в другие побочные сценарии вместо текущего runtime-пути.
 
 Агент должен:
 

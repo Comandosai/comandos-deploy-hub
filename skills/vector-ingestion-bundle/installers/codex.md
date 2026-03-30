@@ -10,4 +10,4 @@
 
 1. использовать `doc-splitter-launcher`;
 2. затем использовать `vector-ingestion-launcher`;
-3. не уводить flow в старые Google Docs / registry сценарии.
+3. вести пользователя только по текущему runtime-сценарию.

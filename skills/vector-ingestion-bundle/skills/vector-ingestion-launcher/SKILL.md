@@ -33,7 +33,7 @@ Use it when the user says things like:
 
 - ask the user to manually run `node`;
 - ask the user to manually compose payloads;
-- move the user into old Google Docs / `registry_rows` workflows for the new runtime path.
+- move the user away from the current bundle runtime path.
 
 ## After finishing
 

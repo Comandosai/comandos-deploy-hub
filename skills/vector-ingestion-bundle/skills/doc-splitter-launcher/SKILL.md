@@ -25,7 +25,7 @@ Use it when the user says things like:
 - `docs/`
 - optional `product_memory`
 - canonical `products_live` only if factual live rows really exist
-5. Do not produce `registry_rows` unless the user explicitly asks for legacy Google/Sheets compatibility.
+5. Keep the output limited to the current bundle artifacts.
 6. Do not offer a separate ad hoc table after the main run.
 
 ## After finishing
