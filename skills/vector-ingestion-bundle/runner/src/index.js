@@ -33,6 +33,11 @@ async function listPreparedDocs(preparedDir) {
 
     const fullPath = path.join(preparedDir, entry.name);
     const content = await fs.readFile(fullPath, "utf8");
+
+    if (!content || content.trim() === "") {
+      continue;
+    }
+
     const preparedDocId = entry.name.replace(/\.[^.]+$/, "");
     const declaredType = inferDocType(entry.name);
 
@@ -49,6 +54,16 @@ async function listPreparedDocs(preparedDir) {
   }
 
   return docs;
+}
+
+function chunkArray(items, size) {
+  const batches = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    batches.push(items.slice(index, index + size));
+  }
+
+  return batches;
 }
 
 function inferDocType(fileName) {
@@ -71,10 +86,12 @@ async function saveJson(filePath, value) {
 async function run() {
   const apiUrl = requireEnv("SKILL_RUNTIME_API_URL");
   const licenseKey = requireEnv("SKILL_RUNTIME_LICENSE_KEY");
+  const maxDocsPerRequest = Number(process.env.SKILL_RUNTIME_MAX_DOCS_PER_REQUEST || 10);
   const workspaceDir = path.resolve(process.env.WORKSPACE_DIR || "./workspace");
   const preparedDir = path.join(workspaceDir, process.env.PREPARED_DIR_NAME || "prepared");
   const processedDir = path.join(workspaceDir, process.env.PROCESSED_DIR_NAME || "processed");
   const stateDir = path.join(workspaceDir, process.env.STATE_DIR_NAME || "state");
+  const batchesDir = path.join(processedDir, "batches");
   const schemaFilePath = path.resolve(
     path.dirname(new URL(import.meta.url).pathname),
     "..",
@@ -85,6 +102,7 @@ async function run() {
 
   await ensureDir(processedDir);
   await ensureDir(stateDir);
+  await ensureDir(batchesDir);
 
   const bootstrapSummary = await ensureBootstrapSchema(schemaFilePath, processedDir);
   await saveJson(path.join(stateDir, "bootstrap_summary.json"), bootstrapSummary);
@@ -96,43 +114,77 @@ async function run() {
     return;
   }
 
-  const payload = {
-    license_key: licenseKey,
-    pipeline_version: "v1",
-    mode: "docs",
-    tenant_id: "global",
-    documents,
-    live_rows: [],
+  const batches = chunkArray(documents, Math.max(1, maxDocsPerRequest));
+  const aggregatedResult = {
+    ok: true,
+    job_id: null,
+    docs_result: {
+      chunks: [],
+    },
+    products_result: {
+      rows: [],
+    },
   };
 
-  await saveJson(path.join(processedDir, "last_request_payload.json"), payload);
+  for (const [batchIndex, batchDocuments] of batches.entries()) {
+    const payload = {
+      license_key: licenseKey,
+      pipeline_version: "v1",
+      mode: "docs",
+      tenant_id: "global",
+      documents: batchDocuments,
+      live_rows: [],
+    };
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-License-Key": licenseKey,
-    },
-    body: JSON.stringify(payload),
-  });
+    await saveJson(
+      path.join(batchesDir, `batch_${String(batchIndex + 1).padStart(3, "0")}_request.json`),
+      payload,
+    );
 
-  const result = await response.json();
-  await saveJson(path.join(processedDir, "last_response.json"), result);
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-License-Key": licenseKey,
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!response.ok || !result.ok) {
-    console.error("Skill runtime request failed.");
-    console.error(JSON.stringify(result, null, 2));
-    process.exit(1);
+    const result = await response.json();
+
+    await saveJson(
+      path.join(batchesDir, `batch_${String(batchIndex + 1).padStart(3, "0")}_response.json`),
+      result,
+    );
+
+    if (!response.ok || !result.ok) {
+      console.error("Skill runtime request failed.");
+      console.error(JSON.stringify(result, null, 2));
+      process.exit(1);
+    }
+
+    aggregatedResult.job_id ||= result?.job_id || null;
+    aggregatedResult.docs_result.chunks.push(...(result?.docs_result?.chunks || []));
+    aggregatedResult.products_result.rows.push(...(result?.products_result?.rows || []));
   }
 
-  const writeSummary = await writeRuntimeResultToSupabase(result);
+  await saveJson(path.join(processedDir, "last_request_payload.json"), {
+    documents_sent: documents.length,
+    batch_count: batches.length,
+    max_docs_per_request: maxDocsPerRequest,
+  });
+  await saveJson(path.join(processedDir, "last_response.json"), aggregatedResult);
+
+  const writeSummary = await writeRuntimeResultToSupabase(aggregatedResult);
   await saveJson(path.join(stateDir, "supabase_write_summary.json"), writeSummary);
 
   const summary = {
     processed_at: new Date().toISOString(),
     documents_sent: documents.length,
-    chunks_received: result?.docs_result?.chunks?.length || 0,
-    job_id: result?.job_id || null,
+    batch_count: batches.length,
+    max_docs_per_request: maxDocsPerRequest,
+    chunks_received: aggregatedResult?.docs_result?.chunks?.length || 0,
+    job_id: aggregatedResult?.job_id || null,
     knowledge_chunks_written: writeSummary.knowledge_chunks_written,
     products_rows_written: writeSummary.products_rows_written,
   };

@@ -12,6 +12,14 @@ function buildChunkMetadata(chunk) {
   };
 }
 
+function normalizeNullable(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  return value;
+}
+
 async function replaceKnowledgeChunks(pool, chunks) {
   const client = await pool.connect();
 
@@ -115,17 +123,17 @@ async function upsertProductsLive(pool, rows) {
           row.entity_id,
           row.entity_type,
           row.entity_name,
-          row.sku || null,
-          row.status || null,
-          row.category || null,
+          normalizeNullable(row.sku),
+          normalizeNullable(row.status),
+          normalizeNullable(row.category),
           JSON.stringify(row.attributes_json || {}),
-          row.search_text || null,
+          normalizeNullable(row.search_text),
           row.embedding ? `[${row.embedding.join(",")}]` : null,
-          row.price ?? null,
-          row.old_price ?? null,
-          row.currency ?? null,
-          row.stock_qty ?? null,
-          row.delivery_note ?? null,
+          normalizeNullable(row.price),
+          normalizeNullable(row.old_price),
+          normalizeNullable(row.currency),
+          normalizeNullable(row.stock_qty),
+          normalizeNullable(row.delivery_note),
         ],
       );
     }
