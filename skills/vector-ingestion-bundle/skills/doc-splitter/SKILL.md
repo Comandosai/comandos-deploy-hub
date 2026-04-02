@@ -120,6 +120,8 @@ For product/topic docs specifically:
 - prefer an explicit product/entity name in the filename when source-faithful naming is available;
 - avoid generic names like `Продукт 53.md` when the true product name can be recovered from source;
 - use numeric fallback names only when no reliable title exists.
+- do not keep one whole product as one oversized file just because all text is about the same entity;
+- if a product doc becomes large, split it into several retrieval-friendly files for the same product.
 
 ## Google Docs Rule
 
@@ -150,6 +152,41 @@ Prefer splitting into normalized headings such as:
 - `## Для кого`
 
 Use nearby source wording when available, but keep the section titles predictable and chunk-friendly.
+
+## Product granularity limit
+
+For product-style outputs, optimize for retrieval, not for "one entity = one huge file".
+
+Hard rule:
+- do not keep an oversized product doc as one file when it would likely become one weak giant embedding unit downstream;
+- if normalized product content is still large after section cleanup, split it into several files for the same product.
+
+Preferred grouping:
+- core file:
+  - `## Что это`
+  - `## Как работает`
+- use-cases file:
+  - `## Что решает`
+  - `## Где применяется`
+- proof file:
+  - `## Реальные результаты`
+  - `## Отзывы`
+- decision file:
+  - `## Почему стоит попробовать`
+  - `## Важно`
+  - `## Для кого`
+
+When needed, use suffixes such as:
+- `products_<name>__core.md`
+- `products_<name>__use_cases.md`
+- `products_<name>__proof.md`
+- `products_<name>__decision.md`
+
+Practical size guidance:
+- target one normalized product doc at roughly one semantic group, not the whole product universe;
+- avoid files that are clearly "scroll walls";
+- if a file would exceed about 1500-2500 characters of dense semantic text, strongly prefer splitting by section group;
+- if one section alone is too long, split it further with `###` or move part of it into a second file.
 
 If the source contains many raw reviews, case snippets, CTA tails, or broken link blocks:
 - do not dump them into one `## Дополнительная информация и отзывы` blob;

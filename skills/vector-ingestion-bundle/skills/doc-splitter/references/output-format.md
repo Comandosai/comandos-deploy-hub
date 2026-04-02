@@ -43,10 +43,22 @@ Preferred normalization for product docs:
   - do not compress multiple headings and paragraphs into one line
   - keep bullets or short paragraphs as separate lines when they carry different facts
 
+Preferred product-file granularity:
+- do not keep one whole product in one oversized file by default
+- split one product into several files when that improves retrieval quality
+- prefer one semantic group per file, for example:
+  - `__core` -> what it is / how it works
+  - `__use_cases` -> what it solves / where it is used
+  - `__proof` -> results / reviews / cases
+  - `__decision` -> why try / important / for whom
+- if the output starts feeling like a long landing page pasted into one file, split it
+- strong preference: avoid dense product files beyond roughly 1500-2500 characters unless the content is unusually compact and internally coherent
+
 Filename rule for product docs:
 - prefer explicit product/entity names in filenames
 - avoid generic names like `Продукт 53.md` when the source gives a real title
 - use fallback numeric names only when no reliable product title can be recovered
+- for split product docs, prefer suffixes like `__core`, `__use_cases`, `__proof`, `__decision`
 
 ## Product-memory doc rule
 
