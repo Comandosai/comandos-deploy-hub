@@ -41,6 +41,10 @@ When this skill produces `products_live`, it should also produce a retrieval-fri
 - split by semantically useful sections, not by one giant umbrella file.
 - do not use `---` as a structural separator between semantic sections; use real headings instead.
 - if a section is too large, split it into smaller retrieval-friendly `##` or `###` blocks.
+- every heading must be on its own line;
+- heading markers like `## Что это` or `### Кейсы` must never be glued into the same line with surrounding text;
+- after each heading, start the body on the next line, not inline;
+- preserve paragraph and list formatting so the result stays readable as markdown-style text, not one compressed line.
 4. Prepare two parallel tabular outputs:
 - `live product rows` for `products_live`.
 4.1. When live product rows exist, include one explicit semantic-search field per row:
@@ -151,11 +155,16 @@ If the source contains many raw reviews, case snippets, CTA tails, or broken lin
 - do not dump them into one `## Дополнительная информация и отзывы` blob;
 - group them into a compact `## Отзывы` or `## Кейсы` section only when they add retrieval value;
 - drop repetitive CTA tails, repeated `пишите нам`, duplicated service boilerplate, and broken link blocks unless the user explicitly wants a sales-copy archive.
+- do not create one catch-all tail section like `## Дополнительная информация и отзывы` when the content should either be:
+  - merged into earlier normalized sections,
+  - split into compact `## Отзывы` / `## Кейсы`,
+  - or omitted as low-value noise.
 
 If a review/case block is kept:
 - give it a real heading;
 - keep it compact;
 - avoid long chains of same-pattern snippets in one file when they can be removed or split more cleanly.
+- if the source contains many unrelated review snippets, keep only a small representative subset with distinct retrieval value, not the whole tail.
 
 ## `registry_rows` status
 

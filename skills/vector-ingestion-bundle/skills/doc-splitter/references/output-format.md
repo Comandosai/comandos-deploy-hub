@@ -37,6 +37,11 @@ Preferred normalization for product docs:
 - use `###` subsections when one `##` section is still too large
 - keep sections small enough that one chunk maps to one user intent
 - drop repeated CTA tails, broken link blocks, and duplicated service boilerplate unless explicitly requested
+- keep heading formatting valid and explicit:
+  - each `##` or `###` heading must be on its own line
+  - the heading body starts on the next line
+  - do not compress multiple headings and paragraphs into one line
+  - keep bullets or short paragraphs as separate lines when they carry different facts
 
 Filename rule for product docs:
 - prefer explicit product/entity names in filenames
@@ -85,6 +90,7 @@ Heading usefulness rule:
 - start the document from the first heading that leads directly into meaningful content, not from an empty wrapper section.
 - if the text under a heading is only boilerplate like "below are typical questions/categories/examples", treat that heading as a wrapper and start from the first useful child subsection instead.
 - if the body after a heading is actually a mixed bag of description, use-cases, reviews, and CTA, split it into several real headings instead of keeping one overloaded section.
+- do not create a catch-all section like `## Дополнительная информация и отзывы` when the content is just a leftover bucket; either normalize it into real sections or omit the low-value tail.
 
 ## Registry rows status
 
@@ -134,3 +140,4 @@ Do not:
 - create one-line or heading-only embedding chunks from empty wrapper headings
 - create standalone chunks from weak wrapper intros with no real semantic value for retrieval
 - keep review/case tails in docs as long `---`-separated chains without real headings
+- compress normalized markdown so aggressively that headings appear inline with text instead of as real markdown-style section starts
