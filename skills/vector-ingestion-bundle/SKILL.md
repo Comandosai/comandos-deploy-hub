@@ -21,9 +21,11 @@ This is the bundle entrypoint for:
 - [installers/antigravity.md](installers/antigravity.md)
 - [installers/claude.md](installers/claude.md)
 - [installers/codex.md](installers/codex.md)
-3. For document preparation, use:
+3. The bundle contains the full document normalization engine:
+- [skills/doc-splitter/SKILL.md](skills/doc-splitter/SKILL.md)
+4. For document preparation, use:
 - [skills/doc-splitter-launcher/SKILL.md](skills/doc-splitter-launcher/SKILL.md)
-4. For ingestion into `Supabase`, use:
+5. For ingestion into `Supabase`, use:
 - [skills/vector-ingestion-launcher/SKILL.md](skills/vector-ingestion-launcher/SKILL.md)
 
 ## Rules
@@ -31,6 +33,7 @@ This is the bundle entrypoint for:
 - Keep the user inside the current bundle runtime path.
 - If the project involves personal data, require a Russian server for production `Supabase`.
 - Do not make the user manually run `node` in the normal flow; treat the runner as an internal implementation detail.
+- Do not rely on an external globally installed `doc-splitter` when the bundled `skills/doc-splitter` exists.
 
 ## Execution Placement Rules
 

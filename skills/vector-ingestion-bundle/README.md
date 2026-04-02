@@ -9,6 +9,7 @@
 
 ## Что внутри
 
+- `skills/doc-splitter` с полной логикой нормализации и bundled references
 - `skills/doc-splitter-launcher`
 - `skills/vector-ingestion-launcher`
 - `runner/` с локальным `Node.js` раннером
@@ -99,6 +100,7 @@
 - спрашивать только минимум нужных данных;
 - сам вести install-flow;
 - сам запускать `runner` как внутренний шаг;
+- использовать bundled `skills/doc-splitter`, а не внешнюю или урезанную версию;
 - запускать `runner` на хосте, где есть доступ к документам и к `api.comandos.ai`;
 - если в проекте есть персональные данные, требовать `RU server` для production-сценария.
 
@@ -114,6 +116,9 @@ vector-ingestion-bundle/
   GEMINI.md
   CYBEROP_BOOTSTRAP_SCHEMA.sql
   skills/
+    doc-splitter/
+      SKILL.md
+      references/
     doc-splitter-launcher/
       SKILL.md
     vector-ingestion-launcher/

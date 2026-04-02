@@ -1,0 +1,3 @@
+interface:
+  display_name: "Doc Splitter"
+  short_description: "Split messy company files into Google Docs, registry rows, and live product tables"

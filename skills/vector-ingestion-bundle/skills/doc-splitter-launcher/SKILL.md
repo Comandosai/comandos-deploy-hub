@@ -20,13 +20,27 @@ Use it when the user says things like:
 
 1. Ask only for the source folder path if it is not already known.
 2. Create or update one `__workspace`.
-3. Run the document splitting logic.
+3. Run the bundled document splitting logic from:
+- `../doc-splitter/SKILL.md`
+- and use its bundled `references/` files, not an external or globally installed variant.
 4. Produce:
 - `docs/`
 - optional `product_memory`
 - canonical `products_live` only if factual live rows really exist
 5. Keep the output limited to the current bundle artifacts.
 6. Do not offer a separate ad hoc table after the main run.
+
+## Important implementation rule
+
+Do not treat document preparation as a light copy or a mild markdown cleanup.
+
+The bundled `doc-splitter` must perform real structural normalization, including:
+- remove decorative H1 from final document body;
+- remove `**Теги:**` from final document body;
+- start from the first useful `##` block;
+- avoid one giant `## Описание` blob when it contains multiple semantic sections;
+- avoid `---` as a structural separator;
+- normalize product docs into retrieval-friendly sections when source semantics allow it.
 
 ## After finishing
 
