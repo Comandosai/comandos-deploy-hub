@@ -22,7 +22,7 @@ Use it when the user says things like:
 2. Check whether `Supabase` access is already configured.
 3. If not configured:
 - ask only for the missing access data;
-- if Supabase does not exist, ask for server access and deploy flow;
+- if Supabase does not exist, ask for server access and deploy flow via `supabase-stack` from this repository;
 - if personal data is involved, require `RU server`.
 4. Run the local runner as an internal step on the local execution host.
 5. Send prepared docs to `commandos-api`.
@@ -38,11 +38,20 @@ Use it when the user says things like:
   - fetch runtime JSON on an internet-reachable host;
   - then import that JSON into `Supabase`.
 
+## Canonical Supabase deploy path
+
+- If a new database environment must be deployed, use the repository's canonical installer:
+  - `https://github.com/Comandosai/comandos-deploy-hub/tree/main/supabase-stack`
+- Treat `supabase-stack` as the default and expected deployment path for this bundle.
+- Do not replace this with a plain `Postgres` or ad hoc `pgvector` container unless the user explicitly asks for a non-standard temporary test setup.
+- For the normal client flow, the target is `Supabase`, not "any Postgres with pgvector".
+
 ## Do not
 
 - ask the user to manually run `node`;
 - ask the user to manually compose payloads;
 - move the user away from the current bundle runtime path.
+- silently substitute `Supabase` with a plain `Postgres`/`pgvector` deployment in the standard flow.
 
 ## After finishing
 

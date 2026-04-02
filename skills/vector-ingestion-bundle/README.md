@@ -27,6 +27,21 @@
    - получить `chunks + embeddings`;
    - записать результат в `Supabase`.
 
+## Canonical Supabase deploy source
+
+Если у пользователя еще нет развернутого `Supabase`, стандартный путь для этого bundle только один:
+
+- [`supabase-stack`](https://github.com/Comandosai/comandos-deploy-hub/tree/main/supabase-stack)
+
+Именно этот deploy-path нужно считать canonical для пользовательского flow.
+
+Для стандартного сценария нельзя самовольно заменять его на:
+- обычный `Postgres`;
+- отдельный `pgvector` контейнер;
+- произвольный ad hoc database setup.
+
+Такие замены допустимы только как явный non-standard temporary test path, если пользователь сам это отдельно подтвердил.
+
 ## Где это должно запускаться
 
 Нормальный сценарий такой:
@@ -103,6 +118,7 @@
 - использовать bundled `skills/doc-splitter`, а не внешнюю или урезанную версию;
 - запускать `runner` на хосте, где есть доступ к документам и к `api.comandos.ai`;
 - если в проекте есть персональные данные, требовать `RU server` для production-сценария.
+- если `Supabase` еще не существует, разворачивать его через `supabase-stack`, а не придумывать альтернативный database path.
 
 ## Структура bundle
 
