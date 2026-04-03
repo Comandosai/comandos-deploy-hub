@@ -56,6 +56,82 @@ async function listPreparedDocs(preparedDir) {
   return docs;
 }
 
+function parseTsvLine(line) {
+  return line.split("\t");
+}
+
+function tryParseJson(value) {
+  if (!value || typeof value !== "string") {
+    return {};
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return {};
+  }
+}
+
+async function listPreparedLiveRows(workspaceDir) {
+  const candidates = [
+    path.join(workspaceDir, "products_live.tsv"),
+    path.join(workspaceDir, "products_live.csv"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const content = await fs.readFile(candidate, "utf8");
+      const lines = content
+        .split(/\r?\n/)
+        .map((line) => line.trimEnd())
+        .filter((line) => line.trim() !== "");
+
+      if (lines.length < 2) {
+        return [];
+      }
+
+      const headers = parseTsvLine(lines[0]);
+      const rows = [];
+
+      for (const line of lines.slice(1)) {
+        const values = parseTsvLine(line);
+        const row = {};
+
+        for (const [index, header] of headers.entries()) {
+          row[header] = values[index] ?? "";
+        }
+
+        rows.push({
+          tenant_id: row.tenant_id || "global",
+          entity_id: row.entity_id,
+          entity_type: row.entity_type,
+          entity_name: row.entity_name,
+          sku: row.sku,
+          status: row.status,
+          category: row.category,
+          attributes_json: tryParseJson(row.attributes_json),
+          search_text: row.search_text,
+          price: row.price,
+          old_price: row.old_price,
+          currency: row.currency,
+          stock_qty: row.stock_qty,
+          delivery_note: row.delivery_note,
+          updated_at: row.updated_at,
+        });
+      }
+
+      return rows.filter((row) => row.entity_id && row.entity_name);
+    } catch (error) {
+      if (error && error.code === "ENOENT") {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  return [];
+}
+
 function chunkArray(items, size) {
   const batches = [];
 
@@ -108,9 +184,10 @@ async function run() {
   await saveJson(path.join(stateDir, "bootstrap_summary.json"), bootstrapSummary);
 
   const documents = await listPreparedDocs(preparedDir);
+  const liveRows = await listPreparedLiveRows(workspaceDir);
 
-  if (documents.length === 0) {
-    console.log("No prepared documents found.");
+  if (documents.length === 0 && liveRows.length === 0) {
+    console.log("No prepared documents or products_live rows found.");
     return;
   }
 
@@ -168,10 +245,46 @@ async function run() {
     aggregatedResult.products_result.rows.push(...(result?.products_result?.rows || []));
   }
 
+  if (liveRows.length > 0) {
+    const payload = {
+      license_key: licenseKey,
+      pipeline_version: "v1",
+      mode: "products",
+      tenant_id: "global",
+      documents: [],
+      live_rows: liveRows,
+    };
+
+    await saveJson(path.join(batchesDir, "products_request.json"), payload);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-License-Key": licenseKey,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    await saveJson(path.join(batchesDir, "products_response.json"), result);
+
+    if (!response.ok || !result.ok) {
+      console.error("Skill runtime products request failed.");
+      console.error(JSON.stringify(result, null, 2));
+      process.exit(1);
+    }
+
+    aggregatedResult.job_id ||= result?.job_id || null;
+    aggregatedResult.products_result.rows.push(...(result?.products_result?.rows || []));
+  }
+
   await saveJson(path.join(processedDir, "last_request_payload.json"), {
     documents_sent: documents.length,
     batch_count: batches.length,
     max_docs_per_request: maxDocsPerRequest,
+    live_rows_sent: liveRows.length,
   });
   await saveJson(path.join(processedDir, "last_response.json"), aggregatedResult);
 
@@ -181,6 +294,7 @@ async function run() {
   const summary = {
     processed_at: new Date().toISOString(),
     documents_sent: documents.length,
+    live_rows_sent: liveRows.length,
     batch_count: batches.length,
     max_docs_per_request: maxDocsPerRequest,
     chunks_received: aggregatedResult?.docs_result?.chunks?.length || 0,
