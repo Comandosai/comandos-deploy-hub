@@ -62,6 +62,37 @@ print_warning() { echo -e "${YELLOW}⚠ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
 
+normalize_domain() {
+    local input="$1"
+
+    python3 - "$input" <<'PY'
+import sys
+
+raw = sys.argv[1].strip().rstrip(".").lower()
+if not raw:
+    sys.exit(1)
+
+try:
+    ascii_domain = raw.encode("idna").decode("ascii")
+except UnicodeError:
+    sys.exit(2)
+
+labels = ascii_domain.split(".")
+allowed = set("abcdefghijklmnopqrstuvwxyz0123456789-")
+
+if len(labels) < 2 or len(ascii_domain) > 253:
+    sys.exit(3)
+
+for label in labels:
+    if not label or len(label) > 63 or label.startswith("-") or label.endswith("-"):
+        sys.exit(4)
+    if any(ch not in allowed for ch in label):
+        sys.exit(5)
+
+print(ascii_domain)
+PY
+}
+
 smart_read() {
     local prompt=$1
     local var_name=$2
@@ -81,6 +112,10 @@ check_dependencies() {
     if ! command -v lsof &> /dev/null; then
         print_info "Установка lsof..."
         apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq lsof > /dev/null
+    fi
+    if ! command -v python3 &> /dev/null; then
+        print_info "Установка python3..."
+        apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 > /dev/null
     fi
     print_success "Зависимости проверены"
 }
@@ -221,8 +256,19 @@ gather_user_input() {
     fi
 
     DOMAIN=""
-    while [[ ! $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
-        smart_read "Введите домен для n8n (например: n8n.bash.ru): " DOMAIN
+    while [ -z "$DOMAIN" ]; do
+        local domain_input
+        smart_read "Введите домен для n8n (например: n8n.bash.ru или n8n.домен.рф): " domain_input
+
+        if ! DOMAIN=$(normalize_domain "$domain_input"); then
+            print_error "Некорректный домен. Можно вводить ASCII- или кириллический домен."
+            DOMAIN=""
+            continue
+        fi
+
+        if [ "$DOMAIN" != "$domain_input" ]; then
+            print_info "Домен будет использован в punycode-форме: $DOMAIN"
+        fi
     done
 
     check_dns_and_ip
