@@ -28,6 +28,13 @@
 curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/cyberseo-publisher-stack/setup.sh | bash
 ```
 
+Если нужно ставить несколько WordPress-стеков на один сервер, можно задать отдельную директорию:
+
+```bash
+COMANDOS_PRODUCT_SLUG=wordpress-test-automation-hub \
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/cyberseo-publisher-stack/setup.sh | bash
+```
+
 ## Что ставится по умолчанию
 
 - WordPress на официальном Docker image

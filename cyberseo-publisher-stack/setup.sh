@@ -58,6 +58,52 @@ print_info() {
     echo -e "${BLUE}ℹ $1${NC}"
 }
 
+detect_running_traefik_id() {
+    docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}'
+}
+
+detect_traefik_resolver() {
+    local traefik_id=$1
+    if [ -z "$traefik_id" ]; then
+        return 0
+    fi
+
+    local resolver
+    resolver=$(docker inspect "$traefik_id" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' \
+        | tr -d '[],"' | tr ' ' '\n' | grep -oE -- 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
+
+    if [ -z "$resolver" ]; then
+        for known in "mytlschallenge" "myresolver" "letsencrypt" "comandos-resolver"; do
+            if docker logs --tail 100 "$traefik_id" 2>&1 | grep -q "$known"; then
+                resolver="$known"
+                break
+            fi
+        done
+    fi
+
+    printf '%s' "${resolver:-}"
+}
+
+detect_traefik_dynamic_dir() {
+    local traefik_id=$1
+    if [ -z "$traefik_id" ]; then
+        return 0
+    fi
+
+    python3 - "$traefik_id" <<'PY'
+import json
+import subprocess
+import sys
+
+cid = sys.argv[1]
+obj = json.loads(subprocess.check_output(["docker", "inspect", cid]))[0]
+for mount in obj.get("Mounts", []):
+    if mount.get("Destination") == "/dynamic_conf":
+        print(mount.get("Source", ""))
+        break
+PY
+}
+
 # Функция для надежного ввода через /dev/tty (для работы через curl | bash)
 ask_user() {
     local prompt=$1
@@ -129,8 +175,9 @@ sync_policy_layer() {
 }
 
 # 0. Стандартизация директории
-BASE_DIR="$HOME/comandos"
-PRODUCT_DIR="$BASE_DIR/wordpress"
+BASE_DIR="${COMANDOS_BASE_DIR:-$HOME/comandos}"
+PRODUCT_SLUG="${COMANDOS_PRODUCT_SLUG:-wordpress}"
+PRODUCT_DIR="${COMANDOS_PRODUCT_DIR:-$BASE_DIR/$PRODUCT_SLUG}"
 
 # Создаем структуру если её нет
 mkdir -p "$PRODUCT_DIR"
@@ -159,6 +206,9 @@ check_ports() {
     done
 }
 check_ports
+
+TRAEFIK_ID=$(detect_running_traefik_id)
+TRAEFIK_RESOLVER_PRESET=$(detect_traefik_resolver "$TRAEFIK_ID")
 
 # 2. Определение режима (Установка или Обновление)
 MODE="INSTALL"
@@ -202,10 +252,17 @@ GITHUB_BASE="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/ma
 download_if_missing() {
     local file=$1
     local dir=$(dirname "$file")
+    local local_src="$SCRIPT_DIR/$file"
     
     # Создаем подпапку локально, если её нет
     if [ "$dir" != "." ]; then
         mkdir -p "$dir"
+    fi
+
+    if [ -f "$local_src" ]; then
+        print_info "Использую локальный файл: $file"
+        cp "$local_src" "$file"
+        return 0
     fi
     
     print_info "Проверка $file..."
@@ -272,11 +329,16 @@ WP_DOMAIN_ESC=$(escape_sed "$WP_DOMAIN")
 SSL_EMAIL_ESC=$(escape_sed "$SSL_EMAIL")
 DB_PASSWORD_ESC=$(escape_sed "$DB_PASSWORD")
 DB_ROOT_PASSWORD_ESC=$(escape_sed "$DB_ROOT_PASSWORD")
+TRAEFIK_TLS_RESOLVER_LABEL=""
+if [ -n "${TRAEFIK_RESOLVER_PRESET:-}" ]; then
+    TRAEFIK_TLS_RESOLVER_LABEL="      - \"traefik.http.routers.comandos-wp.tls.certresolver=${TRAEFIK_RESOLVER_PRESET}\""
+fi
 
 sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
     -e "s|{{SSL_EMAIL}}|$SSL_EMAIL_ESC|g" \
     -e "s|{{DB_PASSWORD}}|$DB_PASSWORD_ESC|g" \
     -e "s|{{DB_ROOT_PASSWORD}}|$DB_ROOT_PASSWORD_ESC|g" \
+    -e "s|{{TRAEFIK_TLS_RESOLVER_LABEL}}|$(escape_sed "$TRAEFIK_TLS_RESOLVER_LABEL")|g" \
     docker-compose.yml.j2 > docker-compose.yml
 
 sed -e "s|{{WP_DOMAIN}}|$WP_DOMAIN_ESC|g" \
@@ -348,27 +410,27 @@ CACHE_CONTROL_VALUE="max-age=${STATIC_CACHE_MAX_AGE}, public, immutable"
 else
 CACHE_CONTROL_VALUE="max-age=${STATIC_CACHE_MAX_AGE}, public"
 fi
-docker exec comandos-wp bash -c 'cat <<EOF > .htaccess
+docker exec comandos-wp bash -c "cat > /var/www/html/.htaccess <<EOF
 
 # Comandos Optimization: Browser Caching (v4.1 Immutable)
 <IfModule mod_expires.c>
   ExpiresActive On
-  ExpiresDefault "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType image/jpg "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType image/jpeg "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType image/gif "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType image/png "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType image/webp "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType image/x-icon "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType text/css "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType application/javascript "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType application/x-javascript "access plus '$STATIC_CACHE_MAX_AGE' seconds"
-  ExpiresByType font/woff2 "access plus '$STATIC_CACHE_MAX_AGE' seconds"
+  ExpiresDefault \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType image/jpg \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType image/jpeg \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType image/gif \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType image/png \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType image/webp \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType image/x-icon \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType text/css \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType application/javascript \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType application/x-javascript \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
+  ExpiresByType font/woff2 \"access plus ${STATIC_CACHE_MAX_AGE} seconds\"
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|woff2)$">
-    Header set Cache-Control "'$CACHE_CONTROL_VALUE'"
+  <FilesMatch \"\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|woff2)$\">
+    Header set Cache-Control \"${CACHE_CONTROL_VALUE}\"
   </FilesMatch>
 </IfModule>
 
@@ -387,12 +449,11 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
 </IfModule>
 # END WordPress
-EOF' || true
+EOF" || true
 fi
 
 # 9. Настройка Traefik
 print_header "НАСТРОЙКА TRAEFIK (МАРШРУТЫ И СЕТЬ)..."
-TRAEFIK_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')
 if [ -z "$TRAEFIK_ID" ]; then
     echo -e "${YELLOW}Traefik контейнер не найден.${NC}"
     
@@ -479,19 +540,7 @@ if [ ! -z "$TRAEFIK_ID" ]; then
     docker network connect comandos-network "$TRAEFIK_ID" 2>/dev/null || true
 
     # Пытаемся вытащить имя резолвера из Cmd или Entrypoint (с поддержкой разных форматов)
-    TRAEFIK_RESOLVER=$(docker inspect "$TRAEFIK_ID" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' \
-        | tr -d '[],"' | tr ' ' '\n' | grep -oE -- 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
-
-    # Если не нашли — пробуем через логи (иногда там мелькает) или используем умный fallback
-    if [ -z "$TRAEFIK_RESOLVER" ]; then
-        # Список популярных имен в нашей экосистеме
-        for known in "mytlschallenge" "myresolver" "letsencrypt" "comandos-resolver"; do
-            if docker logs --tail 100 "$TRAEFIK_ID" 2>&1 | grep -q "$known"; then
-                TRAEFIK_RESOLVER="$known"
-                break
-            fi
-        done
-    fi
+    TRAEFIK_RESOLVER=$(detect_traefik_resolver "$TRAEFIK_ID")
 
     # Если всё еще пусто — берем дефолт
     if [ -z "$TRAEFIK_RESOLVER" ]; then
@@ -511,12 +560,18 @@ EOF
     if [ ! -z "$install_traefik_choice" ] && [[ $install_traefik_choice =~ ^[Yy]$ ]]; then
          DYNAMIC_DIR="$BASE_DIR/traefik/dynamic"
     else
-         # Иначе пытаемся определить через Docker Inspect (для внешнего Traefik)
-         DYNAMIC_DIR=$(docker inspect "$TRAEFIK_ID" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /traefik/ && $1 ~ /dynamic/ {print $2; exit}')
+         # Иначе берём реальный mounted source path для /dynamic_conf
+         DYNAMIC_DIR=$(detect_traefik_dynamic_dir "$TRAEFIK_ID")
     fi
     # Fallback, если всё сломалось
     if [ -z "$DYNAMIC_DIR" ]; then
-        DYNAMIC_DIR="/root/traefik-dynamic"
+        if [ -d "$BASE_DIR/traefik/dynamic" ]; then
+            DYNAMIC_DIR="$BASE_DIR/traefik/dynamic"
+        elif [ -d "/root/traefik/dynamic" ]; then
+            DYNAMIC_DIR="/root/traefik/dynamic"
+        else
+            DYNAMIC_DIR="/root/traefik-dynamic"
+        fi
     fi
     
     mkdir -p "$DYNAMIC_DIR"
