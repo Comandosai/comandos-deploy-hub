@@ -1,0 +1,15 @@
+{
+  "bundle_id": "telegram-testirovanie-bota",
+  "bundle_name": "Telegram-тестирование бота",
+  "description": "Навык для живой проверки Telegram-бота на клиентском контексте с сохранением отчета.",
+  "clients": ["antigravity", "claude", "codex", "terminal"],
+  "required_inputs": ["docs_dir", "target_bot"],
+  "optional_inputs": ["test_count", "test_mode"],
+  "modules": [
+    "dependency-check",
+    "telegram-auth",
+    "context-bundle",
+    "live-test-loop",
+    "report-save"
+  ]
+}
