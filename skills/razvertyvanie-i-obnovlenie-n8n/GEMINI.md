@@ -1,0 +1,11 @@
+# Развертывание и обновление n8n
+
+Используй этот пакет для работы со стеком `n8n-stack-v2`:
+- новая установка;
+- обновление существующего `n8n`;
+- проверка сервера;
+- сбор домена, почты и пароля только при необходимости.
+
+Основные файлы:
+- [SKILL.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/razvertyvanie-i-obnovlenie-n8n/SKILL.md)
+- [README.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/razvertyvanie-i-obnovlenie-n8n/README.md)

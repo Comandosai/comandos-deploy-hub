@@ -1,0 +1,22 @@
+{
+  "bundle_id": "razvertyvanie-i-obnovlenie-n8n",
+  "bundle_name": "Развертывание и обновление n8n",
+  "version": "0.1.0",
+  "clients": ["antigravity", "claude", "codex", "terminal"],
+  "source_dir": "../../n8n-stack-v2",
+  "required_inputs": [
+    "server_access"
+  ],
+  "optional_inputs": [
+    "domain",
+    "ssl_email",
+    "admin_password",
+    "x-license-key"
+  ],
+  "modules": [
+    "server-discovery",
+    "n8n-detection",
+    "install-or-upgrade",
+    "post-check"
+  ]
+}
