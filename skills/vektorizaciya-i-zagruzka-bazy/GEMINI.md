@@ -6,5 +6,6 @@
 - `products_live`;
 - ingestion в `Supabase`.
 
-Основная инструкция:
-- [SKILL.md](/Users/artemlahtin/Documents/Cyber_OP/skill/векторизация_и_загрузка_базы/SKILL.md)
+Основные файлы:
+- [SKILL.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/vektorizaciya-i-zagruzka-bazy/SKILL.md)
+- [README.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/vektorizaciya-i-zagruzka-bazy/README.md)

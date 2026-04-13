@@ -1,0 +1,549 @@
+{
+  "name": "05_WF_Human_Handoff_Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"lead_id\": 123\n}"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH log_insert AS (\n  INSERT INTO public.lead_events (\n    lead_id,\n    event_type,\n    event_category,\n    workflow_name,\n    status,\n    payload,\n    created_at\n  )\n  VALUES (\n    {{ $('When Executed by Another Workflow').item.json.lead_id }},\n    'handoffstarted',\n    'workflow',\n    '05_WF_Human_Handoff_Workflow',\n    'success',\n    jsonb_build_object(\n      'lead_id', {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ),\n    NOW()\n  )\n  RETURNING id\n),\nlead_data AS (\n  SELECT DISTINCT ON (l.id)\n    l.id AS internal_lead_id,\n    l.external_primary_id,\n    l.crm_contact_id,\n    l.crm_deal_id,\n    l.name,\n    l.phone,\n    l.username,\n    l.qualification_summary,\n    l.consultation_summary,\n    l.lead_status,\n    l.handoff_status,\n    l.source_metadata->>'amo_subdomain' AS subdomain,\n\n    ci.external_conversation_id AS reply_chat_id,\n    ci.channel AS reply_channel,\n\n    c.id AS internal_conv_id\n\n  FROM public.leads l\n  LEFT JOIN public.channel_identities ci\n    ON l.id = ci.lead_id\n  LEFT JOIN public.conversations c\n    ON c.lead_id = l.id\n   AND c.external_conversation_id = ci.external_conversation_id\n\n  WHERE l.id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n\n  ORDER BY l.id, ci.is_primary DESC, ci.id DESC\n),\nchat_history AS (\n  SELECT COALESCE(string_agg(msg, E'\\n'), 'История пуста') AS history_text\n  FROM (\n    SELECT sent_by || ': ' || text AS msg\n    FROM public.messages\n    WHERE lead_id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ORDER BY created_at DESC\n    LIMIT 6\n  ) sub\n)\nSELECT * FROM lead_data, chat_history;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        496,
+        256
+      ],
+      "id": "b0030247-676f-4813-9a4a-8a9f49f3a3f9",
+      "name": "Загрузить Досье",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5bab36f3-5d00-483c-8b53-7c992d95d9bd",
+              "leftValue": "={{ $(\"Загрузить Досье\").first().json.handoff_status }}",
+              "rightValue": "active",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        944,
+        256
+      ],
+      "id": "64aa83c2-5dc1-42b4-b9bb-d0ddfc798bf9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        384
+      ],
+      "id": "8b62f9f6-71b7-48b0-84dd-8cfb2da9a599",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1552,
+        384
+      ],
+      "id": "64d29403-cb2c-4b79-951b-168eaad46ae8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JzdpWRoHoQZOQaXQ",
+          "name": "N8N COMANDOS BEGET"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "postgres.mcp.comandos.ai",
+        "authentication": "multipleHeadersAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        384
+      ],
+      "id": "cc2c39b4-9388-453e-9b6e-979c9e93680a",
+      "name": "MCP POstgres",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "MvZXbbPhsTPjN67I",
+          "name": "MCP_postgres_main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://amocrm.mcp.comandos.ai",
+        "authentication": "multipleHeadersAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1856,
+        384
+      ],
+      "id": "ce3b6ecb-72bc-46ac-8ff3-29d82158625e",
+      "name": "MCP Amocrm",
+      "credentials": {
+        "httpMultipleHeadersAuth": {
+          "id": "Os9D6XATcjEAEsw9",
+          "name": "Anno"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## User Prompt\n\n### ТЕКУЩЕЕ ВРЕМЯ (МСК)\n{{ $now.setZone('Europe/Moscow').setLocale('ru').toFormat('dd.MM.yyyy, cccc, HH:mm') }}\n\n### ТЕХНИЧЕСКИЙ КОНТЕКСТ\nWorkflow: 05_WF_Human_Handoff_Workflow\n\n### ДАННЫЕ ЛИДА ИЗ УЗЛА \"Загрузить Досье\"\nInternal Lead ID: {{ $node[\"Загрузить Досье\"].json.internal_lead_id }}\nExternal Primary ID: {{ $node[\"Загрузить Досье\"].json.external_primary_id || 'Нет' }}\nCRM Contact ID: {{ $node[\"Загрузить Досье\"].json.crm_contact_id || 'Нет' }}\nCRM Deal ID: {{ $node[\"Загрузить Досье\"].json.crm_deal_id || 'Нет' }}\nИмя клиента: {{ $node[\"Загрузить Досье\"].json.name || 'Не указано' }}\nUsername: {{ $node[\"Загрузить Досье\"].json.username || 'Нет' }}\nТелефон: {{ $node[\"Загрузить Досье\"].json.phone || 'Нет' }}\nLead status: {{ $node[\"Загрузить Досье\"].json.lead_status || 'Неизвестно' }}\nHandoff status: {{ $node[\"Загрузить Досье\"].json.handoff_status || 'Неизвестно' }}\nКанал: {{ $node[\"Загрузить Досье\"].json.reply_channel || 'Неизвестно' }}\nChat ID: {{ $node[\"Загрузить Досье\"].json.reply_chat_id || 'Неизвестно' }}\nCRM subdomain: {{ $node[\"Загрузить Досье\"].json.subdomain || 'Неизвестно' }}\n\n### КВАЛИФИКАЦИЯ\n{{ $node[\"Загрузить Досье\"].json.qualification_summary || 'Данных нет' }}\n\n### КОНСУЛЬТАЦИЯ\n{{ $node[\"Загрузить Досье\"].json.consultation_summary || 'Данных нет' }}\n\n### ИСТОРИЯ ПЕРЕПИСКИ\n{{ $node[\"Загрузить Досье\"].json.history_text || 'История пуста' }}\n\n### ЗАДАЧА\nЭто уже workflow передачи человеку.\nНе решай, нужно ли продолжать qualification или consultation.\nТебе нужно обработать уже идущий handoff-контекст и вернуть handoff-ready результат.\n\nСделай по порядку:\n1. Классифицируй корректную причину уже идущего handoff.\n2. Подготовь краткий `manager_summary`.\n3. Подготовь короткое `client_message` именно как handoff/capture message.\n4. Если канал CRM и есть CRM Contact ID или CRM Deal ID, используй `MCP Amocrm`:\n   - сначала попробуй записать note/comment с `manager_summary`;\n   - затем, если действительно нужен follow-up, попробуй создать задачу менеджеру.\n5. Если канал не CRM, CRM-действия запрещены.\n6. Если канал CRM, но CRM ID нет, не выполняй CRM-действия и честно отрази причину в `crm_result_summary`.\n7. Верни только JSON по контракту из system prompt.\n\n### ВАЖНЫЕ ПРАВИЛА\n- Не выдумывай факты, которых нет в \"Загрузить Досье\".\n- Не возвращай пользователя в qualification или consultation loop.\n- Если клиент прямо просит менеджера / человека / звонок / ручную связь, считай handoff уместным по умолчанию и классифицируй это как `client_requested_human`.\n- Если клиент уже согласился на предложенный вариант, готов двигаться дальше, просит продолжить оформление или ожидает связи менеджера для подтверждения деталей, это сильный сигнал для `deal_closing`, если главный сигнал не прямой запрос человека.\n- Если запрос нестандартный, под изготовление, требует техразбора или ручного расчета, это сильный сигнал для `custom_request` или `complex_case`.\n- Если нужен точный расчет / цена / КП после уточнений, это сильный сигнал для `pricing_request`.\n- Если канал не CRM (`telegram`, `telegram_direct` и т.п.), не пытайся писать в CRM.\n- Если CRM ID отсутствуют, не выдумывай CRM-действия.\n- Если `MCP Amocrm` не смог выполнить действие, честно отрази это в `crm_result_summary`.\n- Если клиент уже просил человека, `client_message` должен сначала признать передачу менеджеру.\n- Если из контекста не хватает сути запроса для менеджера, в `client_message` можно попросить только коротко написать, что именно нужно.\n- Если телефона нет и без него менеджеру будет трудно связаться, в `client_message` можно попросить только номер телефона.\n- `client_message` не должен содержать продуктовые, квалификационные или анкетные вопросы сверх минимального handoff-capture.\n- Всегда возвращай только валидный JSON.",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "\nТы — стабильный AI-модуль `handoff_operator` в workflow `05_WF_Human_Handoff_Workflow`.\n\nТвоя роль:\n- обработать уже принятый handoff intent / handoff route;\n- определить корректную причину передачи человеку;\n- подготовить handoff-ready summary для менеджера;\n- подготовить короткое клиентское сообщение для передачи / минимального handoff-capture;\n- при CRM-канале и подтвержденных CRM ID использовать `MCP CRM`;\n- вернуть итог строго в JSON.\n\nЭтот prompt универсален:\n- он не привязан к конкретной нише;\n- он не описывает товарную специфику;\n- он должен работать одинаково для разных бизнесов, где уже принято решение о передаче человеку.\n\nТы не консультант и не квалификатор.\nТы не должен:\n- решать, надо ли вернуть пользователя обратно в qualification или consultation;\n- продолжать продажу вместо менеджера;\n- подбирать товары;\n- обещать цену, наличие, срок, производство или доставку;\n- выдумывать факты, которых нет в контексте;\n- выдумывать успешную запись в CRM, если инструмент этого не подтвердил;\n- использовать CRM-инструменты, если канал не CRM;\n- использовать CRM-инструменты, если канал CRM, но нет `crm_contact_id` и нет `crm_deal_id`;\n- задавать клиенту больше одного короткого handoff-capture сообщения;\n- собирать заново qualification или consultation факты, которые не нужны для немедленной передачи человеку;\n- возвращать plain text вместо JSON.\n\nГлавный принцип:\n- этот workflow уже является handoff workflow;\n- ты не переоцениваешь уместность handoff с нуля;\n- ты классифицируешь причину уже идущей передачи и правильно упаковываешь ее для человека и для канала.\n\nРаботай строго по порядку:\n1. Возьми handoff context как входной факт.\n2. Проанализируй qualification, consultation и историю переписки.\n3. Классифицируй `handoff_reason`.\n4. Сформируй краткий `manager_summary`.\n5. Сформируй короткий `client_message`.\n6. Если канал CRM и есть `crm_contact_id` или `crm_deal_id`, выполни CRM-действия через `MCP CRM`.\n7. Если канал не CRM, не выполняй CRM-действия.\n8. Если канал CRM, но ID нет, не выполняй CRM-действия и честно отрази это в `crm_result_summary`.\n9. Верни только JSON.\n\n## Handoff reason\n\nПравила определения `handoff_reason` и приоритетов:\n- Приоритет причин такой:\n  1. `client_requested_human`\n  2. `deal_closing`\n  3. `custom_request`\n  4. `pricing_request`\n  5. `complex_case`\n  6. `ai_uncertain`\n  7. `other`\n\n- `client_requested_human`:\n  клиент прямо просит менеджера, человека, живого специалиста, звонок или ручную связь.\n\n- `deal_closing`:\n  клиент согласен на вариант, готов продолжать, ждет связи менеджера для подтверждения деталей, оформления, дожима или следующего шага, и при этом главным сигналом не является прямой запрос человека.\n\n- `custom_request`:\n  нестандартный запрос, изготовление под заказ, ручной расчет, проектная задача.\n\n- `pricing_request`:\n  нужен точный расчет, коммерческое предложение, финальная цена после уточнений.\n\n- `complex_case`:\n  кейс сложный, неоднозначный, требует ручной оценки.\n\n- `ai_uncertain`:\n  AI не уверен, данных недостаточно, риск неверного ответа.\n\n- `other`:\n  прочее.\n\nПравило разрешения конфликтов:\n- если клиент и прямо просит человека, и уже готов двигаться дальше, приоритет у `client_requested_human`;\n- `deal_closing` используй только когда главный сигнал не \"дайте человека\", а \"я согласен / готов продолжать\".\n\n## Priority\n\nПравила `priority`:\n- `priority = \"high\"`, если клиент:\n  - явно готов двигаться дальше;\n  - подтверждает интерес;\n  - ждет звонка / связи;\n  - просит расчет / подтверждение;\n  - согласен на предложенный вариант;\n  - прямо просит человека / менеджера.\n- иначе `priority = \"normal\"`.\n\n## Channel and CRM\n\nПравила канала и CRM:\n- `MCP CRM` допустим только если одновременно выполнены оба условия:\n  - канал CRM;\n  - есть `crm_contact_id` или `crm_deal_id`.\n- если канал не CRM, CRM-действия запрещены;\n- если канал CRM, но CRM ID нет, CRM-действия запрещены;\n- не трактуй сам факт handoff как обязательное CRM-действие;\n- `crm_result_summary` должен быть правдивым и диагностическим.\n\nДля этого prompt считаем практический `MCP CRM` toolset таким:\n- `create_note`\n- `create_task`\n- `get_current_time`\n\nНе использовать:\n- `create_lead`\n- `get_chat_transcript`\n\nРазрешенные состояния `crm_result_summary` по смыслу:\n- CRM не использовалась, потому что канал не CRM;\n- CRM не использовалась, потому что канал CRM, но нет CRM ID;\n- CRM использовалась и note/task была создана;\n- CRM использовалась, но действие не удалось, и это надо честно описать.\n\n## Manager summary\n\nПравила `manager_summary`:\n- коротко;\n- конкретно;\n- 2-6 предложений;\n- только practically relevant facts;\n- не выдумывать недостающие детали;\n- обязательно ответить на вопросы:\n  - что хочет клиент;\n  - на каком этапе диалог;\n  - что уже известно;\n  - что менеджеру делать следующим шагом.\n\nЕсли в консультации уже был meaningful outcome, включай его в summary, например:\n- предложенный альтернативный вариант;\n- согласие или несогласие клиента;\n- важные ограничения;\n- следующий ожидаемый шаг.\n\n## Client message\n\nПравила `client_message`:\n- короткий;\n- вежливый;\n- деловой;\n- без неподтвержденных обещаний;\n- это именно handoff/capture message, а не обычный бот-диалог;\n- если клиент уже просил человека, сначала признай передачу менеджеру;\n- если суть запроса уже понятна из контекста, не спрашивай ее повторно;\n- если телефон уже есть в данных, не спрашивай его повторно;\n- если чего-то не хватает, допустим только минимальный handoff-capture:\n  - коротко уточнить, что именно нужно, если это еще не ясно менеджеру;\n  - попросить номер телефона, если его нет и он нужен для ручной связи;\n- не задавай продуктовые, квалификационные, ассортиментные, бюджетные, сроковые или иные анкетные вопросы сверх этого минимума.\n\n## CRM actions\n\nПравила CRM-действий:\n- если `MCP CRM` доступен по каналу и ID, сначала попробуй записать note/comment с `manager_summary` через `create_note`;\n- затем создавай задачу только если follow-up действительно нужен;\n- если создается задача, используй `get_current_time`, если runtime требует нормального расчета времени или дедлайна;\n- если `MCP CRM` не смог выполнить действие, честно отрази это в результате;\n- не выдумывай success-result без tool confirmation.\n\n## JSON contract\n\nВерни только JSON строго по контракту:\n\n{\n  \"handoff_reason\": \"client_requested_human | deal_closing | custom_request | pricing_request | complex_case | ai_uncertain | other\",\n  \"manager_summary\": \"string\",\n  \"client_message\": \"string\",\n  \"priority\": \"normal | high\",\n  \"next_action_recommendation\": \"string\",\n  \"crm_note_created\": true,\n  \"crm_task_created\": true,\n  \"crm_result_summary\": \"string\"\n}\n\nТребования:\n- не добавляй других полей;\n- булевы поля только true/false;\n- если CRM не использовалась, обе CRM-переменные false;\n- если CRM не использовалась, в `crm_result_summary` явно напиши причину;\n- `client_message` — это короткое сообщение о передаче / минимальном handoff-capture, а не продолжение консультации;\n- `next_action_recommendation` — это внутреннее указание менеджеру или системе, а не новый клиентский сценарий;\n- всегда возвращай валидный JSON и ничего кроме JSON.\n",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1520,
+        160
+      ],
+      "id": "8d844814-0f3a-48db-aca7-c3adf9d97cf1",
+      "name": "Consultation",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = String($json.output || '').trim();\nconst clean = raw.replace(/```json/gi, '').replace(/```/g, '').trim();\nconst parsed = JSON.parse(clean);\n\nreturn [{\n  json: {\n    success: true,\n    handoff_reason: parsed.handoff_reason || 'other',\n    manager_summary: parsed.manager_summary || '',\n    client_message: parsed.client_message || '',\n    priority: parsed.priority || 'normal',\n    next_action_recommendation: parsed.next_action_recommendation || '',\n    lead_id: $('When Executed by Another Workflow').first().json.lead_id,\n    workflow_name: 'Human_Handoff_Workflow',\n    status: 'completed',\n    recommended_next_step: 'wait_for_human',\n    needs_human: true,\n    timestamp: new Date().toISOString(),\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        160
+      ],
+      "id": "1b713617-2329-492f-a60e-775eaf4aadfa",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "479750930",
+        "text": "=<b>Новый handoff</b>\n\n<b>Клиент:</b> {{ $('Загрузить Досье').item.json.name }}\n<b>Lead ID:</b> <code>{{ $('Загрузить Досье').item.json.internal_lead_id }}</code>\n<b>Приоритет:</b> <b>{{ $('Code in JavaScript').item.json.priority }}</b>\n<b>Канал клиента:</b> <code>{{ $('Загрузить Досье').item.json.reply_channel }}</code>\n\n{{\n  ['telegram_direct', 'telegram_bot', 'telegram_private'].includes($('Загрузить Досье').item.json.reply_channel)\n    ? ''\n    : `<b>CRM</b>\nСделка: <code>${$('Загрузить Досье').item.json.crm_deal_id || '—'}</code>\nКонтакт: <code>${$('Загрузить Досье').item.json.crm_contact_id || '—'}</code>`\n}}\n\n<b>Причина передачи</b>\n{{\n  $('Code in JavaScript').item.json.handoff_reason === 'client_requested_human'\n    ? 'Клиент попросил подключить менеджера'\n    : $('Code in JavaScript').item.json.handoff_reason === 'deal_closing'\n    ? 'Клиент готов к следующему шагу, нужен менеджер для оформления'\n    : $('Code in JavaScript').item.json.handoff_reason === 'custom_request'\n    ? 'Нестандартный запрос, нужен ручной разбор'\n    : $('Code in JavaScript').item.json.handoff_reason === 'pricing_request'\n    ? 'Нужен точный расчет или коммерческое предложение'\n    : $('Code in JavaScript').item.json.handoff_reason === 'complex_case'\n    ? 'Сложный или нестандартный кейс'\n    : $('Code in JavaScript').item.json.handoff_reason === 'ai_uncertain'\n    ? 'AI не уверен, нужен человек'\n    : $('Code in JavaScript').item.json.handoff_reason\n}}\n\n<b>Summary</b>\n{{ $('Code in JavaScript').item.json.manager_summary }}\n\n<b>Следующий шаг</b>\n{{ $('Code in JavaScript').item.json.next_action_recommendation }}\n\n{{\n  ['telegram_direct', 'telegram_bot', 'telegram_private'].includes($('Загрузить Досье').item.json.reply_channel)\n    ? (\n        $('Загрузить Досье').item.json.username\n          ? `<b>Telegram</b>\n<a href=\"https://t.me/${$('Загрузить Досье').item.json.username}\">Открыть профиль клиента</a>`\n          : `<b>Telegram Chat ID</b>\n<code>${$('Загрузить Досье').item.json.reply_chat_id || '—'}</code>`\n      )\n    : `<b>Ссылки</b>\n<a href=\"https://${$('Загрузить Досье').item.json.subdomain}.amocrm.ru/leads/detail/${$('Загрузить Досье').item.json.crm_deal_id}\">Открыть сделку</a>\n\n<a href=\"https://${$('Загрузить Досье').item.json.subdomain}.amocrm.ru/contacts/detail/${$('Загрузить Досье').item.json.crm_contact_id}\">Открыть контакт</a>`\n}}\n",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2208,
+        160
+      ],
+      "id": "cc1c4ab3-7ee3-4675-ab32-7a412b7e9c09",
+      "name": "Send a text message",
+      "webhookId": "12753a64-57e7-4a83-9798-556be97a0d5b",
+      "credentials": {
+        "telegramApi": {
+          "id": "5NmxxEcaJ3vNHI5Q",
+          "name": "Support Test Beta"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "BEGIN;\n\n-- 1. Переводим лида в активный handoff\nUPDATE public.leads\nSET\n  needs_human = true,\n  handoff_status = 'active',\n  current_route = 'handoff',\n  active_workflow = '05_WF_Human_Handoff_Workflow',\n  recommended_next_step = 'wait_for_human',\n  last_status_changed_at = NOW(),\n  updated_at = NOW()\nWHERE id = {{ $('Генерация summary').item.json.internal_lead_id_ref }};\n\n-- 2. Обновляем последний handoff, если он уже есть\nUPDATE public.handoffs\nSET\n  source_workflow = '05_WF_Human_Handoff_Workflow',\n  handoff_reason = '{{ String($('Генерация summary').item.json.handoff_reason || \"other\").replace(/'/g, \"''\") }}',\n  summary = '{{ String($('Генерация summary').item.json.handoff_summary || \"\").replace(/'/g, \"''\") }}',\n  status = 'active',\n  updated_at = NOW()\nWHERE id = (\n  SELECT id\n  FROM public.handoffs\n  WHERE lead_id = {{ $('Генерация summary').item.json.internal_lead_id_ref }}\n  ORDER BY created_at DESC\n  LIMIT 1\n);\n\n-- 3. Если handoff ещё не существовал, создаём его\nINSERT INTO public.handoffs (\n  lead_id,\n  source_workflow,\n  handoff_reason,\n  summary,\n  status,\n  created_at,\n  updated_at\n)\nSELECT\n  {{ $('Генерация summary').item.json.internal_lead_id_ref }},\n  '05_WF_Human_Handoff_Workflow',\n  '{{ String($('Генерация summary').item.json.handoff_reason || \"other\").replace(/'/g, \"''\") }}',\n  '{{ String($('Генерация summary').item.json.handoff_summary || \"\").replace(/'/g, \"''\") }}',\n  'active',\n  NOW(),\n  NOW()\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM public.handoffs\n  WHERE lead_id = {{ $('Генерация summary').item.json.internal_lead_id_ref }}\n);\n\n-- 4. Событие: handoff активирован\nINSERT INTO public.lead_events (\n  lead_id,\n  event_type,\n  event_category,\n  workflow_name,\n  status,\n  payload,\n  created_at\n)\nVALUES (\n  {{ $('Генерация summary').item.json.internal_lead_id_ref }},\n  'human_handoff_activated',\n  'handoff',\n  '05_WF_Human_Handoff_Workflow',\n  'success',\n  '{{ JSON.stringify({\n    handoff_reason: $('Генерация summary').item.json.handoff_reason || \"other\",\n    manager_summary: $('Генерация summary').item.json.handoff_summary || \"\",\n    channel: $('Генерация summary').item.json.channel || \"\",\n    chat_id: $('Генерация summary').item.json.chat_id || \"\",\n    activated_at: new Date().toISOString()\n  }).replace(/'/g, \"''\") }}'::jsonb,\n  NOW()\n);\n\n-- 5. Событие: менеджер уведомлён\nINSERT INTO public.lead_events (\n  lead_id,\n  event_type,\n  event_category,\n  workflow_name,\n  status,\n  payload,\n  created_at\n)\nVALUES (\n  {{ $('Генерация summary').item.json.internal_lead_id_ref }},\n  'manager_notified',\n  'handoff',\n  '05_WF_Human_Handoff_Workflow',\n  'success',\n  '{{ JSON.stringify({\n    channel: $('Генерация summary').item.json.channel || \"telegram\",\n    telegram_chat_id: $('Send a text message').item.json.result.chat.id,\n    telegram_message_id: $('Send a text message').item.json.result.message_id,\n    notified_at: new Date().toISOString()\n  }).replace(/'/g, \"''\") }}'::jsonb,\n  NOW()\n);\n\nCOMMIT;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2432,
+        160
+      ],
+      "id": "ec75c67d-c7cf-480b-8027-25665ea222a0",
+      "name": "Execute a SQL query3",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        352
+      ],
+      "id": "1229e9c9-9680-40f2-85f7-ee332fdf63aa",
+      "name": "Stop"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.workflow_runs (\n  lead_id, \n  conversation_id,\n  workflow_name, \n  trigger_type, \n  status, \n  input_payload_json, \n  started_at\n)\nVALUES (\n  {{ $('When Executed by Another Workflow').item.json.lead_id }}, \n  {{ $('Загрузить Досье').item.json.internal_conv_id ?? 'NULL' }}, \n  '05_Human_Handoff_Workflow', \n  'sub-workflow', \n  'started', \n  '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb, \n  NOW()\n)\nRETURNING id AS run_id;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        256
+      ],
+      "id": "f50c3846-6a4c-4a60-944a-591833450d92",
+      "name": "Регистрация запуска Handoff",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "workflow_name_id",
+              "name": "workflow_name",
+              "value": "05_WF_Human_Handoff_Workflow",
+              "type": "string"
+            },
+            {
+              "id": "lead_id_id",
+              "name": "lead_id",
+              "value": "={{ $('Code in JavaScript').item.json.lead_id }}",
+              "type": "number"
+            },
+            {
+              "id": "status_id",
+              "name": "status",
+              "value": "completed",
+              "type": "string"
+            },
+            {
+              "id": "recommended_next_step_id",
+              "name": "recommended_next_step",
+              "value": "wait_for_human",
+              "type": "string"
+            },
+            {
+              "id": "result_summary_id",
+              "name": "result_summary",
+              "value": "=Лид передан менеджеру. Нужно сообзить об этом килиенту.",
+              "type": "string"
+            },
+            {
+              "id": "needs_human_id",
+              "name": "needs_human",
+              "value": "={{ true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "handoff_status_id",
+              "name": "handoff_status",
+              "value": "active",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2656,
+        160
+      ],
+      "id": "11d40f89-ee67-49e5-ab99-db24aae7534c",
+      "name": "Ответ оркестратору"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "handoff_reason_id",
+              "name": "handoff_reason",
+              "value": "=client_requested_human_{{ ($(\"Загрузить Досье\").first().json.history_text.match(/менеджера|человека|позвоните/gi)?.length || 0) }}x",
+              "type": "string"
+            },
+            {
+              "id": "handoff_summary_id",
+              "name": "handoff_summary",
+              "value": "=👤 {{ $(\"Загрузить Досье\").first().json.name }} (ID: {{ $(\"Загрузить Досье\").first().json.internal_lead_id }}, CRM: {{ $(\"Загрузить Досье\").first().json.crm_contact_id }})\n\n📋 Квалификация:\n{{ $(\"Загрузить Досье\").first().json.qualification_summary }}\n\n🗣️ Консультация:\n{{ $(\"Загрузить Досье\").first().json.consultation_summary || 'Нет данных' }}\n\n📱 {{ $(\"Загрузить Досье\").first().json.reply_channel }} ({{ $(\"Загрузить Досье\").first().json.reply_chat_id }})\n🔥 {{ $(\"Загрузить Досье\").first().json.lead_status }}",
+              "type": "string"
+            },
+            {
+              "id": "channel_id",
+              "name": "channel",
+              "value": "={{ $(\"Загрузить Досье\").first().json.reply_channel }}",
+              "type": "string"
+            },
+            {
+              "id": "chat_id_id",
+              "name": "chat_id",
+              "value": "={{ $(\"Загрузить Досье\").first().json.reply_chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "lead_id_ref",
+              "name": "internal_lead_id_ref",
+              "value": "={{ $(\"Загрузить Досье\").first().json.internal_lead_id }}",
+              "type": "number"
+            },
+            {
+              "id": "crm_deal_id_ref",
+              "name": "crm_deal_id_ref",
+              "value": "={{ $(\"Загрузить Досье\").first().json.crm_deal_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        160
+      ],
+      "id": "9039bbf6-dc85-4f8b-aaf2-1b0396e12322",
+      "name": "Генерация summary"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Загрузить Досье",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Загрузить Досье": {
+      "main": [
+        [
+          {
+            "node": "Регистрация запуска Handoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Генерация summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Consultation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Consultation",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MCP POstgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "Consultation",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Amocrm": {
+      "ai_tool": [
+        [
+          {
+            "node": "Consultation",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultation": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Регистрация запуска Handoff": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Генерация summary": {
+      "main": [
+        [
+          {
+            "node": "Consultation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query3": {
+      "main": [
+        [
+          {
+            "node": "Ответ оркестратору",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "21f32ddb-503b-4ca2-b1d9-e6f969f1b051",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "J0BpTE1kU6WH3f4G",
+  "tags": []
+}

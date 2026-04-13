@@ -1,0 +1,26 @@
+{
+  "bundle_id": "podklyuchenie-otdela-prodazh",
+  "bundle_name": "Подключение отдела продаж",
+  "version": "0.1.0",
+  "clients": ["antigravity", "claude", "codex", "terminal"],
+  "workflows_dir": "workflows",
+  "required_inputs": [
+    "x-license-key"
+  ],
+  "optional_inputs": [
+    "supabase_server_access",
+    "n8n_server_access",
+    "db_schema",
+    "openrouter_api_key",
+    "openai_api_key",
+    "telegram_bot_token"
+  ],
+  "modules": [
+    "infra-discovery",
+    "workflow-import",
+    "credentials-setup",
+    "mcp-setup",
+    "test-agent-setup",
+    "telegram-testing"
+  ]
+}

@@ -1,0 +1,646 @@
+{
+  "name": "02_Main_Orcestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -160,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.4-mini",
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        448,
+        784
+      ],
+      "id": "3c461096-590c-45d2-9bf7-df6c66aab0eb",
+      "name": "OpenRouter Chat Model",
+      "alwaysOutputData": true,
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=Выполнить воркфлоу. Аргументы: {\"lead_id\": integer, \"input\": string}. Обязательно разделяй ID и текст.",
+        "workflowId": {
+          "__rl": true,
+          "value": "PfOC1TVZyJuArLy2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/PfOC1TVZyJuArLy2",
+          "cachedResultName": "03_WF_Qualification"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}",
+            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        784
+      ],
+      "id": "197259cd-83e9-4f3f-95c8-c812d1e2482a",
+      "name": "run_qualification"
+    },
+    {
+      "parameters": {
+        "description": "Используй этот инструмент только для КВАЛИФИЦИРОВАННЫХ лидов (статус 'qualified'), которые задают конкретные, предметные вопросы по продукту, услугам, техническим характеристикам или детальным условиям. Этот воркфлоу работает как эксперт-консультант: он объясняет нюансы, помогает с выбором и мягко подталкивает к сделке. Не используй для новых лидов, которые еще не прошли опрос.",
+        "workflowId": {
+          "__rl": true,
+          "value": "fIMrKvKTv5BlFW9S",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fIMrKvKTv5BlFW9S",
+          "cachedResultName": "04_WF_Consultation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}",
+            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        784
+      ],
+      "id": "56e60a49-e5d1-4000-952b-a8dc08b59019",
+      "name": "run_consultation"
+    },
+    {
+      "parameters": {
+        "description": "ВЫСШИЙ ПРИОРИТЕТ. Используй этот инструмент немедленно, если клиент:\nПрямо просит менеджера или человека (\"позовите оператора\", \"хочу поговорить с живым\").\nПросит телефонный звонок или личную встречу.\nВыражает резкое недовольство или гнев.\nЗадает вопрос, на который бот уже дважды не смог ответить (цикл).\nЭтот воркфлоу мгновенно уведомляет живого сотрудника и передает ему управление чатом.",
+        "workflowId": {
+          "__rl": true,
+          "value": "J0BpTE1kU6WH3f4G",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/J0BpTE1kU6WH3f4G",
+          "cachedResultName": "04_WF_Human_handoff"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        784
+      ],
+      "id": "839f78a1-2386-4a35-a45c-0f0b92e9c651",
+      "name": "run_human_handoff"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When Executed by Another Workflow').first().json.input.message_text }}\n\nИстория чата:\n{{ $json.chat_history }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Ты — `Main Orchestrator` для проекта `WHIEDA`.\n\nТы не отдельный собеседник для клиента в смысле роли.\nТы — единый внешний голос всей системы.\n\nТвоя задача:\n- принимать новое сообщение пользователя;\n- смотреть текущее состояние лида;\n- сначала понимать смысл текущего сообщения пользователя, а не только механически смотреть на `lead_status`;\n- вызывать внутренних worker-агентов:\n  - `run_qualification`\n  - `run_consultation`\n  - `run_human_handoff`\n- читать их structured JSON;\n- выбирать следующий маршрут;\n- собирать один финальный ответ пользователю;\n- возвращать только orchestration JSON.\n\n## Главный принцип\n\nДля пользователя qualification, consultation, human handoff и orchestrator — это один единый организм.\n\nПользователь не должен видеть:\n- внутренние переключения ролей;\n- внутренние названия стадий;\n- внутреннюю передачу между qualification и consultation;\n- формулировки вроде:\n  - `передаю дальше`\n  - `передал следующему специалисту`\n  - `запрос ушел на следующий этап`\n  - `сейчас подключу другого специалиста`\n\nТакие формулировки допустимы только в одном случае:\n- когда запрос уже действительно передается финальному живому менеджеру.\n\nДо этого момента снаружи должен ощущаться один бот, который:\n- понимает запрос;\n- уточняет;\n- консультирует;\n- помогает выбрать;\n- при необходимости собирает контакт;\n- и только в финале говорит, что менеджер свяжется.\n\n## Worker model\n\nQualification, Consultation и Human Handoff не общаются с пользователем напрямую.\n\nОни возвращают только structured result.\n\nКаждый worker возвращает JSON вида:\n\n```json\n{\n  \"worker_name\": \"qualification | consultation | human_handoff\",\n  \"status\": \"identifying | in_progress | completed\",\n  \"reply_to_user\": \"string\",\n  \"recommended_next_step\": \"stay_in_qualification | consultation | continue_consultation | human_handoff | done\",\n  \"missing_info\": [],\n  \"result_summary\": \"string\",\n  \"state_patch\": {},\n  \"mcp_log\": \"string\"\n}\n```\n\nВажно:\n- `reply_to_user` — это кандидатный пользовательский ответ;\n- worker не отправляет его сам;\n- наружу уходит только тот финальный ответ, который выберешь ты.\n\n## Orchestrator output contract\n\nТы всегда возвращаешь только один JSON-объект:\n\n```json\n{\n  \"status\": \"SUCCESS_QUALIFICATION | SUCCESS_CONSULTATION | SUCCESS_HANDOFF | SUCCESS_CHAIN | STOP_HANDOFF | STOP_NURTURE | ERROR\",\n  \"lead_id\": 0,\n  \"route_taken\": \"string\",\n  \"workers_called\": [],\n  \"reply_to_user\": \"string\",\n  \"should_send_message\": true,\n  \"orchestrator_summary\": \"string\",\n  \"final_recommended_next_step\": \"stay_in_qualification | consultation | continue_consultation | human_handoff | done\",\n  \"state_patch\": {}\n}\n```\n\nСмысл:\n- `reply_to_user` — единственный текст, который потом реально уходит клиенту;\n- `workers_called` — какие внутренние слои реально участвовали;\n- `route_taken` — краткий внутренний маршрут;\n- `orchestrator_summary` — короткий технический итог;\n- `state_patch` — итоговое изменение состояния.\n\n## Single-voice rule\n\nТы обязан сохранять единый внешний голос.\n\nЭто означает:\n- если qualification дал уточняющий вопрос, а consultation дал предметный ответ, пользователь видит один непрерывный диалог;\n- если qualification временно уступил consultation product-specific вопрос, это не должно ощущаться как передача между двумя ботами;\n- если consultation довел до handoff-ready состояния, пользователь должен услышать только финальный плавный следующий шаг, а не техническое описание маршрута.\n\nЗапрещено:\n- склеивать два пользовательских ответа от разных worker-ов в одно сообщение без необходимости;\n- показывать промежуточные внутренние handoff-фразы;\n- говорить клиенту, что его уже `передали`, если это была только внутренняя маршрутизация между worker-ами.\n\n## Правило финального reply_to_user\n\nЕсли был вызван один worker:\n- обычно берется его `reply_to_user`.\n\nЕсли были вызваны два worker:\n- пользователю обычно уходит `reply_to_user` второго worker;\n- `reply_to_user` первого worker остается внутренним промежуточным слоем.\n\nНо ты можешь слегка переформулировать финальный ответ, если это нужно для бесшовности.\n\nПри этом нельзя:\n- искажать смысл worker-результата;\n- добавлять новые факты, которых worker не подтвердил;\n- придумывать действия, которые не были выполнены.\n\n## Safety checks\n\nПеред любой маршрутизацией проверь:\n\n- если `handoff_status != \"not_requested\"`:\n  верни `STOP_HANDOFF`\n\n- если `nurture_status == \"active\"`:\n  верни `STOP_NURTURE`\n\nВ этих случаях новых worker-вызовов не делай.\n\n## Routing logic\n\n## New lead qualification-first rule\n\nЕсли `lead_status = \"new\"`, первый worker всегда должен быть `run_qualification`.\n\nЭто обязательное правило.\n\nДля новых лидов запрещено:\n- вызывать `run_consultation` первым worker-ом;\n- перескакивать qualification только потому, что сообщение выглядит предметным или product-oriented;\n- трактовать problem-intent как основание для обхода qualification на первом входе.\n\nДаже если пользователь уже в первом сообщении:\n- описывает проблему;\n- просит что-то подобрать;\n- спрашивает, что лучше посмотреть;\n- пишет product-intent вопрос,\n\nдля `lead_status = \"new\"` оркестратор все равно сначала обязан вызвать `run_qualification`.\n\nСмысл текущего сообщения можно и нужно учитывать внутри qualification-routing, но не как основание пропустить qualification для нового лида.\n\nЭто особенно важно для запросов формата:\n- symptom/problem -> `что посмотреть`\n- broad need -> `что лучше первым`\n- routine/use-case -> `что обычно берут`\n\n### A. Qualification branch\n\nЕсли:\n- `lead_status` в `[\"new\", \"qualification_in_progress\"]`\n\nТогда:\n1. сначала всегда вызови `run_qualification`;\n2. прочитай JSON;\n3. если `recommended_next_step = \"human_handoff\"`:\n   - вызови `run_human_handoff`;\n   - верни `SUCCESS_HANDOFF`;\n4. если qualification результат уже указывает, что нужен product-specific ответ:\n   - вызови `run_consultation`;\n   - верни `SUCCESS_CHAIN`;\n5. иначе:\n   - верни `SUCCESS_QUALIFICATION`.\n\n### B. Consultation branch\n\nЕсли:\n- `lead_status = \"qualified\"`\n- или `current_route = \"consultation\"`\n\nТогда:\n1. вызови `run_consultation`;\n2. прочитай JSON;\n3. если `recommended_next_step = \"human_handoff\"`:\n   - вызови `run_human_handoff`;\n   - верни `SUCCESS_HANDOFF`;\n4. иначе:\n   - верни `SUCCESS_CONSULTATION`.\n\n## Contact-is-not-auto-handoff rule\n\nНаличие контакта само по себе не означает, что нужно немедленно активировать `human_handoff`.\n\nЕсли пользователь:\n- дал телефон или другой контакт;\n- но все еще явно ждет предметной консультации;\n- или задает follow-up вопрос по продукту / выбору / тому, что обычно смотрят первым,\n\nто оркестратор не должен считать диалог автоматически завершенным.\n\nСначала нужно проверить, состоялась ли уже полезная консультация.\n\nЕсли полезной консультации еще не было:\n- не активируй ранний `human_handoff`;\n- не переводи диалог в `STOP_HANDOFF`;\n- разреши `run_consultation`.\n\n## Post-handoff follow-up exception\n\nЕсли `handoff_status` уже активен, это обычно стоп-сигнал.\n\nНо если пользователь после этого задает короткий follow-up вопрос по тому же самому запросу, и этот вопрос:\n- не требует нового цикла квалификации;\n- не противоречит уже активному handoff;\n- и может быть закрыт одним кратким consultant-answer,\n\nто допускается один короткий consultation follow-up вместо немедленного сухого `STOP_HANDOFF`.\n\nЭто исключение нужно применять узко и аккуратно.\n\nНе использовать его для:\n- нового полного цикла выбора;\n- повторного открытия long consultation;\n- отмены уже идущего manager handoff.\n\nИспользовать его для:\n- одного короткого ответа по уже открытому запросу;\n- сохранения бесшовности разговора.\n\n## Output isolation rule\n\nТвой JSON предназначен только для внутреннего runtime слоя.\n\nПользователю должен отправляться только `reply_to_user`.\n\nНикогда не предполагай, что безопасно показывать клиенту:\n- `status`\n- `route_taken`\n- `workers_called`\n- `orchestrator_summary`\n- `state_patch`\n- или весь orchestration JSON целиком.\n\n## Mixed-flow rule\n\nТы обязан поддерживать бесшовный mixed-flow.\n\nЭто означает:\n- qualification может временно сходить в consultation за product-specific answer;\n- consultation может помочь с выбором и затем вернуть систему к lead-capture логике;\n- всё это снаружи должно выглядеть как один разговор одного бота.\n\nПравильный паттерн:\n- пользователь задал вопрос;\n- qualification собрал enough context;\n- consultation помог выбрать;\n- orchestrator вернул один плавный ответ.\n\nНеправильный паттерн:\n- `я передал ваш запрос дальше`\n- `теперь этим займется другой специалист`\n- `вас переключили на следующий этап`\n\nесли на самом деле это только внутренняя маршрутизация внутри системы.\n\n## Final manager-only transfer rule\n\nЯвную передачу можно формулировать только тогда, когда:\n- запрос уже handoff-ready;\n- реально вызван `run_human_handoff`;\n- система действительно переходит к финальному живому менеджеру.\n\n## Real handoff execution rule\n\nПоле `recommended_next_step = \"human_handoff\"` само по себе не означает, что handoff уже выполнен.\n\n`human_handoff` считается выполненным только если:\n- ты реально сделал второй worker-вызов `run_human_handoff`;\n- этот вызов действительно присутствовал в `intermediateSteps` текущего цикла;\n- только после этого ты имеешь право вернуть:\n  - `status = \"SUCCESS_HANDOFF\"`\n  - `route_taken` с окончанием на `human_handoff`\n  - `workers_called`, где есть `run_human_handoff`\n\nЗапрещено:\n- писать `SUCCESS_HANDOFF`, если реально был вызван только `run_consultation` или только `run_qualification`;\n- включать `run_human_handoff` в `workers_called`, если такого tool call не было;\n- писать, что менеджеру уже передано, если `run_human_handoff` не исполнялся;\n- симулировать handoff только на основании текста worker-а или поля `recommended_next_step`\n\nЕсли worker вернул `recommended_next_step = \"human_handoff\"`, но ты еще не вызвал `run_human_handoff`, это означает только одно:\n- следующим обязательным действием должен быть реальный вызов `run_human_handoff`\n\nДо этого момента handoff считается только рекомендованным, а не выполненным.\n\nТолько в этот момент допустимы фразы уровня:\n- `Передаю ваш запрос менеджеру`\n- `Менеджер свяжется с вами`\n- `Ожидайте звонка или сообщения`\n\nДо этого не говори пользователю, что его кому-то передали.\n\n## Human handoff is terminal rule\n\n`run_human_handoff` — это финальный worker внутри текущего цикла.\n\nЕсли `run_human_handoff` был реально вызван и завершился успешно, это означает:\n- handoff уже исполнен;\n- менеджер уже уведомлен;\n- текущий цикл должен считаться завершенным.\n\nПосле успешного `run_human_handoff` запрещено:\n- снова вызывать `run_consultation` в этом же цикле;\n- снова вызывать `run_qualification` в этом же цикле;\n- делать новый route decision;\n- трактовать handoff как еще неисполненную рекомендацию;\n- возвращать lead обратно в consultation flow в этом же execution.\n\nПосле успешного `run_human_handoff` допустимы только:\n- один финальный `reply_to_user`;\n- финальный `status = \"SUCCESS_HANDOFF\"`;\n- финальный `route_taken`, который заканчивается на `human_handoff`;\n- завершение текущего orchestration cycle.\n\nЕсли `handoff_status` в системном контексте уже `pending` или `active`, и особенно если `current_route = \"handoff\"` или `needs_human = true`, не запускай новые worker-ы повторно.\n\nВ таком состоянии нельзя:\n- повторно открывать consultation;\n- повторно открывать qualification;\n- заново прогонять цепочку выбора.\n\nВместо этого:\n- считай, что lead уже находится на финальной стадии human handoff;\n- не делай новых tool calls;\n- возвращай только итоговый безопасный ответ пользователю или stop-result для runtime слоя.\n\n## Max actions per cycle\n\nЗа один цикл:\n- максимум 2 worker-вызова;\n- затем один финальный orchestration JSON.\n\nНе делай длинные цепочки из 3 и более worker-ов за один цикл.\n\n## User-facing style\n\nДаже если ты слегка переформулируешь `reply_to_user`, соблюдай:\n- нормальный разговорный русский;\n- без внутренних labels;\n- без слов вроде:\n  - `live`\n  - `snapshot`\n  - `human_handoff`\n  - `continue_consultation`\n  - `qualification`\n  - `consultation`\n  - `orchestrator`\n- без описания внутренней агентной архитектуры.\n\n## Lead passport and system context\n\nНиже — системный контекст лида. Считай его частью system prompt, а не частью пользовательского сообщения.\n\n- `lead_id`: `{{ $node[\"Загрузить полный контекст\"].json.id }}`\n- `lead_status`: `{{ $node[\"Загрузить полный контекст\"].json.lead_status }}`\n- `current_route`: `{{ $node[\"Загрузить полный контекст\"].json.current_route }}`\n- `handoff_status`: `{{ $node[\"Загрузить полный контекст\"].json.handoff_status }}`\n- `nurture_status`: `{{ $node[\"Загрузить полный контекст\"].json.nurture_status }}`\n\nЕсли доступны дополнительные поля из системного контекста лида, тоже используй их как `lead passport`, а не как часть user prompt:\n- идентификаторы канала / диалога;\n- уже сохраненные контакты;\n- текущий selected product;\n- qualification summary;\n- consultation summary;\n- последние подтвержденные факты о лиде.\n\n## User prompt contract\n\nВ user prompt тебе приходит только чистый текст последнего сообщения клиента:\n\n`{{ $('When Executed by Another Workflow').first().json.input.message_text }}`\n\nНе ожидай, что в user prompt будут:\n- `lead_id`\n- `lead_status`\n- служебные JSON-поля\n- системные summaries\n- паспорт лида\n\nВсе это относится к system context, а не к пользовательскому сообщению.\n\n## Worker input format\n\nИспользуй:\n\n```json\n{\n  \"lead_id\": {{ $node[\"Загрузить полный контекст\"].json.id }},\n  \"input\": \"{{ $('When Executed by Another Workflow').first().json.input.message_text }}\"\n}\n```\n\n## Главное правило\n\nТы не показываешь пользователю внутренний конвейер.\n\nТы показываешь ему одного цельного, спокойного, последовательного бота.\n\nВнутри может быть qualification, consultation и handoff.\nСнаружи — один разговор и один голос.\n",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        760,
+        560
+      ],
+      "id": "1c8c7410-02c7-402d-b6cb-4a41349c4985",
+      "name": "Оркестратор",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        784
+      ],
+      "id": "b6d39906-8a9f-4610-b444-06a992f05de8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JzdpWRoHoQZOQaXQ",
+          "name": "N8N COMANDOS BEGET"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.workflow_runs (\n  lead_id, \n  workflow_name, \n  trigger_type, \n  status, \n  input_payload_json, \n  started_at\n)\nVALUES (\n  {{ $json.lead_id }}, \n  '02_Main_Orchestrator', \n  'execute_workflow', \n  'started', \n  '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb, \n  NOW()\n)\nRETURNING id AS run_id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        560
+      ],
+      "id": "9c3322a3-528d-4e8e-88ea-9ccc7b68a678",
+      "name": "Регистрация запуска Оркестратора",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Получаем данные из узлов\nconst leadContext = $(\"Загрузить полный контекст\").first().json;\nconst runContext = $(\"Регистрация запуска Оркестратора\").first().json;\nconst aiData = $(\"Оркестратор\").first().json;\n\nlet rawOutput = aiData.output || \"\";\nlet parsedDecision = {};\n\n// 2. Очистка строки от Markdown (```json ... ```)\nif (typeof rawOutput === 'string') {\n  // Убираем ```json в начале и ``` в конце, а также лишние пробелы\n  rawOutput = rawOutput.replace(/^```json\\s*/i, '').replace(/\\s*```$/, '').trim();\n}\n\n// 3. Парсинг очищенной строки\ntry {\n  parsedDecision = typeof rawOutput === 'string' ? JSON.parse(rawOutput) : rawOutput;\n} catch (e) {\n  // Если всё равно не распарсилось, сохраняем как текст\n  parsedDecision = { \n    reply_to_user: rawOutput,\n    orchestrator_summary: \"Ошибка парсинга после очистки Markdown\",\n    route_taken: \"error_parsing\"\n  };\n}\n\n// 4. Обработка шагов (инструментов)\nconst steps = (aiData.intermediateSteps || []).map((s, i) => {\n  let observationData;\n  try {\n    observationData = typeof s.observation === 'string' ? JSON.parse(s.observation) : s.observation;\n  } catch (e) {\n    observationData = s.observation;\n  }\n\n  return {\n    step: i + 1,\n    tool: s.action?.tool || \"no_tool\",\n    input: s.action?.toolInput?.input || s.action?.toolInput,\n    output: observationData\n  };\n});\n\n// 5. Формируем финальный объект\nreturn {\n  lead_id: leadContext.id,\n  run_id: runContext.run_id,\n  \n  // Берем reply_to_user из распарсенного JSON\n  reply_to_user: parsedDecision.reply_to_user || \"Не удалось получить текст ответа\",\n  should_send: parsedDecision.should_send_message !== false,\n  \n  // Данные для обновления БД\n  route: parsedDecision.route_taken || \"unknown\",\n  summary: parsedDecision.orchestrator_summary || \"No summary provided\",\n  next_step: parsedDecision.final_recommended_next_step || \"stay_in_qualification\",\n  \n  // Логи работы\n  steps: steps,\n  steps_summary: steps.map(s => s.tool).join(' -> ') || 'direct_answer'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        560
+      ],
+      "id": "8455cc0a-a138-4c16-967f-1c0d81be8b3a",
+      "name": "Сборщик протокола"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        784
+      ],
+      "id": "4c9a3e3d-f17d-4049-b044-6a46e8038ffe",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "BEGIN;\n\n-- 1. Записываем ответ ИИ в историю сообщений (outbound)\nINSERT INTO public.messages (\n  lead_id, \n  conversation_id, \n  direction, \n  message_type, \n  text, \n  sent_by, \n  source_workflow,\n  created_at\n)\nVALUES (\n  {{ $('Загрузить канал ответа').item.json.lead_id }},\n  {{ $(\"Загрузить полный контекст\").first().json.internal_conv_id || 'NULL' }}, -- Если есть ID диалога\n  'outbound',\n  'text',\n  '{{ $(\"Оркестратор\").first().json.output.replace(/'/g, \"''\") }}',\n  'ai',\n  '02_Main_Orcestrator',\n  NOW()\n);\n\n-- 2. Обновляем время последнего контакта в карточке лида\nUPDATE public.leads \nSET \n  last_outbound_at = NOW(),\n  active_workflow = '02_Main_Orcestrator',\n  updated_at = NOW()\nWHERE id = {{ $('Загрузить канал ответа').item.json.lead_id }};\n\n-- 3. Регистрируем событие для аналитики (Бизнес-лог)\nINSERT INTO public.lead_events (\n  lead_id, \n  event_type, \n  event_category, \n  workflow_name,\n  status,\n  payload\n)\nVALUES (\n  {{ $('Загрузить канал ответа').item.json.lead_id }}, \n  'ai_reply_sent', \n  'communication',\n  '02_Main_Orcestrator',\n  'success',\n  '{{ JSON.stringify({\n      text: $(\"Оркестратор\").first().json.output,\n      amo_message_id: $json.id\n  }).replace(/'/g, \"''\") }}'::jsonb\n);\n\n-- 4. Закрываем технический лог запуска (чтобы не висел started)\nUPDATE public.workflow_runs \nSET \n  status = 'success', \n  finished_at = NOW(), \n  result_payload_json = '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb\nWHERE id = {{ $(\"Регистрация запуска Оркестратора\").first().json.run_id }};\n\nCOMMIT;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2256,
+        560
+      ],
+      "id": "df80141a-06b4-4414-a291-905720decb08",
+      "name": "Финализация Квалификации",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Загрузить полный контекст').item.json.reply_channel }}",
+                    "rightValue": "amocrm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "759c8282-f52f-4c68-8f15-4159a3f567dc"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "76f1e09b-1135-4b85-9572-6fe16388dcf2",
+                    "leftValue": "={{ $('Загрузить полный контекст').item.json.reply_channel }}",
+                    "rightValue": "telegram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1808,
+        560
+      ],
+      "id": "ea6285fa-f98e-4ea2-b383-189882b132b8",
+      "name": "Выбрать канал ответа"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.reply_chat_id }}",
+        "text": "={{ $('Сборщик протокола').item.json.reply_to_user }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        656
+      ],
+      "id": "ce05b560-1640-4313-8d9c-b9b010ee1fff",
+      "name": "Отправить в Telegram",
+      "webhookId": "a982a30f-9518-445d-b425-1ac895c638dd",
+      "credentials": {
+        "telegramApi": {
+          "id": "5NmxxEcaJ3vNHI5Q",
+          "name": "Support Test Beta"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 1. Сначала записываем событие в лог (как во втором запросе)\nWITH log_insert AS (\n  INSERT INTO public.lead_events (\n    lead_id,\n    event_type,\n    event_category,\n    workflow_name,\n    status,\n    payload,\n    created_at\n  )\n  VALUES (\n    {{ $('When Executed by Another Workflow').item.json.lead_id }},\n    'qualificationstarted',\n    'workflow',\n    '03_WF_Qualification',\n    'success',\n    jsonb_build_object(\n      'lead_id', {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ),\n    NOW()\n  )\n  RETURNING id\n),\n\n-- 2. Собираем полные данные лида из всех таблиц\nlead_combined AS (\n  SELECT DISTINCT ON (l.id)\n    -- Поля из первого запроса\n    l.id,\n    l.lead_status,\n    l.current_route,\n    l.qualification_summary,\n    l.handoff_status,\n    l.nurture_status,\n    \n    -- Поля из второго запроса\n    l.external_primary_id,\n    l.crm_contact_id,\n    l.crm_deal_id,\n    l.name,\n    l.source_metadata->>'amo_subdomain' AS subdomain,\n\n    -- Данные каналов и диалогов\n    ci.external_conversation_id AS reply_chat_id,\n    ci.channel AS reply_channel,\n    c.id AS internal_conv_id\n\n  FROM public.leads l\n  LEFT JOIN public.channel_identities ci\n    ON l.id = ci.lead_id\n  LEFT JOIN public.conversations c\n    ON c.lead_id = l.id\n   AND c.external_conversation_id = ci.external_conversation_id\n\n  WHERE l.id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n  \n  -- Важно для DISTINCT ON, чтобы выбрать приоритетный канал связи\n  ORDER BY l.id, ci.is_primary DESC, ci.id DESC\n),\n\n-- 3. Получаем историю сообщений (взял лимит 15 и формат с датой)\nhistory AS (\n  SELECT \n    COALESCE(string_agg(msg_row, E'\\n'), 'История пуста') AS chat_history\n  FROM (\n    SELECT \n      '[' || created_at || '] ' || sent_by || ': ' || text AS msg_row\n    FROM public.messages\n    WHERE lead_id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ORDER BY created_at DESC\n    LIMIT 15\n  ) sub\n)\n\n-- 4. Выводим всё вместе\nSELECT \n  l.*, \n  h.chat_history \nFROM lead_combined l, history h;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        288,
+        560
+      ],
+      "id": "183de28d-8d78-4152-a070-b7f380f2aeed",
+      "name": "Загрузить полный контекст",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    l.id AS lead_id,\n    l.name,\n    l.qualification_summary,\n    -- ТЕХНИЧЕСКИЙ ПАСПОРТ ДЛЯ AmoCRM API\n    l.source_metadata->>'amo_account_id' AS reply_account_id,\n    l.source_metadata->>'amo_subdomain' AS reply_subdomain,\n    l.source_metadata->>'talk_id' AS reply_talk_id,\n    l.source_metadata->>'author_id' AS reply_recipient_id,\n    l.source_metadata->>'contact_id' AS reply_contact_id,\n    l.source_metadata->>'element_type' AS reply_entity_type,\n    l.crm_deal_id AS reply_entity_id,\n    \n    -- ТОТ САМЫЙ CHAT_ID ДЛЯ URL (из таблицы каналов)\n    ci.external_conversation_id AS reply_chat_id,\n    \n    -- ИСТОРИЯ ЧАТА ДЛЯ КОНТЕКСТА ИИ\n    (SELECT COALESCE(string_agg(sent_by || ': ' || text, E'\\n'), 'История пуста') \n     FROM (\n       SELECT sent_by, text \n       FROM public.messages \n       WHERE lead_id = l.id \n       ORDER BY created_at DESC \n       LIMIT 6\n     ) m) AS history_text\n\nFROM public.leads l\nLEFT JOIN public.channel_identities ci ON l.id = ci.lead_id\nWHERE l.id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n-- Берем самый свежий или основной канал\nORDER BY ci.is_primary DESC, ci.id DESC \nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1584,
+        560
+      ],
+      "id": "2d388205-37d2-4679-aec7-4447d7157aab",
+      "name": "Загрузить канал ответа",
+      "credentials": {
+        "postgres": {
+          "id": "hjoLKy64WCwO00im",
+          "name": "Posgres_main_test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendMessageByLeadId",
+        "leadId": "={{ $json.reply_entity_id }}",
+        "messageText": "={{ $('Сборщик протокола').item.json.reply_to_user }}"
+      },
+      "type": "@comandosai/n8n-nodes-amo-crm.comandosAmoCrm",
+      "typeVersion": 1,
+      "position": [
+        2032,
+        464
+      ],
+      "id": "708aab70-28c1-4ce9-ba87-bf2cf632caff",
+      "name": "Comandos AmoCRM1",
+      "credentials": {
+        "comandosLsiKeysApi": {
+          "id": "VBOTpdkojIXxangb",
+          "name": "Artem"
+        }
+      },
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Регистрация запуска Оркестратора",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "run_qualification": {
+      "ai_tool": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Оркестратор": {
+      "main": [
+        [
+          {
+            "node": "Сборщик протокола",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "run_consultation": {
+      "ai_tool": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "run_human_handoff": {
+      "ai_tool": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сборщик протокола": {
+      "main": [
+        [
+          {
+            "node": "Загрузить канал ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Регистрация запуска Оркестратора": {
+      "main": [
+        [
+          {
+            "node": "Загрузить полный контекст",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Выбрать канал ответа": {
+      "main": [
+        [
+          {
+            "node": "Comandos AmoCRM1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Отправить в Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отправить в Telegram": {
+      "main": [
+        [
+          {
+            "node": "Финализация Квалификации",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Финализация Квалификации": {
+      "main": [
+        []
+      ]
+    },
+    "Загрузить полный контекст": {
+      "main": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Загрузить канал ответа": {
+      "main": [
+        [
+          {
+            "node": "Выбрать канал ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comandos AmoCRM1": {
+      "main": [
+        [
+          {
+            "node": "Финализация Квалификации",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "EHFlcFWQqxnUwv4J",
+    "binaryMode": "separate"
+  },
+  "versionId": "b60da081-833a-475c-a047-99b855e4c743",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "VAjfq9tiJqvHH2pR",
+  "tags": []
+}

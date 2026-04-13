@@ -1,0 +1,34 @@
+{
+  "bundle_id": "vektorizaciya-i-zagruzka-bazy",
+  "bundle_name": "Векторизация и загрузка базы",
+  "version": "0.1.0",
+  "clients": ["antigravity", "claude", "codex", "terminal"],
+  "skills": [
+    "skills/doc-splitter-launcher/SKILL.md",
+    "skills/vector-ingestion-launcher/SKILL.md"
+  ],
+  "runner": {
+    "entrypoint": "runner/src/index.js",
+    "env_file": "runner/.env"
+  },
+  "required_env": [
+    "SKILL_RUNTIME_API_URL",
+    "SKILL_RUNTIME_LICENSE_KEY"
+  ],
+  "optional_env": [
+    "SUPABASE_DB_HOST",
+    "SUPABASE_DB_PORT",
+    "SUPABASE_DB_USER",
+    "SUPABASE_DB_PASSWORD",
+    "SUPABASE_DB_NAME",
+    "SUPABASE_DB_SSL"
+  ],
+  "workspace_layout": [
+    "raw",
+    "__workspace",
+    "docs",
+    "tables",
+    "processed",
+    "state"
+  ]
+}

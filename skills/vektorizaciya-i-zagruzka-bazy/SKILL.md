@@ -1,44 +1,47 @@
 ---
 name: Векторизация и загрузка базы
-description: Разбирает сырые документы клиента, создает рабочий __workspace, формирует docs, product_memory и products_live, затем отправляет данные в COMANDOS runtime, получает чанки и embeddings и записывает результат в Supabase. Использовать, когда нужно быстро подготовить базу знаний и товарную таблицу для дальнейшей работы отдела продаж.
+description: Устанавливает и запускает полный пакет для разбора документов, создания __workspace, сборки products_live, векторизации через COMANDOS runtime и записи результата в Supabase. Использовать в Antigravity, Claude, Codex или терминальном режиме, когда нужно быстро подготовить базу знаний и товарную таблицу клиента.
 ---
 
 # Векторизация и загрузка базы
 
-Use this skill as the localized entrypoint for the existing vector ingestion bundle.
+Это полный installable bundle для подготовки базы знаний и товарной таблицы.
 
-It covers:
-- document split;
-- workspace preparation;
-- products table generation;
-- ingestion into COMANDOS runtime;
-- writing knowledge chunks and product rows into Supabase.
+Он включает:
+- встроенный `doc-splitter`;
+- launcher для разборки документов;
+- launcher для ingestion;
+- локальный `Node.js` runner;
+- install notes для `Antigravity`, `Claude`, `Codex`;
+- схему `CYBEROP_BOOTSTRAP_SCHEMA.sql`.
 
-## What to read first
+## Что читать в первую очередь
 
-1. Read [порядок работы](references/poryadok-raboty.md).
-2. Read [обязательные условия](references/obyazatelnye-usloviya.md).
-3. Read [команды для запуска](references/komandy-dlya-zapuska.md).
+1. [README.md](README.md)
+2. [installers/antigravity.md](installers/antigravity.md)
+3. [installers/claude.md](installers/claude.md)
+4. [installers/codex.md](installers/codex.md)
 
-## Rules
+Для внутренней логики bundle использует:
+- [skills/doc-splitter/SKILL.md](skills/doc-splitter/SKILL.md)
+- [skills/doc-splitter-launcher/SKILL.md](skills/doc-splitter-launcher/SKILL.md)
+- [skills/vector-ingestion-launcher/SKILL.md](skills/vector-ingestion-launcher/SKILL.md)
 
-- Keep names and user-facing explanations in Russian.
-- The normal flow is:
-  - source files -> `doc-splitter` -> `__workspace` -> runtime API -> `Supabase`
-- Do not ask the user to run `node` manually in the normal flow.
-- Use the bundled `doc-splitter` logic, not an unrelated external splitter.
-- If `products_live` can be built from factual rows, build it in the same split pass.
-- `registry_rows` are not part of the normal flow.
-- The ingestion runner executes on the local execution host with internet access to `api.comandos.ai`.
-- The `Supabase` server is the storage target, not the default execution host.
+## Правила
 
-## Expected result
+- Пользовательский текст и названия держать по-русски.
+- Не просить пользователя вручную запускать `node` в нормальном сценарии.
+- Использовать встроенный `doc-splitter`, а не внешний урезанный вариант.
+- Если factual product rows есть, `products_live` должна создаваться в этом же проходе.
+- По умолчанию `tenant_id` в `products_live` должен быть `global`, если пользователь отдельно не дал другой.
+- Если в проекте есть персональные данные, production `Supabase` должен быть на российском сервере.
 
-At the end of the flow:
-- `__workspace` exists;
-- normalized docs exist;
-- `products_live` exists if the source contained factual product rows;
-- runtime returns chunks and embeddings;
-- data is written to `knowledge_rag`;
-- product rows are written to `products_live`;
-- a short summary is produced.
+## Где должен выполняться ingestion
+
+- Runner должен выполняться на том хосте, где есть:
+  - доступ к документам;
+  - доступ к `api.comandos.ai`.
+- Сервер с `Supabase` — это хранилище, а не основное место выполнения ingestion по умолчанию.
+- Если хост с доступом к базе не имеет выхода в интернет, допускается только fallback:
+  - получить runtime result JSON на машине с интернетом;
+  - потом импортировать его в `Supabase`.

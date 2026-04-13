@@ -1,0 +1,4 @@
+interface:
+  display_name: Подключение отдела продаж
+  short_description: Подключает Supabase и n8n клиента, загружает workflow, создает MCP и другие соединения и готовит тестового агента проверки базы.
+  default_prompt: Подключи существующие Supabase и n8n, загрузи workflow отдела продаж, создай соединения Supabase, Postgres и MCP и подготовь тестового агента проверки базы.
