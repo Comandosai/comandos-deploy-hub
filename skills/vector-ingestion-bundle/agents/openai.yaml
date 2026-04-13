@@ -1,4 +1,0 @@
-interface:
-  display_name: COMANDOS Vector Ingestion Bundle
-  short_description: Install launchers and runner for doc split, ingestion, Supabase bootstrap, and vector knowledge loading.
-  default_prompt: Install the COMANDOS Vector Ingestion Bundle, set up the workspace, split source docs, and prepare the ingestion flow.

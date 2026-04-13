@@ -1,9 +1,0 @@
-runner/node_modules/
-runner/.env
-runner/workspace/prepared/*
-runner/workspace/processed/*
-runner/workspace/state/*
-!runner/workspace/.gitkeep
-!runner/workspace/prepared/
-!runner/workspace/processed/
-!runner/workspace/state/
