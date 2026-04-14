@@ -4,20 +4,19 @@
 
 Это главный файл входных данных для всего сценария.
 
-## Заполните в первую очередь
+## Заполните только это
 
 - `server_access:` 
+- `x_license_key:` 
 - `n8n_domain:` 
-- `supabase_domain:` 
 - `ssl_email:` 
 - `n8n_admin_email:` 
 - `n8n_admin_password:` 
-- `x_license_key:` 
 - `openai_api_key:` 
 - `openrouter_api_key:` 
 - `telegram_bot_token:` 
 
-## Если уже известно
+## Остальное агент должен найти сам, если сможет
 
 - `supabase_dashboard_url:` 
 - `supabase_admin_email:` 
