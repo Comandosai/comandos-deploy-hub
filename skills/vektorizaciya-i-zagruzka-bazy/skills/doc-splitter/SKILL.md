@@ -13,6 +13,11 @@ Use this skill to turn messy company materials into a clean ingestion package:
 - a products table for live catalog rows;
 - optional brief updates when requested.
 
+Default workspace routing:
+- raw incoming files live in `new_files/`;
+- cleaned and normalized files for ingestion must be written to `prepared/docs/`;
+- already processed files belong in `vectorized/docs/` only after successful ingestion.
+
 Treat this skill as domain-neutral normalization:
 - preserve real source categories and factual attributes;
 - do not force manufacturing-specific keys onto non-manufacturing businesses;

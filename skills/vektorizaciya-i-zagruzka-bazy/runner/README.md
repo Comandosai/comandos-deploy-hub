@@ -8,23 +8,33 @@
 
 ## Что делает
 
-1. Читает `prepared/`
+1. Читает `prepared/docs/`
 2. Пропускает пустые документы
 3. Делит документы на батчи
 4. Отправляет батчи в `commandos-api`
 5. Сохраняет request/response в `processed/`
 5. Проверяет или применяет `CYBEROP_BOOTSTRAP_SCHEMA.sql`
 6. Пишет результат в `Supabase`
-7. Пишет краткий state summary
+7. Переносит отработанные файлы в `vectorized/`
+8. Пишет краткий state summary
 
 ## Стартовая структура workspace
 
 ```text
 workspace/
+  new_files/
   prepared/
+    docs/
+  vectorized/
+    docs/
   processed/
   state/
 ```
+
+После успешной записи в базу раннер:
+- переносит файлы из `prepared/docs/` в `vectorized/docs/`;
+- переносит `products_live.tsv` или `products_live.csv` в `vectorized/`, если такой файл участвовал в прогоне;
+- не оставляет отработанные файлы в `prepared/docs/`.
 
 ## Запуск
 

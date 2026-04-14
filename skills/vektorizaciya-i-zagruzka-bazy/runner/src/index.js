@@ -18,6 +18,15 @@ async function ensureDir(dirPath) {
   await fs.mkdir(dirPath, { recursive: true });
 }
 
+async function pathExists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function listPreparedDocs(preparedDir) {
   const entries = await fs.readdir(preparedDir, { withFileTypes: true });
   const docs = [];
@@ -56,6 +65,23 @@ async function listPreparedDocs(preparedDir) {
   return docs;
 }
 
+async function resolvePreparedDocsDir(workspaceDir, preparedRoot, preparedDocsSubdir) {
+  const candidates = [
+    path.join(preparedRoot, preparedDocsSubdir),
+    preparedRoot,
+    path.join(workspaceDir, "docs"),
+  ];
+
+  for (const candidate of candidates) {
+    if (await pathExists(candidate)) {
+      return candidate;
+    }
+  }
+
+  await ensureDir(path.join(preparedRoot, preparedDocsSubdir));
+  return path.join(preparedRoot, preparedDocsSubdir);
+}
+
 function parseTsvLine(line) {
   return line.split("\t");
 }
@@ -72,8 +98,10 @@ function tryParseJson(value) {
   }
 }
 
-async function listPreparedLiveRows(workspaceDir) {
+async function loadPreparedLiveRows(workspaceDir, preparedRoot) {
   const candidates = [
+    path.join(preparedRoot, "products_live.tsv"),
+    path.join(preparedRoot, "products_live.csv"),
     path.join(workspaceDir, "products_live.tsv"),
     path.join(workspaceDir, "products_live.csv"),
   ];
@@ -87,7 +115,7 @@ async function listPreparedLiveRows(workspaceDir) {
         .filter((line) => line.trim() !== "");
 
       if (lines.length < 2) {
-        return [];
+        return { rows: [], sourcePath: candidate };
       }
 
       const headers = parseTsvLine(lines[0]);
@@ -120,7 +148,10 @@ async function listPreparedLiveRows(workspaceDir) {
         });
       }
 
-      return rows.filter((row) => row.entity_id && row.entity_name);
+      return {
+        rows: rows.filter((row) => row.entity_id && row.entity_name),
+        sourcePath: candidate,
+      };
     } catch (error) {
       if (error && error.code === "ENOENT") {
         continue;
@@ -129,7 +160,7 @@ async function listPreparedLiveRows(workspaceDir) {
     }
   }
 
-  return [];
+  return { rows: [], sourcePath: null };
 }
 
 function chunkArray(items, size) {
@@ -159,12 +190,50 @@ async function saveJson(filePath, value) {
   await fs.writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
 }
 
+async function replaceFile(sourcePath, destinationPath) {
+  await ensureDir(path.dirname(destinationPath));
+
+  try {
+    await fs.rm(destinationPath, { force: true });
+  } catch {}
+
+  await fs.rename(sourcePath, destinationPath);
+}
+
+async function archiveProcessedInputs(documents, liveRowsSourcePath, vectorizedDocsDir, vectorizedRoot) {
+  const moved = {
+    documents: [],
+    live_rows_file: null,
+  };
+
+  const sourcePaths = [...new Set(documents.map((doc) => doc?.metadata?.source_path).filter(Boolean))];
+
+  for (const sourcePath of sourcePaths) {
+    const destinationPath = path.join(vectorizedDocsDir, path.basename(sourcePath));
+    await replaceFile(sourcePath, destinationPath);
+    moved.documents.push(destinationPath);
+  }
+
+  if (liveRowsSourcePath) {
+    const destinationPath = path.join(vectorizedRoot, path.basename(liveRowsSourcePath));
+    await replaceFile(liveRowsSourcePath, destinationPath);
+    moved.live_rows_file = destinationPath;
+  }
+
+  return moved;
+}
+
 async function run() {
   const apiUrl = requireEnv("SKILL_RUNTIME_API_URL");
   const licenseKey = requireEnv("SKILL_RUNTIME_LICENSE_KEY");
   const maxDocsPerRequest = Number(process.env.SKILL_RUNTIME_MAX_DOCS_PER_REQUEST || 10);
   const workspaceDir = path.resolve(process.env.WORKSPACE_DIR || "./workspace");
-  const preparedDir = path.join(workspaceDir, process.env.PREPARED_DIR_NAME || "prepared");
+  const newFilesDir = path.join(workspaceDir, process.env.NEW_FILES_DIR_NAME || "new_files");
+  const preparedRoot = path.join(workspaceDir, process.env.PREPARED_DIR_NAME || "prepared");
+  const preparedDocsSubdir = process.env.PREPARED_DOCS_DIR_NAME || "docs";
+  const preparedDir = await resolvePreparedDocsDir(workspaceDir, preparedRoot, preparedDocsSubdir);
+  const vectorizedRoot = path.join(workspaceDir, process.env.VECTORIZED_DIR_NAME || "vectorized");
+  const vectorizedDocsDir = path.join(vectorizedRoot, process.env.VECTORIZED_DOCS_DIR_NAME || "docs");
   const processedDir = path.join(workspaceDir, process.env.PROCESSED_DIR_NAME || "processed");
   const stateDir = path.join(workspaceDir, process.env.STATE_DIR_NAME || "state");
   const batchesDir = path.join(processedDir, "batches");
@@ -176,6 +245,11 @@ async function run() {
     "CYBEROP_BOOTSTRAP_SCHEMA.sql",
   );
 
+  await ensureDir(newFilesDir);
+  await ensureDir(preparedRoot);
+  await ensureDir(preparedDir);
+  await ensureDir(vectorizedRoot);
+  await ensureDir(vectorizedDocsDir);
   await ensureDir(processedDir);
   await ensureDir(stateDir);
   await ensureDir(batchesDir);
@@ -184,7 +258,7 @@ async function run() {
   await saveJson(path.join(stateDir, "bootstrap_summary.json"), bootstrapSummary);
 
   const documents = await listPreparedDocs(preparedDir);
-  const liveRows = await listPreparedLiveRows(workspaceDir);
+  const { rows: liveRows, sourcePath: liveRowsSourcePath } = await loadPreparedLiveRows(workspaceDir, preparedRoot);
 
   if (documents.length === 0 && liveRows.length === 0) {
     console.log("No prepared documents or products_live rows found.");
@@ -291,6 +365,14 @@ async function run() {
   const writeSummary = await writeRuntimeResultToSupabase(aggregatedResult);
   await saveJson(path.join(stateDir, "supabase_write_summary.json"), writeSummary);
 
+  const archiveSummary = await archiveProcessedInputs(
+    documents,
+    liveRowsSourcePath,
+    vectorizedDocsDir,
+    vectorizedRoot,
+  );
+  await saveJson(path.join(stateDir, "archive_summary.json"), archiveSummary);
+
   const summary = {
     processed_at: new Date().toISOString(),
     documents_sent: documents.length,
@@ -301,6 +383,8 @@ async function run() {
     job_id: aggregatedResult?.job_id || null,
     knowledge_chunks_written: writeSummary.knowledge_chunks_written,
     products_rows_written: writeSummary.products_rows_written,
+    archived_documents: archiveSummary.documents.length,
+    archived_live_rows_file: archiveSummary.live_rows_file,
   };
 
   await saveJson(path.join(stateDir, "last_run_summary.json"), summary);

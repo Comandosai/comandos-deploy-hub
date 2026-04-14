@@ -20,15 +20,20 @@ Use it when the user says things like:
 
 1. Ask only for the source folder path if it is not already known.
 2. Create or update one `__workspace`.
-3. Run the bundled document splitting logic from:
+3. Ensure the workspace layout exists:
+- `new_files/`
+- `prepared/docs/`
+- `vectorized/docs/`
+4. Run the bundled document splitting logic from:
 - `../doc-splitter/SKILL.md`
 - and use its bundled `references/` files, not an external or globally installed variant.
-4. Produce:
-- `docs/`
+5. Produce:
+- `prepared/docs/`
 - optional `product_memory`
 - canonical `products_live` only if factual live rows really exist
-5. Keep the output limited to the current bundle artifacts.
-6. Do not offer a separate ad hoc table after the main run.
+6. Keep the output limited to the current bundle artifacts.
+7. Do not offer a separate ad hoc table after the main run.
+8. Do not place cleaned files back into `new_files/` or directly into `vectorized/`.
 
 ## Important implementation rule
 
@@ -46,7 +51,7 @@ The bundled `doc-splitter` must perform real structural normalization, including
 
 Always report:
 
-- which docs were created;
+- which docs were created in `prepared/docs/`;
 - whether `products_live` was created;
 - if `products_live` was not created, why.
 
