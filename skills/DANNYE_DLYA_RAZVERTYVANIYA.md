@@ -1,63 +1,39 @@
 # Данные для развертывания
 
-Заполните этот файл один раз. Навыки должны читать его первым делом.
+Заполните только то, что знаете. Остальное агент должен найти сам или спросить отдельно.
 
-Если поле не нужно или данных пока нет, оставьте его пустым.
+Это главный файл входных данных для всего сценария.
 
-## Серверы
+## Заполните в первую очередь
 
-- `server_access_main:` 
-- `server_access_supabase:` 
-- `server_access_n8n:` 
-
-## Домены
-
+- `server_access:` 
 - `n8n_domain:` 
 - `supabase_domain:` 
-- `supabase_dashboard_url:` 
-
-## Почта и пароли
-
 - `ssl_email:` 
 - `n8n_admin_email:` 
 - `n8n_admin_password:` 
+- `x_license_key:` 
+- `openai_api_key:` 
+- `openrouter_api_key:` 
+- `telegram_bot_token:` 
+
+## Если уже известно
+
+- `supabase_dashboard_url:` 
 - `supabase_admin_email:` 
 - `supabase_admin_password:` 
-
-## База данных
-
 - `db_host:` 
 - `db_port:` 
 - `db_name:` 
 - `db_user:` 
 - `db_password:` 
 - `db_schema:` public
-
-## Ключи и токены
-
-- `x_license_key:` 
-- `openai_api_key:` 
-- `openrouter_api_key:` 
-- `telegram_bot_token:` 
-
-## Прочее
-
 - `tenant_id:` global
-- `notes:` 
 
-## Правило для навыков
+## Правило для агента
 
-Если этот файл существует:
-- сначала читать его;
-- не спрашивать пользователя повторно о заполненных полях;
-- спрашивать только то, что пустое или отсутствует.
-- если навык развернул или нашел `Supabase`, он должен сразу дописать сюда:
-  - `supabase_dashboard_url`
-  - `supabase_admin_email`
-  - `supabase_admin_password`
-  - `db_host`
-  - `db_port`
-  - `db_name`
-  - `db_user`
-  - `db_password`
-  - `db_schema`
+- сначала читать этот файл;
+- не спрашивать повторно уже заполненные поля;
+- спрашивать только то, чего здесь нет;
+- если `n8n` или `Supabase` уже найдены на сервере, дописывать сюда найденные URL, логины, пароли и DB-параметры;
+- после каждого этапа предлагать только один следующий шаг.
