@@ -18,6 +18,10 @@ description: Подключает существующие Supabase и n8n кл�
 1. Прочитай [порядок действий](references/poryadok-deystviy.md).
 2. Прочитай [обязательные доступы и ключи](references/dostupy-i-klyuchi.md).
 3. Прочитай [карту workflow](references/karta-workflow.md).
+4. Прочитай [preflight-проверку](references/preflight-proverka.md).
+5. Прочитай [поиск секретов](references/poisk-sekretov.md).
+6. Прочитай [аудит перепривязки](references/audit-pereprivyazki.md).
+7. Прочитай [runtime readiness](references/runtime-readiness.md).
 
 Если пользователь просит подключить тестового ИИ-агента для проверки базы, дополнительно прочитай:
 - [prompt для тестового агента](references/prompt-testovogo-agenta.md)

@@ -22,6 +22,7 @@ description: Разворачивает новый n8n через n8n-stack-v2 �
 2. [порядок действий](references/poryadok-deystviy.md)
 3. [что нужно спросить](references/chto-sprashivat.md)
 4. [особенности n8n-stack-v2](references/osobennosti-n8n-stack-v2.md)
+5. [post-install preflight](references/post-install-preflight.md)
 
 ## Правила
 
