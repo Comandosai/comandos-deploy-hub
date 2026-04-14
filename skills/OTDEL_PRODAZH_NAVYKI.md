@@ -1,10 +1,23 @@
 # Навыки отдела продаж
 
-В репе рядом лежат четыре отдельных навыка, которые можно запускать независимо или по порядку.
+В репе рядом лежат пять отдельных навыков, которые можно запускать независимо или по порядку.
 
 Общие файлы:
 - [PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md)
 - [DANNYE_DLYA_RAZVERTYVANIYA.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/DANNYE_DLYA_RAZVERTYVANIYA.md)
+- [KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md)
+
+## 0. Полный запуск отдела продаж
+
+Папка:
+- [polnyy-zapusk-otdela-prodazh](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/polnyy-zapusk-otdela-prodazh)
+
+Назначение:
+- читать общий ввод и общий контекст проекта;
+- понимать, какой этап уже сделан;
+- пропускать завершенные этапы;
+- предлагать только следующий релевантный шаг;
+- вести пользователя через все остальные навыки как через один большой проект.
 
 ## 1. Векторизация и загрузка базы
 
