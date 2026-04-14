@@ -8,7 +8,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        912,
+        736,
         -48
       ],
       "id": "07a3868f-bda6-4643-a4cc-65680f5056db",
@@ -37,7 +37,7 @@
             "metadataValues": [
               {
                 "name": "tenant_id",
-                "value": "={{ $('Code in JavaScript1').item.json.tenant_id }}"
+                "value": "=global"
               }
             ]
           }
@@ -46,7 +46,7 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
       "typeVersion": 1.3,
       "position": [
-        1216,
+        992,
         -48
       ],
       "id": "9889a7aa-9ce4-4248-94a8-1b857e6ab4ec",
@@ -65,7 +65,7 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1296,
+        1072,
         160
       ],
       "id": "5fecefd4-6ffd-4657-aff1-70eebaad6be8",
@@ -79,26 +79,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const chatId = String($json.sessionId || $json.chatId || '');\n\nconst CHAT_TENANT_MAP = {\n  'chat_cyber_seo': 'cyber_seo',\n  'chat_other': 'other_project'\n};\n\nconst tenantId = CHAT_TENANT_MAP[chatId] || 'global';\n\nreturn [\n  {\n    json: {\n      ...$json,\n      tenant_id: 'cyber_seo'\n    }\n  }\n];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        784,
-        -272
-      ],
-      "id": "1dc7b914-708c-411a-bb75-80f08aec4061",
-      "name": "Code in JavaScript1"
-    },
-    {
-      "parameters": {
         "sessionIdType": "customKey",
         "sessionKey": "={{ $('Code in JavaScript1').item.json.message.chat.id }}"
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
       "position": [
-        1088,
+        864,
         -48
       ],
       "id": "37299a91-cdd2-4212-ae7d-e5fc66d8695d",
@@ -145,7 +132,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2064,
+        1840,
         -272
       ],
       "id": "219230e0-bb0e-4c8e-9920-dd5daf25488e",
@@ -169,7 +156,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1712,
+        1488,
         -272
       ],
       "id": "bfa6bf64-cabd-4e55-9446-b31bb207deee",
@@ -184,7 +171,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        1776,
+        1560,
         -48
       ],
       "id": "d4b9e72f-bb46-40cf-8016-1436249c3bec",
@@ -207,7 +194,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1120,
+        896,
         -272
       ],
       "id": "80e8dbf8-da45-49a9-a7d1-b56341a95130",
@@ -222,7 +209,7 @@
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
       "typeVersion": 1.2,
       "position": [
-        1504,
+        1280,
         -48
       ],
       "id": "44c80540-4eb4-41eb-ad4f-32d3d5ce7bca",
@@ -270,17 +257,6 @@
         ]
       ]
     },
-    "Code in JavaScript1": {
-      "main": [
-        [
-          {
-            "node": "Продавец мебели",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Postgres Chat Memory": {
       "ai_memory": [
         [
@@ -296,7 +272,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Продавец мебели",
             "type": "main",
             "index": 0
           }
@@ -354,7 +330,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "e8fffadf-aa7a-4dcc-85d6-9c7a720c9894",
+  "versionId": "a84d9826-d424-4d0f-86d5-086af1232aac",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"

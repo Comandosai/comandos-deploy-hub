@@ -138,7 +138,10 @@
           "queryName": "match_knowledge_rag",
           "metadata": {
             "metadataValues": [
-              {}
+              {
+                "name": "tenant_id",
+                "value": "global"
+              }
             ]
           }
         }
@@ -567,7 +570,7 @@
     "errorWorkflow": "EHFlcFWQqxnUwv4J",
     "binaryMode": "separate"
   },
-  "versionId": "7bf93aca-11c7-42f1-864d-c7c773306d4f",
+  "versionId": "e2d083cb-b791-4c50-a8f8-3040da3c77ed",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
