@@ -31,6 +31,12 @@
 - если `Supabase` уже развернут и доступы найдены, не просить их повторно, а предложить этап векторизации или этап связки;
 - если база уже векторизована, предлагать подключение workflow и credentials;
 - если workflow уже подключены, предлагать Telegram-тестирование.
+- если `Supabase` был только что развернут или обнаружен, сразу показать пользователю:
+  - URL или dashboard URL;
+  - логин или admin email;
+  - пароль;
+  - `db_host`, `db_port`, `db_name`, `db_user`, `db_schema`;
+  и сохранить эти данные в `DANNYE_DLYA_RAZVERTYVANIYA.md`.
 
 ## Зачем нужен файл `DANNYE_DLYA_RAZVERTYVANIYA.md`
 

@@ -14,12 +14,15 @@
 
 - `n8n_domain:` 
 - `supabase_domain:` 
+- `supabase_dashboard_url:` 
 
 ## Почта и пароли
 
 - `ssl_email:` 
 - `n8n_admin_email:` 
 - `n8n_admin_password:` 
+- `supabase_admin_email:` 
+- `supabase_admin_password:` 
 
 ## База данных
 
@@ -48,3 +51,13 @@
 - сначала читать его;
 - не спрашивать пользователя повторно о заполненных полях;
 - спрашивать только то, что пустое или отсутствует.
+- если навык развернул или нашел `Supabase`, он должен сразу дописать сюда:
+  - `supabase_dashboard_url`
+  - `supabase_admin_email`
+  - `supabase_admin_password`
+  - `db_host`
+  - `db_port`
+  - `db_name`
+  - `db_user`
+  - `db_password`
+  - `db_schema`
