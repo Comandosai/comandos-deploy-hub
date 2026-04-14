@@ -24,10 +24,10 @@
     "SUPABASE_DB_SSL"
   ],
   "workspace_layout": [
-    "raw",
-    "__workspace",
-    "docs",
-    "tables",
+    "Base",
+    "new_files",
+    "prepared_docs",
+    "vectorized_docs",
     "processed",
     "state"
   ]

@@ -15,8 +15,8 @@ Use this skill to turn messy company materials into a clean ingestion package:
 
 Default workspace routing:
 - raw incoming files live in `new_files/`;
-- cleaned and normalized files for ingestion must be written to `prepared/docs/`;
-- already processed files belong in `vectorized/docs/` only after successful ingestion.
+- cleaned and normalized files for ingestion must be written to `prepared_docs/`;
+- already processed files belong in `vectorized_docs/` only after successful ingestion.
 
 Treat this skill as domain-neutral normalization:
 - preserve real source categories and factual attributes;
