@@ -15,6 +15,11 @@ description: Устанавливает и запускает полный па�
 - install notes для `Antigravity`, `Claude`, `Codex`;
 - схему `CYBEROP_BOOTSTRAP_SCHEMA.sql`.
 
+Перед началом навык должен:
+- искать в корне проекта файл `DANNYE_DLYA_RAZVERTYVANIYA.md`;
+- если файл найден, читать `tenant_id`, доступы к базе и ключи оттуда;
+- если файла нет, спрашивать только недостающие поля.
+
 ## Что читать в первую очередь
 
 1. [README.md](README.md)

@@ -2,6 +2,10 @@
 
 В репе рядом лежат четыре отдельных навыка, которые можно запускать независимо или по порядку.
 
+Общие файлы:
+- [PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md)
+- [DANNYE_DLYA_RAZVERTYVANIYA.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/DANNYE_DLYA_RAZVERTYVANIYA.md)
+
 ## 1. Векторизация и загрузка базы
 
 Папка:
