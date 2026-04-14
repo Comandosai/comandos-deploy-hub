@@ -520,6 +520,7 @@ EOF
       - N8N_PROTOCOL=https
       - NODE_ENV=production
       - WEBHOOK_URL=https://\${DOMAIN_NAME}/
+      - N8N_PROXY_HOPS=1
       - GENERIC_TIMEZONE=\${GENERIC_TIMEZONE}
       - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
