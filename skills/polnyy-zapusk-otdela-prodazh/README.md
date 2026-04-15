@@ -27,7 +27,7 @@
 Общие файлы:
 - [DANNYE_DLYA_RAZVERTYVANIYA.md](../DANNYE_DLYA_RAZVERTYVANIYA.md)
 - [KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md](../KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md)
-- [PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md](../PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md)
+- [RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md](../RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md)
 
 Поднавыки:
 - [Развертывание и обновление n8n](../razvertyvanie-i-obnovlenie-n8n/SKILL.md)
@@ -42,6 +42,7 @@
 - обновить общий файл контекста;
 - понять, какой шаг уже выполнен;
 - пропустить уже готовые этапы;
+- взять следующий шаг из `RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md`;
 - предложить только один следующий шаг;
 - выдать этот шаг в готовом `text`-блоке;
 - если есть достаточно данных, предложить продолжить без лишнего ввода;

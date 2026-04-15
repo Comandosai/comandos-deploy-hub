@@ -3,7 +3,7 @@
 В репе рядом лежат пять отдельных навыков, которые можно запускать независимо или по порядку.
 
 Общие файлы:
-- [PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/PORYADOK_ZAPUSKA_OTDELA_PRODAZH.md)
+- [RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md)
 - [DANNYE_DLYA_RAZVERTYVANIYA.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/DANNYE_DLYA_RAZVERTYVANIYA.md)
 - [KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md)
 
