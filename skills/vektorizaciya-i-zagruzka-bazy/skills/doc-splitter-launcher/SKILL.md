@@ -34,6 +34,7 @@ Use it when the user says things like:
 6. Keep the output limited to the current bundle artifacts.
 7. Do not offer a separate ad hoc table after the main run.
 8. Do not place cleaned files back into `new_files/` or directly into `vectorized_docs/`.
+9. Treat `new_files/` as a transient queue: after successful normalization, processed source files must be removed from `new_files/`.
 
 ## Important implementation rule
 
@@ -46,12 +47,15 @@ The bundled `doc-splitter` must perform real structural normalization, including
 - avoid one giant `## Описание` blob when it contains multiple semantic sections;
 - avoid `---` as a structural separator;
 - normalize product docs into retrieval-friendly sections when source semantics allow it.
+- do not treat a near-verbatim copy of the source file as a valid `prepared_docs` result.
+- remove empty headings and headings that have no useful text before the next heading.
 
 ## After finishing
 
 Always report:
 
 - which docs were created in `prepared_docs/`;
+- how many source files were removed from `new_files/`;
 - whether `products_live` was created;
 - if `products_live` was not created, why.
 

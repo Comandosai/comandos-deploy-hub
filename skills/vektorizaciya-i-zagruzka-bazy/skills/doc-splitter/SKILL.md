@@ -17,6 +17,7 @@ Default workspace routing:
 - raw incoming files live in `new_files/`;
 - cleaned and normalized files for ingestion must be written to `prepared_docs/`;
 - already processed files belong in `vectorized_docs/` only after successful ingestion.
+- `new_files/` is a queue, not an archive: after successful normalization the processed source file must be removed from `new_files/`.
 
 Treat this skill as domain-neutral normalization:
 - preserve real source categories and factual attributes;
@@ -50,6 +51,7 @@ When this skill produces `products_live`, it should also produce a retrieval-fri
 - heading markers like `## Что это` or `### Кейсы` must never be glued into the same line with surrounding text;
 - after each heading, start the body on the next line, not inline;
 - preserve paragraph and list formatting so the result stays readable as markdown-style text, not one compressed line.
+- do not treat a near-verbatim copy of the raw source as a valid normalized result.
 4. Prepare two parallel tabular outputs:
 - `live product rows` for `products_live`.
 4.1. When live product rows exist, include one explicit semantic-search field per row:
@@ -101,6 +103,7 @@ Never:
 - keep a decorative `**Теги:**` line in the final body when those tags can live in metadata or later retrieval fields;
 - keep empty parent headings that create junk embeddings with no content underneath;
 - keep container headings that have no own text and would produce a chunk like just `Частые вопросы` or `Основные категории`;
+- keep headings that are immediately followed by another heading with no meaningful text in between;
 - keep weak intro wrappers like `Ниже собраны типовые вопросы...` or `В этом разделе представлены...` as standalone document starts when the real useful content begins only in child sections;
 - merge multiple semantically different document types into one giant file when they should be separate docs.
 - создавать `registry_rows` как обязательный артефакт для нового `Supabase`-based ingestion flow.
