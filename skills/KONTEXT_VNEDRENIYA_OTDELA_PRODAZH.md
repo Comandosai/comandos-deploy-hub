@@ -20,6 +20,9 @@
 
 - `n8n_found:` 
 - `supabase_found:` 
+- `base_found:` 
+- `prepared_docs_found:` 
+- `vectorized_docs_found:` 
 - `project_id:` 
 - `db_schema:` 
 - `tenant_id:` global
@@ -28,6 +31,7 @@
 
 - `n8n_installed_or_updated:` 
 - `supabase_connected:` 
+- `base_created:` 
 - `knowledge_loaded:` 
 - `products_live_loaded:` 
 - `workflow_imported:` 
@@ -35,6 +39,9 @@
 - `mcp_connected:` 
 - `test_agent_ready:` 
 - `telegram_testing_ready:` 
+- `brief_ready:` 
+- `consultant_prompt_ready:` 
+- `qualifier_prompt_ready:` 
 
 ## Следующий шаг
 
