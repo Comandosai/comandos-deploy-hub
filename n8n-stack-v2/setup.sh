@@ -423,6 +423,7 @@ DB_POSTGRESDB_HOST=postgres
 DB_POSTGRESDB_DATABASE=n8n
 DB_POSTGRESDB_USER=n8n
 DB_POSTGRESDB_PASSWORD=$POSTGRES_PASSWORD
+N8N_PROXY_HOPS=1
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 N8N_RUNNERS_MODE=internal
 N8N_TASK_BROKER_HOST=0.0.0.0
@@ -460,6 +461,7 @@ EOF
     command:
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--providers.file.watch=true"
+      - "--providers.docker=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.websecure.address=:443"
@@ -469,7 +471,6 @@ EOF
     ports: ["80:80", "443:443"]
     volumes:
       - traefik_data:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik_dynamic:/etc/traefik/dynamic:ro
     networks:
       - default
@@ -518,10 +519,9 @@ EOF
       - N8N_HOST=\${DOMAIN_NAME}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
+      - N8N_PROXY_HOPS=\${N8N_PROXY_HOPS}
       - NODE_ENV=production
       - WEBHOOK_URL=https://\${DOMAIN_NAME}/
-      - N8N_PROXY_HOPS=1
-      - N8N_PUSH_BACKEND=sse
       - GENERIC_TIMEZONE=\${GENERIC_TIMEZONE}
       - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
@@ -542,14 +542,6 @@ EOF
     networks:
       - default
       - $TRAEFIK_NETWORK
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=$TRAEFIK_NETWORK"
-      - "traefik.http.routers.n8n-router.rule=Host(\`$DOMAIN\`)"
-      - "traefik.http.routers.n8n-router.entrypoints=websecure"
-      - "traefik.http.routers.n8n-router.tls=true"
-      - "traefik.http.routers.n8n-router.tls.certresolver=$TRAEFIK_RESOLVER"
-      - "traefik.http.services.n8n-service.loadbalancer.server.port=5678"
 
   n8n-worker:
     image: $N8N_IMAGE
@@ -670,6 +662,68 @@ wait_for_n8n_api() {
     done
 
     return 1
+}
+
+wait_for_postgres_tcp() {
+    local max_retries=60
+    local i=1
+
+    while [ "$i" -le "$max_retries" ]; do
+        if docker compose exec -T postgres sh -lc "PGPASSWORD=\"$POSTGRES_PASSWORD\" psql -h localhost -U n8n -d n8n -c 'SELECT 1;' >/dev/null 2>&1"; then
+            return 0
+        fi
+        sleep 2
+        i=$((i + 1))
+    done
+
+    return 1
+}
+
+ensure_postgres_password_alignment() {
+    print_header "Проверка синхронизации пароля Postgres"
+
+    if wait_for_postgres_tcp; then
+        print_success "Пароль роли n8n в Postgres синхронизирован с .env."
+        return 0
+    fi
+
+    print_warning "Пароль роли n8n в Postgres не совпадает с .env. Пытаюсь синхронизировать роль..."
+
+    if docker compose exec -T -u postgres postgres psql -d postgres -c "ALTER ROLE n8n WITH PASSWORD '$POSTGRES_PASSWORD';" >/dev/null 2>&1; then
+        if wait_for_postgres_tcp; then
+            print_success "Пароль роли n8n в Postgres синхронизирован принудительно."
+            return 0
+        fi
+    fi
+
+    print_error "Не удалось синхронизировать пароль роли n8n в Postgres. Останавливаю деплой, чтобы не оставить стек в поломанном состоянии."
+    return 1
+}
+
+run_post_restart_smoke_test() {
+    print_header "Smoke-test после рестарта"
+
+    local base_url
+    base_url=$(get_n8n_bootstrap_base_url || true)
+    if [ -z "$base_url" ]; then
+        print_error "Не удалось определить публичный URL n8n для smoke-test."
+        return 1
+    fi
+
+    docker compose restart n8n n8n-worker >/dev/null 2>&1 || true
+
+    if ! wait_for_n8n_api "$base_url"; then
+        print_error "После рестарта API n8n недоступен по $base_url/rest/settings."
+        return 1
+    fi
+
+    if ! wait_for_postgres_tcp; then
+        print_error "После рестарта n8n не может стабильно подключиться к Postgres с текущими секретами."
+        return 1
+    fi
+
+    print_success "Smoke-test после рестарта пройден."
+    return 0
 }
 
 get_public_api_key() {
@@ -1268,6 +1322,10 @@ start_services() {
     
     # Запускаем
     docker compose up -d
+
+    if ! ensure_postgres_password_alignment; then
+        exit 1
+    fi
     
     # Если Traefik был внешний, копируем конфиг ПОСЛЕ запуска
     if [ "$EXISTING_TRAEFIK" = true ]; then
@@ -1289,6 +1347,10 @@ start_services() {
 
     ensure_vector_storage
     post_deploy_bootstrap
+
+    if ! run_post_restart_smoke_test; then
+        exit 1
+    fi
     
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
