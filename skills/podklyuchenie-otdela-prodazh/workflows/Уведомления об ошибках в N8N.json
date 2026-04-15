@@ -33,7 +33,7 @@
       "credentials": {
         "telegramApi": {
           "id": "5NmxxEcaJ3vNHI5Q",
-          "name": "Support Test Beta"
+          "name": "Telegram Bot"
         }
       }
     },
@@ -71,7 +71,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       },
       "onError": "continueRegularOutput"

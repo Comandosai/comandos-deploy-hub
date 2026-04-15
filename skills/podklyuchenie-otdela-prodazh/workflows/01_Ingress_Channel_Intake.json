@@ -41,7 +41,7 @@
       "credentials": {
         "openAiApi": {
           "id": "JzdpWRoHoQZOQaXQ",
-          "name": "N8N COMANDOS BEGET"
+          "name": "OpenAI"
         }
       }
     },
@@ -225,7 +225,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -261,7 +261,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -282,7 +282,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -305,7 +305,7 @@
       "credentials": {
         "telegramApi": {
           "id": "DDAUPD5eS1rwtgVv",
-          "name": "Support Test Alpha"
+          "name": "Telegram Bot"
         }
       }
     },
@@ -327,7 +327,7 @@
       "credentials": {
         "telegramApi": {
           "id": "DDAUPD5eS1rwtgVv",
-          "name": "Support Test Alpha"
+          "name": "Telegram Bot"
         }
       }
     },
@@ -348,7 +348,7 @@
       "credentials": {
         "openAiApi": {
           "id": "JzdpWRoHoQZOQaXQ",
-          "name": "N8N COMANDOS BEGET"
+          "name": "OpenAI"
         }
       }
     },
@@ -456,7 +456,7 @@
       "credentials": {
         "telegramApi": {
           "id": "DDAUPD5eS1rwtgVv",
-          "name": "Support Test Alpha"
+          "name": "Telegram Bot"
         }
       }
     },
@@ -473,7 +473,7 @@
       "credentials": {
         "comandosLsiKeysApi": {
           "id": "cZRKBEsnw5Mg8UEC",
-          "name": "Test"
+          "name": "Comandos LSI"
         }
       }
     },
@@ -494,7 +494,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -651,7 +651,7 @@
       "credentials": {
         "comandosLsiKeysApi": {
           "id": "VBOTpdkojIXxangb",
-          "name": "Artem"
+          "name": "Comandos LSI"
         }
       },
       "disabled": true

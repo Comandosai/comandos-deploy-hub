@@ -32,7 +32,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -52,7 +52,7 @@
       "credentials": {
         "openRouterApi": {
           "id": "IbR2XS3MLE2iEbdB",
-          "name": "OpenRouter dvpopov.ru"
+          "name": "OpenRouter"
         }
       }
     },
@@ -77,7 +77,7 @@
       "credentials": {
         "openAiApi": {
           "id": "JzdpWRoHoQZOQaXQ",
-          "name": "N8N COMANDOS BEGET"
+          "name": "OpenAI"
         }
       }
     },
@@ -98,7 +98,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -115,11 +115,11 @@
         592
       ],
       "id": "313b0471-63cc-4652-ad25-d98527104efd",
-      "name": "MCP POstgres",
+      "name": "MCP Postgres",
       "credentials": {
         "httpMultipleHeadersAuth": {
           "id": "MvZXbbPhsTPjN67I",
-          "name": "MCP_postgres_main"
+          "name": "MCP Postgres"
         }
       }
     },
@@ -140,7 +140,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -308,7 +308,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     }
@@ -370,7 +370,7 @@
         ]
       ]
     },
-    "MCP POstgres": {
+    "MCP Postgres": {
       "ai_tool": [
         [
           {

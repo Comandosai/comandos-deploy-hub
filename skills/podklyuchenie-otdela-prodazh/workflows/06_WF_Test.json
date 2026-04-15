@@ -16,7 +16,7 @@
       "credentials": {
         "openRouterApi": {
           "id": "IbR2XS3MLE2iEbdB",
-          "name": "OpenRouter dvpopov.ru"
+          "name": "OpenRouter"
         }
       }
     },
@@ -54,7 +54,7 @@
       "credentials": {
         "supabaseApi": {
           "id": "pLGPmvDc2ysPy1ms",
-          "name": "Supabase RU Beget Comandos"
+          "name": "Supabase"
         }
       }
     },
@@ -73,7 +73,7 @@
       "credentials": {
         "openAiApi": {
           "id": "JzdpWRoHoQZOQaXQ",
-          "name": "N8N COMANDOS BEGET"
+          "name": "OpenAI"
         }
       }
     },
@@ -93,7 +93,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -116,7 +116,7 @@
       "credentials": {
         "telegramApi": {
           "id": "vpIYcL9f4e04ssXt",
-          "name": "Ассистент: Счета и Акты"
+          "name": "Telegram Bot"
         }
       }
     },
@@ -141,7 +141,7 @@
       "credentials": {
         "telegramApi": {
           "id": "1hdYfZao8PkTc5Jg",
-          "name": "COMANDOS AI Support"
+          "name": "Telegram Bot"
         }
       }
     },
@@ -179,7 +179,7 @@
       "credentials": {
         "openRouterApi": {
           "id": "IbR2XS3MLE2iEbdB",
-          "name": "OpenRouter dvpopov.ru"
+          "name": "OpenRouter"
         }
       }
     },
@@ -213,11 +213,11 @@
         -48
       ],
       "id": "44c80540-4eb4-41eb-ad4f-32d3d5ce7bca",
-      "name": "MCP POstgres",
+      "name": "MCP Postgres",
       "credentials": {
         "httpMultipleHeadersAuth": {
           "id": "gvizCOw4fCgxNJo8",
-          "name": "POSTGRES_MCP_COMADOS"
+          "name": "MCP Postgres"
         }
       }
     }
@@ -312,7 +312,7 @@
         ]
       ]
     },
-    "MCP POstgres": {
+    "MCP Postgres": {
       "ai_tool": [
         [
           {

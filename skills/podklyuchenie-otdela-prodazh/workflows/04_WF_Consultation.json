@@ -31,7 +31,7 @@
       "credentials": {
         "openRouterApi": {
           "id": "IbR2XS3MLE2iEbdB",
-          "name": "OpenRouter dvpopov.ru"
+          "name": "OpenRouter"
         }
       }
     },
@@ -56,7 +56,7 @@
       "credentials": {
         "openAiApi": {
           "id": "JzdpWRoHoQZOQaXQ",
-          "name": "N8N COMANDOS BEGET"
+          "name": "OpenAI"
         }
       }
     },
@@ -73,11 +73,11 @@
         192
       ],
       "id": "836ec298-064b-485a-b037-e3d6507772d3",
-      "name": "MCP POstgres",
+      "name": "MCP Postgres",
       "credentials": {
         "httpMultipleHeadersAuth": {
           "id": "MvZXbbPhsTPjN67I",
-          "name": "MCP_postgres_main"
+          "name": "MCP Postgres"
         }
       }
     },
@@ -94,7 +94,7 @@
         192
       ],
       "id": "043a448e-68d5-4763-a104-d482567994ce",
-      "name": "MCP Amocrm",
+      "name": "MCP AmoCRM",
       "credentials": {
         "httpMultipleHeadersAuth": {
           "id": "Os9D6XATcjEAEsw9",
@@ -157,7 +157,7 @@
       "credentials": {
         "supabaseApi": {
           "id": "w4qPM6aWhuKOMZNE",
-          "name": "Supabase main test"
+          "name": "Supabase"
         }
       }
     },
@@ -176,7 +176,7 @@
       "credentials": {
         "openAiApi": {
           "id": "JzdpWRoHoQZOQaXQ",
-          "name": "N8N COMANDOS BEGET"
+          "name": "OpenAI"
         }
       }
     },
@@ -210,7 +210,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -231,7 +231,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -285,7 +285,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -359,7 +359,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     },
@@ -381,7 +381,7 @@
       "credentials": {
         "postgres": {
           "id": "hjoLKy64WCwO00im",
-          "name": "Posgres_main_test"
+          "name": "Postgres"
         }
       }
     }
@@ -421,7 +421,7 @@
         ]
       ]
     },
-    "MCP POstgres": {
+    "MCP Postgres": {
       "ai_tool": [
         [
           {
@@ -432,7 +432,7 @@
         ]
       ]
     },
-    "MCP Amocrm": {
+    "MCP AmoCRM": {
       "ai_tool": [
         [
           {
