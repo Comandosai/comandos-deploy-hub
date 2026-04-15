@@ -166,7 +166,7 @@
 
 Для `MCP Postgres` используй:
 - credential type: `HTTP Multiple Headers Auth`
-- endpoint: `https://postgres.mcp.comandos.ai`
+- endpoint: `https://postgres.mcp.comandos.ai/`
 
 Headers:
 - `db_host`
@@ -176,6 +176,11 @@ Headers:
 - `db_password`
 - `db_schema`
 - `x-license-key`
+
+Важно:
+- использовать только эти точные имена заголовков;
+- не заменять их на `DB_HOST`, `database_host`, `db-user`, `x_license_key` или другие варианты;
+- `x_license_key` допустим только как имя поля в `DANNYE_DLYA_RAZVERTYVANIYA.md`, но в самом HTTP header должно быть именно `x-license-key`.
 
 Если каких-то параметров не хватает, запроси у меня только недостающее.
 Если схема не указана, спроси, используется ли `public`.

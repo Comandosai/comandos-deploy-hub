@@ -104,7 +104,7 @@
     },
     {
       "parameters": {
-        "endpointUrl": "postgres.mcp.comandos.ai",
+        "endpointUrl": "https://postgres.mcp.comandos.ai/",
         "authentication": "multipleHeadersAuth",
         "options": {}
       },

@@ -21,7 +21,7 @@
 - `HTTP Multiple Headers Auth`
 
 Endpoint:
-- `https://postgres.mcp.comandos.ai`
+- `https://postgres.mcp.comandos.ai/`
 
 Headers:
 - `db_host`
@@ -31,6 +31,11 @@ Headers:
 - `db_password`
 - `db_schema`
 - `x-license-key`
+
+Важно:
+- использовать только эти точные имена заголовков;
+- не заменять их на `DB_HOST`, `database_host`, `db-user`, `x_license_key` или другие варианты;
+- `x_license_key` допустим только как имя поля в `DANNYE_DLYA_RAZVERTYVANIYA.md`, но в самом HTTP header должно быть именно `x-license-key`.
 
 ## Параметры для `MCP AmoCRM`
 
