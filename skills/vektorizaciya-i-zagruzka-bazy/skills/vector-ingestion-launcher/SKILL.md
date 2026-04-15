@@ -1,6 +1,6 @@
 ---
 name: vector-ingestion-launcher
-description: Launch the COMANDOS ingestion flow for a prepared workspace. Use this when the user already has `prepared/docs` and wants to send them to commandos-api, get chunks plus embeddings, and load the result into Supabase.
+description: Launch the COMANDOS ingestion flow for a prepared workspace. Use this when the user already has `Base/prepared_docs` and wants to send them to commandos-api, get chunks plus embeddings, and load the result into Supabase.
 ---
 
 # Vector Ingestion Launcher
@@ -18,16 +18,18 @@ Use it when the user says things like:
 
 ## Required behavior
 
-1. Reuse the existing `__workspace`.
-2. Check whether `Supabase` access is already configured.
-3. If not configured:
+1. Reuse the existing `Base`.
+2. Refuse to treat plain source files or a bare `bd/` folder as ingestion-ready if `Base/prepared_docs` does not exist yet.
+3. Check whether `Supabase` access is already configured.
+4. If not configured:
 - ask only for the missing access data;
 - if Supabase does not exist, ask for server access and deploy flow via `supabase-stack` from this repository;
 - if personal data is involved, require `RU server`.
-4. Run the local runner as an internal step on the local execution host.
-5. Send prepared docs to `commandos-api`.
-6. Receive `chunks + embeddings`.
-7. Write results to remote `Supabase`.
+5. Run the local runner as an internal step on the local execution host.
+6. Send prepared docs to `commandos-api`.
+7. Receive `chunks + embeddings`.
+8. Write results to remote `Supabase`.
+9. After a successful run, ensure processed files leave `Base/prepared_docs` and appear in `Base/vectorized_docs`.
 
 ## Execution rule
 
@@ -52,6 +54,7 @@ Use it when the user says things like:
 - ask the user to manually compose payloads;
 - move the user away from the current bundle runtime path.
 - silently substitute `Supabase` with a plain `Postgres`/`pgvector` deployment in the standard flow.
+- leave successfully vectorized files sitting in `Base/prepared_docs`.
 
 ## After finishing
 
@@ -61,4 +64,6 @@ Always report:
 - how many chunks were received;
 - how many rows were written to `knowledge_rag`;
 - how many rows were written to `products_live`;
+- how many files were moved to `Base/vectorized_docs`;
+- whether `Base/prepared_docs` was cleaned after the run;
 - whether any step failed.

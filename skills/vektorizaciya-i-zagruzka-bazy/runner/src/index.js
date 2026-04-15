@@ -560,6 +560,38 @@ async function replaceFile(sourcePath, destinationPath) {
   await fs.rename(sourcePath, destinationPath);
 }
 
+async function cleanupPreparedQueue(preparedDir, preparedRoot) {
+  const removed = [];
+  const removableExtensions = new Set([".md", ".txt", ".tsv", ".csv", ".html"]);
+
+  const candidateDirs = [...new Set([preparedDir, preparedRoot])];
+
+  for (const dirPath of candidateDirs) {
+    if (!(await pathExists(dirPath))) {
+      continue;
+    }
+
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (!entry.isFile()) {
+        continue;
+      }
+
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!removableExtensions.has(ext)) {
+        continue;
+      }
+
+      const fullPath = path.join(dirPath, entry.name);
+      await fs.rm(fullPath, { force: true });
+      removed.push(fullPath);
+    }
+  }
+
+  return removed;
+}
+
 async function archiveProcessedInputs(
   documents,
   liveRowsSourcePath,
@@ -773,6 +805,10 @@ async function run() {
     vectorizedRoot,
   );
   await saveJson(path.join(stateDir, "archive_summary.json"), archiveSummary);
+  const cleanedPreparedFiles = await cleanupPreparedQueue(preparedDir, preparedRoot);
+  await saveJson(path.join(stateDir, "prepared_cleanup_summary.json"), {
+    removed_files: cleanedPreparedFiles,
+  });
   await saveJson(documentsManifestPath, buildDocumentsManifest(documents));
   await saveJson(productsManifestPath, buildProductsManifest(liveRows));
 
@@ -794,6 +830,7 @@ async function run() {
     archived_documents: archiveSummary.documents.length,
     archived_live_rows_file: archiveSummary.live_rows_file,
     archived_live_rows_preview_file: archiveSummary.live_rows_preview_file || null,
+    cleaned_prepared_files: cleanedPreparedFiles.length,
   };
 
   await saveJson(path.join(stateDir, "last_run_summary.json"), summary);
