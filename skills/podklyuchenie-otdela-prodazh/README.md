@@ -12,6 +12,7 @@
 - при необходимости докачивает обязательные custom node packages и credential providers;
 - при необходимости создает соединения `OpenRouter`, `OpenAI`, `Telegram`;
 - выполняет первичную проверку работоспособности.
+- не завершает этап, пока editor `n8n` не открыт без `Connection lost`, а свежие логи `n8n` не подтверждают, что битые refs ушли;
 - после каждого этапа сам предлагает следующий конкретный шаг и выдает готовый копируемый блок.
 
 ## Когда использовать
@@ -215,6 +216,7 @@ Headers:
 Нужно:
 - проверить unresolved credentials через SQL-аудит;
 - использовать `nodes::jsonb`;
+- отдельно проверить refs, у которых есть `name`, но отсутствует `id`;
 - различать:
   - credential отсутствует;
   - credential существует, но не расшарен в проект;
@@ -264,6 +266,11 @@ Headers:
 - наличие обязательных credential types;
 - загрузку workflow;
 - отсутствие пустых соединений;
+- открыть editor `n8n` после полного refresh страницы и убедиться, что нет постоянного `Connection lost`;
+- проверить свежие логи `n8n` и убедиться, что там нет:
+  - `Found credential with no ID`
+  - `Workflow activation failed validation`
+  - `User attempted to access a workflow without permissions`
 - хотя бы один тестовый запуск.
 
 После этого дай краткий итоговый отчет:

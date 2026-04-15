@@ -11,7 +11,13 @@
 - если `n8n` стоит за прокси, должен быть корректный `N8N_PROXY_HOPS`.
 6. Проверить синхронность пароля `n8n` в `.env` и роли в `Postgres`.
 7. Выполнить smoke-test после рестарта контейнеров.
-8. Если чего-то не хватает, докачать или исправить это до передачи управления следующему навыку.
+8. Открыть editor `n8n` после полного refresh страницы и убедиться, что нет постоянного `Connection lost`.
+9. Проверить свежие логи `n8n` и убедиться, что в них нет:
+- `Found credential with no ID`
+- `Workflow activation failed validation`
+- `User attempted to access a workflow without permissions`
+- `password authentication failed`
+10. Если чего-то не хватает, докачать или исправить это до передачи управления следующему навыку.
 
 Минимальный обязательный список:
 - `@comandosai/n8n-nodes-amo-crm`
