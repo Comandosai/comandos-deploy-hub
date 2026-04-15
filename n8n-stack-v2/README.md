@@ -64,8 +64,12 @@
 
 Это убирает ручной “первый час” настройки в UI.
 
-### 5) Автоустановка community-нод (только ваши пакеты)
-По умолчанию при пост-настройке ставятся только пакеты вашего npm-профиля:
+### 5) Автоустановка community-нод
+По умолчанию при пост-настройке всегда ставятся обязательные пакеты:
+- `@comandosai/n8n-nodes-doc-extract`
+- `@comandosai/n8n-nodes-amo-crm`
+
+Дополнительно можно включить установку пакетов вашего npm-профиля:
 - `https://www.npmjs.com/~comandos_ai`
 - формат пакетов: `@comandosai/n8n-nodes-*`
 
@@ -141,15 +145,23 @@ sudo ./setup.sh
 - `./setup.sh --sync-nodes` — ручной запуск синхронизации community-нод
 
 ## Автоустановка community-нод
-Создайте файл `custom/community-nodes.txt` и добавьте по одному npm-пакету на строку:
+Скрипт и без дополнительных файлов всегда ставит:
+
+```txt
+@comandosai/n8n-nodes-doc-extract
+@comandosai/n8n-nodes-amo-crm
+```
+
+Если нужно добавить ещё пакеты, создайте файл `custom/community-nodes.txt` и добавьте по одному npm-пакету на строку:
 
 ```txt
 # one package per line
 @comandosai/n8n-nodes-media
 @comandosai/n8n-nodes-doc-extract
+@comandosai/n8n-nodes-amo-crm
 ```
 
-Важно: `custom/community-nodes.txt` — это ручной override-список. Добавляйте туда только нужные пакеты, иначе скрипт поставит все, что указано в файле.
+Важно: `custom/community-nodes.txt` — это добавочный список, а не замена дефолтов. Обязательные пакеты `doc-extract` и `amo-crm` всё равно будут установлены всегда.
 
 ## Еженедельная синхронизация (npm профиль)
 При установке скрипт может включить weekly sync community-нод из профиля `comandos_ai`.

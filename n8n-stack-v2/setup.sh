@@ -44,6 +44,10 @@ IS_UPGRADE=false
 ENABLE_WEEKLY_NODES_UPDATE=false
 NPM_AUTHOR="comandos_ai"
 NPM_SCOPE="@comandosai"
+DEFAULT_COMMUNITY_PACKAGES=(
+    "@comandosai/n8n-nodes-doc-extract"
+    "@comandosai/n8n-nodes-amo-crm"
+)
 
 print_logo() {
     echo -e "${BLUE}"
@@ -864,21 +868,35 @@ install_community_nodes_from_file() {
     local cookie_file="$2"
     local auth_token="${3:-}"
     local custom_nodes_file="$SCRIPT_DIR/custom/community-nodes.txt"
+    local packages_file
     local pkg
     local response_file
     local http_code
     local message
 
-    if [ ! -f "$custom_nodes_file" ]; then
-        return 0
+    packages_file=$(mktemp)
+    response_file=$(mktemp)
+
+    for pkg in "${DEFAULT_COMMUNITY_PACKAGES[@]}"; do
+        printf '%s\n' "$pkg" >> "$packages_file"
+    done
+
+    if [ -f "$custom_nodes_file" ]; then
+        grep -vE '^[[:space:]]*($|#)' "$custom_nodes_file" >> "$packages_file" || true
     fi
 
-    if ! grep -qE '^[[:space:]]*[^#[:space:]]' "$custom_nodes_file"; then
+    sort -u "$packages_file" -o "$packages_file"
+
+    if ! grep -qE '^[[:space:]]*[^#[:space:]]' "$packages_file"; then
+        rm -f "$response_file" "$packages_file"
         return 0
     fi
 
     print_header "Установка community-нод"
-    response_file=$(mktemp)
+    print_info "Обязательные пакеты: ${DEFAULT_COMMUNITY_PACKAGES[*]}"
+    if [ -f "$custom_nodes_file" ]; then
+        print_info "Дополнительные пакеты читаются из $custom_nodes_file"
+    fi
 
     while IFS= read -r pkg; do
         pkg=$(echo "$pkg" | xargs)
@@ -911,10 +929,10 @@ install_community_nodes_from_file() {
             print_warning "Не удалось установить '$pkg' через API (HTTP $http_code). Пробую npm fallback."
             install_community_node_via_npm "$pkg" || true
         fi
-    done < "$custom_nodes_file"
+    done < "$packages_file"
 
     docker compose restart n8n n8n-worker >/dev/null 2>&1 || true
-    rm -f "$response_file"
+    rm -f "$response_file" "$packages_file"
 }
 
 install_community_nodes_from_npm_author() {
