@@ -7,8 +7,9 @@
 3. Проверить обязательные custom node packages.
 4. Проверить обязательные credential types.
 5. Проверить согласованность reverse proxy:
-- `Traefik` не должен одновременно опираться на `file provider` и мертвые `docker labels`;
-- если `n8n` стоит за прокси, должен быть корректный `N8N_PROXY_HOPS`.
+- `Traefik` должен работать по модели `docker provider + labels`;
+- в стеке не должно быть `traefik_dynamic` и ручного копирования маршрутов;
+- если `n8n` стоит за прокси, должны быть корректны `N8N_PROXY_HOPS` и `N8N_EDITOR_BASE_URL`.
 6. Проверить синхронность пароля `n8n` в `.env` и роли в `Postgres`.
 7. Выполнить smoke-test после рестарта контейнеров.
 8. Открыть editor `n8n` после полного refresh страницы и убедиться, что нет постоянного `Connection lost`.

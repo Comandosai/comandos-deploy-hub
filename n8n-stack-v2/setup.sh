@@ -27,7 +27,6 @@ POSTGRES_PASSWORD=""
 ORIGINAL_DIR=""
 EXTERNAL_IP=""
 TRAEFIK_CONTAINER=""
-TRAEFIK_DYNAMIC_DIR=""
 TRAEFIK_NETWORK="comandos-network"
 TRAEFIK_RESOLVER="mytlschallenge"
 EXISTING_TRAEFIK=false
@@ -170,31 +169,6 @@ check_ports() {
         print_success "Обнаружен работающий Traefik: $TRAEFIK_CONTAINER"
         EXISTING_TRAEFIK=true
         
-        # Пытаемся определить динамическую директорию
-        TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' | awk -F'|' '$1 ~ /dynamic/ {print $2; exit}')
-        
-        # Fallback: ищем через команду Traefik
-        if [ -z "$TRAEFIK_DYNAMIC_DIR" ]; then
-            TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}}' | tr -d '[]",\n' | grep -oP '(?<=providers\.file\.directory=)[^ ]+' | head -n1)
-            # Это путь внутри контейнера, найдем хостовый путь
-            if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
-                local host_path=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "'"$TRAEFIK_DYNAMIC_DIR"'"}}{{.Source}}{{end}}{{end}}')
-                if [ -n "$host_path" ]; then
-                    TRAEFIK_DYNAMIC_DIR="$host_path"
-                fi
-            fi
-        fi
-        
-        # Fallback 2: известные пути в экосистеме Comandos
-        if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
-            for known_dir in "$HOME/comandos/traefik/dynamic" "$HOME/traefik/dynamic" "/root/comandos/traefik/dynamic"; do
-                if [ -d "$known_dir" ]; then
-                    TRAEFIK_DYNAMIC_DIR="$known_dir"
-                    break
-                fi
-            done
-        fi
-        
         # Пытаемся определить сеть.
         # Предпочитаем comandos-network как общую межсервисную сеть в экосистеме.
         local detected_networks detected_net
@@ -212,7 +186,7 @@ check_ports() {
         local detected_resolver=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' | tr ' ' '\n' | grep -oE 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
         if [ -n "$detected_resolver" ]; then TRAEFIK_RESOLVER="$detected_resolver"; fi
         
-        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER, Dynamic=$TRAEFIK_DYNAMIC_DIR"
+        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER"
     fi
 
     local conflict=false
@@ -424,29 +398,13 @@ DB_POSTGRESDB_DATABASE=n8n
 DB_POSTGRESDB_USER=n8n
 DB_POSTGRESDB_PASSWORD=$POSTGRES_PASSWORD
 N8N_PROXY_HOPS=1
+N8N_EDITOR_BASE_URL=https://$DOMAIN
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 N8N_RUNNERS_MODE=internal
 N8N_TASK_BROKER_HOST=0.0.0.0
 N8N_BLOCK_ENV_ACCESS_IN_NODE=true
 N8N_WORKERS_CONCURRENCY=3
 N8N_PUBLIC_API_DISABLED=false
-EOF
-
-    # Создание папки и конфига для модульного Traefik
-    mkdir -p traefik_dynamic
-    cat > traefik_dynamic/n8n.yml << EOF
-http:
-  routers:
-    n8n-router:
-      rule: "Host(\`$DOMAIN\`)"
-      entryPoints: ["websecure"]
-      service: "n8n-service"
-      tls: { certResolver: "$TRAEFIK_RESOLVER" }
-  services:
-    n8n-service:
-      loadBalancer:
-        servers:
-          - url: "http://n8n:5678"
 EOF
 
     cat > docker-compose.yml << EOF
@@ -459,9 +417,8 @@ EOF
     image: traefik:$TRAEFIK_VERSION
     restart: always
     command:
-      - "--providers.file.directory=/etc/traefik/dynamic"
-      - "--providers.file.watch=true"
-      - "--providers.docker=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.websecure.address=:443"
@@ -470,8 +427,8 @@ EOF
       - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
     ports: ["80:80", "443:443"]
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_data:/letsencrypt
-      - ./traefik_dynamic:/etc/traefik/dynamic:ro
     networks:
       - default
       - $TRAEFIK_NETWORK
@@ -520,6 +477,7 @@ EOF
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - N8N_PROXY_HOPS=\${N8N_PROXY_HOPS}
+      - N8N_EDITOR_BASE_URL=\${N8N_EDITOR_BASE_URL}
       - NODE_ENV=production
       - WEBHOOK_URL=https://\${DOMAIN_NAME}/
       - GENERIC_TIMEZONE=\${GENERIC_TIMEZONE}
@@ -542,6 +500,22 @@ EOF
     networks:
       - default
       - $TRAEFIK_NETWORK
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=$TRAEFIK_NETWORK
+      - traefik.http.routers.n8n.rule=Host(`\${DOMAIN_NAME}`)
+      - traefik.http.routers.n8n.entrypoints=web,websecure
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.routers.n8n.tls.certresolver=$TRAEFIK_RESOLVER
+      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
+      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
+      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
+      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
+      - traefik.http.middlewares.n8n.headers.SSLHost=\${DOMAIN_NAME}
+      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.n8n.headers.STSPreload=true
+      - traefik.http.routers.n8n.middlewares=n8n@docker
 
   n8n-worker:
     image: $N8N_IMAGE
@@ -1327,24 +1301,6 @@ start_services() {
         exit 1
     fi
     
-    # Если Traefik был внешний, копируем конфиг ПОСЛЕ запуска
-    if [ "$EXISTING_TRAEFIK" = true ]; then
-        # Если динамическая папка так и не определена, последняя попытка
-        if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
-            print_warning "Не удалось найти динамическую папку Traefik автоматически."
-            smart_read "Укажите путь к динамической папке Traefik (напр.: /root/comandos/traefik/dynamic): " TRAEFIK_DYNAMIC_DIR
-        fi
-        
-        if [ -n "$TRAEFIK_DYNAMIC_DIR" ] && [ -d "$TRAEFIK_DYNAMIC_DIR" ]; then
-            print_info "Копирование конфигурации n8n в $TRAEFIK_DYNAMIC_DIR..."
-            cp traefik_dynamic/n8n.yml "$TRAEFIK_DYNAMIC_DIR/n8n.yml"
-            print_success "Маршрут n8n добавлен в Traefik!"
-        else
-            print_error "Папка $TRAEFIK_DYNAMIC_DIR не найдена. Скопируйте файл вручную:"
-            print_error "  cp $(pwd)/traefik_dynamic/n8n.yml <путь-к-динамической-папке>/n8n.yml"
-        fi
-    fi
-
     ensure_vector_storage
     post_deploy_bootstrap
 
