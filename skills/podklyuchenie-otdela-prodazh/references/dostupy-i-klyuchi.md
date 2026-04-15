@@ -13,6 +13,7 @@
 
 Его нужно использовать при настройке `MCP Postgres`.
 Без него подключение `MCP` не считается рабочим.
+Если `x_license_key` уже записан в `DANNYE_DLYA_RAZVERTYVANIYA.md`, его же нужно использовать для автоматической сборки `MCP AmoCRM` без ручного шаблона headers.
 
 ## Параметры для `MCP Postgres`
 
@@ -30,6 +31,21 @@ Headers:
 - `db_password`
 - `db_schema`
 - `x-license-key`
+
+## Параметры для `MCP AmoCRM`
+
+Тип соединения:
+- `HTTP Multiple Headers Auth`
+
+Endpoint:
+- `https://amocrm.mcp.comandos.ai`
+
+Headers по умолчанию:
+- `x-license-key`
+
+Правило:
+- если `x_license_key` уже найден, credential `MCP AmoCRM` должен быть собран автоматически;
+- ручные headers запрашивать только если автоматическая сборка невозможна.
 
 ## Опциональные ключи
 

@@ -40,6 +40,7 @@ description: Подключает существующие Supabase и n8n кл�
 - Если `Supabase` и `n8n` уже стоят, не разворачивать их заново.
 - Не плодить дубликаты соединений, если корректные уже существуют.
 - Для `MCP` поле `x-license-key` обязательно. Без него настройка `MCP` не считается завершенной.
+- Если в `DANNYE_DLYA_RAZVERTYVANIYA.md` уже есть `x_license_key`, не просить у пользователя ручные headers для `MCP AmoCRM`, а собрать credential автоматически.
 - Если `OpenRouter`, `OpenAI` или `Telegram` для конкретного сценария не нужны, не требовать их.
 - Для длинных операций по `n8n`, `psql`, JSON-экспорту и импорту использовать интерактивную SSH-сессию как основной режим, а не одноразовые короткие команды.
 - Все диагностические SQL по `n8n` писать через `nodes::jsonb`, а не через голый `nodes`.
@@ -90,6 +91,9 @@ description: Подключает существующие Supabase и n8n кл�
 - Для `MCP Postgres` надо помнить, что endpoint живет в node, а credential хранит headers.
 - Для внешнего `Supabase/Postgres` надо отдельно проверять, не требуется ли Supavisor-style username вместо простого `postgres`.
 - Для `MCP AmoCRM` нужен отдельный блок настройки и отдельная проверка доступности endpoint.
+- Для `MCP AmoCRM` по умолчанию использовать endpoint `https://amocrm.mcp.comandos.ai` и credential с именем `MCP AmoCRM`.
+- Если `x_license_key` уже найден в файле данных или на сервере, создать `MCP AmoCRM` автоматически через `HTTP Multiple Headers Auth` с header `x-license-key`.
+- Запрашивать ручные headers или существующий credential для `MCP AmoCRM` только если `x_license_key` отсутствует или автоматическая сборка не сработала.
 
 ## Что должно быть на выходе
 
