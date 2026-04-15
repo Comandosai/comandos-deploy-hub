@@ -15,7 +15,6 @@
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "IbR2XS3MLE2iEbdB",
           "name": "OpenRouter"
         }
       }
@@ -53,7 +52,6 @@
       "name": "Supabase Vector Store",
       "credentials": {
         "supabaseApi": {
-          "id": "pLGPmvDc2ysPy1ms",
           "name": "Supabase"
         }
       }
@@ -72,7 +70,6 @@
       "name": "Embeddings OpenAI",
       "credentials": {
         "openAiApi": {
-          "id": "JzdpWRoHoQZOQaXQ",
           "name": "OpenAI"
         }
       }
@@ -92,7 +89,6 @@
       "name": "Postgres Chat Memory",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -115,7 +111,6 @@
       "webhookId": "a8aee268-34d6-40d9-b2de-689af1de8517",
       "credentials": {
         "telegramApi": {
-          "id": "vpIYcL9f4e04ssXt",
           "name": "Telegram Bot"
         }
       }
@@ -140,7 +135,6 @@
       "webhookId": "13d1b138-6df6-463d-af14-c2f72b3c80a0",
       "credentials": {
         "telegramApi": {
-          "id": "1hdYfZao8PkTc5Jg",
           "name": "Telegram Bot"
         }
       }
@@ -178,7 +172,6 @@
       "name": "OpenRouter Chat Model2",
       "credentials": {
         "openRouterApi": {
-          "id": "IbR2XS3MLE2iEbdB",
           "name": "OpenRouter"
         }
       }
@@ -216,7 +209,6 @@
       "name": "MCP Postgres",
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "gvizCOw4fCgxNJo8",
           "name": "MCP Postgres"
         }
       }
