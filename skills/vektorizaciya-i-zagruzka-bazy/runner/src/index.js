@@ -116,13 +116,11 @@ function tryParseJson(value) {
   }
 }
 
-function escapeHtml(value) {
+function escapeMarkdown(value) {
   return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replaceAll("\\", "\\\\")
+    .replaceAll("|", "\\|")
+    .replaceAll("\n", "<br>");
 }
 
 function buildCounts(rows, field) {
@@ -136,226 +134,64 @@ function buildCounts(rows, field) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
-function renderCounts(items) {
+function renderCountsMarkdown(items) {
   if (items.length === 0) {
-    return "<span class=\"muted\">Нет данных</span>";
+    return "- Нет данных";
   }
 
-  return items
-    .map(
-      ([label, count]) =>
-        `<span class="chip"><span class="chip-label">${escapeHtml(label)}</span><span class="chip-count">${count}</span></span>`,
-    )
-    .join("");
+  return items.map(([label, count]) => `- \`${escapeMarkdown(label)}\`: ${count}`).join("\n");
 }
 
-function renderProductsPreviewHtml(rows) {
+function renderProductsPreviewMarkdown(rows, headers, previewRows) {
   const entityTypeCounts = buildCounts(rows, "entity_type");
   const statusCounts = buildCounts(rows, "status");
   const generatedAt = new Date().toISOString();
 
-  const tableRows = rows
-    .map((row) => {
-      const attributes =
-        row.attributes_json && Object.keys(row.attributes_json).length > 0
-          ? escapeHtml(JSON.stringify(row.attributes_json, null, 2))
-          : "";
+  const safeHeaders = (headers && headers.length > 0 ? headers : Object.keys(previewRows?.[0] || {})).map((h) =>
+    String(h ?? ""),
+  );
+  const headerLine = `| ${safeHeaders.map(escapeMarkdown).join(" | ")} |`;
+  const separatorLine = `| ${safeHeaders.map(() => "---").join(" | ")} |`;
+  const bodyLines = (previewRows || []).map((row) => {
+    const values = safeHeaders.map((header) => {
+      const value = row?.[header];
+      if (typeof value === "object" && value !== null) {
+        return escapeMarkdown(JSON.stringify(value));
+      }
+      return escapeMarkdown(value ?? "");
+    });
+    return `| ${values.join(" | ")} |`;
+  });
 
-      return `
-        <tr>
-          <td>${escapeHtml(row.tenant_id || "")}</td>
-          <td>${escapeHtml(row.entity_id || "")}</td>
-          <td>${escapeHtml(row.entity_type || "")}</td>
-          <td class="wide">${escapeHtml(row.entity_name || "")}</td>
-          <td>${escapeHtml(row.sku || "")}</td>
-          <td>${escapeHtml(row.status || "")}</td>
-          <td>${escapeHtml(row.category || "")}</td>
-          <td>${escapeHtml(row.price || "")}</td>
-          <td>${escapeHtml(row.old_price || "")}</td>
-          <td>${escapeHtml(row.currency || "")}</td>
-          <td>${escapeHtml(row.stock_qty || "")}</td>
-          <td class="wide">${escapeHtml(row.delivery_note || "")}</td>
-          <td class="wide pre">${escapeHtml(row.search_text || "")}</td>
-          <td class="wide pre">${attributes}</td>
-        </tr>
-      `;
-    })
-    .join("");
-
-  return `<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>products_live readable preview</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --line: #d9e1ec;
-      --text: #152033;
-      --muted: #64748b;
-      --accent: #0f766e;
-      --chip: #e6fffb;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 24px;
-      background: var(--bg);
-      color: var(--text);
-      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    .wrap {
-      max-width: 1600px;
-      margin: 0 auto;
-      display: grid;
-      gap: 16px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 18px 20px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-    }
-    h1, h2 {
-      margin: 0 0 12px;
-      line-height: 1.2;
-    }
-    h1 { font-size: 24px; }
-    h2 { font-size: 16px; }
-    .meta {
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-    }
-    .stat {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fbfdff;
-    }
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .chip {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      background: var(--chip);
-      color: var(--accent);
-      border-radius: 999px;
-      padding: 6px 10px;
-      border: 1px solid #b7efe7;
-      white-space: nowrap;
-    }
-    .chip-count {
-      font-weight: 700;
-    }
-    .muted { color: var(--muted); }
-    .table-wrap {
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-    }
-    table {
-      width: max-content;
-      min-width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-    thead th {
-      position: sticky;
-      top: 0;
-      background: #eef4fb;
-      z-index: 1;
-      text-align: left;
-      font-size: 12px;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      color: #415066;
-    }
-    th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-      border-right: 1px solid #edf2f7;
-      vertical-align: top;
-    }
-    td.wide, th.wide { min-width: 280px; }
-    .pre { white-space: pre-wrap; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <section class="card">
-      <h1>products_live readable preview</h1>
-      <div class="meta">Сгенерировано автоматически перед ingestion. Время: ${escapeHtml(generatedAt)}</div>
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-value">${rows.length}</div>
-          <div>Всего строк для products_live</div>
-        </div>
-        <div class="stat">
-          <h2>Типы сущностей</h2>
-          <div class="chips">${renderCounts(entityTypeCounts)}</div>
-        </div>
-        <div class="stat">
-          <h2>Статусы</h2>
-          <div class="chips">${renderCounts(statusCounts)}</div>
-        </div>
-      </div>
-    </section>
-    <section class="card">
-      <h2>Таблица preview</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>tenant_id</th>
-              <th>entity_id</th>
-              <th>entity_type</th>
-              <th class="wide">entity_name</th>
-              <th>sku</th>
-              <th>status</th>
-              <th>category</th>
-              <th>price</th>
-              <th>old_price</th>
-              <th>currency</th>
-              <th>stock_qty</th>
-              <th class="wide">delivery_note</th>
-              <th class="wide">search_text</th>
-              <th class="wide">attributes_json</th>
-            </tr>
-          </thead>
-          <tbody>${tableRows}</tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-</body>
-</html>`;
+  return [
+    "# products_live readable preview",
+    "",
+    `Сгенерировано автоматически перед ingestion. Время: ${generatedAt}`,
+    "",
+    `Всего строк: **${rows.length}**`,
+    "",
+    "## Типы сущностей",
+    renderCountsMarkdown(entityTypeCounts),
+    "",
+    "## Статусы",
+    renderCountsMarkdown(statusCounts),
+    "",
+    "## Таблица",
+    "",
+    headerLine,
+    separatorLine,
+    ...bodyLines,
+    "",
+  ].join("\n");
 }
 
-async function writeProductsPreview(rows, targetPath) {
+async function writeProductsPreview(rows, headers, previewRows, targetPath) {
   if (!rows || rows.length === 0) {
     return null;
   }
 
   await ensureDir(path.dirname(targetPath));
-  await fs.writeFile(targetPath, renderProductsPreviewHtml(rows), "utf8");
+  await fs.writeFile(targetPath, renderProductsPreviewMarkdown(rows, headers, previewRows), "utf8");
   return targetPath;
 }
 
@@ -406,6 +242,7 @@ async function loadPreparedLiveRows(workspaceDir, preparedRoot) {
 
       const headers = parseTsvLine(lines[0]);
       const rows = [];
+      const previewRows = [];
 
       for (const line of lines.slice(1)) {
         const values = parseTsvLine(line);
@@ -414,6 +251,8 @@ async function loadPreparedLiveRows(workspaceDir, preparedRoot) {
         for (const [index, header] of headers.entries()) {
           row[header] = values[index] ?? "";
         }
+
+        previewRows.push({ ...row });
 
         rows.push({
           tenant_id: row.tenant_id || "global",
@@ -452,6 +291,8 @@ async function loadPreparedLiveRows(workspaceDir, preparedRoot) {
 
       return {
         rows: rows.filter((row) => row.entity_id && row.entity_name),
+        headers,
+        previewRows,
         sourcePath: candidate,
       };
     } catch (error) {
@@ -462,7 +303,7 @@ async function loadPreparedLiveRows(workspaceDir, preparedRoot) {
     }
   }
 
-  return { rows: [], sourcePath: null };
+  return { rows: [], headers: [], previewRows: [], sourcePath: null };
 }
 
 function chunkArray(items, size) {
@@ -665,10 +506,15 @@ async function run() {
   await saveJson(path.join(stateDir, "bootstrap_summary.json"), bootstrapSummary);
 
   const documents = await listPreparedDocs(preparedDir);
-  const { rows: liveRows, sourcePath: liveRowsSourcePath } = await loadPreparedLiveRows(workspaceDir, preparedRoot);
+  const {
+    rows: liveRows,
+    headers: liveRowsHeaders,
+    previewRows: liveRowsPreviewRows,
+    sourcePath: liveRowsSourcePath,
+  } = await loadPreparedLiveRows(workspaceDir, preparedRoot);
   const liveRowsPreviewPath = liveRowsSourcePath
-    ? path.join(path.dirname(liveRowsSourcePath), "products_live_readable.html")
-    : path.join(preparedRoot, "products_live_readable.html");
+    ? path.join(path.dirname(liveRowsSourcePath), "products_live_readable.md")
+    : path.join(preparedRoot, "products_live_readable.md");
   const previousDocumentsManifest = await loadJson(documentsManifestPath, {});
   const previousProductsManifest = await loadJson(productsManifestPath, {});
   const { changed: changedDocuments, unchangedCount: unchangedDocumentsCount } = selectChangedDocuments(
@@ -685,7 +531,12 @@ async function run() {
     return;
   }
 
-  const generatedPreviewPath = await writeProductsPreview(liveRows, liveRowsPreviewPath);
+  const generatedPreviewPath = await writeProductsPreview(
+    liveRows,
+    liveRowsHeaders,
+    liveRowsPreviewRows,
+    liveRowsPreviewPath,
+  );
 
   const batches = chunkArray(changedDocuments, Math.max(1, maxDocsPerRequest));
   const aggregatedResult = {
