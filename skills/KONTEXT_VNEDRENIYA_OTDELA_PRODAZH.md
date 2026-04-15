@@ -38,6 +38,7 @@
 - `credentials_bound:` 
 - `mcp_connected:` 
 - `test_agent_ready:` 
+- `test_workflow_active:` 
 - `telegram_testing_ready:` 
 - `brief_ready:` 
 - `consultant_prompt_ready:` 
