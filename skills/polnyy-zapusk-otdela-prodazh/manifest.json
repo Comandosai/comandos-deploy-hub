@@ -19,7 +19,8 @@
     "x_license_key",
     "openai_api_key",
     "openrouter_api_key",
-    "telegram_bot_token",
+    "telegram_sales_bot_token",
+    "telegram_error_bot_token",
     "tenant_id"
   ],
   "modules": [
