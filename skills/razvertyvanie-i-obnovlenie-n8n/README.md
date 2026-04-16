@@ -187,6 +187,7 @@
 - все workflow на месте;
 - все credentials на месте;
 - project sharing и связи workflow/credentials сохранены.
+- SQL-аудит refs `credential.name` без `credential.id` возвращает ноль строк;
 - после рестарта контейнеров `n8n` заново поднимается и подключается к своей базе без ошибок аутентификации.
 - после полного refresh страницы editor не уходит в постоянный `Connection lost`;
 - в свежих логах `n8n` нет:

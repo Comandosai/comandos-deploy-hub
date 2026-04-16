@@ -83,6 +83,8 @@ Anon key нельзя использовать вместо service role key.
 - использовать интерактивную SSH-сессию для длинных операций;
 - писать SQL-аудит по `n8n` через `nodes::jsonb`;
 - после импорта workflow проверять unresolved credentials и project sharing;
+- после импорта workflow обязательно делать credential rebind для всех refs, где есть `name`, но отсутствует `id`;
+- если после rebind остался хотя бы один refs без `id`, не публиковать, не активировать и не считать этап завершенным;
 - после первого импорта включать `06_WF_Test`;
 - после первого импорта включать `Уведомления об ошибках в N8N` с `telegram_error_bot_token`;
 - после импорта найти актуальный ID workflow `Уведомления об ошибках в N8N` и прописать его в `settings.errorWorkflow` всех workflow пакета, кроме самого workflow ошибок;
@@ -254,6 +256,9 @@ Headers:
 - проверить unresolved credentials через SQL-аудит;
 - использовать `nodes::jsonb`;
 - отдельно проверить refs, у которых есть `name`, но отсутствует `id`;
+- выполнить обязательный rebind `(type + name) -> id` для таких refs;
+- повторить SQL-аудит и убедиться, что refs с `name` без `id` больше нет;
+- если после rebind такие refs остались, остановить этап с ошибкой и не переходить к activation/publish;
 - различать:
   - credential отсутствует;
   - credential существует, но не расшарен в проект;
@@ -314,6 +319,7 @@ Headers:
   - `Workflow activation failed validation`
   - `User attempted to access a workflow without permissions`
 - хотя бы один тестовый запуск.
+- что SQL-аудит refs с `credential.name` без `credential.id` вернул ноль строк;
 - что активны только `06_WF_Test` и `Уведомления об ошибках в N8N`;
 - что боевые workflow `01-05` выключены до отдельной команды.
 - что у `01-06` указан актуальный `settings.errorWorkflow` на workflow ошибок.

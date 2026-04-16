@@ -18,6 +18,81 @@
 12. Только после этого массово перепривязывать соединения.
 13. После перепривязки заново открыть editor и проверить свежие логи `n8n`, чтобы убедиться, что ошибки битых credentials реально ушли.
 
+Жесткое правило:
+- refs вида `credentials[type].name` без `credentials[type].id` недопустимы;
+- workflow с такими refs нельзя публиковать, активировать или тестировать;
+- если после rebind остался хотя бы один такой refs, этап должен завершаться ошибкой, а не warning.
+
+Обязательная проверка refs без `id`:
+
+```sql
+SELECT
+  we.id AS workflow_id,
+  we.name AS workflow_name,
+  node.value ->> 'name' AS node_name,
+  cred.key AS credential_type,
+  cred.value ->> 'name' AS credential_name,
+  cred.value ->> 'id' AS credential_id
+FROM workflow_entity AS we
+CROSS JOIN LATERAL jsonb_array_elements(we.nodes::jsonb) AS node(value)
+CROSS JOIN LATERAL jsonb_each(COALESCE(node.value -> 'credentials', '{}'::jsonb)) AS cred(key, value)
+WHERE COALESCE(cred.value ->> 'name', '') <> ''
+  AND COALESCE(cred.value ->> 'id', '') = ''
+ORDER BY we.name, node.value ->> 'name', cred.key;
+```
+
+Если запрос вернул хотя бы одну строку, публиковать или активировать workflow запрещено.
+
+Обязательный rebind по `(type + name)`:
+
+```sql
+WITH credential_map AS (
+  SELECT id::text AS credential_id, name, type
+  FROM credentials_entity
+),
+patched AS (
+  SELECT
+    we.id,
+    jsonb_agg(
+      CASE
+        WHEN node.value ? 'credentials' THEN
+          jsonb_set(
+            node.value,
+            '{credentials}',
+            (
+              SELECT jsonb_object_agg(
+                cred.key,
+                CASE
+                  WHEN COALESCE(cred.value ->> 'name', '') <> ''
+                   AND COALESCE(cred.value ->> 'id', '') = ''
+                   AND cm.credential_id IS NOT NULL
+                  THEN jsonb_set(cred.value, '{id}', to_jsonb(cm.credential_id), true)
+                  ELSE cred.value
+                END
+              )
+              FROM jsonb_each(COALESCE(node.value -> 'credentials', '{}'::jsonb)) AS cred(key, value)
+              LEFT JOIN credential_map AS cm
+                ON cm.type = cred.key
+               AND cm.name = cred.value ->> 'name'
+            ),
+            true
+          )
+        ELSE node.value
+      END
+      ORDER BY node.ordinality
+    ) AS patched_nodes
+  FROM workflow_entity AS we
+  CROSS JOIN LATERAL jsonb_array_elements(we.nodes::jsonb) WITH ORDINALITY AS node(value, ordinality)
+  GROUP BY we.id
+)
+UPDATE workflow_entity AS we
+SET nodes = patched.patched_nodes::json
+FROM patched
+WHERE we.id = patched.id;
+```
+
+После rebind тот же SQL-аудит нужно прогнать повторно. Нулевой результат — обязательный gate перед activation/publish.
+
 Пример проверки `errorWorkflow` через SQL:
 
 ```sql

@@ -77,6 +77,7 @@
 - credential IDs должны быть UUID v4;
 - OpenAI type должен быть `openAiApi`;
 - CLI-импорт credentials выполнять с `--project <current_project_id>`.
+- После импорта workflow нельзя оставлять refs, где есть `credential.name`, но нет `credential.id`.
 
 ## Шаг 6. Привязать соединения к узлам
 
@@ -85,6 +86,10 @@
 - проверить, что у узлов не осталось пустых ссылок;
 - проверить, что не использованы старые или битые credentials.
 - проверить `shared_credentials` для текущего `project_id`.
+- проверить, что refs с `credential.name` без `credential.id` отсутствуют полностью;
+- если такие refs есть, сделать rebind по `(type + name) -> id` через `credentials_entity`;
+- если после rebind такие refs остались, остановить этап с ошибкой;
+- пока эти refs не обнулены, запрещено публиковать, активировать и тестировать workflow;
 - проверить, что у `01_Ingress_Channel_Intake`, `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow` и `06_WF_Test` задан актуальный `settings.errorWorkflow`;
 - если `settings.errorWorkflow` отсутствует или указывает на несуществующий workflow, исправить до тестов и активации.
 
@@ -113,6 +118,7 @@
 - доступ к `MCP`;
 - наличие `x-license-key`;
 - загрузку workflow;
+- что не осталось refs с `credential.name` без `credential.id`;
 - что после первого разворачивания активны только `06_WF_Test` и `Уведомления об ошибках в N8N`, а боевые workflow выключены;
 - что все workflow пакета, кроме самого workflow ошибок, отправляют падения в `Уведомления об ошибках в N8N`;
 - хотя бы один тестовый запуск.
