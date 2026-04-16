@@ -12,8 +12,59 @@
 6. Проверить, что credentials импортированы или созданы с UUID v4, а не простыми строковыми ID.
 7. Проверить, что OpenAI credentials имеют type `openAiApi`.
 8. Если credentials импортировались через CLI, подтвердить, что использовался `--project <current_project_id>`.
-9. Только после этого массово перепривязывать соединения.
-10. После перепривязки заново открыть editor и проверить свежие логи `n8n`, чтобы убедиться, что ошибки битых credentials реально ушли.
+9. Найти актуальный ID workflow `Уведомления об ошибках в N8N`.
+10. Прописать этот ID в `settings.errorWorkflow` всех импортированных workflow, кроме самого workflow ошибок.
+11. Проверить, что `settings.errorWorkflow` не пустой и указывает на существующий workflow.
+12. Только после этого массово перепривязывать соединения.
+13. После перепривязки заново открыть editor и проверить свежие логи `n8n`, чтобы убедиться, что ошибки битых credentials реально ушли.
+
+Пример проверки `errorWorkflow` через SQL:
+
+```sql
+SELECT
+  id,
+  name,
+  settings::jsonb ->> 'errorWorkflow' AS error_workflow
+FROM workflow_entity
+WHERE name IN (
+  '01_Ingress_Channel_Intake',
+  '02_Main_Orcestrator',
+  '03_WF_Qualification',
+  '04_WF_Consultation',
+  '05_WF_Human_Handoff_Workflow',
+  '06_WF_Test'
+)
+ORDER BY name;
+```
+
+Если значение пустое или указывает не на актуальный ID workflow `Уведомления об ошибках в N8N`, нужно исправить `settings.errorWorkflow` до запуска тестов.
+
+Пример исправления `errorWorkflow` через SQL:
+
+```sql
+WITH error_workflow AS (
+  SELECT id
+  FROM workflow_entity
+  WHERE name = 'Уведомления об ошибках в N8N'
+  LIMIT 1
+)
+UPDATE workflow_entity
+SET settings = jsonb_set(
+  COALESCE(settings::jsonb, '{}'::jsonb),
+  '{errorWorkflow}',
+  to_jsonb((SELECT id FROM error_workflow)::text),
+  true
+)::json
+WHERE name IN (
+  '01_Ingress_Channel_Intake',
+  '02_Main_Orcestrator',
+  '03_WF_Qualification',
+  '04_WF_Consultation',
+  '05_WF_Human_Handoff_Workflow',
+  '06_WF_Test'
+)
+AND EXISTS (SELECT 1 FROM error_workflow);
+```
 
 Для `MCP` проверять отдельно:
 - `MCP Postgres`

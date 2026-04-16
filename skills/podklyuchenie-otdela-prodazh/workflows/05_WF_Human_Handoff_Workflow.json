@@ -528,7 +528,8 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "errorWorkflow": "EHFlcFWQqxnUwv4J"
   },
   "versionId": "21f32ddb-503b-4ca2-b1d9-e6f969f1b051",
   "meta": {
