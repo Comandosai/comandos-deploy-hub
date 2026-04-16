@@ -16,6 +16,7 @@
     "db_user",
     "db_password",
     "db_schema",
+    "supabase_service_role_key",
     "x_license_key",
     "openai_api_key",
     "openrouter_api_key",

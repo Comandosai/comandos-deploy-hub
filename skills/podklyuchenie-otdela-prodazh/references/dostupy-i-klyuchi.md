@@ -15,6 +15,17 @@
 Без него подключение `MCP` не считается рабочим.
 Если `x_license_key` уже записан в `DANNYE_DLYA_RAZVERTYVANIYA.md`, его же нужно использовать для автоматической сборки `MCP AmoCRM` без ручного шаблона headers.
 
+## Правила n8n 2.x для credentials
+
+- Все создаваемые credentials должны иметь UUID v4 как `id`.
+- Нельзя использовать простые строковые ID вроде `openai-1`, `telegram-main`, `postgres-test`.
+- Для OpenAI использовать credential type `openAiApi`.
+- Не использовать устаревший type `openaiApi`.
+- При импорте через CLI всегда использовать текущий `project_id`:
+  - `n8n import:credentials --project <current_project_id> --input <file>`
+- `project_id` нужно сначала определить в текущем `n8n`, а не хардкодить старое значение из другого инстанса.
+- После импорта проверить `shared_credentials`, чтобы credentials были видны в текущем проекте.
+
 ## Параметры для `MCP Postgres`
 
 Тип соединения:
@@ -36,6 +47,25 @@ Headers:
 - использовать только эти точные имена заголовков;
 - не заменять их на `DB_HOST`, `database_host`, `db-user`, `x_license_key` или другие варианты;
 - `x_license_key` допустим только как имя поля в `DANNYE_DLYA_RAZVERTYVANIYA.md`, но в самом HTTP header должно быть именно `x-license-key`.
+- в JSON credential для `HTTP Multiple Headers Auth` использовать структуру `headers.values`, а не прямой массив `headers`.
+
+Правильная структура:
+
+```json
+{
+  "headers": {
+    "values": [
+      { "name": "db_host", "value": "..." },
+      { "name": "db_port", "value": "..." },
+      { "name": "db_name", "value": "..." },
+      { "name": "db_user", "value": "..." },
+      { "name": "db_password", "value": "..." },
+      { "name": "db_schema", "value": "..." },
+      { "name": "x-license-key", "value": "..." }
+    ]
+  }
+}
+```
 
 ## Параметры для `MCP AmoCRM`
 
@@ -51,6 +81,17 @@ Headers по умолчанию:
 Правило:
 - если `x_license_key` уже найден, credential `MCP AmoCRM` должен быть собран автоматически;
 - ручные headers запрашивать только если автоматическая сборка невозможна.
+
+## Параметры для Supabase
+
+Для Supabase credential обязательно нужны:
+- `supabase_dashboard_url` или API URL/host;
+- `supabase_service_role_key`.
+
+Правила:
+- не подменять `supabase_service_role_key` публичным anon key;
+- если найден только anon key, считать серверный Supabase credential неготовым;
+- если service role key отсутствует, запросить только его.
 
 ## Опциональные ключи
 
@@ -77,6 +118,10 @@ Headers по умолчанию:
 Нужен, если:
 - пользователь хочет подключить Telegram-бота;
 - пользователь хочет прогнать Telegram-тесты.
+
+Для Telegram использовать два отдельных токена:
+- `telegram_sales_bot_token` — основной бот отдела продаж;
+- `telegram_error_bot_token` — бот для workflow `Уведомления об ошибках в N8N`.
 
 ## Как спрашивать
 

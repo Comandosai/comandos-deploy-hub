@@ -8,7 +8,7 @@
 - находит `n8n`;
 - загружает workflow отдела продаж;
 - загружает отдельный тестовый workflow для проверки базы;
-- при первом разворачивании активирует только `06_WF_Test`, а боевые workflow оставляет выключенными;
+- при первом разворачивании активирует только `06_WF_Test` и `Уведомления об ошибках в N8N`, а боевые workflow оставляет выключенными;
 - создает и привязывает соединения `Supabase`, `Postgres`, `MCP`;
 - при необходимости докачивает обязательные custom node packages и credential providers;
 - при необходимости создает соединения `OpenRouter`, `OpenAI`, `Telegram`;
@@ -56,6 +56,21 @@
 Для `MCP AmoCRM` ручной шаблон headers по умолчанию не нужен.
 Если в `DANNYE_DLYA_RAZVERTYVANIYA.md` уже заполнен `x_license_key`, навык должен сам создать credential `MCP AmoCRM` и не просить отдельный ручной блок headers или credential.
 
+Для `MCP Postgres` одного `x_license_key` недостаточно. Нужны все параметры базы и полный набор headers.
+
+## Важно про credentials в n8n 2.x
+
+Навык должен:
+- определять текущий `project_id` перед импортом credentials;
+- импортировать credentials через `n8n import:credentials --project <current_project_id>`;
+- создавать credential IDs только как UUID v4;
+- использовать OpenAI credential type `openAiApi`;
+- не использовать legacy type `openaiApi`;
+- для `HTTP Multiple Headers Auth` использовать `headers.values`, а не прямой массив `headers`.
+
+Для Supabase credential обязательно использовать `supabase_service_role_key`.
+Anon key нельзя использовать вместо service role key.
+
 ## Важно про реальный сценарий
 
 Этот навык должен по умолчанию делать четыре обязательные фазы:
@@ -68,8 +83,9 @@
 - использовать интерактивную SSH-сессию для длинных операций;
 - писать SQL-аудит по `n8n` через `nodes::jsonb`;
 - после импорта workflow проверять unresolved credentials и project sharing;
-- после первого импорта включать только `06_WF_Test`;
-- не активировать боевые workflow до отдельной команды на боевой запуск отдела продаж;
+- после первого импорта включать `06_WF_Test`;
+- после первого импорта включать `Уведомления об ошибках в N8N` с `telegram_error_bot_token`;
+- не активировать боевые workflow `01-05` до отдельной команды на боевой запуск отдела продаж;
 - проверять и при необходимости докачивать:
   - `@comandosai/n8n-nodes-amo-crm`;
   - `@comandosai/n8n-nodes-doc-extract`;
@@ -166,6 +182,7 @@
 - создать или обновить соединение `Supabase`;
 - создать или обновить соединение `Postgres`;
 - создать или обновить соединение `MCP Postgres`.
+- создать или обновить соединение `MCP AmoCRM`.
 
 Для `MCP Postgres` используй:
 - credential type: `HTTP Multiple Headers Auth`
@@ -180,10 +197,21 @@ Headers:
 - `db_schema`
 - `x-license-key`
 
-Важно:
-- использовать только эти точные имена заголовков;
-- не заменять их на `DB_HOST`, `database_host`, `db-user`, `x_license_key` или другие варианты;
-- `x_license_key` допустим только как имя поля в `DANNYE_DLYA_RAZVERTYVANIYA.md`, но в самом HTTP header должно быть именно `x-license-key`.
+Используй только эти точные имена заголовков.
+Не подменяй их на `DB_HOST`, `database_host`, `x_license_key`, `db-user` или другие варианты.
+Поле `x_license_key` допустимо только в файле данных, но в credential header должно быть именно `x-license-key`.
+В credential JSON используй структуру `headers.values`, а не прямой массив `headers`.
+
+Для `MCP AmoCRM` используй:
+- credential type: `HTTP Multiple Headers Auth`
+- endpoint: `https://amocrm.mcp.comandos.ai`
+- header: `x-license-key`
+
+Для Supabase используй:
+- host/API URL;
+- `supabase_service_role_key`.
+
+Не используй anon key вместо service role key.
 
 Если каких-то параметров не хватает, запроси у меня только недостающее.
 Если схема не указана, спроси, используется ли `public`.
@@ -232,9 +260,11 @@ Headers:
 - подставить `Supabase`;
 - подставить `Postgres`;
 - подставить `MCP`;
+- отдельно проверить и при необходимости создать `MCP Postgres`;
 - отдельно проверить и при необходимости создать `MCP AmoCRM`;
 - если в файле данных уже есть `x_license_key`, создать `MCP AmoCRM` автоматически без отдельного запроса headers;
 - если даны ключи, подставить `OpenRouter`, `OpenAI`, `Telegram`;
+- для Telegram создать отдельные credentials `Telegram Sales Bot` и `Telegram Error Bot`, если есть оба токена;
 - не использовать битые или пустые credentials;
 - проверить, что у workflow не осталось незаполненных соединений.
 
@@ -280,6 +310,8 @@ Headers:
   - `Workflow activation failed validation`
   - `User attempted to access a workflow without permissions`
 - хотя бы один тестовый запуск.
+- что активны только `06_WF_Test` и `Уведомления об ошибках в N8N`;
+- что боевые workflow `01-05` выключены до отдельной команды.
 
 После этого дай краткий итоговый отчет:
 - что найдено;

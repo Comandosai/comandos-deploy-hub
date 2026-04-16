@@ -40,7 +40,6 @@
       "name": "Transcribe a recording",
       "credentials": {
         "openAiApi": {
-          "id": "JzdpWRoHoQZOQaXQ",
           "name": "OpenAI"
         }
       }
@@ -224,7 +223,6 @@
       "name": "Записать входящее сообщение",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -260,7 +258,6 @@
       "name": "Дедуп события",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -281,7 +278,6 @@
       "name": "Лог Ingress завершен",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -304,8 +300,7 @@
       "webhookId": "abb8bf7f-b5f0-4867-87e0-1840fc1ffd59",
       "credentials": {
         "telegramApi": {
-          "id": "DDAUPD5eS1rwtgVv",
-          "name": "Telegram Bot"
+          "name": "Telegram Sales Bot"
         }
       }
     },
@@ -326,8 +321,7 @@
       "webhookId": "9debd444-cd95-4bf4-a513-6145757e6549",
       "credentials": {
         "telegramApi": {
-          "id": "DDAUPD5eS1rwtgVv",
-          "name": "Telegram Bot"
+          "name": "Telegram Sales Bot"
         }
       }
     },
@@ -347,7 +341,6 @@
       "name": "Transcribe a recording1",
       "credentials": {
         "openAiApi": {
-          "id": "JzdpWRoHoQZOQaXQ",
           "name": "OpenAI"
         }
       }
@@ -455,8 +448,7 @@
       "webhookId": "9debd444-cd95-4bf4-a513-6145757e6549",
       "credentials": {
         "telegramApi": {
-          "id": "DDAUPD5eS1rwtgVv",
-          "name": "Telegram Bot"
+          "name": "Telegram Sales Bot"
         }
       }
     },
@@ -472,7 +464,6 @@
       "name": "Comandos Document Extract",
       "credentials": {
         "comandosLsiKeysApi": {
-          "id": "cZRKBEsnw5Mg8UEC",
           "name": "Comandos LSI"
         }
       }
@@ -493,7 +484,6 @@
       "name": "Регистрировать лид",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -650,14 +640,12 @@
       "name": "Comandos AmoCRM",
       "credentials": {
         "comandosLsiKeysApi": {
-          "id": "VBOTpdkojIXxangb",
           "name": "Comandos LSI"
         }
       },
       "disabled": true
     }
   ],
-  "pinData": {},
   "connections": {
     "Transcribe a recording": {
       "main": [
@@ -960,8 +948,7 @@
   },
   "versionId": "3aa42c15-c4e6-492d-bb59-79d4a25f9bd3",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+    "templateCredsSetupCompleted": true
   },
   "id": "XNoTGS8eZ2bs8EM1",
   "tags": []

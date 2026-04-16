@@ -41,13 +41,15 @@ description: Подключает существующие Supabase и n8n кл�
 - Не плодить дубликаты соединений, если корректные уже существуют.
 - Для `MCP` поле `x-license-key` обязательно. Без него настройка `MCP` не считается завершенной.
 - Если в `DANNYE_DLYA_RAZVERTYVANIYA.md` уже есть `x_license_key`, не просить у пользователя ручные headers для `MCP AmoCRM`, а собрать credential автоматически.
+- Для `MCP Postgres` одного `x_license_key` недостаточно: нужны все DB-параметры и 7 HTTP headers.
 - Если `OpenRouter`, `OpenAI` или `Telegram` для конкретного сценария не нужны, не требовать их.
+- При создании credentials в n8n 2.x использовать UUID v4, правильный type `openAiApi`, структуру `headers.values` для Multiple Headers и CLI flag `--project <current_project_id>`.
 - Для длинных операций по `n8n`, `psql`, JSON-экспорту и импорту использовать интерактивную SSH-сессию как основной режим, а не одноразовые короткие команды.
 - Все диагностические SQL по `n8n` писать через `nodes::jsonb`, а не через голый `nodes`.
 - После импорта workflow всегда делать аудит неразрешенных credentials и project sharing до любых тестовых запусков.
 - При первом импорте workflow не активировать весь боевой отдел продаж автоматически.
-- При первом разворачивании активировать или публиковать только тестовый workflow `06_WF_Test`.
-- Боевые workflow `01_Ingress_Channel_Intake`, `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow` и workflow уведомлений держать выключенными до отдельного этапа боевого запуска.
+- При первом разворачивании активировать или публиковать только `06_WF_Test` и workflow `Уведомления об ошибках в N8N`.
+- Боевые workflow `01_Ingress_Channel_Intake`, `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow` держать выключенными до отдельного этапа боевого запуска.
 - Боевые workflow можно активировать только после успешной проверки базы через `06_WF_Test` и явной команды пользователя на запуск отдела продаж.
 - Перед импортом workflow всегда проверять наличие обязательных custom node packages и credential types.
 - После импорта workflow нельзя завершать этап, пока не проверены editor `n8n`, свежие логи `n8n` и отсутствие битых credential refs.
@@ -78,6 +80,7 @@ description: Подключает существующие Supabase и n8n кл�
 - импортировать workflow;
 - после импорта выставить режим активации:
   - `06_WF_Test` активировать или опубликовать;
+  - `Уведомления об ошибках в N8N` активировать или опубликовать с `telegram_error_bot_token`;
   - все боевые workflow оставить выключенными;
 - проверить unresolved credentials;
 - проверить refs, у которых есть `name`, но отсутствует `id`;
@@ -103,11 +106,28 @@ description: Подключает существующие Supabase и n8n кл�
   - либо установить provider package;
   - либо остановиться и сообщить, что custom credential type не зарегистрирован.
 - Для `MCP Postgres` надо помнить, что endpoint живет в node, а credential хранит headers.
+- Для `MCP Postgres` использовать endpoint `https://postgres.mcp.comandos.ai/`.
+- Для `MCP Postgres` использовать только точные имена headers:
+  - `db_host`
+  - `db_port`
+  - `db_name`
+  - `db_user`
+  - `db_password`
+  - `db_schema`
+  - `x-license-key`
+- Не использовать альтернативные варианты заголовков вроде `DB_HOST`, `database_host`, `x_license_key`, `db-user`.
+- Для `MCP Postgres` credential data должен использовать структуру `headers.values`.
+- Для `MCP Postgres` нельзя создавать credential только по `x_license_key`.
 - Для внешнего `Supabase/Postgres` надо отдельно проверять, не требуется ли Supavisor-style username вместо простого `postgres`.
 - Для `MCP AmoCRM` нужен отдельный блок настройки и отдельная проверка доступности endpoint.
 - Для `MCP AmoCRM` по умолчанию использовать endpoint `https://amocrm.mcp.comandos.ai` и credential с именем `MCP AmoCRM`.
 - Если `x_license_key` уже найден в файле данных или на сервере, создать `MCP AmoCRM` автоматически через `HTTP Multiple Headers Auth` с header `x-license-key`.
 - Запрашивать ручные headers или существующий credential для `MCP AmoCRM` только если `x_license_key` отсутствует или автоматическая сборка не сработала.
+- Для `Supabase` credential обязательно использовать host/API URL и `supabase_service_role_key`; anon key не подходит как замена.
+- Для Telegram создавать два отдельных credentials, если есть оба токена:
+  - `Telegram Sales Bot` из `telegram_sales_bot_token`;
+  - `Telegram Error Bot` из `telegram_error_bot_token`.
+- Перед активацией Telegram Trigger выполнять `deleteWebhook` для соответствующего bot token и после активации проверять регистрацию webhook.
 
 ## Что должно быть на выходе
 
@@ -118,6 +138,7 @@ description: Подключает существующие Supabase и n8n кл�
 - обязательные packages и credential types проверены и при необходимости докачаны;
 - workflow загружены;
 - соединения `Supabase`, `Postgres`, `MCP` созданы и привязаны;
+- отдельно проверены `MCP Postgres` и `MCP AmoCRM`;
 - project sharing проверен;
 - editor `n8n` после импорта и перепривязки открывается стабильно, без `Connection lost`;
 - в свежих логах `n8n` нет ошибок битых credentials или workflow validation;

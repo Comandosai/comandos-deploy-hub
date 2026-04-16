@@ -9,11 +9,18 @@
   ],
   "optional_inputs": [
     "supabase_server_access",
+    "supabase_service_role_key",
     "n8n_server_access",
+    "db_host",
+    "db_port",
+    "db_name",
+    "db_user",
+    "db_password",
     "db_schema",
     "openrouter_api_key",
     "openai_api_key",
-    "telegram_bot_token"
+    "telegram_sales_bot_token",
+    "telegram_error_bot_token"
   ],
   "modules": [
     "infra-discovery",

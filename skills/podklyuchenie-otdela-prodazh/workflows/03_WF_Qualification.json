@@ -31,7 +31,6 @@
       "name": "Регистрация запуска Квалификации",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -51,7 +50,6 @@
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "IbR2XS3MLE2iEbdB",
           "name": "OpenRouter"
         }
       }
@@ -76,7 +74,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "JzdpWRoHoQZOQaXQ",
           "name": "OpenAI"
         }
       }
@@ -97,7 +94,6 @@
       "name": "Загрузить Досье",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -115,10 +111,9 @@
         592
       ],
       "id": "313b0471-63cc-4652-ad25-d98527104efd",
-      "name": "MCP Postgres",
+      "name": "MCP POstgres",
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "MvZXbbPhsTPjN67I",
           "name": "MCP Postgres"
         }
       }
@@ -139,7 +134,6 @@
       "name": "Смена статуса лида",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -219,7 +213,6 @@
       "name": "MCP CRM",
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "Os9D6XATcjEAEsw9",
           "name": "MCP AmoCRM"
         }
       },
@@ -307,13 +300,11 @@
       "name": "Postgres Chat Memory",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
     }
   ],
-  "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
       "main": [
@@ -370,7 +361,7 @@
         ]
       ]
     },
-    "MCP Postgres": {
+    "MCP POstgres": {
       "ai_tool": [
         [
           {
@@ -455,7 +446,7 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false,
@@ -466,8 +457,7 @@
   },
   "versionId": "28fa33ac-a7a3-46fe-990b-773c4be1aba7",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+    "templateCredsSetupCompleted": true
   },
   "id": "PfOC1TVZyJuArLy2",
   "tags": []

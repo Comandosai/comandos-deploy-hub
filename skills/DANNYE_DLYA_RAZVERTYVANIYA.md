@@ -23,6 +23,7 @@
 - `supabase_dashboard_url:` 
 - `supabase_admin_email:` 
 - `supabase_admin_password:` 
+- `supabase_service_role_key:`
 - `db_host:` 
 - `db_port:` 
 - `db_name:` 
@@ -38,4 +39,5 @@
 - спрашивать только то, чего здесь нет;
 - поле `admin_email` использовать и как почту для SSL, и как `n8n` admin email, если отдельно не указано иное;
 - если `n8n` или `Supabase` уже найдены на сервере, дописывать сюда найденные URL, логины, пароли и DB-параметры;
+- для Supabase credential использовать именно `supabase_service_role_key`, не подменять его anon key;
 - после каждого этапа предлагать только один следующий шаг.

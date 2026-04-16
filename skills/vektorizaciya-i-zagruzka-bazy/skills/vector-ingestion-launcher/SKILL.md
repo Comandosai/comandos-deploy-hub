@@ -16,20 +16,23 @@ Use it when the user says things like:
 - `отправь prepared docs в API`
 - `сделай chunks и embeddings`
 
+Do not use this launcher immediately after document preparation unless the user gave an explicit command to start runner / ingestion.
+
 ## Required behavior
 
 1. Reuse the existing `Base`.
 2. Refuse to treat plain source files or a bare `bd/` folder as ingestion-ready if `Base/prepared_docs` does not exist yet.
-3. Check whether `Supabase` access is already configured.
-4. If not configured:
+3. Confirm this is the second stage, not the document preparation stage.
+4. Check whether `Supabase` access is already configured.
+5. If not configured:
 - ask only for the missing access data;
 - if Supabase does not exist, ask for server access and deploy flow via `supabase-stack` from this repository;
 - if personal data is involved, require `RU server`.
-5. Run the local runner as an internal step on the local execution host.
-6. Send prepared docs to `commandos-api`.
-7. Receive `chunks + embeddings`.
-8. Write results to remote `Supabase`.
-9. After a successful run, ensure processed files leave `Base/prepared_docs` and appear in `Base/vectorized_docs`.
+6. Run the local runner as an internal step on the local execution host.
+7. Send prepared docs to `commandos-api`.
+8. Receive `chunks + embeddings`.
+9. Write results to remote `Supabase`.
+10. After a successful run, ensure processed files leave `Base/prepared_docs` and appear in `Base/vectorized_docs`.
 
 ## Execution rule
 
@@ -55,6 +58,7 @@ Use it when the user says things like:
 - move the user away from the current bundle runtime path.
 - silently substitute `Supabase` with a plain `Postgres`/`pgvector` deployment in the standard flow.
 - leave successfully vectorized files sitting in `Base/prepared_docs`.
+- run ingestion as a hidden continuation of the document preparation step.
 
 ## After finishing
 

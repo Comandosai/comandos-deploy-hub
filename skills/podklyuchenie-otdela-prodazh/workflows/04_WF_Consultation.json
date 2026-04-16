@@ -30,7 +30,6 @@
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "IbR2XS3MLE2iEbdB",
           "name": "OpenRouter"
         }
       }
@@ -55,7 +54,6 @@
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "JzdpWRoHoQZOQaXQ",
           "name": "OpenAI"
         }
       }
@@ -73,10 +71,9 @@
         192
       ],
       "id": "836ec298-064b-485a-b037-e3d6507772d3",
-      "name": "MCP Postgres",
+      "name": "MCP POstgres",
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "MvZXbbPhsTPjN67I",
           "name": "MCP Postgres"
         }
       }
@@ -94,10 +91,9 @@
         192
       ],
       "id": "043a448e-68d5-4763-a104-d482567994ce",
-      "name": "MCP AmoCRM",
+      "name": "MCP Amocrm",
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "Os9D6XATcjEAEsw9",
           "name": "MCP AmoCRM"
         }
       },
@@ -138,10 +134,7 @@
           "queryName": "match_knowledge_rag",
           "metadata": {
             "metadataValues": [
-              {
-                "name": "tenant_id",
-                "value": "global"
-              }
+              {}
             ]
           }
         }
@@ -156,7 +149,6 @@
       "name": "Supabase Vector Store",
       "credentials": {
         "supabaseApi": {
-          "id": "w4qPM6aWhuKOMZNE",
           "name": "Supabase"
         }
       }
@@ -175,7 +167,6 @@
       "name": "Embeddings OpenAI",
       "credentials": {
         "openAiApi": {
-          "id": "JzdpWRoHoQZOQaXQ",
           "name": "OpenAI"
         }
       }
@@ -209,7 +200,6 @@
       "name": "Execute a SQL query1",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -230,7 +220,6 @@
       "name": "Загрузить Досье",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -284,7 +273,6 @@
       "name": "Смена статуса лида",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -358,7 +346,6 @@
       "name": "Регистрация запуска Консультации",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
@@ -380,13 +367,11 @@
       "name": "Postgres Chat Memory",
       "credentials": {
         "postgres": {
-          "id": "hjoLKy64WCwO00im",
           "name": "Postgres"
         }
       }
     }
   ],
-  "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
       "main": [
@@ -421,7 +406,7 @@
         ]
       ]
     },
-    "MCP Postgres": {
+    "MCP POstgres": {
       "ai_tool": [
         [
           {
@@ -432,7 +417,7 @@
         ]
       ]
     },
-    "MCP AmoCRM": {
+    "MCP Amocrm": {
       "ai_tool": [
         [
           {
@@ -561,7 +546,7 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false,
@@ -570,10 +555,9 @@
     "errorWorkflow": "EHFlcFWQqxnUwv4J",
     "binaryMode": "separate"
   },
-  "versionId": "e2d083cb-b791-4c50-a8f8-3040da3c77ed",
+  "versionId": "7bf93aca-11c7-42f1-864d-c7c773306d4f",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+    "templateCredsSetupCompleted": true
   },
   "id": "fIMrKvKTv5BlFW9S",
   "tags": []
