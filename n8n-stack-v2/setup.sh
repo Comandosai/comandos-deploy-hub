@@ -348,7 +348,7 @@ gather_user_input() {
                 else
                     smart_read "Email администратора n8n: " SSL_EMAIL
                 fi
-                smart_read "Введите текущий пароль администратора n8n (для автосоздания credentials и установки нод): " ADMIN_PASSWORD true
+                smart_read "Введите текущий пароль администратора n8n (для bootstrap-доступа и установки нод): " ADMIN_PASSWORD true
                 return 0 
             fi
         fi
@@ -1149,7 +1149,7 @@ post_deploy_bootstrap() {
     print_header "Пост-настройка n8n"
 
     if [ -z "${ADMIN_PASSWORD:-}" ]; then
-        print_warning "Пароль администратора не задан. Пропускаю автосоздание credentials и установку community-нод."
+        print_warning "Пароль администратора не задан. Пропускаю bootstrap-доступ и установку community-нод."
         return 0
     fi
 

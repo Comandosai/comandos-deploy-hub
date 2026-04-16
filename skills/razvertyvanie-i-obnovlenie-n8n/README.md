@@ -17,7 +17,7 @@
   - `file provider + traefik_dynamic`, если `docker provider` на хосте неработоспособен;
 - не смешивает `docker provider` и `file provider` в одном инстансе;
 - после установки делает preflight по пакетам и credential types;
-- не создаёт на этом этапе рабочие credentials вроде `Postgres`, `Supabase`, `MCP Postgres`, `OpenAI`, `OpenRouter` и `Telegram Bot`;
+- не создаёт на этом этапе вообще никакие прикладные credentials в UI `n8n`, включая `Postgres`, `Supabase`, `MCP Postgres`, `OpenAI`, `OpenRouter` и `Telegram Bot`;
 - не завершает этап, пока editor `n8n` не открыт без `Connection lost`, а свежие логи `n8n` не чистые;
 - выдает краткий итоговый отчет.
 - после каждого этапа сам предлагает следующий шаг и выдает готовый копируемый блок команды.
@@ -199,6 +199,6 @@
 - где лежит стек;
 - какой домен используется;
 - что было докачано;
-- что прикладные credentials на этом этапе не создавались;
+- что на этапе сборки в UI `n8n` не был создан вообще никакой прикладной credential, включая `Postgres`;
 - что готово для следующего шага.
 ```
