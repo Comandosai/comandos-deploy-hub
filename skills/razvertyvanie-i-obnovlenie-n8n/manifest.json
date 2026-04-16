@@ -9,8 +9,8 @@
   ],
   "optional_inputs": [
     "domain",
-    "ssl_email",
-    "admin_password",
+    "admin_email",
+    "n8n_admin_password",
     "x-license-key"
   ],
   "modules": [
