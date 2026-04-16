@@ -54,7 +54,7 @@
 ### 3.1) Корректная работа n8n за HTTPS reverse proxy
 - автоматически выставляется `N8N_PROXY_HOPS=1` для схемы с одним proxy-hop;
 - автоматически выставляется `N8N_EDITOR_BASE_URL=https://<домен>`;
-- интерфейсный push-канал по умолчанию работает через `websocket` (`N8N_PUSH_BACKEND=websocket`);
+- интерфейсный push-канал по умолчанию работает через `sse` (`N8N_PUSH_BACKEND=sse`);
 - после деплоя выполняется smoke-test editor/API после рестарта;
 - стек не считается готовым, если `n8n` теряет соединение из-за proxy misconfiguration.
 

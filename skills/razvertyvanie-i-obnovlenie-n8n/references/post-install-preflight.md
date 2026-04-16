@@ -11,7 +11,7 @@
   - либо `docker provider + labels`,
   - либо `file provider + traefik_dynamic`;
 - нельзя смешивать оба режима в одном инстансе;
-- если `n8n` стоит за прокси, должны быть корректны `N8N_PROXY_HOPS`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=websocket`.
+- если `n8n` стоит за прокси, должны быть корректны `N8N_PROXY_HOPS`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=sse`.
 6. Проверить синхронность пароля `n8n` в `.env` и роли в `Postgres`.
 7. Выполнить smoke-test после рестарта контейнеров.
 8. Открыть editor `n8n` после полного refresh страницы и убедиться, что нет постоянного `Connection lost`.

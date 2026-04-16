@@ -15,7 +15,7 @@
 - если `docker provider` на хосте нестабилен или не поддерживается, `n8n-stack-v2` должен автоматически использовать `file provider`
 - `n8n` за прокси должен запускаться с корректной proxy-настройкой, включая `N8N_PROXY_HOPS=1` для одного proxy-hop
 - `n8n` за прокси должен получать `N8N_EDITOR_BASE_URL=https://<домен>`
-- для editor push по умолчанию использовать `N8N_PUSH_BACKEND=websocket`
+- для editor push по умолчанию использовать `N8N_PUSH_BACKEND=sse`
 - пароль роли `n8n` в `Postgres` не должен расходиться с `.env` после обновления
 - после деплоя обязателен smoke-test после рестарта
 
