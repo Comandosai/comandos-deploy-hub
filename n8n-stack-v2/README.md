@@ -54,7 +54,7 @@
 ### 3.1) Корректная работа n8n за HTTPS reverse proxy
 - автоматически выставляется `N8N_PROXY_HOPS=1` для схемы с одним proxy-hop;
 - автоматически выставляется `N8N_EDITOR_BASE_URL=https://<домен>`;
-- интерфейсный push-канал по умолчанию переведен на `SSE` через `N8N_PUSH_BACKEND=sse`;
+- интерфейсный push-канал по умолчанию работает через `websocket` (`N8N_PUSH_BACKEND=websocket`);
 - после деплоя выполняется smoke-test editor/API после рестарта;
 - стек не считается готовым, если `n8n` теряет соединение из-за proxy misconfiguration.
 
@@ -69,6 +69,7 @@
 По умолчанию при пост-настройке всегда ставятся обязательные пакеты:
 - `@comandosai/n8n-nodes-doc-extract`
 - `@comandosai/n8n-nodes-amo-crm`
+- `@comandosai/n8n-nodes-lsi-keys`
 
 Дополнительно можно включить установку пакетов вашего npm-профиля:
 - `https://www.npmjs.com/~comandos_ai`
@@ -152,6 +153,7 @@ sudo ./setup.sh
 ```txt
 @comandosai/n8n-nodes-doc-extract
 @comandosai/n8n-nodes-amo-crm
+@comandosai/n8n-nodes-lsi-keys
 ```
 
 Если нужно добавить ещё пакеты, создайте файл `custom/community-nodes.txt` и добавьте по одному npm-пакету на строку:

@@ -32,7 +32,7 @@
   - `docker provider + labels`, если это реально работает на хосте;
   - `file provider + traefik_dynamic`, если `docker provider` на хосте неработоспособен.
 - Нельзя смешивать `docker provider` и `file provider` в одном инстансе.
-- Если `n8n` стоит за reverse proxy, нужно проверить корректную proxy-настройку самого `n8n`, включая `N8N_PROXY_HOPS=1`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=sse`.
+- Если `n8n` стоит за reverse proxy, нужно проверить корректную proxy-настройку самого `n8n`, включая `N8N_PROXY_HOPS=1`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=websocket`.
 - Нельзя молча перегенерировать пароль `n8n`, если база уже существует.
 - На этом этапе нельзя автоматически создавать прикладные credentials. Развертывание `n8n` должно заканчиваться только рабочим стеком и установленными обязательными custom nodes.
 

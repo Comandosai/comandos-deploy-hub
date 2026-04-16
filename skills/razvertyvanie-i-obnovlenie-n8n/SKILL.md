@@ -48,7 +48,7 @@ description: Разворачивает новый n8n через n8n-stack-v2 �
 - Конфигурация reverse proxy должна быть внутренне согласованной: стек обязан использовать либо `docker provider + labels`, либо `file provider + dynamic config`, но не смешивать их внутри одного инстанса.
 - Если хост или внешний `Traefik` не поддерживает стабильный `docker provider`, стек обязан автоматически уходить в `file provider`, а не ломать install path.
 - Если `n8n` ставится за reverse proxy, навык обязан настроить `n8n` на работу за прокси, включая `N8N_PROXY_HOPS=1` и `N8N_EDITOR_BASE_URL=https://<домен>`.
-- Для editor push по умолчанию использовать `SSE` (`N8N_PUSH_BACKEND=sse`), если нет отдельного подтвержденного кейса, что `websocket` на этом хосте стабилен.
+- Для editor push по умолчанию использовать `websocket` (`N8N_PUSH_BACKEND=websocket`).
 - Навык не должен молча перегенерировать пароль приложения `n8n`, если база уже существует. Секреты `.env` и пароль роли в `Postgres` должны оставаться синхронными.
 - После установки или обновления обязателен smoke-test не только HTTP-доступности, но и переживаемости рестарта: `n8n` должен подняться повторно с теми же секретами и подключиться к своей базе без `password authentication failed`.
 - Нельзя говорить пользователю, что этап завершен, пока editor `n8n` не открыт после полного refresh страницы и не подтверждено отсутствие постоянного `Connection lost`.
@@ -84,6 +84,7 @@ description: Разворачивает новый n8n через n8n-stack-v2 �
 - отдельно проверить:
   - `@comandosai/n8n-nodes-amo-crm`;
   - `@comandosai/n8n-nodes-doc-extract`;
+  - `@comandosai/n8n-nodes-lsi-keys`;
   - provider для `comandosLsiKeysApi`.
 
 Если этих пакетов или credential types нет, навык не должен говорить, что `n8n` полностью готов к работе отдела продаж.

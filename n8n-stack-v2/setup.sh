@@ -49,6 +49,7 @@ NPM_SCOPE="@comandosai"
 DEFAULT_COMMUNITY_PACKAGES=(
     "@comandosai/n8n-nodes-doc-extract"
     "@comandosai/n8n-nodes-amo-crm"
+    "@comandosai/n8n-nodes-lsi-keys"
 )
 
 print_logo() {
@@ -443,7 +444,7 @@ DB_POSTGRESDB_USER=n8n
 DB_POSTGRESDB_PASSWORD=$POSTGRES_PASSWORD
 N8N_PROXY_HOPS=1
 N8N_EDITOR_BASE_URL=https://$DOMAIN
-N8N_PUSH_BACKEND=sse
+N8N_PUSH_BACKEND=websocket
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 N8N_RUNNERS_MODE=internal
 N8N_TASK_BROKER_HOST=0.0.0.0
