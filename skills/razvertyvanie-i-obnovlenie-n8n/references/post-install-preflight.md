@@ -7,9 +7,11 @@
 3. Проверить обязательные custom node packages.
 4. Проверить обязательные credential types.
 5. Проверить согласованность reverse proxy:
-- `Traefik` должен работать по модели `docker provider + labels`;
-- в стеке не должно быть `traefik_dynamic` и ручного копирования маршрутов;
-- если `n8n` стоит за прокси, должны быть корректны `N8N_PROXY_HOPS` и `N8N_EDITOR_BASE_URL`.
+- `Traefik` и `n8n` должны работать только по одной модели маршрутизации:
+  - либо `docker provider + labels`,
+  - либо `file provider + traefik_dynamic`;
+- нельзя смешивать оба режима в одном инстансе;
+- если `n8n` стоит за прокси, должны быть корректны `N8N_PROXY_HOPS`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=sse`.
 6. Проверить синхронность пароля `n8n` в `.env` и роли в `Postgres`.
 7. Выполнить smoke-test после рестарта контейнеров.
 8. Открыть editor `n8n` после полного refresh страницы и убедиться, что нет постоянного `Connection lost`.
@@ -19,6 +21,7 @@
 - `User attempted to access a workflow without permissions`
 - `password authentication failed`
 10. Если чего-то не хватает, докачать или исправить это до передачи управления следующему навыку.
+11. Убедиться, что на этом этапе не были автоматически созданы прикладные credentials вроде `Postgres`, `Supabase`, `MCP Postgres`, `OpenAI`, `OpenRouter` или `Telegram Bot`.
 
 Минимальный обязательный список:
 - `@comandosai/n8n-nodes-amo-crm`

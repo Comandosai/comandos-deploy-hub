@@ -11,10 +11,11 @@
 - на этапе этого навыка нельзя автоматически создавать прикладные credentials внутри `n8n`
 - особенно нельзя создавать заранее `Postgres`, `Supabase`, `MCP Postgres`, `OpenAI`, `OpenRouter` или другие рабочие connection objects
 - все прикладные credentials должны появляться только на следующих этапах, когда подключается конкретный контур
-- встроенный `Traefik` должен работать в одном согласованном режиме: `docker provider + labels`
-- `n8n-stack-v2` не должен создавать `traefik_dynamic/n8n.yml` и не должен требовать ручного копирования dynamic-конфига
+- reverse proxy должен работать в одном согласованном режиме: либо `docker provider + labels`, либо `file provider + dynamic config`
+- если `docker provider` на хосте нестабилен или не поддерживается, `n8n-stack-v2` должен автоматически использовать `file provider`
 - `n8n` за прокси должен запускаться с корректной proxy-настройкой, включая `N8N_PROXY_HOPS=1` для одного proxy-hop
 - `n8n` за прокси должен получать `N8N_EDITOR_BASE_URL=https://<домен>`
+- для editor push по умолчанию использовать `N8N_PUSH_BACKEND=sse`
 - пароль роли `n8n` в `Postgres` не должен расходиться с `.env` после обновления
 - после деплоя обязателен smoke-test после рестарта
 

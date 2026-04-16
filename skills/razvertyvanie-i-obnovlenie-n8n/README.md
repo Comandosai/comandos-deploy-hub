@@ -12,7 +12,10 @@
 - перед обновлением делает backup текущего стека;
 - при обновлении сохраняет `workflow`, `credentials`, `variables`, `project sharing`, `tags` и пользовательские настройки;
 - при деплое следит, чтобы `Traefik`, `n8n` и база были собраны по одной согласованной модели конфигурации;
-- собирает `Traefik` по модели `docker provider + labels`, как на рабочем `n8n.dev`, без `traefik_dynamic`;
+- собирает `Traefik` по одной согласованной модели маршрутизации:
+  - `docker provider + labels`, если это реально работает на хосте;
+  - `file provider + traefik_dynamic`, если `docker provider` на хосте неработоспособен;
+- не смешивает `docker provider` и `file provider` в одном инстансе;
 - после установки делает preflight по пакетам и credential types;
 - не создаёт на этом этапе рабочие credentials вроде `Postgres`, `Supabase`, `MCP Postgres`, `OpenAI`, `OpenRouter` и `Telegram Bot`;
 - не завершает этап, пока editor `n8n` не открыт без `Connection lost`, а свежие логи `n8n` не чистые;
@@ -56,7 +59,7 @@
 - `@comandosai/n8n-nodes-doc-extract`;
 - provider для `comandosLsiKeysApi`.
 - при обновлении он также обязан проверить, что все прежние `workflow` и `credentials` остались на месте и не потеряли project-sharing.
-- он также обязан проверить, что `Traefik` и `n8n` собраны по модели `docker provider + labels`, что у `n8n` выставлены `N8N_PROXY_HOPS=1` и `N8N_EDITOR_BASE_URL`, а пароль приложения и пароль роли в `Postgres` не разъехались.
+- он также обязан проверить, что `Traefik` и `n8n` собраны по одной модели маршрутизации без смешения режимов, что у `n8n` выставлены `N8N_PROXY_HOPS=1`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=sse`, а пароль приложения и пароль роли в `Postgres` не разъехались.
 
 Иначе `n8n` может быть формально поднят, но не готов к workflow отдела продаж.
 
@@ -134,9 +137,11 @@
 - сначала сделай backup текущей базы, volume, `.env` и deploy-файлов;
 - по возможности сохрани текущие настройки;
 - сохрани все существующие `workflow`, `credentials`, `variables`, `users`, `tags` и project bindings;
-- собери reverse proxy по модели `docker provider + labels`, как на рабочем `n8n.dev`;
-- не оставляй `traefik_dynamic` и не требуй ручного копирования маршрутов;
-- если `n8n` стоит за прокси, обязательно выставь корректную proxy-настройку самого `n8n`, включая `N8N_PROXY_HOPS=1` и `N8N_EDITOR_BASE_URL=https://<домен>`;
+- собери reverse proxy по одной согласованной модели:
+  - `docker provider + labels`, если это реально работает на хосте;
+  - `file provider + traefik_dynamic`, если `docker provider` на хосте неработоспособен;
+- не смешивай оба режима в одном инстансе;
+- если `n8n` стоит за прокси, обязательно выставь корректную proxy-настройку самого `n8n`, включая `N8N_PROXY_HOPS=1`, `N8N_EDITOR_BASE_URL=https://<домен>` и `N8N_PUSH_BACKEND=sse`;
 - не перегенерируй пароль `n8n` поверх уже существующей базы, пока не убедился, что пароль роли в `Postgres` будет синхронно обновлен;
 - после обновления проверь, что в новой версии `n8n` они видны и работают;
 - используй фиксированный путь `/root/n8n`.

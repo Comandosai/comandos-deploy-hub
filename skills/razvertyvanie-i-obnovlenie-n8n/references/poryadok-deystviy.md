@@ -28,10 +28,13 @@
 
 Нужно использовать только `n8n-stack-v2`.
 - Перед обновлением обязательно сделать backup текущей базы, `.env`, volume и deploy-файлов.
-- `n8n-stack-v2` должен собирать reverse proxy по модели `docker provider + labels`, как на рабочем `n8n.dev`.
-- Нельзя оставлять ветку с `traefik_dynamic` и ручным копированием маршрутов.
-- Если `n8n` стоит за reverse proxy, нужно проверить корректную proxy-настройку самого `n8n`, включая `N8N_PROXY_HOPS=1` и `N8N_EDITOR_BASE_URL`.
+- `n8n-stack-v2` должен собирать reverse proxy по одной согласованной модели:
+  - `docker provider + labels`, если это реально работает на хосте;
+  - `file provider + traefik_dynamic`, если `docker provider` на хосте неработоспособен.
+- Нельзя смешивать `docker provider` и `file provider` в одном инстансе.
+- Если `n8n` стоит за reverse proxy, нужно проверить корректную proxy-настройку самого `n8n`, включая `N8N_PROXY_HOPS=1`, `N8N_EDITOR_BASE_URL` и `N8N_PUSH_BACKEND=sse`.
 - Нельзя молча перегенерировать пароль `n8n`, если база уже существует.
+- На этом этапе нельзя автоматически создавать прикладные credentials. Развертывание `n8n` должно заканчиваться только рабочим стеком и установленными обязательными custom nodes.
 
 ## Шаг 5. Проверить результат
 

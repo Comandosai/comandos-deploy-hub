@@ -29,6 +29,8 @@ EXTERNAL_IP=""
 TRAEFIK_CONTAINER=""
 TRAEFIK_NETWORK="comandos-network"
 TRAEFIK_RESOLVER="mytlschallenge"
+TRAEFIK_DYNAMIC_DIR=""
+TRAEFIK_MODE="file"
 EXISTING_TRAEFIK=false
 
 # Версии ПО
@@ -172,6 +174,39 @@ check_ports() {
     if [ -n "$TRAEFIK_CONTAINER" ]; then
         print_success "Обнаружен работающий Traefik: $TRAEFIK_CONTAINER"
         EXISTING_TRAEFIK=true
+
+        local traefik_cmd
+        traefik_cmd=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' || true)
+        if echo "$traefik_cmd" | grep -q -- "--providers.docker=true"; then
+            TRAEFIK_MODE="docker"
+        else
+            TRAEFIK_MODE="file"
+        fi
+
+        if [ "$TRAEFIK_MODE" = "file" ]; then
+            TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' \
+                | awk -F'|' '$1 ~ /dynamic/ {print $2; exit}')
+
+            if [ -z "$TRAEFIK_DYNAMIC_DIR" ]; then
+                TRAEFIK_DYNAMIC_DIR=$(echo "$traefik_cmd" | tr ' ' '\n' | grep -oP '(?<=providers\.file\.directory=)[^ ]+' | head -n1)
+                if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+                    local host_path
+                    host_path=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "'"$TRAEFIK_DYNAMIC_DIR"'"}}{{.Source}}{{end}}{{end}}')
+                    if [ -n "$host_path" ]; then
+                        TRAEFIK_DYNAMIC_DIR="$host_path"
+                    fi
+                fi
+            fi
+
+            if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
+                for known_dir in "$HOME/comandos/traefik/dynamic" "$HOME/traefik/dynamic" "/root/comandos/traefik/dynamic"; do
+                    if [ -d "$known_dir" ]; then
+                        TRAEFIK_DYNAMIC_DIR="$known_dir"
+                        break
+                    fi
+                done
+            fi
+        fi
         
         # Пытаемся определить сеть.
         # Предпочитаем comandos-network как общую межсервисную сеть в экосистеме.
@@ -190,7 +225,10 @@ check_ports() {
         local detected_resolver=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' | tr ' ' '\n' | grep -oE 'certificatesresolvers\.[^=. ]+' | head -n1 | sed 's/certificatesresolvers\.//')
         if [ -n "$detected_resolver" ]; then TRAEFIK_RESOLVER="$detected_resolver"; fi
         
-        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER"
+        print_info "Параметры Traefik: Сеть=$TRAEFIK_NETWORK, Resolver=$TRAEFIK_RESOLVER, Mode=$TRAEFIK_MODE"
+        if [ "$TRAEFIK_MODE" = "file" ] && [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+            print_info "Dynamic config: $TRAEFIK_DYNAMIC_DIR"
+        fi
     fi
 
     local conflict=false
@@ -206,6 +244,8 @@ check_ports() {
     done
     if [ "$conflict" = true ]; then exit 1; fi
     if [ "$EXISTING_TRAEFIK" = false ]; then
+        TRAEFIK_MODE="file"
+        print_info "Встроенный Traefik будет запущен в режиме file provider для максимальной совместимости."
         print_success "Порты 80, 443 свободны"
     fi
 }
@@ -403,20 +443,42 @@ DB_POSTGRESDB_USER=n8n
 DB_POSTGRESDB_PASSWORD=$POSTGRES_PASSWORD
 N8N_PROXY_HOPS=1
 N8N_EDITOR_BASE_URL=https://$DOMAIN
+N8N_PUSH_BACKEND=sse
 NODE_OPTIONS=--max-old-space-size=$n8n_old_space
 N8N_RUNNERS_MODE=internal
 N8N_TASK_BROKER_HOST=0.0.0.0
 N8N_BLOCK_ENV_ACCESS_IN_NODE=true
 N8N_WORKERS_CONCURRENCY=3
 N8N_PUBLIC_API_DISABLED=false
+OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
 EOF
+
+    if [ "$TRAEFIK_MODE" = "file" ]; then
+        mkdir -p traefik_dynamic
+        cat > traefik_dynamic/n8n.yml << EOF
+http:
+  routers:
+    n8n-router:
+      rule: "Host(\`$DOMAIN\`)"
+      entryPoints: ["websecure"]
+      service: "n8n-service"
+      tls:
+        certResolver: "$TRAEFIK_RESOLVER"
+  services:
+    n8n-service:
+      loadBalancer:
+        servers:
+          - url: "http://n8n:5678"
+EOF
+    fi
 
     cat > docker-compose.yml << EOF
 services:
 EOF
 
     if [ "$EXISTING_TRAEFIK" = false ]; then
-        cat >> docker-compose.yml << EOF
+        if [ "$TRAEFIK_MODE" = "docker" ]; then
+            cat >> docker-compose.yml << EOF
   traefik:
     image: traefik:$TRAEFIK_VERSION
     restart: always
@@ -438,6 +500,30 @@ EOF
       - $TRAEFIK_NETWORK
 
 EOF
+        else
+            cat >> docker-compose.yml << EOF
+  traefik:
+    image: traefik:$TRAEFIK_VERSION
+    restart: always
+    command:
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
+      - "--certificatesresolvers.mytlschallenge.acme.email=\${SSL_EMAIL}"
+      - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
+    ports: ["80:80", "443:443"]
+    volumes:
+      - traefik_data:/letsencrypt
+      - ./traefik_dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - default
+      - $TRAEFIK_NETWORK
+
+EOF
+        fi
     fi
 
     cat >> docker-compose.yml << EOF
@@ -504,6 +590,11 @@ EOF
     networks:
       - default
       - $TRAEFIK_NETWORK
+
+EOF
+
+    if [ "$TRAEFIK_MODE" = "docker" ]; then
+        cat >> docker-compose.yml << EOF
     labels:
       - traefik.enable=true
       - traefik.docker.network=$TRAEFIK_NETWORK
@@ -520,7 +611,10 @@ EOF
       - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
       - traefik.http.middlewares.n8n.headers.STSPreload=true
       - traefik.http.routers.n8n.middlewares=n8n@docker
+EOF
+    fi
 
+    cat >> docker-compose.yml << EOF
   n8n-worker:
     image: $N8N_IMAGE
     command: worker --concurrency=\${N8N_WORKERS_CONCURRENCY}
@@ -1118,25 +1212,6 @@ NPM_AUTHOR=$NPM_AUTHOR
 EOF
     chmod 600 "$auth_file"
     print_info "Файл bootstrap-доступа сохранён: $auth_file"
-
-    api_key=$(get_public_api_key "$base_url" "$cookie_file" || true)
-    pg_data_json=$(jq -cn --arg host "postgres" --arg database "n8n" --arg user "n8n" --arg password "$POSTGRES_PASSWORD" \
-        '{host:$host,database:$database,user:$user,password:$password,maxConnections:100,allowUnauthorizedCerts:false,ssl:"disable",port:5432,sshTunnel:false,sshAuthenticateWith:"password",sshHost:"localhost",sshPort:22,sshUser:"root",sshPassword:"",privateKey:"",passphrase:""}')
-    redis_data_json=$(jq -cn --arg host "redis" --arg password "$REDIS_PASSWORD" \
-        '{password:$password,user:"",host:$host,port:6379,database:0,ssl:false,disableTlsVerification:false}')
-
-    # Основной путь: session API (лучше совместимость между версиями n8n).
-    ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Postgres Internal" "postgres" "$pg_data_json" || true
-    ensure_credential_session "$base_url" "$cookie_file" "$auth_token" "Redis Internal" "redis" "$redis_data_json" || true
-
-    # Дополнительный fallback: Public API key.
-    if [ -n "$api_key" ]; then
-        ensure_credential "$base_url" "$api_key" "Postgres Internal" "postgres" "$pg_data_json" || true
-        ensure_credential "$base_url" "$api_key" "Redis Internal" "redis" "$redis_data_json" || true
-    else
-        print_warning "Не удалось получить Public API key. Продолжаю только через session API."
-    fi
-
     install_community_nodes_from_file "$base_url" "$cookie_file" "$auth_token"
     install_community_nodes_from_npm_author "$base_url" "$cookie_file" "$auth_token"
     rm -f "$cookie_file"
