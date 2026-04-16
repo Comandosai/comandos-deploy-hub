@@ -1,0 +1,69 @@
+{
+  "company_name": "Example Company",
+  "company_type": "B2C",
+  "domain_type": "wellness_catalog",
+  "business_model": "consultation_first",
+  "agent_role": "consultant",
+  "rag_document_types": [
+    "knowledge_docs",
+    "faq",
+    "policy"
+  ],
+  "live_tables": [
+    "products_live",
+    "product_memory"
+  ],
+  "primary_live_table": "products_live",
+  "primary_entity_field": "entity_name",
+  "primary_sku_field": "sku",
+  "primary_category_field": "category",
+  "primary_attributes_field": "attributes_json",
+  "routing_rules": {
+    "knowledge_first": true,
+    "live_for_exact_facts": true
+  },
+  "available_tools": [
+    "Supabase Vector Store",
+    "MCP Postgres"
+  ],
+  "forbidden_actions": [
+    "invent_price",
+    "invent_stock",
+    "early_handoff"
+  ],
+  "output_contract": {
+    "consultation_status": [
+      "in_progress",
+      "completed"
+    ],
+    "recommended_next_step": [
+      "continue_consultation",
+      "human_handoff"
+    ]
+  },
+  "normalized_category_values": [
+    "device",
+    "supplement"
+  ],
+  "normalized_attribute_keys": [
+    "sales_modes",
+    "problem_tags"
+  ],
+  "human_to_db_mapping": {
+    "device": "device",
+    "supplement": "supplement"
+  },
+  "live_search_rules": {
+    "exact_match_first": true,
+    "fallback_required": true
+  },
+  "fallback_policy": {
+    "say_not_found_only_after_fallback": true
+  },
+  "handoff_rules": {
+    "meaningful_consultation_before_handoff": true
+  },
+  "state_rules": {
+    "completed_requires_handoff": true
+  }
+}

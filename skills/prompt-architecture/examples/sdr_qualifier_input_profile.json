@@ -1,0 +1,48 @@
+{
+  "company_name": "Example Company",
+  "company_type": "B2C",
+  "domain_type": "wellness_catalog",
+  "business_model": "consultation_first",
+  "agent_role": "sdr_qualifier",
+  "rag_document_types": [
+    "lead_capture_rules",
+    "handoff_rules"
+  ],
+  "live_tables": [
+    "leads"
+  ],
+  "primary_live_table": "leads",
+  "routing_rules": {
+    "minimum_useful_payload": true,
+    "orientation_first": true
+  },
+  "available_tools": [
+    "MCP CRM",
+    "safe_db_function"
+  ],
+  "forbidden_actions": [
+    "product_lookup",
+    "live_catalog_selection",
+    "broad_rediscovery_after_consultation"
+  ],
+  "output_contract": {
+    "status": [
+      "identifying",
+      "completed"
+    ],
+    "message_sent": true
+  },
+  "handoff_rules": {
+    "post_consultation_capture": true,
+    "explicit_handoff_requires_next_step": true
+  },
+  "state_rules": {
+    "completed_requires_missing_info_empty": true
+  },
+  "crm_rules": {
+    "secondary_behavior_only": true
+  },
+  "db_write_rules": {
+    "safe_function_only": true
+  }
+}

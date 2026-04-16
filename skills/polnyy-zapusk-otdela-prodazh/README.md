@@ -35,6 +35,9 @@
 - [Подключение отдела продаж](../podklyuchenie-otdela-prodazh/SKILL.md)
 - [Telegram-тестирование бота](../telegram-testirovanie-bota/SKILL.md)
 
+Canonical prompt layer:
+- [Prompt Architecture](../prompt-architecture/README.md)
+
 ## Обязательный режим работы
 
 Для всех команд ниже действуют жесткие правила:
@@ -312,10 +315,20 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Промпт консультанта`.
-Собери системный промпт консультанта на основе готового `brief`.
+Собери системный промпт консультанта не из workflow JSON и не из свободной генерации, а через canonical layer `skills/prompt-architecture/`.
+
+Используй:
+- `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
+- `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
+- `skills/prompt-architecture/references/PROMPT_INPUT_PROFILE_STANDARD.md`
+- готовый `brief`
+
+Сначала собери и сохрани `Prompts/consultant_input_profile.json`.
+Потом на его основе собери и сохрани `Prompts/prompt_consultant.md`.
 
 После завершения:
 - покажи, где сохранен промпт;
+- покажи, где сохранен input profile;
 - обнови контекст проекта;
 - предложи следующий шаг.
 ```
@@ -329,10 +342,20 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Промпт квалификатора`.
-Собери системный промпт квалификатора на основе готового `brief`.
+Собери системный промпт квалификатора не из workflow JSON и не из свободной генерации, а через canonical layer `skills/prompt-architecture/`.
+
+Используй:
+- `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
+- `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
+- `skills/prompt-architecture/references/PROMPT_INPUT_PROFILE_STANDARD.md`
+- готовый `brief`
+
+Сначала собери и сохрани `Prompts/qualifier_input_profile.json`.
+Потом на его основе собери и сохрани `Prompts/prompt_qualifier.md`.
 
 После завершения:
 - покажи, где сохранен промпт;
+- покажи, где сохранен input profile;
 - обнови контекст проекта;
 - завершай сценарий как полный рабочий контур.
 ```
