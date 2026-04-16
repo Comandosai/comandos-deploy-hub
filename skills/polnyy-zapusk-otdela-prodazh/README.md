@@ -35,6 +35,22 @@
 - [Подключение отдела продаж](../podklyuchenie-otdela-prodazh/SKILL.md)
 - [Telegram-тестирование бота](../telegram-testirovanie-bota/SKILL.md)
 
+## Обязательный режим работы
+
+Для всех команд ниже действуют жесткие правила:
+- сначала сделать полный `git clone` репозитория `https://github.com/Comandosai/comandos-deploy-hub`;
+- дальше работать только с локальными файлами из этого clone;
+- не открывать браузер для поиска инструкций;
+- не использовать интернет как источник шагов или шаблонов;
+- не сочинять `DANNYE_DLYA_RAZVERTYVANIYA.md` и `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md` с нуля;
+- если файла нет, создавать его только копированием шаблона из репозитория;
+- если файл есть, обновлять существующий, а не перезаписывать произвольной новой версией.
+
+Шаблоны брать строго отсюда:
+- `skills/DANNYE_DLYA_RAZVERTYVANIYA.md`
+- `skills/KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`
+- `skills/RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md`
+
 ## Как агент должен вести пользователя
 
 После каждого этапа агент должен:
@@ -56,7 +72,11 @@
 Агент прочитает входные данные, создаст или обновит файл контекста и сам предложит первый нужный этап.
 
 ```text
-Скачай и установи навык `Полный запуск отдела продаж` из репозитория `https://github.com/Comandosai/comandos-deploy-hub`, директория `skills/polnyy-zapusk-otdela-prodazh`.
+Сначала выполни полный clone репозитория `https://github.com/Comandosai/comandos-deploy-hub` в локальную папку.
+После clone работай только с локальной копией репозитория.
+Не открывай браузер и не ищи инструкции в интернете.
+
+Дальше установи навык `Полный запуск отдела продаж` строго из локального пути `skills/polnyy-zapusk-otdela-prodazh` внутри этого clone.
 
 Адаптируй установку под текущего агента:
 - если это Codex, положи файлы в codex-совместимую skill-структуру;
@@ -70,9 +90,10 @@
 - все файлы верхнеуровневого навыка-оркестратора.
 
 Сначала:
-- прочитай `DANNYE_DLYA_RAZVERTYVANIYA.md`, если он есть;
-- прочитай `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`, если он есть;
-- если файла контекста нет, создай его;
+- в корне проекта проверь `DANNYE_DLYA_RAZVERTYVANIYA.md` и `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
+- если `DANNYE_DLYA_RAZVERTYVANIYA.md` отсутствует, скопируй шаблон из `skills/DANNYE_DLYA_RAZVERTYVANIYA.md` без сокращений;
+- если `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md` отсутствует, скопируй шаблон из `skills/KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
+- не создавай эти файлы вручную по памяти и не пиши произвольные поля;
 - определи, какие этапы уже выполнены;
 - не заставляй меня вручную выбирать следующий шаг.
 
