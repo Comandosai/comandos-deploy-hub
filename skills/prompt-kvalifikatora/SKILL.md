@@ -29,6 +29,12 @@ description: Собирает только системный промпт `sdr_
 - Сохраняй fixed JSON output.
 - Используй только confirmed safe DB write contract.
 - Разрешай CRM actions только если они явно подтверждены в profile / runtime contract.
+- Не выпускай prompt с абстрактной фразой про CRM. В prompt должен быть явный CRM gate:
+  - `crm_enabled`;
+  - `crm_type`;
+  - `crm_write_enabled`;
+  - exact CRM actions only if confirmed.
+- Если CRM не подтверждена или runtime не дал exact actions, итоговый prompt обязан требовать полный `skip CRM`.
 - Не разрешай `products_live` lookup, `exact_match`, `relaxed_match` или `category_browse`.
 - Не проваливайся в plain text, если downstream ожидает fixed JSON.
 - Если в runtime/profile подтвержден `MCP Postgres` lead write-back path, итоговый prompt обязан содержать явный `Safe DB contract`.
@@ -38,6 +44,10 @@ description: Собирает только системный промпт `sdr_
   - список разрешенных параметров;
   - sequencing `qualification_summary -> DB write-back -> confirmed CRM sync -> user-facing reply`;
   - правило, что `p_qualification_summary` обновляется при каждом meaningful new fact.
+- Если в profile указано `crm_enabled = true`, prompt обязан явно различать:
+  - CRM включена на уровне проекта;
+  - CRM write остается runtime-gated;
+  - без exact runtime actions CRM write не выполняется.
 - Prompt обязан явно требовать summary write-back discipline: meaningful new facts должны отражаться в `p_qualification_summary`, если DB runtime доступен.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 

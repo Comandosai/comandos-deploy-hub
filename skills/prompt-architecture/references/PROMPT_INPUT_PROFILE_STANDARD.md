@@ -33,6 +33,10 @@ Builder должен работать только по структуриров
 - `state_rules`
 - `crm_rules`
 - `db_write_rules`
+- `crm_enabled`
+- `crm_type`
+- `crm_write_enabled`
+- `crm_exact_actions`
 
 ## Minimal viable profile
 
@@ -41,6 +45,18 @@ Builder должен работать только по структуриров
 При неполном профиле builder обязан:
 - не выдумывать отсутствующие таблицы;
 - не выдумывать CRM-поля;
+- не выдумывать, включена ли CRM запись;
+- не выдумывать тип CRM;
+- не выдумывать exact CRM actions;
 - не выдумывать output contract;
 - не выдумывать tool contract;
 - явно сокращать или пропускать недоопределенные technical blocks.
+
+## CRM gating rule
+
+Для ролей с CRM/DB integration builder обязан различать:
+- CRM присутствует как система;
+- CRM write реально разрешен;
+- exact CRM actions подтверждены runtime/reference.
+
+Если подтверждены только наличие CRM или ее тип, но не exact actions, builder обязан собирать prompt с явным `skip CRM`, а не с абстрактным CRM write behavior.
