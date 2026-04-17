@@ -20,9 +20,10 @@ description: Собирает только системный промпт `cons
 1. Прочитай готовый `brief`.
 2. Прочитай готовый `Prompt Input Profile`.
 3. Прочитай consultant role contract и live-search contract.
-4. Прочитай canonical skeleton и builder contract.
+4. Прочитай canonical skeleton, mature baseline и builder contract.
 5. Собери только системный промпт `consultant`.
-6. Сохрани итоговый промпт как отдельный артефакт.
+6. Перед финализацией проверь, что prompt не ужат до compact/policy-summary версии.
+7. Сохрани итоговый промпт как отдельный артефакт.
 
 ## Hard Rules
 
@@ -51,6 +52,11 @@ description: Собирает только системный промпт `cons
 - Если пользователь подтвердил конкретный стандартный вариант и количество уже известно, prompt обязан завершать консультацию через `completed + human_handoff`.
 - Prompt не должен разрешать `create_lead`, автономное создание заказа, автономное создание сделки или autonomous order acceptance со стороны consultant.
 - Prompt не должен считать первый shortlist, первый browse result или первый narrowed path достаточным основанием для `completed`.
+- Не выпускай short / compact / compressed prompt по умолчанию.
+- Для sales/runtime use case итоговый prompt должен быть heavy production prompt, а не короткий policy-summary.
+- Skeleton использовать как structural base, но не как основание для сокращения prompt.
+- Если пользователь явно не просил compact version, builder обязан выпускать длинный prompt с полной operational детализацией.
+- Prompt должен быть ближе по полноте к `Cyber_op`-style production prompt, чем к короткой skeleton-only версии.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 
 ## Обязательные references
@@ -59,6 +65,8 @@ description: Собирает только системный промпт `cons
 - `references/consultant-role-contract.md`
 - `references/consultant-live-search.md`
 - `../prompt-architecture/templates/CONSULTANT_SKELETON.md`
+- `../prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
+- `../prompt-architecture/references/CYBEROP_HEAVY_PROMPT_STANDARD.md`
 - `../prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
 
 ## Выход
@@ -73,6 +81,8 @@ description: Собирает только системный промпт `cons
 - если write-back path подтвержден, упоминание `public.update_lead_profile_safe(...)`.
 - explicit conversational micro-rules;
 - явное правило `first candidate != complete`;
-- terminal rule после confirmed selection.
+- terminal rule после confirmed selection;
+- heavy production completeness;
+- отсутствие unjustified compression.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.
