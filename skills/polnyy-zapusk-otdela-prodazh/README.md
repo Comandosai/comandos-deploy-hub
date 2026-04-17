@@ -308,64 +308,9 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - предложи следующий шаг.
 ```
 
-## Команда 9. Собрать промпт консультанта
+## Команда 9. Собрать промпт квалификатора
 
-Эта команда создает системный промпт консультанта на основе готового `brief`.
-Результат нужен для продуктового консультанта, который отвечает с опорой на знания и товарную таблицу.
-
-```text
-Используй навык `Полный запуск отдела продаж`.
-
-Перейди к этапу `Промпт консультанта`.
-Используй навык `Промпт консультанта`.
-Собери production-ready системный промпт консультанта через canonical layer, а не из workflow JSON и не из свободной генерации.
-
-Обязательно используй:
-- готовый `brief`
-- готовый `Prompt Input Profile`
-- `skills/prompt-konsultanta/SKILL.md`
-- `skills/prompt-konsultanta/references/consultant-role-contract.md`
-- `skills/prompt-konsultanta/references/consultant-live-search.md`
-- `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
-- `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
-- `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
-
-Сначала:
-- проверь, есть ли `Prompts/consultant_input_profile.json`;
-- если его нет, собери его как отдельный артефакт;
-- не перескакивай сразу к финальному prompt без input profile.
-
-Потом:
-- собери и сохрани итоговый prompt как `Prompts/prompt_consultant.md`.
-
-Жесткие правила:
-- не использовать workflow JSON как источник prompt-смысла;
-- не генерировать prompt напрямую из `brief` без skeleton-layer;
-- не сокращать prompt до короткой contract-версии;
-- не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
-- сохранить role boundary между consultant, qualifier и handoff;
-- явно описать source ordering: knowledge -> product_memory (если есть) -> live;
-- явно описать live-search rules, anti-hallucination rules, handoff rules, output/state contract.
-- если в проекте подтвержден `MCP Postgres` write-back path, обязательно явно описать `Write-back and memory`;
-- нельзя выпускать consultant prompt, если в нем нет `consultation_summary` discipline и safe lead-profile write-back логики;
-- наличие `MCP Postgres` в инструментах без логики записи в лид-профиль считать ошибкой сборки prompt.
-
-Требование к качеству:
-- prompt должен быть production-ready;
-- prompt должен быть длинным, полным, с явными блоками роли, scope, data sources, routing, tool usage, live rules, fallback, dialog policy, output contract, forbidden actions;
-- prompt должен содержать explicit write-back layer, если проект использует persisted lead memory;
-- ориентир — полноценный системный prompt, а не короткий skeleton fill.
-
-После завершения:
-- покажи, где сохранен промпт;
-- покажи, где сохранен input profile;
-- обнови контекст проекта;
-- предложи следующий шаг.
-```
-
-## Команда 10. Собрать промпт квалификатора
-
-Эта команда создает системный промпт квалификатора на основе того же `brief`.
+Эта команда создает системный промпт квалификатора на основе готового `brief`.
 Результат нужен для агента, который квалифицирует лида, задает вопросы и двигает его дальше по воронке.
 
 ```text
@@ -411,6 +356,65 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB/CRM rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
 - prompt должен содержать explicit safe DB contract, если проект использует persisted lead memory;
 - ориентир — полноценный системный prompt на несколько сотен строк, а не короткий contract.
+
+После завершения:
+- покажи, где сохранен промпт;
+- покажи, где сохранен input profile;
+- обнови контекст проекта;
+- предложи следующий шаг.
+```
+
+## Команда 10. Собрать промпт консультанта
+
+Эта команда создает системный промпт консультанта на основе готового `brief` и уже собранного промпта квалификатора.
+Результат нужен для продуктового консультанта, который отвечает с опорой на знания и товарную таблицу, не дублирует квалификатора и не ломает границы роли.
+
+```text
+Используй навык `Полный запуск отдела продаж`.
+
+Перейди к этапу `Промпт консультанта`.
+Используй навык `Промпт консультанта`.
+Собери production-ready системный промпт консультанта через canonical layer, а не из workflow JSON и не из свободной генерации.
+
+Обязательно используй:
+- готовый `brief`
+- готовый `Prompt Input Profile`
+- уже готовый `Prompts/prompt_qualifier.md`
+- `skills/prompt-konsultanta/SKILL.md`
+- `skills/prompt-konsultanta/references/consultant-role-contract.md`
+- `skills/prompt-konsultanta/references/consultant-live-search.md`
+- `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
+- `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
+- `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
+
+Сначала:
+- проверь, есть ли `Prompts/consultant_input_profile.json`;
+- если его нет, собери его как отдельный артефакт;
+- не перескакивай сразу к финальному prompt без input profile.
+- проверь, что уже существует `Prompts/prompt_qualifier.md`;
+- если промпта квалификатора еще нет, не собирай prompt консультанта и сначала вернись к этапу квалификатора.
+
+Потом:
+- собери и сохрани итоговый prompt как `Prompts/prompt_consultant.md`.
+
+Жесткие правила:
+- не использовать workflow JSON как источник prompt-смысла;
+- не генерировать prompt напрямую из `brief` без skeleton-layer;
+- не сокращать prompt до короткой contract-версии;
+- не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
+- сохранить role boundary между consultant, qualifier и handoff;
+- учитывать уже собранный prompt квалификатора и не дублировать в prompt консультанта логику первичной qualification intake;
+- явно описать source ordering: knowledge -> product_memory (если есть) -> live;
+- явно описать live-search rules, anti-hallucination rules, handoff rules, output/state contract.
+- если в проекте подтвержден `MCP Postgres` write-back path, обязательно явно описать `Write-back and memory`;
+- нельзя выпускать consultant prompt, если в нем нет `consultation_summary` discipline и safe lead-profile write-back логики;
+- наличие `MCP Postgres` в инструментах без логики записи в лид-профиль считать ошибкой сборки prompt.
+
+Требование к качеству:
+- prompt должен быть production-ready;
+- prompt должен быть длинным, полным, с явными блоками роли, scope, data sources, routing, tool usage, live rules, fallback, dialog policy, output contract, forbidden actions;
+- prompt должен содержать explicit write-back layer, если проект использует persisted lead memory;
+- ориентир — полноценный системный prompt, а не короткий skeleton fill.
 
 После завершения:
 - покажи, где сохранен промпт;
@@ -483,7 +487,9 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - что промпт консультанта уже вставлен в нужный workflow или узел;
 - что промпт квалификатора уже вставлен в нужный workflow или узел;
 - что все нужные workflow активированы или опубликованы;
-- что тестовый режим базы знаний уже пройден.
+- что тестовый режим базы знаний уже пройден;
+- что тестовый workflow `06_WF_Test` выключен или снят с публикации;
+- если `06_WF_Test` еще активен, сначала выключи его, проверь, что тестовый триггер больше не слушает входящие сообщения, и только потом переходи к боевому прогону.
 - перед новым sales-прогоном сначала очисти базу:
   - очисти все рабочие тестовые данные прошлого прогона;
   - не трогай только `knowledge_rag` и `products_live`;
@@ -501,6 +507,7 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 
 Проведи серию живых тестов и после завершения:
 - сохрани итоговый отчет;
+- отдельно зафиксируй, что `06_WF_Test` был выключен перед боевым прогоном;
 - отдельно покажи критические ошибки;
 - отдельно покажи, что нужно исправить перед боевым запуском;
 - обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
