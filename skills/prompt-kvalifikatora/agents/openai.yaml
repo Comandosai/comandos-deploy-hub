@@ -1,0 +1,3 @@
+interface:
+  display_name: "Промпт квалификатора"
+  short_description: "Собирает только промпт sdr_qualifier с fixed JSON и safe DB contract"

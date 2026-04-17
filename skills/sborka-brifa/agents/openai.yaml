@@ -1,0 +1,3 @@
+interface:
+  display_name: "Сборка брифа"
+  short_description: "Собирает технический brief и prompt input profile из нормализованных документов и live rows"

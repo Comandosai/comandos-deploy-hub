@@ -27,6 +27,9 @@ description: Верхнеуровневый навык-оркестратор, �
 5. [логика маршрутизации](references/logika-marshrutizacii.md)
 6. [правила обновления контекста](references/obnovlenie-konteksta.md)
 7. [Prompt Architecture](../prompt-architecture/README.md)
+8. [Сборка брифа](../sborka-brifa/SKILL.md)
+9. [Промпт консультанта](../prompt-konsultanta/SKILL.md)
+10. [Промпт квалификатора](../prompt-kvalifikatora/SKILL.md)
 
 ## Какие навыки он оркестрирует
 
@@ -34,6 +37,9 @@ description: Верхнеуровневый навык-оркестратор, �
 - [Векторизация и загрузка базы](../vektorizaciya-i-zagruzka-bazy/SKILL.md)
 - [Подключение отдела продаж](../podklyuchenie-otdela-prodazh/SKILL.md)
 - [Telegram-тестирование бота](../telegram-testirovanie-bota/SKILL.md)
+- [Сборка брифа](../sborka-brifa/SKILL.md)
+- [Промпт консультанта](../prompt-konsultanta/SKILL.md)
+- [Промпт квалификатора](../prompt-kvalifikatora/SKILL.md)
 
 ## Основные правила
 
@@ -53,10 +59,10 @@ description: Верхнеуровневый навык-оркестратор, �
 - Если следующий этап можно начать автоматически без нового ввода от пользователя, прямо предлагать это.
 - Нельзя считать этап векторизации готовым только потому, что в проекте есть папка `bd/` или другие чистые документы.
 - Если папки `Base/` нет, сначала нужно вести пользователя в создание `Base`, `prepared_docs/` и `vectorized_docs/`.
-- После Telegram-тестирования предлагать сборку `brief`.
-- После `brief` предлагать сборку промпта консультанта через canonical prompt layer.
-- После промпта консультанта предлагать сборку промпта квалификатора через canonical prompt layer.
-- Этапы prompt generation должны использовать `skills/prompt-architecture/`, а не workflow JSON как источник смысла.
+- После Telegram-тестирования предлагать навык `Сборка брифа`.
+- После `brief` предлагать навык `Промпт консультанта`.
+- После промпта консультанта предлагать навык `Промпт квалификатора`.
+- Навыки `Сборка брифа`, `Промпт консультанта` и `Промпт квалификатора` обязаны использовать `skills/prompt-architecture/` как canonical standard layer, а не workflow JSON как источник смысла.
 
 ## Как он должен думать о проекте
 

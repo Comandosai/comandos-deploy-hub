@@ -1,0 +1,3 @@
+interface:
+  display_name: "Промпт консультанта"
+  short_description: "Собирает только промпт consultant с live search, RAG и project-specific contract"

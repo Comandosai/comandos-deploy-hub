@@ -298,10 +298,12 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Сборка brief`.
-Собери `brief` на основе документов, `products_live` и базы знаний.
+Используй навык `Сборка брифа`.
+Собери `brief` и `Prompt Input Profile` на основе документов, `products_live` и базы знаний.
 
 После завершения:
 - покажи, где сохранен `brief`;
+- покажи, где сохранен `Prompt Input Profile`;
 - обнови контекст проекта;
 - предложи следующий шаг.
 ```
@@ -315,20 +317,19 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Промпт консультанта`.
-Собери системный промпт консультанта не из workflow JSON и не из свободной генерации, а через canonical layer `skills/prompt-architecture/`.
+Используй навык `Промпт консультанта`.
+Собери системный промпт консультанта через canonical layer `skills/prompt-architecture/`, а не из workflow JSON и не из свободной генерации.
 
 Используй:
+- готовый `brief`
+- готовый `Prompt Input Profile`
 - `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
 - `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
-- `skills/prompt-architecture/references/PROMPT_INPUT_PROFILE_STANDARD.md`
-- готовый `brief`
 
-Сначала собери и сохрани `Prompts/consultant_input_profile.json`.
-Потом на его основе собери и сохрани `Prompts/prompt_consultant.md`.
+Сохрани итоговый файл как `Prompts/prompt_consultant.md`.
 
 После завершения:
 - покажи, где сохранен промпт;
-- покажи, где сохранен input profile;
 - обнови контекст проекта;
 - предложи следующий шаг.
 ```
@@ -342,20 +343,19 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Промпт квалификатора`.
-Собери системный промпт квалификатора не из workflow JSON и не из свободной генерации, а через canonical layer `skills/prompt-architecture/`.
+Используй навык `Промпт квалификатора`.
+Собери системный промпт квалификатора через canonical layer `skills/prompt-architecture/`, а не из workflow JSON и не из свободной генерации.
 
 Используй:
+- готовый `brief`
+- готовый `Prompt Input Profile`
 - `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
 - `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
-- `skills/prompt-architecture/references/PROMPT_INPUT_PROFILE_STANDARD.md`
-- готовый `brief`
 
-Сначала собери и сохрани `Prompts/qualifier_input_profile.json`.
-Потом на его основе собери и сохрани `Prompts/prompt_qualifier.md`.
+Сохрани итоговый файл как `Prompts/prompt_qualifier.md`.
 
 После завершения:
 - покажи, где сохранен промпт;
-- покажи, где сохранен input profile;
 - обнови контекст проекта;
 - завершай сценарий как полный рабочий контур.
 ```
