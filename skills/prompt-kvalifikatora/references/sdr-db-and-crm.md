@@ -2,6 +2,8 @@
 
 ## Safe DB contract
 
+`MCP Postgres` is mandatory when the project stores lead memory in Postgres.
+
 Use only:
 
 `SELECT * FROM public.update_lead_profile_safe(...)`
@@ -23,6 +25,8 @@ Use:
 - named params `p_... => ...`
 - explicit types
 - typed null for unknown values
+- explicit reference to `MCP Postgres` as the DB tool in the generated prompt
+- sequencing `qualification_summary -> DB write-back -> confirmed CRM sync -> reply`
 
 Never invent:
 - `p_company`
@@ -44,3 +48,5 @@ Do not invent:
 - stage changes
 - pipeline updates
 - custom payload structure
+
+If `MCP Postgres` exists in the project contract but the generated qualifier prompt does not explicitly require using it for lead-profile updates, that prompt is invalid.

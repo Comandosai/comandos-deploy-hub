@@ -59,7 +59,10 @@ If the project brief/profile confirms a `product_memory` layer:
 
 ## Rules
 
+- `MCP Postgres` is mandatory for live product confirmation when the project uses live catalog workflow.
+- do not describe live search abstractly; generated prompts must explicitly name `MCP Postgres` as the tool used for `products_live`.
 - do not flatten `attributes_json`
 - do not invent category values
 - do not return fake matches
 - if showing nearby options, mark them as nearby
+- never imply that live catalog logic can work correctly without `MCP Postgres`

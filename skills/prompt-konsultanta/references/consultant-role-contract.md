@@ -22,7 +22,9 @@ Nearby-alternative discipline:
 ## Must have
 
 - `Supabase Vector Store`
-- `MCP Postgres` read-only for `products_live`
+- обязательное использование `MCP Postgres`
+- `MCP Postgres` для `products_live` как factual live source
+- если проект подтверждает persisted lead memory, `MCP Postgres` также обязан использоваться для safe lead-profile write-back
 - browse/fallback logic
 - short result summary
 - project-specific JSON contract
@@ -58,5 +60,13 @@ Do not replace it with:
 
 If consultant write-back is confirmed, use only confirmed safe contract.
 Never write to `products_live`.
+If `MCP Postgres` is available in the project contract, do not treat it as optional.
+The generated consultant prompt must explicitly say:
+- use `MCP Postgres` for live catalog confirmation;
+- use safe lead-profile write-back through `public.update_lead_profile_safe(...)` when write-back is enabled;
+- update `consultation_summary` after each meaningful consultation fact;
+- never replace persisted memory with `result_summary` alone.
+
+If these rules are missing, the prompt is incomplete and must be rebuilt.
 
 Build the final prompt in the user's working language.
