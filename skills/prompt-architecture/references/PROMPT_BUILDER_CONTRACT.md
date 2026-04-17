@@ -44,6 +44,11 @@ Builder собирает итоговый prompt из:
 - state/handoff rules определены;
 - anti-hallucination rules присутствуют;
 - mature baseline invariants не потеряны.
+- Если в `available_tools` или runtime contract присутствует `MCP Postgres` и он используется не только для чтения, prompt обязан содержать explicit DB write-back layer.
+- Для `consultant` это означает явный блок `Write-back and memory` или эквивалент с `consultation_summary`.
+- Для `sdr_qualifier` это означает явный `Safe DB contract`, allowed params и sequencing persistence.
+- Наличие `MCP Postgres` в tools без описанной логики записи в лид-профиль считается ошибкой сборки prompt.
+- Prompt нельзя считать production-ready, если `result_summary` описан, но persisted memory / summary write-back contract отсутствует.
 
 ## Hard prohibitions
 
@@ -51,3 +56,4 @@ Builder собирает итоговый prompt из:
 - не собирать prompt напрямую из `brief` без skeleton;
 - не выдумывать отсутствующие technical contracts;
 - не сохранять только итоговый prompt без рядом лежащего input profile.
+- не завершать сборку prompt, если `MCP Postgres` присутствует в проекте, но в prompt отсутствует explicit логика `public.update_lead_profile_safe(...)` или project-safe write-back contract.

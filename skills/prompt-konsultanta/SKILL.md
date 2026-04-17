@@ -33,6 +33,14 @@ description: Собирает только системный промпт `cons
 - Если `exact_match` не сработал, переходи в `relaxed_match`, затем в `category_browse`, а не повторяй `exact`.
 - Не подмешивай qualifier JSON, phone gate или intake-only flow.
 - Если есть `product_memory`, используй его до broad live relaxation.
+- Если в runtime/profile подтвержден `MCP Postgres` write-back path для лида, итоговый prompt обязан содержать явный блок `Write-back and memory`.
+- Нельзя выпускать prompt консультанта, где `MCP Postgres` описан только как read-only tool, но отсутствует логика обновления `consultation_summary`.
+- Если используется safe lead-profile write-back, prompt обязан явно требовать:
+  - обновление `consultation_summary` после каждого meaningful consultation fact;
+  - использование только confirmed safe path `public.update_lead_profile_safe(...)`;
+  - запрет считать `result_summary` заменой persisted memory;
+  - последовательность `summary refresh -> DB write-back -> confirmed CRM sync -> user-facing reply`.
+- Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 
 ## Обязательные references
 
@@ -46,5 +54,11 @@ description: Собирает только системный промпт `cons
 
 Навык должен вернуть и сохранить:
 - один готовый системный промпт `consultant`.
+
+Перед завершением навык обязан проверить, что в итоговом prompt есть:
+- explicit `Write-back and memory` или эквивалентный блок;
+- явное правило `Никогда не пиши в products_live`;
+- явное правило обновления `consultation_summary`;
+- если write-back path подтвержден, упоминание `public.update_lead_profile_safe(...)`.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.

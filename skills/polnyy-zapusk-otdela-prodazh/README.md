@@ -346,10 +346,14 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - сохранить role boundary между consultant, qualifier и handoff;
 - явно описать source ordering: knowledge -> product_memory (если есть) -> live;
 - явно описать live-search rules, anti-hallucination rules, handoff rules, output/state contract.
+- если в проекте подтвержден `MCP Postgres` write-back path, обязательно явно описать `Write-back and memory`;
+- нельзя выпускать consultant prompt, если в нем нет `consultation_summary` discipline и safe lead-profile write-back логики;
+- наличие `MCP Postgres` в инструментах без логики записи в лид-профиль считать ошибкой сборки prompt.
 
 Требование к качеству:
 - prompt должен быть production-ready;
 - prompt должен быть длинным, полным, с явными блоками роли, scope, data sources, routing, tool usage, live rules, fallback, dialog policy, output contract, forbidden actions;
+- prompt должен содержать explicit write-back layer, если проект использует persisted lead memory;
 - ориентир — полноценный системный prompt, а не короткий skeleton fill.
 
 После завершения:
@@ -399,10 +403,13 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - не сокращать prompt до короткой contract-версии;
 - не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
 - отдельно прописать orientation-first rule, completion threshold, post-consultation handoff mode, DB/CRM rules, forbidden actions, strict output discipline.
+- если в проекте есть `MCP Postgres` lead write-back path, обязательно явно прописать `public.update_lead_profile_safe(...)`, allowed params и sequencing persistence;
+- наличие `MCP Postgres` в инструментах без explicit DB write-back layer считать ошибкой сборки prompt.
 
 Требование к качеству:
 - prompt должен быть production-ready;
 - prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB/CRM rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
+- prompt должен содержать explicit safe DB contract, если проект использует persisted lead memory;
 - ориентир — полноценный системный prompt на несколько сотен строк, а не короткий contract.
 
 После завершения:
