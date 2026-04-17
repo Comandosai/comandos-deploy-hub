@@ -33,6 +33,14 @@ description: Собирает только системный промпт `cons
 - Если `exact_match` не сработал, переходи в `relaxed_match`, затем в `category_browse`, а не повторяй `exact`.
 - Не подмешивай qualifier JSON, phone gate или intake-only flow.
 - Если есть `product_memory`, используй его до broad live relaxation.
+- Prompt обязан содержать отдельный conversational layer:
+  - deep consultation before handoff;
+  - explain-the-distinction rule;
+  - first-candidate-is-not-complete rule;
+  - chosen-branch narrowing rule;
+  - first-step recommendation rule;
+  - follow-up question discipline;
+  - plain-text hygiene без внутренних schema-ярлыков.
 - Если в runtime/profile подтвержден `MCP Postgres` write-back path для лида, итоговый prompt обязан содержать явный блок `Write-back and memory`.
 - Нельзя выпускать prompt консультанта, где `MCP Postgres` описан только как read-only tool, но отсутствует логика обновления `consultation_summary`.
 - Если используется safe lead-profile write-back, prompt обязан явно требовать:
@@ -42,6 +50,7 @@ description: Собирает только системный промпт `cons
   - последовательность `summary refresh -> DB write-back -> confirmed CRM sync -> user-facing reply`.
 - Если пользователь подтвердил конкретный стандартный вариант и количество уже известно, prompt обязан завершать консультацию через `completed + human_handoff`.
 - Prompt не должен разрешать `create_lead`, автономное создание заказа, автономное создание сделки или autonomous order acceptance со стороны consultant.
+- Prompt не должен считать первый shortlist, первый browse result или первый narrowed path достаточным основанием для `completed`.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 
 ## Обязательные references
@@ -62,5 +71,8 @@ description: Собирает только системный промпт `cons
 - явное правило `Никогда не пиши в products_live`;
 - явное правило обновления `consultation_summary`;
 - если write-back path подтвержден, упоминание `public.update_lead_profile_safe(...)`.
+- explicit conversational micro-rules;
+- явное правило `first candidate != complete`;
+- terminal rule после confirmed selection.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.

@@ -3,6 +3,7 @@
 ## Safe DB contract
 
 `MCP Postgres` обязателен, когда проект хранит lead memory в Postgres.
+Если проект использует factual live layer или persisted lead memory через Postgres, prompt обязан относиться к `MCP Postgres` как к железобетонному обязательному инструменту.
 
 Используй только:
 
@@ -46,6 +47,7 @@ CRM нельзя описывать общими словами.
 - `crm_exact_actions`, если они вообще подтверждены
 
 Если `crm_enabled != true`, prompt обязан явно требовать полный `skip CRM`.
+Если CRM не подтверждена, prompt не должен перечислять `MCP CRM` среди рабочих инструментов и не должен описывать никакой CRM-step в normal path.
 
 Если `crm_enabled = true`, но `crm_write_enabled` не подтвержден или exact actions не даны, prompt обязан явно требовать:
 - не выполнять CRM writes;
@@ -91,3 +93,16 @@ CRM нельзя описывать общими словами.
 - нельзя собирать несколько ходов новых фактов, оставляя lead DB пустой;
 - нельзя переписывать один и тот же summary, если новых фактов не появилось;
 - если `lead_id` или runtime DB access отсутствуют, prompt может пропустить запись, но обязан сохранить summary logic в своих инструкциях.
+
+## Обязательная последовательность
+
+Если подтвержден meaningful new fact, prompt обязан соблюдать только такую последовательность:
+1. обновить `p_qualification_summary`;
+2. выполнить lead DB write-back;
+3. затем выполнить confirmed CRM sync, если runtime это разрешает;
+4. только после persistence steps формировать user-facing reply.
+
+Нельзя:
+- сначала отвечать пользователю, а запись откладывать;
+- сначала вызывать CRM, а DB write-back оставлять на потом;
+- симулировать CRM sync, если exact action не подтвержден runtime.

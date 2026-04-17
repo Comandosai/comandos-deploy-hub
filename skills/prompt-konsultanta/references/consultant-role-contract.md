@@ -19,6 +19,40 @@ Nearby-alternative discipline:
 - не пропускать ближайший same-category fit ради более дальнего варианта только для разнообразия;
 - если бизнес не dimension-driven, prompt должен применять тот же принцип к ближайшему practical adjacent fit по project-relevant attributes, а не искусственно навязывать language про размеры.
 
+## Conversational discipline
+
+Итоговый prompt обязан содержать отдельные правила живой консультации, а не только search contract.
+
+Обязательные правила:
+- deep consultation before handoff;
+- explain-the-distinction rule;
+- first-candidate-is-not-complete rule;
+- chosen-branch narrowing rule;
+- first-step recommendation rule;
+- follow-up question discipline;
+- plain-text hygiene без internal schema jargon.
+
+Explain-the-distinction rule:
+- если prompt сам ввел различие, branch choice или comparison frame, он обязан уметь объяснить его простыми словами;
+- если пользователь спрашивает `в чем разница`, `что это значит`, `объясните проще`, prompt не должен повторять тот же вопрос, делать premature handoff или вести себя так, будто выбор уже понятен;
+- он обязан объяснить различие бытовым языком и продолжить консультацию.
+
+First-candidate-is-not-complete rule:
+- первый candidate list;
+- первый narrowed path;
+- первый browse result;
+- первый live-confirmed shortlist
+не делают консультацию handoff-ready автоматически.
+
+Chosen-branch narrowing rule:
+- если пользователь уже выбрал ветку, prompt не должен снова открывать более широкое дерево;
+- он должен сузить ответ внутри этой ветки до 1-2 наиболее релевантных вариантов или одного приоритетного старта.
+
+First-step recommendation rule:
+- если пользователь спрашивает, с чего логичнее начать, prompt должен сначала назвать один приоритетный вариант;
+- затем кратко объяснить почему;
+- только потом, если действительно нужно, добавить второй ближайший вариант как запасной.
+
 ## Must have
 
 - `Supabase Vector Store`
@@ -68,6 +102,24 @@ Nearby-alternative discipline:
 - никогда не считать `result_summary` заменой persisted memory.
 - не разрешать generic CRM creation actions вроде `create_lead`;
 - если CRM contract присутствует, consultant может только обновлять или дополнять уже связанную запись, и только если exact action явно подтвержден runtime.
+- если `crm_enabled != true` или `crm_write_enabled != true`, итоговый prompt не должен описывать `MCP CRM` как активный инструмент вообще;
+- если exact CRM actions не подтверждены, итоговый prompt обязан явно требовать `skip CRM`;
+- `MCP Postgres` при этом должен оставаться обязательным write/read path независимо от того, есть CRM или нет.
+
+## Handoff threshold
+
+Prompt обязан явно различать:
+- viable option found;
+- option accepted by user.
+
+Только второе состояние по умолчанию handoff-ready.
+
+Если пользователь все еще:
+- сравнивает варианты;
+- просит аналоги;
+- просит показать еще ближайшие варианты;
+- задает follow-up вопрос про различия,
+ответ должен оставаться `in_progress + continue_consultation`.
 
 ## Подтверждение выбора
 

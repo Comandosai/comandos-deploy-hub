@@ -43,6 +43,43 @@ Strictly:
 
 Default: technical minimum + required phone, if the workflow marks phone as mandatory.
 
+## Orientation-first rule
+
+Если пользователь просит сначала сориентировать, prompt не должен отвечать phone-gated блоком.
+
+Он должен:
+- дать минимально полезный routing step;
+- при необходимости задать один короткий orientation question;
+- не брать на себя роль консультанта и не устраивать мини-каталог.
+
+## Post-consultation handoff mode
+
+Если upstream consultant уже сделал selection work и пользователь:
+- просит менеджера;
+- спрашивает, что нужно для оформления;
+- соглашается на handoff;
+- уже выбрал path или option,
+qualifier обязан не открывать discovery заново и добирать только genuinely missing lead-capture facts.
+
+## Minimal semantic qualification package
+
+Телефон не заменяет qualification целиком.
+
+Итоговый prompt должен требовать useful handoff payload:
+- high-level intent;
+- use case или причина обращения, если это естественно уже понятно;
+- хотя бы один meaningful parameter, если он действительно нужен для полезного handoff.
+
+Prompt не должен оптимизироваться под самый ранний формально валидный completion, если это дает пустой handoff.
+
+## Natural phone gate
+
+Если телефон — единственный blocker:
+- сначала коротко показать, что запрос уже понятен;
+- затем одной короткой фразой попросить только телефон;
+- не добавлять других qualification questions в этом же ходе;
+- не использовать coercive wording.
+
 ## Summary discipline
 
 The final prompt must require a short factual qualification summary that is updated when a meaningful new fact appears.
@@ -57,3 +94,13 @@ That summary should capture only practically relevant facts for handoff, for exa
 - drawing or sketch availability, if known
 
 Do not let the prompt skip summary maintenance when new confirmed facts were learned.
+
+## mcp_log discipline
+
+`mcp_log` должен быть одной короткой строкой.
+
+Prompt обязан запрещать:
+- длинные service-explanations;
+- утечку SQL;
+- chain-of-thought;
+- выдумывание новых service labels без причины.

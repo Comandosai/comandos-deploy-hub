@@ -37,6 +37,15 @@ description: Собирает только системный промпт `sdr_
 - Если CRM не подтверждена или runtime не дал exact actions, итоговый prompt обязан требовать полный `skip CRM`.
 - Не разрешай `products_live` lookup, `exact_match`, `relaxed_match` или `category_browse`.
 - Не проваливайся в plain text, если downstream ожидает fixed JSON.
+- Prompt обязан содержать:
+  - orientation-first rule;
+  - no pseudo-handoff rule;
+  - post-consultation handoff mode;
+  - lead-capture after consultation;
+  - first-reply discipline;
+  - minimal semantic qualification package;
+  - natural phone gate;
+  - mcp_log discipline.
 - Если в runtime/profile подтвержден `MCP Postgres` lead write-back path, итоговый prompt обязан содержать явный `Safe DB contract`.
 - Нельзя выпускать prompt квалификатора, где есть инструмент `MCP Postgres`, но нет explicit логики записи в лид-профиль.
 - Если используется safe lead-profile write-back, prompt обязан явно содержать:
@@ -49,6 +58,7 @@ description: Собирает только системный промпт `sdr_
   - CRM write остается runtime-gated;
   - без exact runtime actions CRM write не выполняется.
 - Prompt обязан явно требовать summary write-back discipline: meaningful new facts должны отражаться в `p_qualification_summary`, если DB runtime доступен.
+- Prompt обязан явно требовать useful handoff payload, а не completion по одному только телефону.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 
 ## Обязательные references
@@ -70,5 +80,9 @@ description: Собирает только системный промпт `sdr_
 - allowed params или project-safe DB contract;
 - явная sequencing discipline;
 - явное правило, что qualification write-back обязателен при meaningful new fact.
+- orientation-first и post-consultation handoff mode;
+- natural phone gate;
+- mcp_log discipline;
+- правило `DB first, CRM second`.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.

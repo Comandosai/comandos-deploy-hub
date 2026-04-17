@@ -26,6 +26,14 @@ description: Собирает технический бриф компании �
 - live value contract;
 - catalog browse contract;
 - tool / workflow assumptions.
+- CRM gate:
+  - `crm_enabled`
+  - `crm_type`
+  - `crm_write_enabled`
+  - `crm_exact_actions`
+- DB gate:
+  - подтверждена ли lead memory в Postgres;
+  - обязателен ли `MCP Postgres` только для live facts или и для persisted memory тоже.
 
 ## Главные правила
 
@@ -35,6 +43,8 @@ description: Собирает технический бриф компании �
 - Если canonical values известны, зафиксируй их явно.
 - Если browse behavior виден из материалов, добавь `Catalog Browse Contract`.
 - Не выдумывай CRM, DB, schema или output contracts.
+- Если из материалов нельзя доказать наличие рабочего CRM write-path, зафиксируй `skip CRM`, а не `unknown active CRM`.
+- Если в проекте подтверждены live facts или lead memory в Postgres, зафиксируй `MCP Postgres` как обязательный инструмент явно.
 
 ## Обязательные references
 

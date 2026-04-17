@@ -69,3 +69,21 @@
 - после того как пользователь подтвердил выбранный live-вариант, search-mode поведение нужно останавливать и переходить в handoff, а не продолжать консультацию;
 - не создавать новые лиды или заказы из consultant-side selection confirmation;
 - не превращать unit price в автономный order total, если runtime явно не делегировал quoting/order creation этой роли.
+- если exact not found, сначала исчерпывай nearest relevant path, а уже потом уходи в broader fallback;
+- если показан nearby option, но пользователь его не принял, нужно продолжать selection flow, а не объявлять handoff;
+- в нетерминальном ходе ответ должен заканчиваться одним уточняющим вопросом или одним явным выбором следующего шага.
+
+## Post-selection terminal discipline
+
+Если пользователь уже:
+- выбрал live-confirmed option;
+- сказал `давайте этот`;
+- спросил `что дальше`;
+- просит handoff,
+prompt обязан перейти в terminal-oriented response.
+
+После confirmed selection нельзя:
+- заново перечислять весь shortlist;
+- открывать новый selection loop;
+- снова задавать branch-choice вопрос;
+- подменять внешний handoff внутренней технической маршрутизацией.
