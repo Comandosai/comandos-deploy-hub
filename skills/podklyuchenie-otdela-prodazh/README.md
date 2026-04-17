@@ -47,6 +47,16 @@
 - `OpenAI API key`;
 - `Telegram bot token`.
 
+## Важно про Telegram credentials
+
+Для всех credentials типа `telegramApi` в этом проекте `baseUrl` должен быть `null`.
+
+Навык должен:
+- не валидировать `baseUrl` как обязательное поле для `telegramApi`;
+- не подставлять `https://api.telegram.org` вручную;
+- считать `baseUrl = null` нормальным runtime-совместимым состоянием;
+- после создания или обновления Telegram credentials отдельно проверить, что `baseUrl` действительно `null`.
+
 ## Важно про `MCP`
 
 Для кастомного `MCP` поле `x-license-key` обязательно.

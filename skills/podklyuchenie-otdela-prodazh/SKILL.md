@@ -161,6 +161,9 @@ description: Подключает существующие Supabase и n8n кл�
 - Для Telegram создавать два отдельных credentials, если есть оба токена:
   - `Telegram Sales Bot` из `telegram_sales_bot_token`;
   - `Telegram Error Bot` из `telegram_error_bot_token`.
+- Для всех credentials типа `telegramApi` в этом проекте сохранять `baseUrl = null`.
+- Не валидировать `baseUrl` у `telegramApi` как обязательное поле и не подставлять `https://api.telegram.org` вручную.
+- `baseUrl = null` для `telegramApi` считать нормальным рабочим состоянием, если runtime принимает credential и Telegram-узлы проходят publish/activate.
 - Перед активацией Telegram Trigger выполнять `deleteWebhook` для соответствующего bot token и после активации проверять регистрацию webhook.
 
 ## Что должно быть на выходе

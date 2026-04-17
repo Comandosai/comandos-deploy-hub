@@ -74,6 +74,11 @@
 - credential должен использовать host/API URL и `supabase_service_role_key`;
 - anon key нельзя использовать вместо service role key.
 
+Правило для Telegram:
+- для всех credentials типа `telegramApi` сохранять `baseUrl = null`;
+- не подставлять `https://api.telegram.org` вручную;
+- после создания или обновления Telegram credential отдельно проверить, что `baseUrl` действительно `null`.
+
 Правило для n8n 2.x:
 - credential IDs не нужно валидировать по UUID-формату или длине; достаточно, чтобы `id` был непустым и принимался текущим n8n runtime;
 - OpenAI type должен быть `openAiApi`;

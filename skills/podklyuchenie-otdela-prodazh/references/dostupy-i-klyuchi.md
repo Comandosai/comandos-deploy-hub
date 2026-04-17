@@ -128,6 +128,12 @@ Headers по умолчанию:
 - `telegram_sales_bot_token` — основной бот отдела продаж;
 - `telegram_error_bot_token` — бот для workflow `Уведомления об ошибках в N8N`.
 
+Правило для `telegramApi` credentials:
+- `baseUrl` должен быть `null`;
+- не подставлять `https://api.telegram.org` вручную;
+- не считать `baseUrl = null` ошибкой;
+- валидность Telegram credential подтверждать по runtime, а не по заполненности `baseUrl`.
+
 ## Как спрашивать
 
 Правило:
