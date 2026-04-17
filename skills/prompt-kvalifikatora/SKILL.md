@@ -38,6 +38,7 @@ description: Собирает только системный промпт `sdr_
   - список разрешенных параметров;
   - sequencing `qualification_summary -> DB write-back -> confirmed CRM sync -> user-facing reply`;
   - правило, что `p_qualification_summary` обновляется при каждом meaningful new fact.
+- Prompt обязан явно требовать summary write-back discipline: meaningful new facts должны отражаться в `p_qualification_summary`, если DB runtime доступен.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 
 ## Обязательные references

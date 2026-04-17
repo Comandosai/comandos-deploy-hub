@@ -66,3 +66,6 @@
 - не возвращать fake matches
 - если показываешь nearby options, явно помечай их как nearby
 - никогда не подразумевай, что live catalog logic может работать корректно без `MCP Postgres`
+- после того как пользователь подтвердил выбранный live-вариант, search-mode поведение нужно останавливать и переходить в handoff, а не продолжать консультацию;
+- не создавать новые лиды или заказы из consultant-side selection confirmation;
+- не превращать unit price в автономный order total, если runtime явно не делегировал quoting/order creation этой роли.

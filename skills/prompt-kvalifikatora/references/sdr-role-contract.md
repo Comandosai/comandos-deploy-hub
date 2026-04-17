@@ -42,3 +42,18 @@ Strictly:
 ## Completion
 
 Default: technical minimum + required phone, if the workflow marks phone as mandatory.
+
+## Summary discipline
+
+The final prompt must require a short factual qualification summary that is updated when a meaningful new fact appears.
+
+That summary should capture only practically relevant facts for handoff, for example:
+- request type
+- product intent or use case
+- dimensions or approximate size
+- quantity
+- material, if known
+- urgency or timeline, if known
+- drawing or sketch availability, if known
+
+Do not let the prompt skip summary maintenance when new confirmed facts were learned.

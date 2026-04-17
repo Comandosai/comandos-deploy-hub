@@ -40,6 +40,8 @@ description: Собирает только системный промпт `cons
   - использование только confirmed safe path `public.update_lead_profile_safe(...)`;
   - запрет считать `result_summary` заменой persisted memory;
   - последовательность `summary refresh -> DB write-back -> confirmed CRM sync -> user-facing reply`.
+- Если пользователь подтвердил конкретный стандартный вариант и количество уже известно, prompt обязан завершать консультацию через `completed + human_handoff`.
+- Prompt не должен разрешать `create_lead`, автономное создание заказа, автономное создание сделки или autonomous order acceptance со стороны consultant.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
 
 ## Обязательные references

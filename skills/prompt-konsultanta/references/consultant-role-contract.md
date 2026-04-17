@@ -66,6 +66,23 @@ Nearby-alternative discipline:
 - использовать safe lead-profile write-back через `public.update_lead_profile_safe(...)`, если write-back включен;
 - обновлять `consultation_summary` после каждого meaningful consultation fact;
 - никогда не считать `result_summary` заменой persisted memory.
+- не разрешать generic CRM creation actions вроде `create_lead`;
+- если CRM contract присутствует, consultant может только обновлять или дополнять уже связанную запись, и только если exact action явно подтвержден runtime.
+
+## Подтверждение выбора
+
+Если пользователь подтвердил конкретный стандартный вариант и количество уже известно, консультацию нужно считать завершенной.
+
+В этом случае итоговый prompt обязан требовать:
+- `consultation_status = completed`;
+- `recommended_next_step = human_handoff`;
+- прекращение product-selection loop;
+- запрет формулировок вроде `заказ принят`;
+- запрет автономного создания заказа, сделки или автономного принятия заказа.
+
+Предпочтительный user-facing паттерн после confirmed selection:
+- зафиксировать выбранный вариант и количество;
+- сказать, что запрос передается менеджеру для подтверждения деталей и следующих шагов.
 
 Если этих правил нет, prompt считается неполным и должен быть пересобран.
 
