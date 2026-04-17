@@ -331,6 +331,14 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`
 
 Сначала:
+- прочитай `skills/prompt-kvalifikatora/SKILL.md`;
+- прочитай `skills/prompt-kvalifikatora/references/sdr-role-contract.md`;
+- прочитай `skills/prompt-kvalifikatora/references/sdr-db-and-crm.md`;
+- прочитай `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`;
+- прочитай `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`;
+- прочитай `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`;
+- только после этого прочитай project документы, `brief` и `Prompt Input Profile`;
+- сначала собери в голове полный project contract, а не начинай сразу писать итоговый prompt;
 - проверь, есть ли `Prompts/qualifier_input_profile.json`;
 - если его нет, собери его как отдельный артефакт;
 - не перескакивай сразу к финальному prompt без input profile.
@@ -347,6 +355,8 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - использовать fixed JSON output contract;
 - не сокращать prompt до короткой contract-версии;
 - не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
+- не пересказывать reference-файлы коротко, если из них можно перенести полноразмерные operational blocks;
+- сначала перенести зрелые rule blocks из reference и baseline, а уже потом адаптировать их под проект;
 - отдельно прописать orientation-first rule, completion threshold, post-consultation handoff mode, DB/CRM rules, forbidden actions, strict output discipline.
 - если в проекте есть `MCP Postgres` lead write-back path, обязательно явно прописать `public.update_lead_profile_safe(...)`, allowed params и sequencing persistence;
 - наличие `MCP Postgres` в инструментах без explicit DB write-back layer считать ошибкой сборки prompt.
@@ -355,6 +365,7 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - prompt должен быть production-ready;
 - prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB/CRM rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
 - prompt должен содержать explicit safe DB contract, если проект использует persisted lead memory;
+- prompt должен быть собран после чтения reference -> skeleton -> baseline -> project docs -> brief/profile, а не в обратном порядке;
 - ориентир — полноценный системный prompt на несколько сотен строк, а не короткий contract.
 
 После завершения:
@@ -388,6 +399,14 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
 
 Сначала:
+- прочитай `skills/prompt-konsultanta/SKILL.md`;
+- прочитай `skills/prompt-konsultanta/references/consultant-role-contract.md`;
+- прочитай `skills/prompt-konsultanta/references/consultant-live-search.md`;
+- прочитай `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`;
+- прочитай `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`;
+- прочитай `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`;
+- только после этого прочитай project документы, `brief`, `Prompt Input Profile` и уже готовый `Prompts/prompt_qualifier.md`;
+- сначала собери в голове полный project-specific consultant contract, и только потом переходи к финальному prompt;
 - проверь, есть ли `Prompts/consultant_input_profile.json`;
 - если его нет, собери его как отдельный артефакт;
 - не перескакивай сразу к финальному prompt без input profile.
@@ -402,6 +421,8 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - не генерировать prompt напрямую из `brief` без skeleton-layer;
 - не сокращать prompt до короткой contract-версии;
 - не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
+- не пересказывать reference-файлы коротко, если из них можно перенести полноразмерные operational blocks;
+- сначала перенести в prompt зрелые project-specific rule blocks из baseline и references, а уже потом адаптировать под текущий проект;
 - сохранить role boundary между consultant, qualifier и handoff;
 - учитывать уже собранный prompt квалификатора и не дублировать в prompt консультанта логику первичной qualification intake;
 - явно описать source ordering: knowledge -> product_memory (если есть) -> live;
@@ -414,6 +435,7 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - prompt должен быть production-ready;
 - prompt должен быть длинным, полным, с явными блоками роли, scope, data sources, routing, tool usage, live rules, fallback, dialog policy, output contract, forbidden actions;
 - prompt должен содержать explicit write-back layer, если проект использует persisted lead memory;
+- prompt должен быть собран после чтения reference -> skeleton -> baseline -> project docs -> brief/profile -> qualifier prompt, а не из одного `brief`;
 - ориентир — полноценный системный prompt, а не короткий skeleton fill.
 
 После завершения:
