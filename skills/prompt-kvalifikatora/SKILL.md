@@ -57,8 +57,10 @@ description: Собирает только системный промпт `sdr_
 - Если используется safe lead-profile write-back, prompt обязан явно содержать:
   - `public.update_lead_profile_safe(...)`;
   - список разрешенных параметров;
+  - канонический call pattern с `p_lead_id => <lead_id>::integer`;
   - sequencing `qualification_summary -> DB write-back -> confirmed CRM sync -> user-facing reply`;
   - правило, что `p_qualification_summary` обновляется при каждом meaningful new fact.
+  - запрет на укороченный или ad-hoc SQL-вызов.
 - Если в profile указано `crm_enabled = true`, prompt обязан явно различать:
   - CRM включена на уровне проекта;
   - CRM write остается runtime-gated;
@@ -86,6 +88,8 @@ description: Собирает только системный промпт `sdr_
 - explicit `Safe DB contract`;
 - `public.update_lead_profile_safe(...)`;
 - allowed params или project-safe DB contract;
+- правило обязательного `p_lead_id`;
+- canonical safe call pattern с named args и typed null;
 - явная sequencing discipline;
 - явное правило, что qualification write-back обязателен при meaningful new fact.
 - orientation-first и post-consultation handoff mode;

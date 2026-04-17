@@ -57,6 +57,7 @@ Builder собирает итоговый prompt из:
 - Если в проекте подтверждена lead memory или live factual layer, `MCP Postgres` должен считаться обязательным инструментом, а не optional convenience tool.
 - Для `consultant` это означает явный блок `Write-back and memory` или эквивалент с `consultation_summary`.
 - Для `sdr_qualifier` это означает явный `Safe DB contract`, allowed params и sequencing persistence.
+- Для `sdr_qualifier` safe DB contract нельзя описывать абстрактно: если проект использует `public.update_lead_profile_safe(...)`, builder обязан требовать canonical call pattern с `p_lead_id => <lead_id>::integer`, named args, явными кастами и typed null.
 - Наличие `MCP Postgres` в tools без описанной логики записи в лид-профиль считается ошибкой сборки prompt.
 - Prompt нельзя считать production-ready, если `result_summary` описан, но persisted memory / summary write-back contract отсутствует.
 - Если CRM не подтверждена до exact-action уровня, builder обязан собирать prompt с явным `skip CRM` и не имеет права описывать `MCP CRM` как активный tool path.
@@ -76,4 +77,5 @@ Builder собирает итоговый prompt из:
 - не выпускать compact/compressed sales prompt по умолчанию.
 - не считать skeleton-only short version production-ready для sales/runtime use case.
 - не завершать сборку prompt, если `MCP Postgres` присутствует в проекте, но в prompt отсутствует explicit логика `public.update_lead_profile_safe(...)` или project-safe write-back contract.
+- не завершать сборку `sdr_qualifier`, если safe DB contract разрешает укороченный SQL-вызов, пропускает `p_lead_id`, допускает untyped `NULL` или не фиксирует named-argument форму `=>`.
 - не выпускать prompt, где `MCP CRM` упомянут как рабочий инструмент, если в `input_profile` не подтверждены exact CRM actions.
