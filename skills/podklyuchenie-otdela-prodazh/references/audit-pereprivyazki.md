@@ -17,11 +17,17 @@
 11. Проверить, что `settings.errorWorkflow` не пустой и указывает на существующий workflow.
 12. Только после этого массово перепривязывать соединения.
 13. После перепривязки заново открыть editor и проверить свежие логи `n8n`, чтобы убедиться, что ошибки битых credentials реально ушли.
+14. Для каждого node с credentials проверить одновременно `credentials.<type>.name` и `credentials.<type>.id`.
+15. Если у node есть `name`, но отсутствует `id`, считать runtime binding сломанным даже при успешном `test connection`.
+16. Runtime credential audit обязателен отдельно для `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`.
+17. Проверять нужно не только draft workflow, но и active/published version workflow, если опубликованная версия уже существует.
+18. Если хотя бы в одной боевой node нет `id`, сначала перепривязать, сохранить workflow и обновить active/published version, и только потом переходить к smoke-test и Telegram-тесту.
 
 Жесткое правило:
 - refs вида `credentials[type].name` без `credentials[type].id` недопустимы;
 - workflow с такими refs нельзя публиковать, активировать или тестировать;
 - если после rebind остался хотя бы один такой refs, этап должен завершаться ошибкой, а не warning.
+- Наличие credential по имени, зеленый `test connection`, успешный импорт workflow и выбранный credential в UI не считаются доказательством исправности binding.
 
 Обязательная проверка refs без `id`:
 
@@ -42,6 +48,11 @@ ORDER BY we.name, node.value ->> 'name', cred.key;
 ```
 
 Если запрос вернул хотя бы одну строку, публиковать или активировать workflow запрещено.
+Перед финальным Telegram-тестом этот аудит обязателен как минимум для:
+- `02_Main_Orcestrator`
+- `03_WF_Qualification`
+- `04_WF_Consultation`
+- `05_WF_Human_Handoff_Workflow`
 
 Обязательный rebind по `(type + name)`:
 
@@ -92,6 +103,7 @@ WHERE we.id = patched.id;
 ```
 
 После rebind тот же SQL-аудит нужно прогнать повторно. Нулевой результат — обязательный gate перед activation/publish.
+После сохранения workflow нужно убедиться, что binding с `id` сохранился и в active/published version, если такая версия существует.
 
 Пример проверки `errorWorkflow` через SQL:
 
@@ -113,6 +125,10 @@ ORDER BY name;
 ```
 
 Если значение пустое или указывает не на актуальный ID workflow `Уведомления об ошибках в N8N`, нужно исправить `settings.errorWorkflow` до запуска тестов.
+Критические runtime-сигналы, которые считаются провалом этапа:
+- `Found credential with no ID`
+- `Authorization failed - please check your credentials`
+- любая ситуация, где node визуально показывает credential, но execution падает на resolution credentials
 
 Пример исправления `errorWorkflow` через SQL:
 

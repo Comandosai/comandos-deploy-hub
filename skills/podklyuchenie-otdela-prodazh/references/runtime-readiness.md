@@ -17,11 +17,18 @@
 Перед тем как говорить пользователю `готово`, навык обязан:
 - убедиться, что SQL-аудит refs с `credential.name` без `credential.id` вернул ноль строк;
 - если аудит вернул хотя бы одну строку, считать этап проваленным и не переходить к `publish/activate`;
+- не считать workflow готовым только потому, что UI показывает выбранный credential;
+- не считать workflow готовым только потому, что credential с нужным именем существует или проходит `test connection`;
+- отдельно проверить draft workflow и active/published version workflow, если опубликованная версия существует;
+- до финального Telegram-теста выполнить runtime credential audit для `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
+- для каждого node с credentials убедиться, что сохранены и `name`, и `id`;
+- если хотя бы в одной боевой node отсутствует `credential.id`, сначала сделать rebind, сохранить workflow и обновить active/published version;
 - открыть editor `n8n` после полного refresh страницы;
 - убедиться, что editor не уходит в постоянный `Connection lost`;
 - проверить свежие логи `n8n`;
 - убедиться, что в логах нет:
   - `Found credential with no ID`
+  - `Authorization failed - please check your credentials`
   - `Workflow activation failed validation`
   - `User attempted to access a workflow without permissions`
 

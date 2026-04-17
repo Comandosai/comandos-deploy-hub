@@ -87,6 +87,8 @@
 - проверить, что не использованы старые или битые credentials.
 - проверить `shared_credentials` для текущего `project_id`.
 - проверить, что refs с `credential.name` без `credential.id` отсутствуют полностью;
+- пройти все nodes с credentials и проверить не только `credentials.<type>.name`, но и `credentials.<type>.id`;
+- считать binding сломанным, если у node есть `name`, но нет `id`, даже если credential существует, `test connection` проходит и UI показывает credential как выбранный;
 - если такие refs есть, сделать rebind по `(type + name) -> id` через `credentials_entity`;
 - если после rebind такие refs остались, остановить этап с ошибкой;
 - пока эти refs не обнулены, запрещено публиковать, активировать и тестировать workflow;
@@ -106,6 +108,10 @@
 
 Если пользователь просит, отдельно включить модуль Telegram-тестирования:
 - поднять зависимости;
+- до Telegram-теста выполнить runtime credential audit для `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
+- проверить draft workflow и active/published version workflow по отдельности, если опубликованная версия уже существует;
+- если хотя бы в одной боевой node нет `credential.id`, перепривязать credential, сохранить workflow и обновить active/published version до старта Telegram-тестов;
+- выполнить отдельный smoke-test этих workflow и убедиться, что нет `Found credential with no ID` и `Authorization failed - please check your credentials`;
 - провести 5 или 10 тестов;
 - собрать диалоги;
 - выдать отчет по качеству.
@@ -119,6 +125,8 @@
 - наличие `x-license-key`;
 - загрузку workflow;
 - что не осталось refs с `credential.name` без `credential.id`;
+- что workflow не считаются готовыми только по успешному `test connection`, существующему credential имени или отсутствию ошибки на импорте;
+- что runtime-ready binding подтвержден для `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
 - что после первого разворачивания активны только `06_WF_Test` и `Уведомления об ошибках в N8N`, а боевые workflow выключены;
 - что все workflow пакета, кроме самого workflow ошибок, отправляют падения в `Уведомления об ошибках в N8N`;
 - хотя бы один тестовый запуск.

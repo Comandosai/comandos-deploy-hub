@@ -49,6 +49,8 @@ description: Подключает существующие Supabase и n8n кл�
 - После импорта workflow всегда делать аудит неразрешенных credentials и project sharing до любых тестовых запусков.
 - После импорта workflow всегда выполнять обязательный credential rebind: для каждого refs, где есть `name`, но нет `id`, находить credential по паре `(type + name)` и дописывать `id`.
 - Если после credential rebind остался хотя бы один refs с `name` без `id`, этап считается проваленным.
+- Наличие credential с нужным именем, успешный `test connection` и успешный импорт workflow не считаются доказательством готовности workflow.
+- Единственный правильный критерий готовности credential binding: в каждом `node.credentials[type]` сохранены и `name`, и валидный `id`, а runtime не падает с `Found credential with no ID`.
 - Пока не доказано, что refs без `id` больше нет, запрещено:
   - публиковать workflow;
   - активировать workflow;
@@ -88,12 +90,17 @@ description: Подключает существующие Supabase и n8n кл�
 
 3. `Workflow import + rebind audit`
 - импортировать workflow;
+- собрать список live credentials из `credentials_entity`;
+- сопоставить credentials по паре `(type + name)`;
+- пройти все nodes с credentials в целевых workflow и проверить не только `credentials.<type>.name`, но и `credentials.<type>.id`;
 - проверить все refs `node.credentials` и найти случаи, где:
   - `name` есть;
   - `id` отсутствует, пустой или `null`;
+- считать binding сломанным даже если credential существует в системе, `test connection` проходит и UI показывает credential как выбранный;
 - выполнить credential rebind по правилу `(type + name) -> credentials_entity.id`;
 - повторно проверить, что refs с `name` без `id` больше нет;
 - если хотя бы один такой refs остался, остановить этап с явной ошибкой и не переходить к активации;
+- отдельно выполнить runtime credential audit для `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
 - найти актуальный `id` workflow `Уведомления об ошибках в N8N`;
 - прописать этот `id` в `settings.errorWorkflow` всех workflow пакета, кроме самого workflow ошибок;
 - проверить, что `settings.errorWorkflow` реально сохранен у `01-06`;
@@ -111,9 +118,13 @@ description: Подключает существующие Supabase и n8n кл�
 - проверить не только credentials, но и наличие самих node packages;
 - если нужного пакета нет, докачать его до тестов;
 - если отсутствует credential type, поставить provider package или остановиться с явной ошибкой.
+- для каждого боевого workflow проверить draft и active/published version по отдельности, если опубликованная версия уже существует;
+- убедиться, что после rebind и сохранения binding с `id` не потерялся в active/published version;
+- до финального Telegram-теста выполнить отдельный smoke-test `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
 - открыть editor `n8n` после полного refresh страницы и убедиться, что он не уходит в постоянный `Connection lost`;
 - проверить свежие логи `n8n` и убедиться, что там нет:
   - `Found credential with no ID`;
+  - `Authorization failed - please check your credentials`;
   - `Workflow activation failed validation`;
   - `User attempted to access a workflow without permissions`.
 
