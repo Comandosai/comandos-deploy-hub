@@ -409,10 +409,59 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - покажи, где сохранен промпт;
 - покажи, где сохранен input profile;
 - обнови контекст проекта;
-- завершай сценарий как полный рабочий контур.
+- предложи следующий шаг.
 ```
 
-## Команда 11. Запустить боевые тесты отдела продаж
+## Команда 11. Вставить prompt-ы в боевые workflow
+
+Эта команда не генерирует prompt-ы заново.
+Она берет уже готовые production prompt-артефакты и вставляет их в соответствующие AI-узлы боевых workflow в живом `n8n`.
+
+```text
+Используй навык `Полный запуск отдела продаж`.
+
+Перейди к этапу `Вставка prompt-ов в workflow`.
+
+Сначала проверь, что уже существуют:
+- `Prompts/prompt_consultant.md`
+- `Prompts/prompt_qualifier.md`
+
+Если хотя бы одного файла нет:
+- не вставляй ничего в workflow;
+- сначала вернись к этапу сборки недостающего prompt-а.
+
+Если оба prompt-а есть, выполни следующее:
+
+1. Возьми `Prompts/prompt_qualifier.md`.
+2. Найди в боевом workflow `03_WF_Qualification` AI-узел `AI Квалификатор`.
+3. Вставь содержимое `Prompts/prompt_qualifier.md` в `options.systemMessage` этого AI-узла в живом `n8n`.
+
+4. Возьми `Prompts/prompt_consultant.md`.
+5. Найди в боевом workflow `04_WF_Consultation` AI-узел `Consultation`.
+6. Вставь содержимое `Prompts/prompt_consultant.md` в `options.systemMessage` этого AI-узла в живом `n8n`.
+
+Важные правила:
+- не использовать workflow JSON как source of truth для prompt-ов;
+- source of truth для prompt-ов должен оставаться в `Prompts/`;
+- при вставке обновлять prompt не только в draft workflow, но и в active/published version, если workflow уже опубликован;
+- не вставлять prompt в тестовый workflow вместо боевых workflow;
+- не вставлять qualifier prompt в consultant workflow;
+- не вставлять consultant prompt в qualifier workflow.
+
+После вставки обязательно проверь:
+- что в `03_WF_Qualification` реально стоит prompt квалификатора;
+- что в `04_WF_Consultation` реально стоит prompt консультанта;
+- что prompt присутствует и в текущем draft, и в active/published version;
+- что workflow после этого не потеряли свои connections, tools и credentials.
+
+После завершения:
+- покажи, в какие workflow и в какие AI-узлы вставлены prompt-ы;
+- покажи, что вставка прошла успешно;
+- обнови контекст проекта;
+- предложи следующий шаг: `Финальное тестирование отдела продаж`.
+```
+
+## Команда 12. Запустить боевые тесты отдела продаж
 
 Эта команда запускает уже не проверку базы знаний, а полноценное тестирование рабочего sales-контура.
 Её нужно использовать после того, как вставлены `brief`, промпт консультанта и промпт квалификатора, и нужно проверить, как связка реально отрабатывает в диалоге.
