@@ -2,7 +2,7 @@
 
 ## Live schema
 
-Use confirmed `products_live` schema only:
+Используй только подтвержденную схему `products_live`:
 - `entity_name`
 - `sku`
 - `category`
@@ -14,18 +14,18 @@ Use confirmed `products_live` schema only:
 - `delivery_note`
 - `updated_at`
 
-Attributes live in `attributes_json`.
+Атрибуты хранятся в `attributes_json`.
 
-If the project brief/profile provides a more specific live schema contract than this reference, generated prompts must use the project contract as the source of truth.
-This reference is a fallback, not permission to override project-specific field names.
+Если project brief/profile задает более точный live schema contract, prompt обязан использовать именно его как source of truth.
+Этот reference — fallback, а не разрешение переопределять project-specific field names.
 
-Canonical category values:
+Канонические category values:
 - `wall_enclosures`
 - `floor_cabinets`
 - `mounting_panels`
 - `cable_boxes`
 
-Canonical attribute keys in `attributes_json`:
+Канонические attribute keys в `attributes_json`:
 - `installation`
 - `width_mm`
 - `height_mm`
@@ -35,34 +35,34 @@ Canonical attribute keys in `attributes_json`:
 - `lock`
 - `coating`
 
-Canonical attribute values:
+Канонические attribute values:
 - `installation`: `wall | floor`
 - `material`: `cold_rolled_steel | galvanized_steel | stainless_steel`
 - `door_type`: `solid | window`
 - `lock`: `true | false`
 - `coating`: `powder`
 
-## Search modes
+## Режимы поиска
 
-Use:
+Используй:
 - `exact_match`
 - `relaxed_match`
 - `category_browse`
 - `clarification`
 
-## Product-memory pre-step
+## Предварительный шаг через product_memory
 
-If the project brief/profile confirms a `product_memory` layer:
-- use it before broad live relaxation;
-- use it to infer the likely category, family, mount type, and nearby-size path;
-- use it to decide which same-family alternatives should be checked first.
+Если project brief/profile подтверждает слой `product_memory`:
+- используй его до broad live relaxation;
+- используй его, чтобы определить likely category, family, mount type и nearby-size path;
+- используй его, чтобы понять, какие same-family alternatives надо проверить в первую очередь.
 
-## Rules
+## Правила
 
-- `MCP Postgres` is mandatory for live product confirmation when the project uses live catalog workflow.
-- do not describe live search abstractly; generated prompts must explicitly name `MCP Postgres` as the tool used for `products_live`.
-- do not flatten `attributes_json`
-- do not invent category values
-- do not return fake matches
-- if showing nearby options, mark them as nearby
-- never imply that live catalog logic can work correctly without `MCP Postgres`
+- `MCP Postgres` обязателен для live product confirmation, если проект использует live catalog workflow.
+- нельзя описывать live search абстрактно; prompt обязан явно называть `MCP Postgres` как инструмент для работы с `products_live`.
+- не flatten `attributes_json`
+- не выдумывать category values
+- не возвращать fake matches
+- если показываешь nearby options, явно помечай их как nearby
+- никогда не подразумевай, что live catalog logic может работать корректно без `MCP Postgres`

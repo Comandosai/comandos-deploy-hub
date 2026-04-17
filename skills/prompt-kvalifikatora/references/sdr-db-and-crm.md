@@ -2,13 +2,13 @@
 
 ## Safe DB contract
 
-`MCP Postgres` is mandatory when the project stores lead memory in Postgres.
+`MCP Postgres` обязателен, когда проект хранит lead memory в Postgres.
 
-Use only:
+Используй только:
 
 `SELECT * FROM public.update_lead_profile_safe(...)`
 
-Confirmed params:
+Подтвержденные параметры:
 - `p_lead_id`
 - `p_name`
 - `p_phone`
@@ -21,32 +21,32 @@ Confirmed params:
 - `p_purchase_timeline`
 - `p_product_interest`
 
-Use:
+Правила использования:
 - named params `p_... => ...`
-- explicit types
-- typed null for unknown values
-- explicit reference to `MCP Postgres` as the DB tool in the generated prompt
-- sequencing `qualification_summary -> DB write-back -> confirmed CRM sync -> reply`
+- явные типы
+- typed null для неизвестных значений
+- явное упоминание `MCP Postgres` как DB tool в итоговом prompt
+- последовательность `qualification_summary -> DB write-back -> confirmed CRM sync -> reply`
 
-Never invent:
+Никогда не выдумывай:
 - `p_company`
 - `p_position`
 - `p_industry`
 - `p_result_summary`
-- any product-attribute safe params
+- любые product-attribute safe params
 
 ## CRM
 
-If CRM is confirmed, allow only exact actions from runtime/reference.
+Если CRM подтвержден, разрешай только точные действия из runtime/reference.
 
-Do not use broad phrases like:
+Не используй расплывчатые формулировки вроде:
 - "sync with CRM"
 - "update lead after every fact"
 
-Do not invent:
+Не выдумывай:
 - field IDs
 - stage changes
 - pipeline updates
 - custom payload structure
 
-If `MCP Postgres` exists in the project contract but the generated qualifier prompt does not explicitly require using it for lead-profile updates, that prompt is invalid.
+Если `MCP Postgres` есть в project contract, но итоговый qualifier prompt не требует его явно для обновления lead-profile, такой prompt невалиден.
