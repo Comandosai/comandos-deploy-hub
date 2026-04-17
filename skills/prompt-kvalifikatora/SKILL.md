@@ -19,9 +19,10 @@ description: Собирает только системный промпт `sdr_
 
 1. Прочитай готовый `brief`.
 2. Прочитай готовый `Prompt Input Profile`.
-3. Прочитай canonical skeleton и contract-файлы.
+3. Прочитай canonical skeleton, mature baseline и contract-файлы.
 4. Собери только системный промпт `sdr_qualifier`.
-5. Сохрани итоговый промпт как отдельный артефакт.
+5. Перед финализацией проверь, что prompt не ужат до compact/policy-summary версии.
+6. Сохрани итоговый промпт как отдельный артефакт.
 
 ## Hard Rules
 
@@ -37,6 +38,11 @@ description: Собирает только системный промпт `sdr_
 - Если CRM не подтверждена или runtime не дал exact actions, итоговый prompt обязан требовать полный `skip CRM`.
 - Не разрешай `products_live` lookup, `exact_match`, `relaxed_match` или `category_browse`.
 - Не проваливайся в plain text, если downstream ожидает fixed JSON.
+- Не выпускай short / compact / compressed prompt по умолчанию.
+- Для sales/runtime use case итоговый prompt должен быть heavy production prompt, а не короткий policy-summary.
+- Skeleton использовать как structural base, но не как основание для сокращения prompt.
+- Если пользователь явно не просил compact version, builder обязан выпускать длинный prompt с полной operational детализацией.
+- Prompt невалиден, если critical rules схлопнуты в короткий policy-summary без explicit operational detail.
 - Prompt обязан содержать:
   - orientation-first rule;
   - no pseudo-handoff rule;
@@ -67,6 +73,8 @@ description: Собирает только системный промпт `sdr_
 - `references/sdr-role-contract.md`
 - `references/sdr-db-and-crm.md`
 - `../prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
+- `../prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`
+- `../prompt-architecture/references/CYBEROP_HEAVY_PROMPT_STANDARD.md`
 - `../prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
 
 ## Выход
@@ -83,6 +91,8 @@ description: Собирает только системный промпт `sdr_
 - orientation-first и post-consultation handoff mode;
 - natural phone gate;
 - mcp_log discipline;
-- правило `DB first, CRM second`.
+- правило `DB first, CRM second`;
+- heavy production completeness;
+- отсутствие unjustified compression.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.
