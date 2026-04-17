@@ -81,6 +81,33 @@ Completion threshold:
 DB write rules:
 - `<db_write_rules>`
 
+Если проект использует safe lead-profile write-back через `public.update_lead_profile_safe(...)`, итоговый prompt обязан содержать literal block без сокращений:
+
+```sql
+SELECT *
+FROM public.update_lead_profile_safe(
+  p_lead_id => <lead_id>::integer,
+  p_name => <value_or_null>::text,
+  p_phone => <value_or_null>::text,
+  p_email => <value_or_null>::text,
+  p_qualification_summary => <value_or_null>::text,
+  p_qualification_score => NULL::integer,
+  p_purchase_purpose => <value_or_null>::text,
+  p_budget_min => <value_or_null>::numeric,
+  p_budget_max => <value_or_null>::numeric,
+  p_purchase_timeline => <value_or_null>::text,
+  p_product_interest => <value_or_null>::text
+);
+```
+
+Для этой секции запрещено:
+- заменять block кратким пересказом;
+- опускать `p_lead_id`;
+- использовать `=` вместо `=>`;
+- использовать untyped `NULL`;
+- придумывать дополнительные safe params;
+- писать укороченный ad-hoc вариант вместо canonical pattern.
+
 CRM rules:
 - `<crm_rules>`
 
@@ -135,3 +162,4 @@ State rules:
 - не остался ли телефон единственным blocker;
 - не был ли пропущен DB write-back после meaningful new fact;
 - не был ли выполнен CRM sync раньше DB write-back.
+- не схлопнут ли canonical DB block в короткий policy-summary вместо literal section.

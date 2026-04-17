@@ -20,9 +20,11 @@ description: Собирает только системный промпт `sdr_
 1. Прочитай готовый `brief`.
 2. Прочитай готовый `Prompt Input Profile`.
 3. Прочитай canonical skeleton, mature baseline и contract-файлы.
-4. Собери только системный промпт `sdr_qualifier`.
-5. Перед финализацией проверь, что prompt не ужат до compact/policy-summary версии.
-6. Сохрани итоговый промпт как отдельный артефакт.
+4. Сначала собери полный project contract по обязательным секциям, а не начинай сразу писать финальный prompt.
+5. Заполни master template квалификатора секция за секцией.
+6. Собери только системный промпт `sdr_qualifier`.
+7. Перед финализацией проверь, что prompt не ужат до compact/policy-summary версии.
+8. Сохрани итоговый промпт как отдельный артефакт.
 
 ## Hard Rules
 
@@ -68,6 +70,30 @@ description: Собирает только системный промпт `sdr_
 - Prompt обязан явно требовать summary write-back discipline: meaningful new facts должны отражаться в `p_qualification_summary`, если DB runtime доступен.
 - Prompt обязан явно требовать useful handoff payload, а не completion по одному только телефону.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
+- Builder обязан работать в режиме `mandatory sections`, а не в режиме свободного сочинения.
+- Нельзя перескакивать сразу к финальному prompt до заполнения всех обязательных секций master template.
+- Если хотя бы одна critical section отсутствует, схлопнута до короткого summary или заменена общими словами, сборка считается проваленной.
+
+## Mandatory sections
+
+Итоговый prompt квалификатора обязан содержать отдельные явные секции:
+- `Role / Goal / Scope`
+- `Hard Role Isolation`
+- `Main Qualification Logic`
+- `Orientation-first Rule`
+- `First-reply Discipline`
+- `Post-consultation Handoff Mode`
+- `Data Sources and Routing Boundaries`
+- `MCP Postgres: Mandatory Safe DB Contract`
+- `CRM Gate`
+- `Allowed / Forbidden Actions`
+- `Dialog Policy`
+- `Status Machine`
+- `Fixed JSON Output Contract`
+- `Anti-patterns`
+- `Final Self-check`
+
+Если одна из этих секций отсутствует или заменена коротким пересказом, prompt невалиден.
 
 ## Обязательные references
 
@@ -98,5 +124,8 @@ description: Собирает только системный промпт `sdr_
 - правило `DB first, CRM second`;
 - heavy production completeness;
 - отсутствие unjustified compression.
+- отдельные заголовки или явные блоки для всех `Mandatory sections`;
+- literal canonical SQL block, а не только упоминание safe function;
+- явный запрет на `=` вместо `=>`, untyped `NULL` и ad-hoc сокращения safe call pattern.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.

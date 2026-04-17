@@ -21,9 +21,11 @@ description: Собирает только системный промпт `cons
 2. Прочитай готовый `Prompt Input Profile`.
 3. Прочитай consultant role contract и live-search contract.
 4. Прочитай canonical skeleton, mature baseline и builder contract.
-5. Собери только системный промпт `consultant`.
-6. Перед финализацией проверь, что prompt не ужат до compact/policy-summary версии.
-7. Сохрани итоговый промпт как отдельный артефакт.
+5. Сначала собери полный project-specific consultant contract по обязательным секциям.
+6. Заполни master template консультанта секция за секцией.
+7. Собери только системный промпт `consultant`.
+8. Перед финализацией проверь, что prompt не ужат до compact/policy-summary версии.
+9. Сохрани итоговый промпт как отдельный артефакт.
 
 ## Hard Rules
 
@@ -58,6 +60,29 @@ description: Собирает только системный промпт `cons
 - Если пользователь явно не просил compact version, builder обязан выпускать длинный prompt с полной operational детализацией.
 - Prompt должен быть ближе по полноте к `Cyber_op`-style production prompt, чем к короткой skeleton-only версии.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
+- Builder обязан работать в режиме `mandatory sections`, а не в режиме свободной компоновки.
+- Нельзя перескакивать сразу к финальному prompt до заполнения всех обязательных секций master template.
+- Если хотя бы одна critical section отсутствует, схлопнута до короткого summary или заменена общими словами, сборка считается проваленной.
+
+## Mandatory sections
+
+Итоговый prompt консультанта обязан содержать отдельные явные секции:
+- `Role / Goal / Scope`
+- `Обязательные источники и порядок работы`
+- `Live schema`
+- `Search contract`
+- `Commercial and safety boundaries`
+- `Deep consultation before handoff`
+- `Search modes`
+- `Output contract`
+- `Humanization operating mode`
+- `Conversational micro-rules`
+- `Completion threshold`
+- `Result-summary discipline`
+- `Consultation-summary write-back rule`
+- `Final self-check`
+
+Если одна из этих секций отсутствует или заменена коротким пересказом, prompt невалиден.
 
 ## Обязательные references
 
@@ -84,5 +109,7 @@ description: Собирает только системный промпт `cons
 - terminal rule после confirmed selection;
 - heavy production completeness;
 - отсутствие unjustified compression.
+- отдельные заголовки или явные блоки для всех `Mandatory sections`;
+- project-specific live schema, category values, attribute keys и commercial facts не схлопнуты до generic fallback, если они подтверждены в проектных документах.
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.
