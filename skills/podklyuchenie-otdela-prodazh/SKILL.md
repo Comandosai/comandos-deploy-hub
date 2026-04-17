@@ -43,7 +43,10 @@ description: Подключает существующие Supabase и n8n кл�
 - Если в `DANNYE_DLYA_RAZVERTYVANIYA.md` уже есть `x_license_key`, не просить у пользователя ручные headers для `MCP AmoCRM`, а собрать credential автоматически.
 - Для `MCP Postgres` одного `x_license_key` недостаточно: нужны все DB-параметры и 7 HTTP headers.
 - Если `OpenRouter`, `OpenAI` или `Telegram` для конкретного сценария не нужны, не требовать их.
-- При создании credentials в n8n 2.x использовать UUID v4, правильный type `openAiApi`, структуру `headers.values` для Multiple Headers и CLI flag `--project <current_project_id>`.
+- При создании и аудите credentials в n8n 2.x использовать runtime-first политику: `credential.id` считается валидным, если он непустой и принимается текущим n8n runtime; формат и длину `id` skill не нормирует.
+- Для OpenAI использовать правильный type `openAiApi`, для Multiple Headers — структуру `headers.values`, для CLI-импорта — `--project <current_project_id>`.
+- UI-created credential считать нормой, если он проходит runtime: skill не должен переписывать его структуру только ради приведения к старому JSON-шаблону.
+- `null` или пустые значения в non-secret полях credential сами по себе не считаются ошибкой, если publish/activate и runtime execution проходят.
 - Для длинных операций по `n8n`, `psql`, JSON-экспорту и импорту использовать интерактивную SSH-сессию как основной режим, а не одноразовые короткие команды.
 - Все диагностические SQL по `n8n` писать через `nodes::jsonb`, а не через голый `nodes`.
 - После импорта workflow всегда делать аудит неразрешенных credentials и project sharing до любых тестовых запусков.
@@ -137,7 +140,7 @@ description: Подключает существующие Supabase и n8n кл�
   - либо остановиться и сообщить, что custom credential type не зарегистрирован.
 - Для `MCP Postgres` надо помнить, что endpoint живет в node, а credential хранит headers.
 - Для `MCP Postgres` использовать endpoint `https://postgres.mcp.comandos.ai/`.
-- Для `MCP Postgres` использовать только точные имена headers:
+- Для `MCP Postgres` использовать только точные имена базовых headers:
   - `db_host`
   - `db_port`
   - `db_name`
@@ -145,6 +148,7 @@ description: Подключает существующие Supabase и n8n кл�
   - `db_password`
   - `db_schema`
   - `x-license-key`
+- Дополнительный header `tenant_id` допустим как расширение и не считается несовместимостью, если runtime принимает credential.
 - Не использовать альтернативные варианты заголовков вроде `DB_HOST`, `database_host`, `x_license_key`, `db-user`.
 - Для `MCP Postgres` credential data должен использовать структуру `headers.values`.
 - Для `MCP Postgres` нельзя создавать credential только по `x_license_key`.

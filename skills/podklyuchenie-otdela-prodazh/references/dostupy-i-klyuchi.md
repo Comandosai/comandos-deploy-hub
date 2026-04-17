@@ -17,8 +17,9 @@
 
 ## Правила n8n 2.x для credentials
 
-- Все создаваемые credentials должны иметь UUID v4 как `id`.
-- Нельзя использовать простые строковые ID вроде `openai-1`, `telegram-main`, `postgres-test`.
+- `credential.id` считается валидным, если он непустой и принимается текущим n8n runtime; skill не нормирует его по UUID-формату, длине или внешнему виду.
+- Если credential создан через UI и runtime его принимает, skill не должен переписывать его структуру под старый JSON-шаблон.
+- `null` или пустые значения в non-secret полях (`url`, `baseUrl`, `organizationId`, `headerName`, `maxConnections`, `ssl`, `port` и т.д.) сами по себе не считаются blocker, если publish/activate и runtime execution проходят.
 - Для OpenAI использовать credential type `openAiApi`.
 - Не использовать устаревший type `openaiApi`.
 - При импорте через CLI всегда использовать текущий `project_id`:
@@ -34,7 +35,7 @@
 Endpoint:
 - `https://postgres.mcp.comandos.ai/`
 
-Headers:
+Базовые headers:
 - `db_host`
 - `db_port`
 - `db_name`
@@ -43,11 +44,15 @@ Headers:
 - `db_schema`
 - `x-license-key`
 
+Допустимое расширение:
+- `tenant_id`
+
 Важно:
 - использовать только эти точные имена заголовков;
 - не заменять их на `DB_HOST`, `database_host`, `db-user`, `x_license_key` или другие варианты;
 - `x_license_key` допустим только как имя поля в `DANNYE_DLYA_RAZVERTYVANIYA.md`, но в самом HTTP header должно быть именно `x-license-key`.
 - в JSON credential для `HTTP Multiple Headers Auth` использовать структуру `headers.values`, а не прямой массив `headers`.
+- наличие дополнительного `tenant_id` не считать ошибкой, если credential валиден в runtime.
 
 Правильная структура:
 

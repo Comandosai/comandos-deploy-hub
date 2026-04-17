@@ -7,9 +7,9 @@
 - зарегистрированы ли обязательные credential types;
 - не осталось ли пустых или битых credentials;
 - не осталось ли refs, у которых есть `name`, но отсутствует `id`;
-- у созданных credentials UUID v4 ID;
+- у используемых credentials есть непустой `id`, который реально принимается текущим n8n runtime;
 - OpenAI credential type равен `openAiApi`;
-- `MCP Postgres` содержит 7 headers в структуре `headers.values`;
+- `MCP Postgres` содержит базовые 7 headers в структуре `headers.values`, а дополнительный `tenant_id` допускается как валидное расширение;
 - есть ли доступ к `Supabase`, `Postgres`, `MCP`;
 - есть ли `x-license-key`.
 - есть ли `supabase_service_role_key`, если создается Supabase credential.
@@ -19,6 +19,8 @@
 - если аудит вернул хотя бы одну строку, считать этап проваленным и не переходить к `publish/activate`;
 - не считать workflow готовым только потому, что UI показывает выбранный credential;
 - не считать workflow готовым только потому, что credential с нужным именем существует или проходит `test connection`;
+- не считать `null` или пустые значения в non-secret полях credential автоматической ошибкой, если publish/activate и runtime execution проходят;
+- не переписывать рабочий UI-created credential только ради приведения к старому JSON-виду;
 - отдельно проверить draft workflow и active/published version workflow, если опубликованная версия существует;
 - до финального Telegram-теста выполнить runtime credential audit для `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
 - для каждого node с credentials убедиться, что сохранены и `name`, и `id`;

@@ -65,7 +65,8 @@
 
 Правило для `MCP Postgres`:
 - создать credential типа `HTTP Multiple Headers Auth`;
-- использовать все 7 headers: `db_host`, `db_port`, `db_name`, `db_user`, `db_password`, `db_schema`, `x-license-key`;
+- использовать базовые 7 headers: `db_host`, `db_port`, `db_name`, `db_user`, `db_password`, `db_schema`, `x-license-key`;
+- дополнительный `tenant_id` допустим, если он создан UI или нужен текущему runtime;
 - хранить headers в структуре `headers.values`;
 - не считать credential готовым, если там только `x-license-key`.
 
@@ -74,9 +75,11 @@
 - anon key нельзя использовать вместо service role key.
 
 Правило для n8n 2.x:
-- credential IDs должны быть UUID v4;
+- credential IDs не нужно валидировать по UUID-формату или длине; достаточно, чтобы `id` был непустым и принимался текущим n8n runtime;
 - OpenAI type должен быть `openAiApi`;
 - CLI-импорт credentials выполнять с `--project <current_project_id>`.
+- UI-created credential, который проходит runtime, не нужно переписывать под старый JSON-шаблон.
+- `null` в non-secret полях credential не считать blocker-ом сам по себе.
 - После импорта workflow нельзя оставлять refs, где есть `credential.name`, но нет `credential.id`.
 
 ## Шаг 6. Привязать соединения к узлам

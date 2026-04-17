@@ -63,10 +63,12 @@
 Навык должен:
 - определять текущий `project_id` перед импортом credentials;
 - импортировать credentials через `n8n import:credentials --project <current_project_id>`;
-- создавать credential IDs только как UUID v4;
+- считать `credential.id` валидным, если он непустой и принимается текущим n8n runtime; UUID-формат не требовать;
 - использовать OpenAI credential type `openAiApi`;
 - не использовать legacy type `openaiApi`;
-- для `HTTP Multiple Headers Auth` использовать `headers.values`, а не прямой массив `headers`.
+- для `HTTP Multiple Headers Auth` использовать `headers.values`, а не прямой массив `headers`;
+- принимать UI-created credential как нормальный формат, если он проходит runtime и корректно привязан к workflow;
+- не считать `null` в non-secret полях автоматической ошибкой, если publish/activate и runtime execution проходят.
 
 Для Supabase credential обязательно использовать `supabase_service_role_key`.
 Anon key нельзя использовать вместо service role key.
@@ -199,6 +201,7 @@ Headers:
 - `db_password`
 - `db_schema`
 - `x-license-key`
+- `tenant_id` допустим как дополнительный header, если его создал UI или он реально нужен текущему runtime
 
 Используй только эти точные имена заголовков.
 Не подменяй их на `DB_HOST`, `database_host`, `x_license_key`, `db-user` или другие варианты.

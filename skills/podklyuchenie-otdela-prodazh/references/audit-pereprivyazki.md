@@ -9,7 +9,7 @@
 - credential отсутствует вообще;
 - credential существует, но не расшарен в проект.
 5. Проверить `shared_credentials` для текущего `project_id`.
-6. Проверить, что credentials импортированы или созданы с UUID v4, а не простыми строковыми ID.
+6. Проверить, что у credentials есть непустой `id`, который принимается текущим n8n runtime; формат `id` по UUID не требовать.
 7. Проверить, что OpenAI credentials имеют type `openAiApi`.
 8. Если credentials импортировались через CLI, подтвердить, что использовался `--project <current_project_id>`.
 9. Найти актуальный ID workflow `Уведомления об ошибках в N8N`.
@@ -161,4 +161,10 @@ AND EXISTS (SELECT 1 FROM error_workflow);
 - `MCP Postgres`
 - `MCP AmoCRM`
 
-Для `MCP Postgres` отдельно проверить, что credential содержит все 7 headers и хранит их через `headers.values`.
+Для `MCP Postgres` отдельно проверить, что credential содержит базовые 7 headers и хранит их через `headers.values`.
+Дополнительный `tenant_id` допустим и не считается несовместимостью, если runtime принимает credential.
+
+Дополнительные правила acceptance:
+- UI-created credential, который проходит runtime, не нужно переписывать только ради совпадения со старым JSON-шаблоном.
+- `null` или пустые значения в non-secret полях credential сами по себе не считаются ошибкой.
+- Shape credential вторичен по отношению к runtime: publish/activate и успешный execution важнее внешнего вида JSON.
