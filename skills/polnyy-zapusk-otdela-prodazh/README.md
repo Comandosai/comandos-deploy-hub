@@ -318,18 +318,43 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 
 Перейди к этапу `Промпт консультанта`.
 Используй навык `Промпт консультанта`.
-Собери системный промпт консультанта через canonical layer `skills/prompt-architecture/`, а не из workflow JSON и не из свободной генерации.
+Собери production-ready системный промпт консультанта через canonical layer, а не из workflow JSON и не из свободной генерации.
 
-Используй:
+Обязательно используй:
 - готовый `brief`
 - готовый `Prompt Input Profile`
+- `skills/prompt-konsultanta/SKILL.md`
+- `skills/prompt-konsultanta/references/consultant-role-contract.md`
+- `skills/prompt-konsultanta/references/consultant-live-search.md`
 - `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
 - `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
+- `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
 
-Сохрани итоговый файл как `Prompts/prompt_consultant.md`.
+Сначала:
+- проверь, есть ли `Prompts/consultant_input_profile.json`;
+- если его нет, собери его как отдельный артефакт;
+- не перескакивай сразу к финальному prompt без input profile.
+
+Потом:
+- собери и сохрани итоговый prompt как `Prompts/prompt_consultant.md`.
+
+Жесткие правила:
+- не использовать workflow JSON как источник prompt-смысла;
+- не генерировать prompt напрямую из `brief` без skeleton-layer;
+- не сокращать prompt до короткой contract-версии;
+- не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
+- сохранить role boundary между consultant, qualifier и handoff;
+- явно описать source ordering: knowledge -> product_memory (если есть) -> live;
+- явно описать live-search rules, anti-hallucination rules, handoff rules, output/state contract.
+
+Требование к качеству:
+- prompt должен быть production-ready;
+- prompt должен быть длинным, полным, с явными блоками роли, scope, data sources, routing, tool usage, live rules, fallback, dialog policy, output contract, forbidden actions;
+- ориентир — полноценный системный prompt, а не короткий skeleton fill.
 
 После завершения:
 - покажи, где сохранен промпт;
+- покажи, где сохранен input profile;
 - обнови контекст проекта;
 - предложи следующий шаг.
 ```
@@ -344,18 +369,45 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 
 Перейди к этапу `Промпт квалификатора`.
 Используй навык `Промпт квалификатора`.
-Собери системный промпт квалификатора через canonical layer `skills/prompt-architecture/`, а не из workflow JSON и не из свободной генерации.
+Собери production-ready системный промпт квалификатора через canonical layer, а не из workflow JSON и не из свободной генерации.
 
-Используй:
+Обязательно используй:
 - готовый `brief`
 - готовый `Prompt Input Profile`
+- `skills/prompt-kvalifikatora/SKILL.md`
+- `skills/prompt-kvalifikatora/references/sdr-role-contract.md`
+- `skills/prompt-kvalifikatora/references/sdr-db-and-crm.md`
 - `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
 - `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
+- `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`
 
-Сохрани итоговый файл как `Prompts/prompt_qualifier.md`.
+Сначала:
+- проверь, есть ли `Prompts/qualifier_input_profile.json`;
+- если его нет, собери его как отдельный артефакт;
+- не перескакивай сразу к финальному prompt без input profile.
+
+Потом:
+- собери и сохрани итоговый prompt как `Prompts/prompt_qualifier.md`.
+
+Жесткие правила:
+- использовать только роль `sdr_qualifier`, а не `consultant` и не `interviewer`;
+- не разрешать `products_live` lookup, `exact_match`, `relaxed_match`, `category_browse`;
+- не использовать consultant-style behavior;
+- не выдумывать DB contract;
+- использовать только confirmed safe DB write contract;
+- использовать fixed JSON output contract;
+- не сокращать prompt до короткой contract-версии;
+- не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
+- отдельно прописать orientation-first rule, completion threshold, post-consultation handoff mode, DB/CRM rules, forbidden actions, strict output discipline.
+
+Требование к качеству:
+- prompt должен быть production-ready;
+- prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB/CRM rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
+- ориентир — полноценный системный prompt на несколько сотен строк, а не короткий contract.
 
 После завершения:
 - покажи, где сохранен промпт;
+- покажи, где сохранен input profile;
 - обнови контекст проекта;
 - завершай сценарий как полный рабочий контур.
 ```
