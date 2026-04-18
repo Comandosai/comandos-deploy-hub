@@ -83,6 +83,15 @@
 Для Supabase credential обязательно использовать `supabase_service_role_key`.
 Anon key нельзя использовать вместо service role key.
 
+Для повседневной работы использовать короткий reference:
+- `references/credential-binding-lite.md`
+
+Тяжёлые reference-файлы:
+- `references/audit-pereprivyazki.md`
+- `references/runtime-readiness.md`
+
+нужно читать только на этапах `rebind / publish / activate / final runtime check`, а не тащить в контекст всегда.
+
 ## Важно про реальный сценарий
 
 Этот навык должен по умолчанию делать четыре обязательные фазы:

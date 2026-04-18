@@ -23,8 +23,11 @@ description: Подключает существующие Supabase и n8n кл�
 3. Прочитай [карту workflow](references/karta-workflow.md).
 4. Прочитай [preflight-проверку](references/preflight-proverka.md).
 5. Прочитай [поиск секретов](references/poisk-sekretov.md).
-6. Прочитай [аудит перепривязки](references/audit-pereprivyazki.md).
-7. Прочитай [runtime readiness](references/runtime-readiness.md).
+6. Прочитай [Credential Binding LITE](references/credential-binding-lite.md).
+
+Тяжёлые reference-файлы читать только когда дошёл до соответствующей фазы:
+- [аудит перепривязки](references/audit-pereprivyazki.md) — только на этапе `Workflow import + rebind audit`;
+- [runtime readiness](references/runtime-readiness.md) — только на этапе `Runtime readiness`.
 
 Если пользователь просит подключить тестового ИИ-агента для проверки базы, дополнительно прочитай:
 - [prompt для тестового агента](references/prompt-testovogo-agenta.md)
