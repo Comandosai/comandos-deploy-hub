@@ -335,17 +335,17 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Обязательно используй:
 - готовый `brief`
 - готовый `Prompt Input Profile`
-- `skills/prompt-kvalifikatora/SKILL.md`
-- `skills/prompt-kvalifikatora/references/sdr-role-contract.md`
-- `skills/prompt-kvalifikatora/references/sdr-db-and-crm.md`
+- `skills/units/prompt-kvalifikatora/SKILL.md`
+- `skills/units/prompt-kvalifikatora/references/sdr-role-contract.md`
+- `skills/units/prompt-kvalifikatora/references/sdr-db-and-crm.md`
 - `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
 - `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
 - `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`
 
 Сначала:
-- прочитай `skills/prompt-kvalifikatora/SKILL.md`;
-- прочитай `skills/prompt-kvalifikatora/references/sdr-role-contract.md`;
-- прочитай `skills/prompt-kvalifikatora/references/sdr-db-and-crm.md`;
+- прочитай `skills/units/prompt-kvalifikatora/SKILL.md`;
+- прочитай `skills/units/prompt-kvalifikatora/references/sdr-role-contract.md`;
+- прочитай `skills/units/prompt-kvalifikatora/references/sdr-db-and-crm.md`;
 - прочитай `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`;
 - прочитай `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`;
 - прочитай `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`;
@@ -403,17 +403,17 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - готовый `brief`
 - готовый `Prompt Input Profile`
 - уже готовый `Prompts/prompt_qualifier.md`
-- `skills/prompt-konsultanta/SKILL.md`
-- `skills/prompt-konsultanta/references/consultant-role-contract.md`
-- `skills/prompt-konsultanta/references/consultant-live-search.md`
+- `skills/units/prompt-konsultanta/SKILL.md`
+- `skills/units/prompt-konsultanta/references/consultant-role-contract.md`
+- `skills/units/prompt-konsultanta/references/consultant-live-search.md`
 - `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
 - `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
 - `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
 
 Сначала:
-- прочитай `skills/prompt-konsultanta/SKILL.md`;
-- прочитай `skills/prompt-konsultanta/references/consultant-role-contract.md`;
-- прочитай `skills/prompt-konsultanta/references/consultant-live-search.md`;
+- прочитай `skills/units/prompt-konsultanta/SKILL.md`;
+- прочитай `skills/units/prompt-konsultanta/references/consultant-role-contract.md`;
+- прочитай `skills/units/prompt-konsultanta/references/consultant-live-search.md`;
 - прочитай `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`;
 - прочитай `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`;
 - прочитай `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`;
