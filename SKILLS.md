@@ -2,20 +2,22 @@
 
 Ниже список того, что можно поставить одной командой.
 
-## Набор (полный сценарий)
+## Наборы
 
+- лежат в `skills/bundles/`
 - `polnyy-zapusk-otdela-prodazh` — полный запуск отдела продаж (ставится вместе с зависимостями).
+- `vektorizaciya-i-zagruzka-bazy` — подготовка и загрузка базы знаний.
+- `podklyuchenie-otdela-prodazh` — подключение отдела продаж.
 
-Команда:
+Команда для полного набора:
 ```bash
 curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install polnyy-zapusk-otdela-prodazh --client codex
 ```
 
 ## Отдельные навыки
 
+- лежат в `skills/units/`
 - `razvertyvanie-i-obnovlenie-n8n` — развёртывание и обновление n8n.
-- `vektorizaciya-i-zagruzka-bazy` — подготовка и загрузка базы знаний.
-- `podklyuchenie-otdela-prodazh` — подключение отдела продаж.
 - `telegram-testirovanie-bota` — живое тестирование Telegram-бота.
 - `sborka-brifa` — сборка брифа.
 - `prompt-kvalifikatora` — сборка промпта квалификатора.

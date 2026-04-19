@@ -49,37 +49,59 @@ for sid, item in by_id.items():
         if dep not in by_id:
             errors.append(f"{sid}: неизвестная зависимость {dep}")
 
-# Каждый каталог первого уровня в skills/ обязан быть в реестре.
+# Проверяем новую структуру:
+# skills/units/* и skills/bundles/* должны быть синхронизированы с реестром.
 skills_root = os.path.join(root_dir, "skills")
-if os.path.isdir(skills_root):
-    skill_dirs = sorted(
-        d for d in os.listdir(skills_root)
-        if os.path.isdir(os.path.join(skills_root, d))
+units_root = os.path.join(skills_root, "units")
+bundles_root = os.path.join(skills_root, "bundles")
+
+if not os.path.isdir(units_root):
+    errors.append("Отсутствует каталог skills/units")
+if not os.path.isdir(bundles_root):
+    errors.append("Отсутствует каталог skills/bundles")
+
+def list_real_dirs(path):
+    if not os.path.isdir(path):
+        return []
+    return sorted(
+        d for d in os.listdir(path)
+        if os.path.isdir(os.path.join(path, d))
     )
 
-    registry_skill_dirs = set()
-    for sid, item in by_id.items():
-        rel_path = item.get("path", "")
-        if rel_path.startswith("skills/"):
-            parts = rel_path.split("/")
-            if len(parts) >= 2 and parts[1]:
-                registry_skill_dirs.add(parts[1])
+unit_dirs = list_real_dirs(units_root)
+bundle_dirs = list_real_dirs(bundles_root)
+all_dirs = unit_dirs + bundle_dirs
 
-    for dirname in skill_dirs:
-        if dirname not in registry_skill_dirs:
-            errors.append(
-                f"skills/{dirname}: каталог есть, но его нет в registry/skills-index.json"
-            )
+registry_skill_dirs = set()
+for sid, item in by_id.items():
+    rel_path = item.get("path", "")
+    if rel_path.startswith("skills/units/") or rel_path.startswith("skills/bundles/"):
+        parts = rel_path.split("/")
+        if len(parts) >= 3 and parts[2]:
+            registry_skill_dirs.add(parts[2])
+    else:
+        errors.append(
+            f"{sid}: путь должен быть в skills/units/* или skills/bundles/*, сейчас: {rel_path}"
+        )
 
-    # И обратная проверка: каталог навыка должен иметь SKILL.md,
-    # кроме технических библиотек (например prompt-architecture).
-    skip_skill_md = {"prompt-architecture"}
-    for dirname in skill_dirs:
-        if dirname in skip_skill_md:
-            continue
-        skill_md = os.path.join(skills_root, dirname, "SKILL.md")
-        if not os.path.isfile(skill_md):
-            errors.append(f"skills/{dirname}: отсутствует SKILL.md")
+for dirname in all_dirs:
+    if dirname not in registry_skill_dirs:
+        errors.append(
+            f"skills/*/{dirname}: каталог есть, но его нет в registry/skills-index.json"
+        )
+
+# И обратная проверка: каталог навыка должен иметь SKILL.md,
+# кроме технических библиотек (например prompt-architecture).
+skip_skill_md = {"prompt-architecture"}
+for dirname in all_dirs:
+    if dirname in skip_skill_md:
+        continue
+    if dirname in unit_dirs:
+        skill_md = os.path.join(units_root, dirname, "SKILL.md")
+    else:
+        skill_md = os.path.join(bundles_root, dirname, "SKILL.md")
+    if not os.path.isfile(skill_md):
+        errors.append(f"{dirname}: отсутствует SKILL.md")
 
 visiting = set()
 visited = set()

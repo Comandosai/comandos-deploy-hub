@@ -35,16 +35,21 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 
 Чтобы развернуть WordPress со всеми оптимизациями:
 ```bash
-curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/wp/setup.sh | bash
 ```
 
 ## Структура репозитория
 
-- `skills/` — навыки и наборы навыков.
+- `stacks/` — только стеки развёртывания:
+  - `stacks/n8n/`
+  - `stacks/supabase/`
+  - `stacks/wp/`
+- `skills/units/` — одиночные навыки.
+- `skills/bundles/` — наборы навыков.
 - `registry/skills-index.json` — единый список навыков, наборов и зависимостей.
 - `tools/skills.sh` — установка навыка или набора одной командой.
+- `tools/check.sh` — обязательная проверка структуры перед push.
 - `STACK_STANDARD.md` — обязательный стандарт для новых стеков.
 - `AGENT_WORKFLOW.md` — как агент должен выбирать и запускать навыки.
-- `n8n-stack-v2/`, `n8n-stack/`, `supabase-stack/`, `wp-stack/`, `wp-next-stack/` — шаблоны развёртывания.
 
 Главное правило: старые пути не ломаем. Новые навыки добавляем через реестр `registry/skills-index.json`.

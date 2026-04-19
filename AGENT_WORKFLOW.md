@@ -60,4 +60,4 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
    - сначала исправить реестр/структуру.
 
 Главное правило:
-- есть папка `skills/<skill_name>` → должна быть запись в `registry/skills-index.json`.
+- есть папка `skills/units/<skill_name>` или `skills/bundles/<skill_name>` → должна быть запись в `registry/skills-index.json`.
