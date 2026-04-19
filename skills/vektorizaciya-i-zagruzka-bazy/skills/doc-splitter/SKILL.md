@@ -294,5 +294,5 @@ Read these references as needed:
 ## Test Source
 
 For local testing with PromShield messy input, use:
-- `/Users/artemlahtin/Documents/Cyber_OP/06_Sluzhebnye_fayly/TEST_MESSY_INPUT_PROMSHCHIT_ENGINEERING.md`
-- `/Users/artemlahtin/Documents/Cyber_OP/06_Sluzhebnye_fayly/TEST_MESSY_INPUT_PROMSHCHIT_ENGINEERING.txt`
+- `Base/new_files/TEST_MESSY_INPUT_PROMSHCHIT_ENGINEERING.md`
+- `Base/new_files/TEST_MESSY_INPUT_PROMSHCHIT_ENGINEERING.txt`

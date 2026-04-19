@@ -3,14 +3,14 @@
 В репе рядом лежат пять отдельных навыков, которые можно запускать независимо или по порядку.
 
 Общие файлы:
-- [RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md)
-- [DANNYE_DLYA_RAZVERTYVANIYA.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/DANNYE_DLYA_RAZVERTYVANIYA.md)
-- [KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md)
+- [RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md](RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md)
+- [DANNYE_DLYA_RAZVERTYVANIYA.md](DANNYE_DLYA_RAZVERTYVANIYA.md)
+- [KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md](KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md)
 
 ## 0. Полный запуск отдела продаж
 
 Папка:
-- [polnyy-zapusk-otdela-prodazh](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/polnyy-zapusk-otdela-prodazh)
+- [polnyy-zapusk-otdela-prodazh](polnyy-zapusk-otdela-prodazh)
 
 Назначение:
 - читать общий ввод и общий контекст проекта;
@@ -22,11 +22,11 @@
 ## 1. Векторизация и загрузка базы
 
 Папка:
-- [vektorizaciya-i-zagruzka-bazy](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/vektorizaciya-i-zagruzka-bazy)
+- [vektorizaciya-i-zagruzka-bazy](vektorizaciya-i-zagruzka-bazy)
 
 Назначение:
 - разобрать сырые документы;
-- собрать `__workspace`;
+- собрать `Base`;
 - создать `products_live`;
 - отправить данные в runtime API;
 - загрузить знания и товары в `Supabase`.
@@ -34,7 +34,7 @@
 ## 2. Подключение отдела продаж
 
 Папка:
-- [podklyuchenie-otdela-prodazh](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/podklyuchenie-otdela-prodazh)
+- [podklyuchenie-otdela-prodazh](podklyuchenie-otdela-prodazh)
 
 Назначение:
 - найти `Supabase`;
@@ -48,7 +48,7 @@
 ## 3. Развертывание и обновление n8n
 
 Папка:
-- [razvertyvanie-i-obnovlenie-n8n](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/razvertyvanie-i-obnovlenie-n8n)
+- [razvertyvanie-i-obnovlenie-n8n](razvertyvanie-i-obnovlenie-n8n)
 
 Назначение:
 - запросить доступ к серверу;
@@ -61,7 +61,7 @@
 ## 4. Telegram-тестирование бота
 
 Папка:
-- [telegram-testirovanie-bota](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/telegram-testirovanie-bota)
+- [telegram-testirovanie-bota](telegram-testirovanie-bota)
 
 Назначение:
 - поставить зависимости для `Telethon`;

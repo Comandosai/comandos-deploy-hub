@@ -8,5 +8,5 @@
 - ведет пользователя через все остальные навыки.
 
 Основные файлы:
-- [SKILL.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/polnyy-zapusk-otdela-prodazh/SKILL.md)
-- [README.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/polnyy-zapusk-otdela-prodazh/README.md)
+- [SKILL.md](SKILL.md)
+- [README.md](README.md)

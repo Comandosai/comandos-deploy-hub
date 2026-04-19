@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-19",
+  "allowed_clients": [
+    "codex",
+    "claude",
+    "gemini",
+    "antigravity",
+    "terminal"
+  ],
+  "items": [
+    {
+      "id": "prompt-architecture",
+      "title": "Стандарт промптов",
+      "type": "library",
+      "path": "skills/prompt-architecture",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "razvertyvanie-i-obnovlenie-n8n",
+      "title": "Развертывание и обновление n8n",
+      "type": "unit",
+      "path": "skills/razvertyvanie-i-obnovlenie-n8n",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "vektorizaciya-i-zagruzka-bazy",
+      "title": "Векторизация и загрузка базы",
+      "type": "unit",
+      "path": "skills/vektorizaciya-i-zagruzka-bazy",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "podklyuchenie-otdela-prodazh",
+      "title": "Подключение отдела продаж",
+      "type": "unit",
+      "path": "skills/podklyuchenie-otdela-prodazh",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "telegram-testirovanie-bota",
+      "title": "Telegram-тестирование бота",
+      "type": "unit",
+      "path": "skills/telegram-testirovanie-bota",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "sborka-brifa",
+      "title": "Сборка брифа",
+      "type": "unit",
+      "path": "skills/sborka-brifa",
+      "depends_on": ["prompt-architecture"],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "prompt-kvalifikatora",
+      "title": "Промпт квалификатора",
+      "type": "unit",
+      "path": "skills/prompt-kvalifikatora",
+      "depends_on": ["prompt-architecture"],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "prompt-konsultanta",
+      "title": "Промпт консультанта",
+      "type": "unit",
+      "path": "skills/prompt-konsultanta",
+      "depends_on": ["prompt-architecture"],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "polnyy-zapusk-otdela-prodazh",
+      "title": "Полный запуск отдела продаж",
+      "type": "bundle",
+      "path": "skills/polnyy-zapusk-otdela-prodazh",
+      "depends_on": [
+        "razvertyvanie-i-obnovlenie-n8n",
+        "vektorizaciya-i-zagruzka-bazy",
+        "podklyuchenie-otdela-prodazh",
+        "telegram-testirovanie-bota",
+        "sborka-brifa",
+        "prompt-kvalifikatora",
+        "prompt-konsultanta"
+      ],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    }
+  ]
+}

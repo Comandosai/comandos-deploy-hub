@@ -76,18 +76,13 @@
 ## Команда 1. Скачать и установить навык
 
 ```text
-Скачай и установи навык `Развертывание и обновление n8n` из репозитория `https://github.com/Comandosai/comandos-deploy-hub`, директория `skills/razvertyvanie-i-obnovlenie-n8n`.
+Установи навык одной командой:
 
-Адаптируй установку под текущего агента:
-- если это Codex, положи файлы в codex-совместимую skill-структуру;
-- если это Claude, положи файлы в claude-совместимую структуру;
-- если это Antigravity, положи файлы в antigravity-совместимую структуру.
+`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install razvertyvanie-i-obnovlenie-n8n --client codex`
 
-Установи:
-- bundle entrypoint;
-- manifest;
-- references;
-- инструкции для установки `n8n-stack-v2`.
+Если работаешь в Claude, замени `codex` на `claude`.
+Если работаешь в Gemini, замени `codex` на `gemini`.
+Если работаешь в Antigravity, замени `codex` на `antigravity`.
 
 После установки ничего не запускай автоматически.
 Просто покажи, что навык установлен, и скажи, какой следующей командой запускать проверку сервера.

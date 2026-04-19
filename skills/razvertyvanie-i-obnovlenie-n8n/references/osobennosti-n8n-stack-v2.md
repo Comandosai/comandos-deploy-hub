@@ -1,7 +1,7 @@
 # Особенности n8n-stack-v2
 
 Источник:
-- `/Users/artemlahtin/Documents/comandos-deploy-hub/n8n-stack-v2`
+- `../../../n8n-stack-v2`
 
 Ключевые правила:
 - стандартный путь деплоя: `/root/n8n`

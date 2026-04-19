@@ -49,18 +49,13 @@
 Скопируйте и вставьте агенту:
 
 ```text
-Скачай и установи навык `Telegram-тестирование бота` из репозитория `https://github.com/Comandosai/comandos-deploy-hub`, директория `skills/telegram-testirovanie-bota`.
+Установи навык одной командой:
 
-Адаптируй установку под текущего агента:
-- если это Codex, положи файлы в codex-совместимую skill-структуру;
-- если это Claude, положи файлы в claude-совместимую структуру;
-- если это Antigravity, положи файлы в antigravity-совместимую структуру.
+`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install telegram-testirovanie-bota --client codex`
 
-Установи:
-- bundle entrypoint;
-- `scripts/`;
-- `references/`;
-- все файлы навыка для Telegram harness и сохранения отчета.
+Если работаешь в Claude, замени `codex` на `claude`.
+Если работаешь в Gemini, замени `codex` на `gemini`.
+Если работаешь в Antigravity, замени `codex` на `antigravity`.
 
 После установки ничего не запускай автоматически.
 Просто покажи, что навык установлен, и скажи, какой следующей командой запускать подготовку тестирования.

@@ -7,5 +7,5 @@
 - ingestion в `Supabase`.
 
 Основные файлы:
-- [SKILL.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/vektorizaciya-i-zagruzka-bazy/SKILL.md)
-- [README.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/vektorizaciya-i-zagruzka-bazy/README.md)
+- [SKILL.md](SKILL.md)
+- [README.md](README.md)

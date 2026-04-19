@@ -23,10 +23,10 @@
 То есть это не “вот compose, дальше руками”, а:
 - определение существующего Traefik,
 - подключение к общей сети,
-- автонастройка маршрутов через `docker labels` или `file provider`, в зависимости от окружения,
+- автонастройка маршрутов через `file provider`,
 - запуск n8n c нужными параметрами для 2.x,
 - автоматическая установка обязательных `@comandosai`-нод,
-- единая модель reverse proxy без конфликта провайдеров.
+- единая модель reverse proxy без смешивания режимов.
 
 ## Чем стек отличается от типовых README/инсталляторов
 
@@ -47,9 +47,9 @@
 - корректно встраивается в уже существующий Traefik,
 - может ставиться **до или после** других сервисов,
 - сохраняет межсервисную связность через общую external-сеть.
-- если внешний `Traefik` умеет `docker provider`, стек использует `labels`;
-- если внешний или встроенный `Traefik` работает через `file provider`, стек сам генерирует `traefik_dynamic/n8n.yml`;
-- стек не смешивает `docker provider` и `file provider` в одном инстансе.
+- внешний и встроенный `Traefik` используются только в режиме `file provider`;
+- стек генерирует `traefik_dynamic/n8n.yml` с явным роутом на `n8n`;
+- `traefik.*` labels в сервисе `n8n` не используются.
 
 ### 3.1) Корректная работа n8n за HTTPS reverse proxy
 - автоматически выставляется `N8N_PROXY_HOPS=1` для схемы с одним proxy-hop;
@@ -84,7 +84,7 @@
 - `OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true`
 - автоматическая генерация секретов
 - защита от drift секретов: пароль `n8n` в `.env` синхронизируется с ролью в `Postgres`
-- опциональный monthly auto-update через `systemd timer`
+- без monthly автообновления стека
 
 ### 7) Weekly sync community-нод из npm
 Опционально можно включить авто-синхронизацию из профиля:
@@ -124,6 +124,21 @@ sudo ./setup.sh
 
 На апдейте выбирайте использование существующих настроек (домен/ключи/пароли), чтобы пройти обновление без ручной перенастройки.
 Скрипт обязан сохранить существующие `workflow`, `credentials`, `variables`, `project sharing` и пользовательский стейт. Если этого не удаётся гарантировать, обновление должно считаться неуспешным.
+
+## Порядок применения и проверка
+
+После правок выполняйте:
+
+```bash
+docker compose config
+docker compose pull
+docker compose up -d
+docker compose ps
+docker exec n8n-n8n-1 n8n --version
+curl -I https://<YOUR_DOMAIN>
+```
+
+Если в UI остаётся `Connection lost`, проверьте DNS/сеть Docker на хосте (`journalctl -u docker`), особенно ошибки вида `failed to query external DNS server ... i/o timeout`.
 
 ## Что обновляется автоматически
 - Postgres запускается на образе `pgvector/pgvector:pg16`.

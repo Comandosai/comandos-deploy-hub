@@ -10,4 +10,4 @@
 - при необходимости включение Telegram-тестирования.
 
 Все рабочие инструкции находятся в:
-- [SKILL.md](/Users/artemlahtin/Documents/Cyber_OP/skill/подключение_отдела_продаж/SKILL.md)
+- [SKILL.md](SKILL.md)

@@ -129,18 +129,13 @@ Anon key нельзя использовать вместо service role key.
 Скопируйте и вставьте агенту:
 
 ```text
-Скачай и установи навык `Подключение отдела продаж` из репозитория `https://github.com/Comandosai/comandos-deploy-hub`, директория `skills/podklyuchenie-otdela-prodazh`.
+Установи навык одной командой:
 
-Адаптируй установку под текущего агента:
-- если это Codex, положи файлы в codex-совместимую skill-структуру;
-- если это Claude, положи файлы в claude-совместимую структуру;
-- если это Antigravity, положи файлы в antigravity-совместимую структуру.
+`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install podklyuchenie-otdela-prodazh --client codex`
 
-Установи:
-- bundle entrypoint;
-- references;
-- workflow map;
-- все файлы навыка для подключения `Supabase`, `n8n`, `MCP` и тестового агента.
+Если работаешь в Claude, замени `codex` на `claude`.
+Если работаешь в Gemini, замени `codex` на `gemini`.
+Если работаешь в Antigravity, замени `codex` на `antigravity`.
 
 После установки ничего не запускай автоматически.
 Просто покажи, что навык установлен, и скажи, какой следующей командой запускать подключение инфраструктуры.

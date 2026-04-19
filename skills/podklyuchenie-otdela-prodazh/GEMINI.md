@@ -9,4 +9,4 @@
 - Telegram-тестирование при необходимости
 
 Основная инструкция:
-- [SKILL.md](/Users/artemlahtin/Documents/Cyber_OP/skill/подключение_отдела_продаж/SKILL.md)
+- [SKILL.md](SKILL.md)

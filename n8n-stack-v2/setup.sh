@@ -34,14 +34,13 @@ TRAEFIK_MODE="file"
 EXISTING_TRAEFIK=false
 
 # Версии ПО
-N8N_IMAGE="n8nio/n8n:2.9.4"
+N8N_IMAGE="docker.n8n.io/n8nio/n8n:2.9.4"
 POSTGRES_VERSION="pg16"
 POSTGRES_IMAGE="pgvector/pgvector"
 REDIS_VERSION="7.2-alpine"
 TRAEFIK_VERSION="v3.1"
 
 # Флаги состояний
-ENABLE_AUTO_UPDATE=false
 IS_UPGRADE=false
 ENABLE_WEEKLY_NODES_UPDATE=false
 NPM_AUTHOR="comandos_ai"
@@ -178,35 +177,28 @@ check_ports() {
 
         local traefik_cmd
         traefik_cmd=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{json .Config.Cmd}} {{json .Config.Entrypoint}}' | tr -d '[],"' || true)
-        if echo "$traefik_cmd" | grep -q -- "--providers.docker=true"; then
-            TRAEFIK_MODE="docker"
-        else
-            TRAEFIK_MODE="file"
-        fi
+        TRAEFIK_MODE="file"
+        TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' \
+            | awk -F'|' '$1 ~ /dynamic/ {print $2; exit}')
 
-        if [ "$TRAEFIK_MODE" = "file" ]; then
-            TRAEFIK_DYNAMIC_DIR=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{printf "%s|%s\n" .Destination .Source}}{{end}}' \
-                | awk -F'|' '$1 ~ /dynamic/ {print $2; exit}')
-
-            if [ -z "$TRAEFIK_DYNAMIC_DIR" ]; then
-                TRAEFIK_DYNAMIC_DIR=$(echo "$traefik_cmd" | tr ' ' '\n' | grep -oP '(?<=providers\.file\.directory=)[^ ]+' | head -n1)
-                if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
-                    local host_path
-                    host_path=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "'"$TRAEFIK_DYNAMIC_DIR"'"}}{{.Source}}{{end}}{{end}}')
-                    if [ -n "$host_path" ]; then
-                        TRAEFIK_DYNAMIC_DIR="$host_path"
-                    fi
+        if [ -z "$TRAEFIK_DYNAMIC_DIR" ]; then
+            TRAEFIK_DYNAMIC_DIR=$(echo "$traefik_cmd" | tr ' ' '\n' | grep -oP '(?<=providers\.file\.directory=)[^ ]+' | head -n1)
+            if [ -n "$TRAEFIK_DYNAMIC_DIR" ]; then
+                local host_path
+                host_path=$(docker inspect "$TRAEFIK_CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "'"$TRAEFIK_DYNAMIC_DIR"'"}}{{.Source}}{{end}}{{end}}')
+                if [ -n "$host_path" ]; then
+                    TRAEFIK_DYNAMIC_DIR="$host_path"
                 fi
             fi
+        fi
 
-            if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
-                for known_dir in "$HOME/comandos/traefik/dynamic" "$HOME/traefik/dynamic" "/root/comandos/traefik/dynamic"; do
-                    if [ -d "$known_dir" ]; then
-                        TRAEFIK_DYNAMIC_DIR="$known_dir"
-                        break
-                    fi
-                done
-            fi
+        if [ -z "$TRAEFIK_DYNAMIC_DIR" ] || [ ! -d "$TRAEFIK_DYNAMIC_DIR" ]; then
+            for known_dir in "$HOME/comandos/traefik/dynamic" "$HOME/traefik/dynamic" "/root/comandos/traefik/dynamic"; do
+                if [ -d "$known_dir" ]; then
+                    TRAEFIK_DYNAMIC_DIR="$known_dir"
+                    break
+                fi
+            done
         fi
         
         # Пытаемся определить сеть.
@@ -311,10 +303,9 @@ gather_user_input() {
                 IS_UPGRADE=true
                 print_info "Режим обновления активирован."
 
-                # В режиме апгрейда включаем автоопции без дополнительных вопросов.
-                ENABLE_AUTO_UPDATE=true
+                # В режиме апгрейда включаем weekly sync без дополнительных вопросов.
                 ENABLE_WEEKLY_NODES_UPDATE=true
-                print_info "Автообновление и weekly sync будут включены автоматически."
+                print_info "Weekly sync community-нод будет включен автоматически."
 
                 # При апгрейде сохраняем существующие домен/почту, запрашиваем только текущий пароль администратора.
                 if [ -z "${DOMAIN:-}" ]; then
@@ -405,12 +396,6 @@ gather_user_input() {
     POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}
 
     print_header "Дополнительные опции"
-    smart_read "Включить ежемесячное автообновление n8n? (y/N): " auto_upd
-    if [[ $auto_upd =~ ^[Yy]$ ]]; then
-        ENABLE_AUTO_UPDATE=true
-        print_success "Автообновление будет настроено."
-    fi
-
     smart_read "Включить еженедельную синхронизацию community-нод из npm-профиля $NPM_AUTHOR? (y/N): " nodes_upd
     if [[ $nodes_upd =~ ^[Yy]$ ]]; then
         ENABLE_WEEKLY_NODES_UPDATE=true
@@ -452,6 +437,7 @@ N8N_BLOCK_ENV_ACCESS_IN_NODE=true
 N8N_WORKERS_CONCURRENCY=3
 N8N_PUBLIC_API_DISABLED=false
 OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+WEBHOOK_URL=https://$DOMAIN/
 EOF
 
     if [ "$TRAEFIK_MODE" = "file" ]; then
@@ -464,13 +450,18 @@ http:
       entryPoints: ["websecure"]
       service: "n8n-service"
       tls:
-        certResolver: "$TRAEFIK_RESOLVER"
+        certResolver: "mytlschallenge"
   services:
     n8n-service:
       loadBalancer:
         servers:
           - url: "http://n8n:5678"
 EOF
+
+        if [ "$EXISTING_TRAEFIK" = true ] && [ -n "$TRAEFIK_DYNAMIC_DIR" ] && [ -d "$TRAEFIK_DYNAMIC_DIR" ]; then
+            cp -f traefik_dynamic/n8n.yml "$TRAEFIK_DYNAMIC_DIR/n8n.yml"
+            print_info "Обновлён роут n8n в external Traefik dynamic dir: $TRAEFIK_DYNAMIC_DIR/n8n.yml"
+        fi
     fi
 
     cat > docker-compose.yml << EOF
@@ -478,31 +469,7 @@ services:
 EOF
 
     if [ "$EXISTING_TRAEFIK" = false ]; then
-        if [ "$TRAEFIK_MODE" = "docker" ]; then
-            cat >> docker-compose.yml << EOF
-  traefik:
-    image: traefik:$TRAEFIK_VERSION
-    restart: always
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
-      - "--certificatesresolvers.mytlschallenge.acme.email=\${SSL_EMAIL}"
-      - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
-    ports: ["80:80", "443:443"]
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_data:/letsencrypt
-    networks:
-      - default
-      - $TRAEFIK_NETWORK
-
-EOF
-        else
-            cat >> docker-compose.yml << EOF
+        cat >> docker-compose.yml << EOF
   traefik:
     image: traefik:$TRAEFIK_VERSION
     restart: always
@@ -524,7 +491,6 @@ EOF
       - $TRAEFIK_NETWORK
 
 EOF
-        fi
     fi
 
     cat >> docker-compose.yml << EOF
@@ -571,7 +537,7 @@ EOF
       - N8N_EDITOR_BASE_URL=\${N8N_EDITOR_BASE_URL}
       - N8N_PUSH_BACKEND=\${N8N_PUSH_BACKEND}
       - NODE_ENV=production
-      - WEBHOOK_URL=https://\${DOMAIN_NAME}/
+      - WEBHOOK_URL=\${WEBHOOK_URL}
       - GENERIC_TIMEZONE=\${GENERIC_TIMEZONE}
       - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
@@ -596,33 +562,15 @@ EOF
 
 EOF
 
-    if [ "$TRAEFIK_MODE" = "docker" ]; then
-        cat >> docker-compose.yml << EOF
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=$TRAEFIK_NETWORK
-      - traefik.http.routers.n8n.rule=Host(`\${DOMAIN_NAME}`)
-      - traefik.http.routers.n8n.entrypoints=web,websecure
-      - traefik.http.routers.n8n.tls=true
-      - traefik.http.routers.n8n.tls.certresolver=$TRAEFIK_RESOLVER
-      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
-      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
-      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
-      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
-      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
-      - traefik.http.middlewares.n8n.headers.SSLHost=\${DOMAIN_NAME}
-      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
-      - traefik.http.middlewares.n8n.headers.STSPreload=true
-      - traefik.http.routers.n8n.middlewares=n8n@docker
-EOF
-    fi
-
     cat >> docker-compose.yml << EOF
   n8n-worker:
     image: $N8N_IMAGE
     command: worker --concurrency=\${N8N_WORKERS_CONCURRENCY}
     restart: always
-    depends_on: [n8n]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      n8n: { condition: service_started }
     environment:
       - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
@@ -651,47 +599,6 @@ EOF
 
 
     cd "$ORIGINAL_DIR"
-}
-
-setup_auto_update() {
-    if [ "$ENABLE_AUTO_UPDATE" = "false" ]; then return; fi
-    
-    print_header "Настройка автообновления"
-    local service_path="/etc/systemd/system/n8n-dev-update.service"
-    local timer_path="/etc/systemd/system/n8n-dev-update.timer"
-    local project_abs_path=$(realpath "$PROJECT_DIR")
-
-    cat > "$service_path" << EOF
-[Unit]
-Description=n8n Auto Update Service
-After=docker.service
-
-[Service]
-Type=oneshot
-WorkingDirectory=$project_abs_path
-ExecStart=/usr/bin/docker compose pull
-ExecStart=/usr/bin/docker compose up -d
-StandardOutput=journal
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-    cat > "$timer_path" << EOF
-[Unit]
-Description=Run n8n Auto Update monthly
-
-[Timer]
-OnCalendar=*-*-01 04:00:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-EOF
-
-    systemctl daemon-reload
-    systemctl enable --now n8n-dev-update.timer
-    print_success "Ежемесячное автообновление (1-е число, 04:00) настроено."
 }
 
 get_n8n_internal_base_url() {
@@ -1272,7 +1179,6 @@ main() {
     ensure_traefik_network
     gather_user_input
     create_config_files
-    setup_auto_update
     start_services
     setup_weekly_nodes_update
 }

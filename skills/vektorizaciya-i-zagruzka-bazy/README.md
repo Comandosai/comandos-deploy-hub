@@ -110,19 +110,13 @@ Base/
 ## Команда 1. Скачать и установить навык
 
 ```text
-Скачай и установи навык `Векторизация и загрузка базы` из репозитория `https://github.com/Comandosai/comandos-deploy-hub`, директория `skills/vektorizaciya-i-zagruzka-bazy`.
+Установи навык одной командой:
 
-Адаптируй установку под текущего агента:
-- если это Codex, положи файлы в codex-совместимую skill-структуру;
-- если это Claude, положи файлы в claude-совместимую структуру;
-- если это Antigravity, положи файлы в antigravity-совместимую структуру.
+`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install vektorizaciya-i-zagruzka-bazy --client codex`
 
-Установи:
-- bundle entrypoint;
-- `doc-splitter`;
-- `doc-splitter-launcher`;
-- `vector-ingestion-launcher`;
-- `runner`.
+Если работаешь в Claude, замени `codex` на `claude`.
+Если работаешь в Gemini, замени `codex` на `gemini`.
+Если работаешь в Antigravity, замени `codex` на `antigravity`.
 
 После установки ничего не запускай автоматически.
 Просто покажи, что навык установлен, и скажи, какой следующей командой запускать подготовку документов.

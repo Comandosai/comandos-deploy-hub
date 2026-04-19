@@ -7,5 +7,5 @@
 - собрать только недостающие параметры и не спрашивать лишнее.
 
 Основные файлы:
-- [SKILL.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/razvertyvanie-i-obnovlenie-n8n/SKILL.md)
-- [README.md](/Users/artemlahtin/Documents/comandos-deploy-hub/skills/razvertyvanie-i-obnovlenie-n8n/README.md)
+- [SKILL.md](SKILL.md)
+- [README.md](README.md)
