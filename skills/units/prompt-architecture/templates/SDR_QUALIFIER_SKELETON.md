@@ -91,7 +91,6 @@ FROM public.update_lead_profile_safe(
   p_phone => <value_or_null>::text,
   p_email => <value_or_null>::text,
   p_qualification_summary => <value_or_null>::text,
-  p_qualification_score => NULL::integer,
   p_purchase_purpose => <value_or_null>::text,
   p_budget_min => <value_or_null>::numeric,
   p_budget_max => <value_or_null>::numeric,

@@ -15,7 +15,6 @@
 - `p_phone`
 - `p_email`
 - `p_qualification_summary`
-- `p_qualification_score`
 - `p_purchase_purpose`
 - `p_budget_min`
 - `p_budget_max`
@@ -27,7 +26,6 @@
 - всегда включать `p_lead_id => <lead_id>::integer`
 - использовать явные касты для всех значений
 - использовать typed null для неизвестных значений
-- `p_qualification_score` по умолчанию всегда `NULL::integer`
 - не выдумывать дополнительные safe params
 - не использовать сокращенные или свободные SQL-варианты
 
@@ -41,7 +39,6 @@ FROM public.update_lead_profile_safe(
   p_phone => <value_or_null>::text,
   p_email => <value_or_null>::text,
   p_qualification_summary => <value_or_null>::text,
-  p_qualification_score => NULL::integer,
   p_purchase_purpose => <value_or_null>::text,
   p_budget_min => <value_or_null>::numeric,
   p_budget_max => <value_or_null>::numeric,
@@ -60,6 +57,7 @@ FROM public.update_lead_profile_safe(
 - `p_position`
 - `p_industry`
 - `p_result_summary`
+- `p_qualification_score`
 - любые product-attribute safe params
 
 ## No external CRM layer by default
