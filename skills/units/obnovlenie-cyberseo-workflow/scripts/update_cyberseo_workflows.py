@@ -215,7 +215,12 @@ select coalesce(json_agg(row_to_json(t)), '[]'::json)
 from (
   select id, name, active, nodes::jsonb as nodes, connections::jsonb as connections, settings::jsonb as settings
   from workflow_entity
-  where name in ({names_sql}) or name like 'CyberSEO / ВФ%'
+  where
+    name in ({names_sql})
+    or name like 'CyberSEO / ВФ%'
+    or nodes::text like '%Установка ID таблицы%'
+    or nodes::text like '%"name":"table"%'
+    or nodes::text like '%"name": "table"%'
   order by "updatedAt" desc nulls last
 ) t;
 """
@@ -223,18 +228,23 @@ from (
 
 
 def extract_set_values(workflows: list[dict]) -> dict[str, str]:
-    wf0 = next((w for w in workflows if w.get("name") == WF0), None)
-    if not wf0:
-        return {}
-    for node in wf0.get("nodes") or []:
-        if node.get("name") != "Установка ID таблицы":
-            continue
-        assignments = (((node.get("parameters") or {}).get("assignments") or {}).get("assignments") or [])
-        result = {}
-        for item in assignments:
-            if item.get("name") in {"table", "domen"}:
-                result[item["name"]] = item.get("value", "")
-        return result
+    ordered = sorted(
+        workflows,
+        key=lambda w: 0 if w.get("name") == WF0 else 1,
+    )
+    for workflow in ordered:
+        for node in workflow.get("nodes") or []:
+            if node.get("name") != "Установка ID таблицы":
+                continue
+            assignments = (((node.get("parameters") or {}).get("assignments") or {}).get("assignments") or [])
+            result = {}
+            for item in assignments:
+                if item.get("name") in {"table", "domen"}:
+                    result[item["name"]] = item.get("value", "")
+            if result.get("table") and result.get("domen"):
+                result["_source_workflow"] = workflow.get("name", "")
+                result["_source_workflow_id"] = workflow.get("id", "")
+                return result
     return {}
 
 
@@ -454,10 +464,18 @@ def main() -> None:
 
     settings = extract_set_values(existing)
     if not settings.get("table") or not settings.get("domen"):
-        raise SystemExit('Не нашел table/domen в старом "CyberSEO / ВФ 0: МАСТЕР". Нужны эти значения вручную.')
+        found_names = ", ".join(row.get("name", "") for row in existing) or "ничего"
+        raise SystemExit(
+            'Не нашел table/domen в старых workflow. Я уже искал не только точное имя "CyberSEO / ВФ 0: МАСТЕР", '
+            'но и любой workflow с узлом "Установка ID таблицы". '
+            f"Найденные кандидаты: {found_names}. "
+            "Проверь, что старый ВФ 0 есть в этом n8n."
+        )
 
     print(f"Найден table: {settings['table']}")
     print(f"Найден domen: {settings['domen']}")
+    if settings.get("_source_workflow"):
+        print(f"Источник настроек: {settings['_source_workflow']} ({settings.get('_source_workflow_id', '')})")
 
     backup_dir = backup_remote(args.ssh_host, remote, args.dry_run)
     print(f"Резервная копия: {backup_dir}")
