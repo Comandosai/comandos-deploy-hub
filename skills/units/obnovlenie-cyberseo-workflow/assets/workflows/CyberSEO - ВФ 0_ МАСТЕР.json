@@ -1,0 +1,1130 @@
+{
+  "name": "CyberSEO / ВФ 0: МАСТЕР",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "26894ad9-0f37-4eed-b054-8f23d3ae1fe6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -656,
+        560
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "КОНВЕЙЕР",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "=row_number",
+              "lookupValue": "2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        160
+      ],
+      "id": "201c1b28-2569-48dc-be0b-8fee6c9de870",
+      "name": "Чтение новой темы из очереди",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ПРОМПТЫ",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        560
+      ],
+      "id": "1b306a5d-3640-4b43-8272-edfc60ff395f",
+      "name": "ПРОМПТЫ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "НАСТРОЙКИ",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        368
+      ],
+      "id": "802d3e35-9068-455c-8b91-079fc64004ec",
+      "name": "НАСТРОЙКИ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        256,
+        512
+      ],
+      "id": "7cd9be8e-7f58-4b4d-8ae4-06eed82b49b5",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ec210b0a-b607-42ff-8297-72ad48db564a",
+              "name": "table",
+              "value": "1Q0COGnvexJOdDV7bLxhG7pN4F9BBy2N80__4T64eyZg",
+              "type": "string"
+            },
+            {
+              "id": "d7ddf998-ea45-481e-91be-521bb2a4c730",
+              "name": "domen",
+              "value": "blog.antigraviti.ru",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -368,
+        560
+      ],
+      "id": "92f38540-3ce2-4c7c-a62b-c04f29ff741e",
+      "name": "Установка ID таблицы"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * ОПИСАНИЕ УЗЛА: \"Сборка Контекста V.2.0\"\n * \n * ЧТО ДЕЛАЕТ:\n * 1. Собирает данные из источников: Очередь, Настройки, Промпты, Офферы, Опубликованное, Установка ID таблицы.\n * 2. Очищает их от технического мусора n8n.\n * 3. Создает единый объект \"контекст\", который прокидывается через всю систему.\n */\n\n// 1) ИЗВЛЕКАЕМ ДАННЫЕ ИЗ ВСЕХ ВХОДЯЩИХ ВЕТОК\nconst задача = $('Чтение новой темы из очереди').item.json;\n\n// ВАЖНО: .all() вернет массив items; .item.json — один item\nconst настройки_сырые = $('НАСТРОЙКИ').all();\nconst промпты_сырые = $('ПРОМПТЫ').all();\nconst офферы_сырые = $('ОФФЕРЫ').all();\nconst опубликовано_сырые = $('ОПУБЛИКОВАНО').all();\n\n// Новый источник: Установка ID таблицы (Set node)\nconst установка_таблицы = (() => {\n  try {\n    // Если узел подключён и есть item — забираем json\n    return $('Установка ID таблицы').item?.json ?? {};\n  } catch (e) {\n    // Если узла нет в графе/имя не совпало — не ломаем сборку\n    return {};\n  }\n})();\n\n// 2) ОБРАБОТКА НАСТРОЕК (Словарь Ключ-Значение)\nconst настройки = {};\nнастройки_сырые.forEach(item => {\n  const строка = item.json;\n  if (строка['Ключ']) {\n    настройки[строка['Ключ']] = строка['Значение'];\n  }\n});\n\n// 3) ОБРАБОТКА ПРОМПТОВ (Словарь по именам агентов)\nconst промпты = {};\nпромпты_сырые.forEach(item => {\n  const строка = item.json;\n  if (строка['Имя агента']) {\n    промпты[строка['Имя агента']] = строка['Системный промпт'];\n  }\n});\n\n// 4) ОБРАБОТКА ОФФЕРОВ (Только активные)\nconst база_офферов = офферы_сырые\n  .filter(item => item.json['Статус'] === 'Active')\n  .map(item => {\n    const строка = item.json;\n    return {\n      id: строка['ID Оффера'],\n      название: строка['Название'],\n      контекст_ии: строка['Контекст ИИ'],\n      ссылка: строка['Ссылка'],\n      тип: строка['Тип'] // Soft или Hard\n    };\n  });\n\n// 5) ОБРАБОТКА ОПУБЛИКОВАННЫХ СТАТЕЙ (База для перелинковки)\nconst база_ссылок = опубликовано_сырые.map(item => {\n  const строка = item.json;\n  return {\n    ключ: строка['Ключ'],\n    заголовок: строка['Заголовок'],\n    ссылка: строка['Ссылка'],\n    анкоры: строка['Анкоры для ссылок']\n  };\n});\n\n// 6) НОРМАЛИЗУЕМ ДАННЫЕ ИЗ \"Установка ID таблицы\"\nconst инфраструктура = {\n  table: установка_таблицы.table ?? null,\n  domen: установка_таблицы.domen ?? null\n};\n\n// 7) ФОРМИРУЕМ ФИНАЛЬНЫЙ КОНТЕКСТ\nreturn {\n  json: {\n    контекст: {\n      задача,\n      настройки,\n      промпты,\n      база_офферов,\n      база_опубликовано: база_ссылок,\n      инфраструктура, // <-- добавили сюда\n      мета: {\n        дата_запуска: new Date().toLocaleString('ru-RU'),\n        идентификатор_сессии: Math.random().toString(36).substring(7)\n      }\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        560
+      ],
+      "id": "9a9e9193-c51e-4706-a5e5-ad22c32bcbdb",
+      "name": "Сборка Контекста"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fJ8mz7pbDsUltJQt",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fJ8mz7pbDsUltJQt",
+          "cachedResultName": "CyberSEO / ВФ 1: МОЗГ"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        560
+      ],
+      "id": "a87de9c9-bc97-416f-b3f7-a6d0f7886abc",
+      "name": "ВФ 1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "GEgQ9QH0A3puL6Ra",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/GEgQ9QH0A3puL6Ra",
+          "cachedResultName": "CyberSEO / ВФ 2: ЗАЦЕП (HOOK)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        480
+      ],
+      "id": "a98a7816-5ec0-401c-a9fb-2321084761f0",
+      "name": "ВФ 2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "oR9WZydq5btVwqLx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/oR9WZydq5btVwqLx",
+          "cachedResultName": "CyberSEO / ВФ 3: ТЕЛО"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        640
+      ],
+      "id": "f91ed519-e977-4dae-8b92-c025e01b0869",
+      "name": "ВФ 3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1184,
+        544
+      ],
+      "id": "95e1c70c-9cad-43f9-b8bc-53d7de2849af",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ОПУБЛИКОВАНО",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        944
+      ],
+      "id": "f181c772-7b9f-4070-8d57-846a276bdfd8",
+      "name": "ОПУБЛИКОВАНО",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Установка ID таблицы').item.json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ОФФЕРЫ",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Статус",
+              "lookupValue": "Active"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        752
+      ],
+      "id": "9903c394-95f0-424d-9917-64228b60adb5",
+      "name": "ОФФЕРЫ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        752
+      ],
+      "id": "0926790f-c7a0-4571-8b9b-150ec2ca8d59",
+      "name": "OpenRouter Chat Model4",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### ДОСЬЕ:\n{{ $('ВФ 1').item.json.dossier_content }}\n\n### ТЕКСТ СТАТЬИ:\n\n{{\n  $input.all()\n    .flatMap(i => (i.json.blocks ?? i.json.final_plan?.blocks ?? []))\n    .map(b => b.content)\n    .filter(Boolean)\n    .join('\\n\\n')\n}}\n---\nСгенерируй 5 пар вопрос-ответ в JSON.\n",
+        "options": {
+          "systemMessage": "==### ROLE: SEO SPECIALIST & SUPPORT LEAD (AGENT #11)\n\nТвоя задача — создать финальные SEO-компоненты для статьи: блок FAQ и список поисковых анкоров.\n\n### ИНСТРУКЦИИ:\n1. **FAQ:** Выдели 5 самых актуальных вопросов на основе текста статьи и Досье. Дай краткие, экспертные ответы (1-3 предложения).\n2. **SEO ANCHORS:** Сгенерируй 5 поисковых анкоров (якорей), которыми другие статьи будут ссылаться на ЭТУ текущую статью.\n   - **Правила анкоров:** Длина 2-4 слова. Это должны быть фразы, по которым люди ищут эту тему (Search Intent). \n   - **Пример:** \"бизнес на пвз\", \"открыть пункт вайлдберриз\", \"смета пвз 2026\".\n   - **Запрет:** Не используй слова \"тут\", \"здесь\", \"ссылка\", \"статья\".\n\n### ФОРМАТ ВЫДАЧИ (КРИТИЧНО - STRICT JSON ONLY):\nВерни ТОЛЬКО чистый JSON-объект. Никаких вступлений и Markdown-тегов.\n{\n  \"faq\": [\n    {\"q\": \"Вопрос 1\", \"a\": \"Ответ 1\"},\n    {\"q\": \"Вопрос 2\", \"a\": \"Ответ 2\"},\n    {\"q\": \"Вопрос 3\", \"a\": \"Ответ 3\"},\n    {\"q\": \"Вопрос 4\", \"a\": \"Ответ 4\"},\n    {\"q\": \"Вопрос 5\", \"a\": \"Ответ 5\"}\n  ],\n  \"link_anchors\": \"анкор 1, анкор 2, анкор 3, анкор 4, анкор 5\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1392,
+        560
+      ],
+      "id": "5f88b185-8440-48de-8689-ca1dc11ced10",
+      "name": "Саппорт",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * ОПИСАНИЕ УЗЛА: \"Генератор FAQ и Якорей V.3.0\"\n */\n\nconst rawOutput = $input.item.json.output.replace(/```json\\n?|```/g, \"\").trim();\nconst data = JSON.parse(rawOutput);\n\nconst faqArray = data.faq;\nconst anchors = data.link_anchors;\n\n// 1. Создаем HTML версию (видимую)\nlet htmlView = `<div class=\"faq-section\" style=\"max-width: 800px; margin: 30px auto;\"><h2>Часто задаваемые вопросы</h2>`;\nfaqArray.forEach(item => {\n    htmlView += `\n    <details class=\"faq-item\" style=\"margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;\">\n        <summary style=\"font-weight: bold; cursor: pointer;\">${item.q}</summary>\n        <p style=\"margin-top: 10px;\">${item.a}</p>\n    </details>`;\n});\nhtmlView += `</div>`;\n\n// 2. Создаем версию для Google (JSON-LD)\nconst schemaData = {\n    \"@context\": \"https://schema.org\",\n    \"@type\": \"FAQPage\",\n    \"mainEntity\": faqArray.map(item => ({\n        \"@type\": \"Question\",\n        \"name\": item.q,\n        \"acceptedAnswer\": {\n            \"@type\": \"Answer\",\n            \"text\": item.a\n        }\n    }))\n};\n\nconst jsonLdCode = `<script type=\"application/ld+json\">${JSON.stringify(schemaData)}</script>`;\n\n// 3. Возвращаем всё, включая анкоры для GSheets\nreturn {\n    json: {\n        faq_html: htmlView,\n        faq_schema: jsonLdCode,\n        link_anchors: anchors // Это поле пойдет в GSheets\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        448
+      ],
+      "id": "2b7d85fd-98d2-4cd4-b005-7253be825411",
+      "name": "Генератор FAQ-разметки"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Установка ID таблицы').item.json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "РУБРИКИ",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "=Название рубрики",
+              "lookupValue": "={{ $('Merge4').item.json[\"контекст\"][\"задача\"][\"Подсказка рубрики\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2032,
+        672
+      ],
+      "id": "03c92e65-5668-46c5-b066-66092bfc0006",
+      "name": "РУБРИКИ",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * УЗЕЛ: Финальный сборщик V.7.5 (ANTI-NULL & STABLE)\n * \n * ЧТО ИСПРАВЛЕНО:\n * 1. Запрещен вывод слова \"null\" в заголовках и тексте.\n * 2. Если h2_title пустой, тег <h2> не создается.\n * 3. Если контент блока пуст, блок полностью игнорируется.\n * 4. Если у изображения есть alt, figcaption синхронизируется с alt.\n */\n\nconst DESKTOP_MAX_WIDTH = '760px';   \nconst TEXT_COLOR        = '#222222'; \nconst LINK_COLOR        = '#0056b3'; \n\n// 1. ЗАГРУЗКА ДАННЫХ\nconst hook = $(['ВФ 2']).first().json; \nconst bodyBlocks = $(['ВФ 3']).first().json.blocks; \nconst faq = $(['Генератор FAQ-разметки']).first().json;\nconst author = $(['Обо мне']).first().json;\nconst contextNode = $(['Сборка Контекста']).first().json.контекст;\nconst rawDomen = $('Установка ID таблицы').first().json.domen;\nconst myDomain = rawDomen.replace(/^https?:\\/\\//, '').split('/')[0].replace('next.', '');\n\n// 2. ФУНКЦИЯ ОЧИСТКИ (Защита от null + синхронизация alt/figcaption)\nfunction sanitizeContent(html, linkData = null) {\n    if (!html || html === \"null\" || html === null) return \"\";\n    \n    let cleanHtml = html;\n\n    // Внешние ссылки с Title\n    const linkRegex = /<a\\s+[^>]*?href=([\"'])(.*?)\\1[^>]*?>/gi;\n    cleanHtml = cleanHtml.replace(linkRegex, (fullTag, quote, url) => {\n        const isExternal = url.startsWith('http') && !url.includes(myDomain);\n        if (isExternal) {\n            let titleAttr = \"\";\n            if (linkData && linkData.portal) {\n                const desc = linkData.description ? linkData.description.substring(0, 60).replace(/\"/g, \"'\") : \"\";\n                titleAttr = `title=\"Источник: ${linkData.portal} — ${desc}\"`;\n            }\n            return `<a href=\"${url}\" ${titleAttr} target=\"_blank\" rel=\"nofollow noopener\">`;\n        }\n        return fullTag;\n    });\n\n    // Синхронизация figcaption с alt у img внутри figure\n    cleanHtml = cleanHtml.replace(/<figure\\b[^>]*>[\\s\\S]*?<\\/figure>/gi, (figureHtml) => {\n        const imgAltMatch = figureHtml.match(/<img\\b[^>]*\\balt=([\"'])(.*?)\\1[^>]*>/i);\n        if (!imgAltMatch) return figureHtml;\n\n        const altText = imgAltMatch[2] ? imgAltMatch[2].trim() : \"\";\n        if (!altText || altText.toLowerCase() === \"null\") return figureHtml;\n\n        if (/<figcaption\\b[^>]*>[\\s\\S]*?<\\/figcaption>/i.test(figureHtml)) {\n            return figureHtml.replace(\n                /<figcaption\\b([^>]*)>[\\s\\S]*?<\\/figcaption>/i,\n                `<figcaption$1>${altText}</figcaption>`\n            );\n        }\n\n        return figureHtml.replace(/<\\/figure>/i, `<figcaption>${altText}</figcaption></figure>`);\n    });\n\n    // Таблицы, гигиена\n    cleanHtml = cleanHtml.replace(/<table/gi, '<div class=\"table-container\" style=\"overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0;border-radius:8px;border:1px solid #eee;width:100%\"><table');\n    cleanHtml = cleanHtml.replace(/<\\/table>/gi, '</table></div>');\n    cleanHtml = cleanHtml.replace(/<\\/p>\\s*<\\/p>/gi, '</p>'); \n    cleanHtml = cleanHtml.replace(/<p><\\/p>/gi, ''); \n    \n    // Финальный фильтр: если ИИ всё же вставил текстовое \"null\"\n    return cleanHtml.replace(/>\\s*null\\s*</gi, '><');\n}\n\n// 3. ГЕНЕРАЦИЯ СОДЕРЖАНИЯ (TOC) - Только если есть заголовки\nlet tocHtml = \"\";\nconst validH2Blocks = bodyBlocks.filter(b => b.header_tag === 'h2' && b.title && b.title !== \"null\");\n\nif (validH2Blocks.length > 0) {\n    tocHtml = `<div class=\"toc-box\" style=\"background:#f8f9fa; padding:20px 15px; border-radius:12px; margin:30px auto; max-width:${DESKTOP_MAX_WIDTH}; box-sizing:border-box; border:1px solid #eee;\"><strong style=\"font-size:20px; display:block; margin-bottom:10px;\">Содержание:</strong><ul style=\"margin:0; padding:0 0 0 20px; line-height:1.6; font-size:17px;\">`;\n    validH2Blocks.forEach(block => {\n        tocHtml += `<li style=\"margin-bottom:8px;\"><a href=\"#section-${block.id}\" style=\"color:${LINK_COLOR}; text-decoration:underline;\">${block.title}</a></li>`;\n    });\n    tocHtml += `</ul></div>`;\n}\n\n// 4. СБОРКА ТЕЛА\nlet bodyHtml = \"\";\nbodyBlocks.forEach(block => {\n    let content = sanitizeContent(block.content, block.external_linking);\n    if (!content || content.trim() === \"\") return; // Пропускаем пустые блоки\n\n    if (block.type === 'IMG' || block.type === 'VIDEO' || block.type === 'HARD_OFFER') {\n        // Блоки с собственной версткой заголовков (или без них)\n        bodyHtml += `<div class=\"article-special-block\" style=\"width:100%; margin:40px 0;\">${content}</div>`;\n    } else {\n        // Текстовые блоки\n        const tag = block.header_tag || 'h2';\n        const title = (block.title && block.title !== \"null\") ? block.title : \"\";\n        const headerHtml = title ? `<${tag} id=\"section-${block.id}\" style=\"margin-top:45px; margin-bottom:20px; font-size:clamp(24px, 6vw, 34px); line-height:1.2; font-weight:800; hyphens:auto; word-wrap:break-word;\">${title}</${tag}>` : \"\";\n        \n        bodyHtml += `\n        <div class=\"article-text-block\" style=\"max-width:${DESKTOP_MAX_WIDTH}; margin:0 auto; padding:0 10px; box-sizing:border-box;\">\n            ${headerHtml}\n            <div style=\"font-size:19px; line-height:1.75; hyphens:auto; color:#333;\">\n                ${content}\n            </div>\n        </div>\\n\\n`;\n    }\n});\n\n// 5. СКЛЕЙКА ФИНАЛЬНОГО ПОЛОТНА\nlet fullHtml = `\n<div class=\"comandos-article-root\" style=\"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:${TEXT_COLOR}; background:transparent; width:100%; overflow-x:hidden;\">\n    <div class=\"article-intro\" style=\"max-width:${DESKTOP_MAX_WIDTH}; margin:0 auto 30px auto; padding:0 10px; font-size:20px; line-height:1.7; box-sizing:border-box;\">\n        ${sanitizeContent(hook.result)}\n    </div>\n    ${tocHtml ? `<div style=\"padding:0 5px;\">${tocHtml}</div>` : \"\"}\n    <div class=\"article-content-flow\">${bodyHtml}</div>\n    <div class=\"article-faq\" style=\"max-width:${DESKTOP_MAX_WIDTH}; margin:50px auto; padding:0 10px; box-sizing:border-box;\">${faq.faq_html}</div>\n    \n    <div class=\"author-card\" style=\"max-width:${DESKTOP_MAX_WIDTH}; margin:60px auto 0 auto; padding:20px; background:#fafafa; border:1px solid #eee; border-radius:16px; box-sizing:border-box;\">\n        <div style=\"display:flex; flex-wrap:wrap; align-items:center; gap:20px;\">\n            <img src=\"${author.avatar_url}\" alt=\"Автор: ${author.name || 'Автор'}\" style=\"width:65px; height:65px; border-radius:50%; border:2px solid #7a00ff; object-fit:cover;\">\n            <div style=\"flex:1; min-width:200px;\">\n                <h4 style=\"margin:0 0 5px 0; font-size:19px; font-weight:700;\">Автор: ${author.name}</h4>\n                <p style=\"margin:0; font-size:15px; color:#555; line-height:1.5;\">${author.description}</p>\n                <a href=\"${author.link}\" style=\"display:inline-block; margin-top:8px; color:${LINK_COLOR}; text-decoration:none; font-weight:bold; font-size:15px;\">Все статьи автора →</a>\n            </div>\n        </div>\n    </div>\n</div>\n${faq.faq_schema}`;\n\n// 6. ВЫХОД\nconst plainText = fullHtml.replace(/<[^>]*>/g, ' ');\nconst wordCount = plainText.trim().split(/\\s+/).length;\nconst readingTime = Math.ceil(wordCount / 200);\n\nreturn [{\n    json: {\n        title: hook.h1,\n        content: fullHtml,\n        slug: hook.slug,\n        excerpt: hook.meta_description,\n        featured_media: hook.featured_image.mediaId,\n        status: \"publish\",\n        meta: {\n            \"_yoast_wpseo_metadesc\": hook.meta_description,\n            \"_yoast_wpseo_focuskw\": contextNode.задача['Главный ключ'],\n            \"reading_time\": readingTime.toString()\n        }\n    }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        448
+      ],
+      "id": "572d3051-2df1-445a-843a-6d734686e7f1",
+      "name": "Финальный сборщик"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Установка ID таблицы').item.json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ОПУБЛИКОВАНО",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Заголовок": "={{ $json.title }}",
+            "Ссылка": "={{ $json.url }}",
+            "ID поста": "={{ $json.postId }}",
+            "Дата": "={{ $('Merge4').item.json[\"контекст\"][\"мета\"][\"дата_запуска\"] }}",
+            "Ключ": "={{ $('Merge4').item.json[\"контекст\"][\"задача\"][\"Главный ключ\"] }}",
+            "Анкоры для ссылок": "={{ $('Генератор FAQ-разметки').item.json.link_anchors }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Ключ",
+              "displayName": "Ключ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Заголовок",
+              "displayName": "Заголовок",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Ссылка",
+              "displayName": "Ссылка",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ID поста",
+              "displayName": "ID поста",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Анкоры для ссылок",
+              "displayName": "Анкоры для ссылок",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Дата",
+              "displayName": "Дата",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2432,
+        464
+      ],
+      "id": "3837b249-bcad-4ee9-9df8-dffdfcb58271",
+      "name": "Запись в опубликованные ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * УЗЕЛ: SEO Sanitizer & HTML Cleaner V.3.0 (GOLD)\n * ЧТО ДЕЛАЕТ: \n * 1. Берет домен из ноды \"Установка ID таблицы\".\n * 2. Для ВНЕШНИХ ссылок: Сносит все атрибуты и ставит эталонные (nofollow, noopener, _blank).\n * 3. Для ВНУТРЕННИХ ссылок: Оставляет как есть (поддерживает относительные и абсолютные).\n * 4. Очищает HTML от двойных закрывающих тегов и пустых абзацев.\n */\n\n// 1. ПОДГОТОВКА ДАННЫХ\nconst article = $input.item.json; \nlet html = article.content || \"\";\n\n// Берем домен из глобальных настроек (Set нода)\nconst rawDomen = $('Установка ID таблицы').first().json.domen;\n\n// Очищаем домен для сравнения: \"https://next.autopipe.space/\" -> \"autopipe.space\"\nconst myDomain = rawDomen.replace(/^https?:\\/\\//, '').split('/')[0].replace('next.', '');\n\n// 2. ЛОГИКА ОБРАБОТКИ ССЫЛОК\n// Регулярка находит весь тег <a> и отдельно URL в href\nconst linkRegex = /<a\\s+[^>]*?href=([\"'])(.*?)\\1[^>]*?>/gi;\n\nhtml = html.replace(linkRegex, (fullTag, quote, url) => {\n    // Ссылка внешняя, если начинается с http и не содержит наш домен\n    const isExternal = url.startsWith('http') && !url.includes(myDomain);\n\n    if (isExternal) {\n        // ПЕРЕСБОРКА ТЕГА С НУЛЯ (Гарантия отсутствия дублей атрибутов)\n        return `<a href=\"${url}\" target=\"_blank\" rel=\"nofollow noopener\">`;\n    }\n\n    // Если ссылка внутренняя — возвращаем оригинал без изменений\n    return fullTag;\n});\n\n// 3. ГИГИЕНА HTML (Чистка артефактов ИИ)\nhtml = html.replace(/<\\/p>\\s*<\\/p>/gi, '</p>');      // Удаление двойных закрывающих </p>\nhtml = html.replace(/<p><\\/p>/gi, '');              // Удаление пустых абзацев\nhtml = html.replace(/<p>&nbsp;<\\/p>/gi, '');         // Удаление абзацев с неразрывным пробелом\nhtml = html.replace(/\\n\\s*\\n/g, '\\n');              // Схлопывание лишних пустых строк\n\n// 4. ВОЗВРАТ ОБЪЕКТА\nreturn {\n    json: {\n        ...article,        // Пробрасываем все поля (title, slug, excerpt, mediaId)\n        content: html,     // Заменяем контент на очищенный\n        sanitized: true,   // Флаг успешной проверки\n        detected_root_domain: myDomain\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        672
+      ],
+      "id": "b72e2195-d901-4f7f-8d07-2d4baf631ab4",
+      "name": "SEO Sanitizer"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Установка ID таблицы').item.json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "КОНВЕЙЕР",
+          "mode": "name"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2432,
+        656
+      ],
+      "id": "96496af1-dec9-4a9b-8c2a-1815aab95406",
+      "name": "Удаляем тему",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "publish",
+        "title": "={{ $('Финальный сборщик').item.json.title }}",
+        "featuredMediaId": "={{ $('Финальный сборщик').item.json.featured_media }}",
+        "contentBlocks": {
+          "block": [
+            {
+              "textHtml": "={{ $('SEO Sanitizer').item.json.content }}"
+            }
+          ]
+        },
+        "seoOptions": {
+          "_yoast_wpseo_metadesc": "={{ $('Финальный сборщик').item.json.meta._yoast_wpseo_metadesc }}",
+          "_yoast_wpseo_focuskw": "={{ $('Финальный сборщик').item.json.meta._yoast_wpseo_focuskw }}"
+        },
+        "options": {
+          "excerpt": "={{ $('Финальный сборщик').item.json.excerpt }}",
+          "slug": "={{ $('Финальный сборщик').item.json.slug }}",
+          "categories": "={{ $json[\"ID WordPress\"] || \"\" }}\n",
+          "tags": "={{ $('Теги').item.json.tag_ids }}"
+        }
+      },
+      "type": "@comandosai/n8n-nodes-wordpress.comandosWordpress",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        560
+      ],
+      "id": "7f4113b6-be15-404a-b2a9-2f3ba4182422",
+      "name": "Публикуем",
+      "credentials": {
+        "comandosWordpressApi": {
+          "id": "p01GYp85IolqT5AN",
+          "name": "blog.autopipe.space"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getCreateTags",
+        "tags": "={{ $('ВФ 1').item.json.tags }}"
+      },
+      "type": "@comandosai/n8n-nodes-wordpress.comandosWordpress",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        672
+      ],
+      "id": "878c6813-5228-45d5-bc9a-7af4ed04670f",
+      "name": "Теги",
+      "credentials": {
+        "comandosWordpressApi": {
+          "id": "p01GYp85IolqT5AN",
+          "name": "blog.autopipe.space"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getMe"
+      },
+      "type": "@comandosai/n8n-nodes-wordpress.comandosWordpress",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        448
+      ],
+      "id": "69613133-674b-4a86-8992-baa3eb34f762",
+      "name": "Обо мне",
+      "credentials": {
+        "comandosWordpressApi": {
+          "id": "p01GYp85IolqT5AN",
+          "name": "blog.autopipe.space"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 🏷️ Запуск и базовая настройка\n- **Периодичность (Schedule Trigger):**\n  - Кликни на узел → **Mode: Interval** → **Hours: 3**\n  - Можно выставить любой интервал: каждый час, каждые 3 часа, раз в сутки\n- **Настройка таблицы (Set-нода \"Установка ID таблицы\"):**\n  - **Шаг 1:** Скопируй шаблон → [📋 Открыть таблицу](https://docs.google.com/spreadsheets/d/1ukYCF5FHxtFByxNfsrmcdSSv1DBU7MpoZpxGMcgjKl4/edit?usp=sharing)\n  - **Шаг 2:** В своей копии возьми ID из URL: `.../d/`**`1A2B3C...`**`/edit`\n  - **Шаг 3:** Заполни поля:\n    - `table` → ID твоей скопированной таблицы\n    - `domen` → `https://site.com/` (можно со слешем или без — система адаптирует)\n- **Частая ошибка → как избежать:**\n  - ❌ Использовать ID шаблона вместо своей копии → workflow пишет в чужую таблицу\n  - ✅ Всегда работай со своей копией таблицы",
+        "height": 496,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        176
+      ],
+      "id": "616de69e-312a-472a-b4b7-7709daa2cde3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### 🏷️ Подключение WordPress (Кастомные ноды)\n- **Что это:** Доступ для узлов \"Обо мне\", \"Теги\", \"Публикуем\" (плагин ComandosWP)\n- **Зачем нужно:** Без него статьи не опубликуются\n- **Что заполнить:**\n  - **Лицензионный ключ** — получи в боте Comandos (раздел \"Лицензии\")\n  - **Хост (URL)** — адрес твоего WordPress: `https://site.com`\n  - **Логин** — обычно `Admin`\n  - **Пароль приложения** — создай в WP: Пользователи → Твой профиль → Пароли приложений\n- **Важно:** Одно подключение на все три узла — подключи в любом, остальные подтянутся\n- **Частые ошибки → как избежать:**\n  - ❌ Обычный пароль вместо пароля приложения → ошибка 403\n  - ❌ Неправильный лицензионный ключ → \"License invalid\"\n  - ❌ URL без `https://` → не подключится\n  - ✅ Пароль приложения выглядит как: `xxxx xxxx xxxx xxxx xxxx`",
+        "height": 416,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        32
+      ],
+      "id": "03ff95de-5b88-475b-b01e-4fe8e7d53497",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "КОНВЕЙЕР",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 2,
+            "Статус": "В процессе"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Главный ключ",
+              "displayName": "Главный ключ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Подсказка рубрики",
+              "displayName": "Подсказка рубрики",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ID Оффера",
+              "displayName": "ID Оффера",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Заметки",
+              "displayName": "Заметки",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Статус",
+              "displayName": "Статус",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Страна",
+              "displayName": "Страна",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Город",
+              "displayName": "Город",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "decaa8a2-0cd6-494e-b7ec-917c0e335df2",
+      "name": "Статус",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yGnKY3TZ8Axr5i1b",
+          "name": "Артем таблицы"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Установка ID таблицы",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Чтение новой темы из очереди": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ПРОМПТЫ": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "НАСТРОЙКИ": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Сборка Контекста",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Установка ID таблицы": {
+      "main": [
+        [
+          {
+            "node": "ПРОМПТЫ",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "НАСТРОЙКИ",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Чтение новой темы из очереди",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ОПУБЛИКОВАНО",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ОФФЕРЫ",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Статус",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сборка Контекста": {
+      "main": [
+        [
+          {
+            "node": "ВФ 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ВФ 1": {
+      "main": [
+        [
+          {
+            "node": "ВФ 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ВФ 3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ВФ 2": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ВФ 3": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Саппорт",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ОПУБЛИКОВАНО": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "ОФФЕРЫ": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Саппорт",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Саппорт": {
+      "main": [
+        [
+          {
+            "node": "Генератор FAQ-разметки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Генератор FAQ-разметки": {
+      "main": [
+        [
+          {
+            "node": "Обо мне",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "РУБРИКИ": {
+      "main": [
+        [
+          {
+            "node": "Публикуем",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Финальный сборщик": {
+      "main": [
+        [
+          {
+            "node": "SEO Sanitizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Sanitizer": {
+      "main": [
+        [
+          {
+            "node": "Теги",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Публикуем": {
+      "main": [
+        [
+          {
+            "node": "Запись в опубликованные ",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Удаляем тему",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Теги": {
+      "main": [
+        [
+          {
+            "node": "РУБРИКИ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обо мне": {
+      "main": [
+        [
+          {
+            "node": "Финальный сборщик",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f81da816-e765-45c9-b3c8-38ae47359e58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "WLfodeNr0wTe5gO7",
+  "tags": []
+}

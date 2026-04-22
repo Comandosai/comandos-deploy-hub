@@ -1,0 +1,20 @@
+{
+  "id": "obnovlenie-cyberseo-workflow",
+  "title": "Обновление CyberSEO workflow",
+  "type": "unit",
+  "entrypoint": "SKILL.md",
+  "readme": "README.md",
+  "scripts": [
+    "scripts/update_cyberseo_workflows.py"
+  ],
+  "assets": [
+    "assets/workflows"
+  ],
+  "clients": [
+    "codex",
+    "claude",
+    "gemini",
+    "antigravity",
+    "terminal"
+  ]
+}

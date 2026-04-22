@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-19",
+  "updated_at": "2026-04-22",
   "allowed_clients": [
     "codex",
     "claude",
@@ -46,6 +46,14 @@
       "title": "Telegram-тестирование бота",
       "type": "unit",
       "path": "skills/units/telegram-testirovanie-bota",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "obnovlenie-cyberseo-workflow",
+      "title": "Обновление CyberSEO workflow",
+      "type": "unit",
+      "path": "skills/units/obnovlenie-cyberseo-workflow",
       "depends_on": [],
       "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
     },

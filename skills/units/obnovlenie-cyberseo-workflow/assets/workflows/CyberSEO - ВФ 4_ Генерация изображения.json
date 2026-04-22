@@ -1,0 +1,435 @@
+{
+  "name": "CyberSEO / ВФ 4: ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЯ",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"prompt\": \"{{ JSON.parse($('Арт-директор').item.json.output.replace(/```json\\n?|```/g, '')).technical_prompt }}\",\n  \"ref_url\": \"{{ $('When Executed by Another Workflow').item.json.контекст.настройки.img_url }}\",\n  \"alt_text\": \"{{ JSON.parse($('Арт-директор').item.json.output.replace(/```json\\n?|```/g, '')).alt_text }}\"\n}"
+      },
+      "id": "20a7f15c-6069-45ce-b6dc-60bd2d852f7b",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -944,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        576
+      ],
+      "id": "d590ca70-160e-4fe4-a580-98ca9a09b604",
+      "name": "Wait",
+      "webhookId": "920a65f5-4982-443c-ba80-a1ea7a191173"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "57610aaa-a434-476e-9493-a2cc018af37f",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "success",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "success"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "queued",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50b5b0f7-8c9e-4e76-af35-04f33ef322d5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "queued"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7f1d5857-6831-4650-816f-acc686f39450",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": 1
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        432,
+        560
+      ],
+      "id": "ce173980-cbf3-4e02-aaa0-f166052b7c41",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * ОПИСАНИЕ УЗЛА: \"Очистка референсов (Массовая)\"\n * \n * ЧТО ДЕЛАЕТ:\n * 1. Использует метод $input.all(), чтобы получить весь список входящих задач.\n * 2. Проходит по каждому итему через .map().\n * 3. Проверяет поле \"ref_url\". Если ссылка битая или пустая — заменяет её на null.\n * 4. Сохраняет поля prompt и alt_text без изменений.\n * \n * ЗАЧЕМ ЭТО НУЖНО:\n * Это гарантирует, что если вы отправите на генерацию 3 картинки разом, \n * узел выдаст 3 чистых результата, а не один.\n */\n\nreturn $input.all().map(item => {\n  let cleanRef = item.json.ref_url;\n\n  // ПРОВЕРКА: ссылка должна быть строкой, начинаться на http\n  if (!cleanRef || \n      typeof cleanRef !== 'string' || \n      !cleanRef.trim().startsWith('http')) \n  {\n      // Если ссылка невалидна — ставим null, чтобы включить режим Text-to-Image\n      cleanRef = null; \n  }\n\n  // Возвращаем итем обратно в поток n8n\n  return {\n    json: {\n      prompt: item.json.prompt,\n      ref_url: cleanRef,\n      alt_text: item.json.alt_text\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        608
+      ],
+      "id": "5410c8ab-405d-4868-abb7-f7b816ac9f07",
+      "name": "Очистка референсов"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -688,
+        608
+      ],
+      "id": "9a671c27-d667-4376-b9f7-be13314a6fc3",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "model": "nano-banana-2",
+        "prompt": "={{ $json.prompt ?? $json._comandosMediaLoop?.prompt ?? null }}",
+        "ratio": "3:2",
+        "references": {
+          "reference": [
+            {
+              "url": "={{ $json.ref_url ?? $json._comandosMediaLoop?.references?.[0] ?? null }}"
+            }
+          ]
+        }
+      },
+      "type": "@comandosai/n8n-nodes-media.comandosMedia",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        576
+      ],
+      "id": "fbc80656-d99b-4283-9c1a-bb64a34a991c",
+      "name": "Создаем фото",
+      "credentials": {
+        "comandosApi": {
+          "id": "KtIl0PxYClK4jEbv",
+          "name": "Comandos account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "status",
+        "taskId": "={{ $json.taskId }}"
+      },
+      "type": "@comandosai/n8n-nodes-media.comandosMedia",
+      "typeVersion": 1,
+      "position": [
+        208,
+        576
+      ],
+      "id": "ab8ac3ed-cfa2-445b-8a72-9cb83212748b",
+      "name": "Стутс",
+      "credentials": {
+        "comandosApi": {
+          "id": "KtIl0PxYClK4jEbv",
+          "name": "Comandos account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "imageUrl": "={{ $json.resultUrl }}",
+        "altText": "={{ $('When Executed by Another Workflow').first().json.alt_text }}"
+      },
+      "type": "@comandosai/n8n-nodes-wordpress.comandosWordpress",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        544
+      ],
+      "id": "289bdb92-0af1-484e-882b-c5a41e2367fa",
+      "name": "Загрузка фото",
+      "credentials": {
+        "comandosWordpressApi": {
+          "id": "p01GYp85IolqT5AN",
+          "name": "blog.autopipe.space"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 🏷️ Подключение генерации изображений (Media-узлы)\n- **Что это:** Доступ для узлов \"Создаем фото\" и \"Стутс\" (генерация картинок через KIE AI)\n- **Зачем нужно:** Без него не сгенерируются featured image для статей\n- **Что заполнить:**\n  - **Лицензионный ключ** — тот же, что и для WordPress (получи в боте Comandos, раздел \"Лицензии\")\n  - **KIE AI ключ** — отдельный ключ для генерации изображений (уточни в боте или поддержке)\n- **Важно:** Это отдельное подключение от WordPress — создай его ещё раз с теми же данными\n- **Частая ошибка → как избежать:**\n  - ❌ Путать с WordPress-credential — это разные системы, хотя ключи одинаковые\n  - ✅ Создай подключение типа \"Comandos Media API\" и выбери его в обоих узлах",
+        "height": 352,
+        "width": 576
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        192
+      ],
+      "id": "bd630fed-293c-4ee1-a2da-56856acb9842",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### 🏷️ Загрузка фото в WordPress\n- **Что это:** Загружает сгенерированную картинку в медиабиблиотеку WP и получает ID\n- **Зачем нужно:** Чтобы featured image привязалась к статье при публикации\n- **Что заполнить:** Выбери тот же **Credential**, что и в основном workflow (узлы \"Публикуем\", \"Теги\", \"Обо мне\")\n- **Важно при копировании:** Если делаешь копию workflow — проверь, что здесь стоит правильный сайт. Должен быть одинаковый с основным workflow, иначе фото уйдёт на другой сайт\n- **Частая ошибка → как избежать:**\n  - ❌ Разные credentials в основном workflow и здесь — статья на site1.com, фото на site2.com\n  - ✅ Проверь в обоих workflow стоит один и тот же credential (wp.yoursite.com)",
+        "height": 320,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        736,
+        240
+      ],
+      "id": "166bdba4-7be6-4181-9985-f1708601841d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_ATTEMPTS = 20;\n\nconst state = $getWorkflowStaticData('node');\n\nif (!state.statusFailCount) {\n  state.statusFailCount = 0;\n}\n\nstate.statusFailCount += 1;\n\nif (state.statusFailCount >= MAX_ATTEMPTS) {\n  state.statusFailCount = 0;\n  throw new Error(\n    `❌ Статус не изменился после ${MAX_ATTEMPTS} попыток. KIE AI не отвечает или завис. Workflow остановлен.`\n  );\n}\n\n// Пропускаем ВСЕ данные насквозь без изменений\nreturn $input.all().map(item => ({ json: item.json }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        608
+      ],
+      "id": "fb8e3bdf-d911-49d7-91a4-95dc2fddbe4f",
+      "name": "Счетчик 10"
+    },
+    {
+      "parameters": {
+        "jsCode": "const MAX_ATTEMPTS = 5;\n\nconst state = $getWorkflowStaticData('node');\n\nif (!state.failCount) {\n  state.failCount = 0;\n}\n\nstate.failCount += 1;\n\nif (state.failCount >= MAX_ATTEMPTS) {\n  state.failCount = 0;\n  throw new Error(\n    `❌ Генерация провалилась ${MAX_ATTEMPTS} раза. Проверь баланс в KIE AI.`\n  );\n}\n\n// Пропускаем ВСЕ данные насквозь без изменений\nreturn $input.all().map(item => ({ json: item.json }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        736
+      ],
+      "id": "73a205c9-824e-487b-a8f5-ccdd8e0225f5",
+      "name": "Счетчик "
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        416
+      ],
+      "id": "b72f1683-8c02-4dc3-8d03-09e7b89204c2",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Стутс",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Загрузка фото",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Счетчик 10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Счетчик ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Очистка референсов": {
+      "main": [
+        [
+          {
+            "node": "Создаем фото",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Очистка референсов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Создаем фото": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Стутс": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Загрузка фото": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Счетчик 10": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Счетчик ": {
+      "main": [
+        [
+          {
+            "node": "Создаем фото",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "99c370d0-0e42-4bd0-bc68-905dc59e9624",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "zCoIZh7JCBgqiU4C",
+  "tags": []
+}

@@ -1,0 +1,83 @@
+{
+  "name": "Узлы",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getCreateTags",
+        "tags": "={{ $('ВФ 1').item.json.tags }}"
+      },
+      "type": "@comandosai/n8n-nodes-wordpress.comandosWordpress",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -48
+      ],
+      "id": "e4d98305-d637-4f57-a5d4-8ec562a5993c",
+      "name": "Теги",
+      "credentials": {
+        "comandosWordpressApi": {
+          "id": "p01GYp85IolqT5AN",
+          "name": "blog.autopipe.space"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "flux-pro",
+        "prompt": "={{ $json.prompt }}",
+        "ratio": "3:2",
+        "references": {
+          "reference": [
+            {
+              "url": "={{ $json.ref_url }}"
+            }
+          ]
+        }
+      },
+      "type": "@comandosai/n8n-nodes-media.comandosMedia",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "8bf63f79-c224-413f-8155-edc0fe8ac430",
+      "name": "Создаем фото",
+      "credentials": {
+        "comandosApi": {
+          "id": "Nn88gKjlHw8Lxv7T",
+          "name": "Artem"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@comandosai/n8n-nodes-lsi-keys.comandosLsiKeys",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -48
+      ],
+      "id": "cd5f606d-b83d-4dfd-8bee-e2366a19ea05",
+      "name": "Comandos LSI Keys",
+      "credentials": {
+        "comandosLsiKeysApi": {
+          "id": "cZRKBEsnw5Mg8UEC",
+          "name": "Test"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aa79028d-8012-4ae1-bbd0-41545bd9b5da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "TsOWKjnwUk0qbNJo",
+  "tags": []
+}

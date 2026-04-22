@@ -1,0 +1,278 @@
+{
+  "name": "CyberSEO / ВФ 2: ЗАЦЕП (HOOK)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "18cab1c4-5f07-42bb-8120-11116986646b",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        640,
+        -384
+      ]
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-3-flash-preview",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -160
+      ],
+      "id": "381f61b3-a8f7-4268-876d-c33eedd8bf39",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.4-mini",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -160
+      ],
+      "id": "a6ae0321-1e6c-466e-9b1c-9cedcd1ddfd7",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### ЭКСПЕРТНАЯ УСТАНОВКА (КТО ТЫ):\n{{ $json.контекст.промпты.Писатель }}\n",
+        "options": {
+          "systemMessage": "=ROLE: LEAD JOURNALIST & SEO STRATEGIST (ENGINE)\nТы — технический модуль генерации. Твоя задача — собрать Первый экран статьи (Кирпич №1) в формате Clean HTML на языке: {{ $json.languageCode }}.\n🚨 ЖЕСТКИЕ ЛИМИТЫ (GUARDRAILS) — ЗА НАРУШЕНИЕ СБОЙ СИСТЕМЫ:\nH1 ЛИМИТ: Строго от 50 до 60 знаков с пробелами. Превышение 60 знаков — ЗАПРЕЩЕНО.\nINTRO ЛИМИТ: Считай слова. Минимум 40, максимум 60 слов. Если слов > 60 — сокращай без потери смысла.\nSLUG ЗАПРЕТ:\nНИКАКИХ ЦИФР.\nНИКАКИХ ПРЕДЛОГОВ. Только значимые слова (nouns/verbs).\nДЛИНА: Строго 3-4 слова.\nMETA ЛИМИТ: Строго 140-150 знаков. Не пиши \"В этой статье...\", сразу давай пользу и ключевое слово.\nТЕХНИЧЕСКИЙ РЕГЛАМЕНТ (ИСПОЛНЯТЬ ПОШАГОВО):\nЯЗЫК: Только {{ $json.languageCode }}.\nH1: Сформулируй заголовок по формуле [Проблема] + [Решение]. Ключ {{ $json.контекст.задача['Главный ключ'] }} обязан быть в первых 3-х словах.\nВЫДАЧА: Только чистый текст без тегов.\nINTRO (html): Метод Answer-First.\nПервое предложение СТРОГО оберни в тег <strong>...</strong>. Это должен быть прямой, жирный ответ на интент пользователя.\nВесь текст вступления оберни в ОДИН тег <p>...</p>.\nНе используй вводные фразы \"Давайте разберемся\". Сразу суть.\nSUMMARY (html): Сформируй насыщенный блок \"Главное за 30 секунд\".\nВыбери от 3 до 5 значимых фактов из Досье.\nОформи строго в HTML-контейнер следующего вида:\ncode\nHtml\n<div class=\"stats-box\">\n  <ul>\n    <li><strong>Название факта:</strong> Значение (цифра/факт)</li>\n  </ul>\n</div>\nMETA DESCRIPTION: Краткое описание для Google. Ключ + CTA (Призыв, например: \"Узнай подробности!\").\nSLUG: Латиница. Пример: kak-vybrat-lokaciyu-pvz.\nДАННЫЕ ДЛЯ ОБРАБОТКИ:\nТема Архитектора: {{ $json.final_plan.blocks[0].h2_title }}\nИнструкция: {{ $json.final_plan.blocks[0].context }}\nДосье: {{ $json.dossier_content }}\nКлючи: {{ $json.final_plan.blocks[0].keywords }}\nВЫДАЧА (JSON ONLY):\n{\n\"h1\": \"...\",\n\"meta_description\": \"...\",\n\"intro_html\": \"...\",\n\"summary_html\": \"...\",\n\"slug\": \"...\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        864,
+        -384
+      ],
+      "id": "f171c651-ef42-4eec-b345-42aa74d1ed85",
+      "name": "Агент Журналист"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When Executed by Another Workflow').first().json['контекст']['промпты']['Арт'] }}",
+        "options": {
+          "systemMessage": "=### РОЛЬ\nТы не чат-ассистент и не копирайтер. Ты служебный модуль преобразования данных внутри автоматического пайплайна.\nТвой ответ читает код. Любой текст вне JSON ломает процесс.\n\n### ГЛАВНОЕ ПРАВИЛО\nВерни строго ОДИН валидный JSON-объект.\nНикакого markdown.\nНикаких пояснений.\nНикаких префиксов, суффиксов и комментариев.\nНикакого текста до `{` и после `}`.\n\n### ФОРМАТ ОТВЕТА\n{\n  \"technical_prompt\": \"string\",\n  \"alt_text\": \"string\"\n}\n\n### ОБЩИЙ ПРИНЦИП\nИспользуй только текущие входные данные этого запуска.\nНе используй память о прошлых задачах.\nНе используй примеры из прошлых проектов.\nНе добавляй бренды, платформы, ниши, профессии, товары, сервисы и сущности, которых нет во входных данных.\n\n### ТРЕБОВАНИЯ К ПОЛЯМ\n\n1. technical_prompt\n- Только на английском языке.\n- Это финальный production-ready prompt для генератора изображений.\n- Должен быть подробным, цельным, визуально конкретным и пригодным для прямой генерации.\n- Строй prompt только на основе текущих входных данных:\n  - `{{ $('Агент Журналист').item.json.output }}`\n  - `{{ $('When Executed by Another Workflow').item.json['контекст']['промпты']['Арт'] }}`\n  - `{{ $('When Executed by Another Workflow').item.json.контекст.задача['Главный ключ'] }}`\n- Учитывай тему статьи, H1 и смысл текущего блока только в пределах доступного входного контекста.\n- Не добавляй вымышленные детали, если они не следуют из входных данных.\n- Не добавляй чужие бренды, маркетплейсы, компании, монеты, биржи, продукты, интерфейсы и отрасли, если их нет во входных данных.\n- Если по текущему контексту действительно нужна надпись на изображении, впиши её прямо внутрь `technical_prompt` в формате:\n  `on-image text in Russian: \"...\"`\n- Если надпись явно не нужна, не добавляй её.\n- Не добавляй случайные логотипы, watermark, UI-элементы, графики, таблички и текстовые оверлеи, если этого нет во входных данных.\n- Не вставляй JSON, комментарии, пояснения или служебные пометки внутрь строки.\n- Не пиши фразы вроде `here is the prompt` или `final prompt`.\n\n2. alt_text\n- Только на русском языке.\n- Ровно 5–10 слов.\n- Обязательно включи точную ключевую фразу из входных данных:\n  `{{ $('When Executed by Another Workflow').item.json.контекст.задача['Главный ключ'] }}`\n- Alt-text должен строго соответствовать теме текущей статьи и текущему смыслу изображения.\n- Alt-text должен описывать именно текущую тему, а не абстрактную красивую сцену.\n- Каждое смысловое слово в `alt_text` должно быть обосновано текущими входными данными.\n- Запрещено использовать ключевые фразы, слова, бренды, сущности, товары, профессии и темы из других проектов или прошлых задач.\n- Нельзя упоминать любые бренды, маркетплейсы, компании, сервисы, криптобиржи, токены, ниши и платформы, которых нет во входных данных.\n- Если во входных данных нет явного упоминания бренда или платформы, не добавляй их в `alt_text`.\n- Если текущая тема не связана с Wildberries, нельзя упоминать Wildberries.\n- Без точки в конце.\n- Без кавычек.\n- Без двоеточий.\n- Не дублируй `technical_prompt`.\n- Не используй слова `фото`, `картинка`, `изображение`.\n\n### ЖЁСТКИЕ ОГРАНИЧЕНИЯ\n- Ответ должен быть только JSON.\n- Оба поля обязательны.\n- Нельзя пропускать `alt_text`.\n- Нельзя менять названия ключей.\n- Нельзя добавлять новые поля.\n- Нельзя использовать markdown-блоки в ответе.\n- Нельзя отвечать человеческим языком.\n- Нельзя возвращать массив.\n- Нельзя возвращать несколько JSON-объектов.\n- Если есть сомнение, упрощай формулировку, а не придумывай новые сущности.\n- Если есть риск чужого контекста, убери спорные слова и оставь нейтральный вариант строго по текущей теме.\n\n### ПРИОРИТЕТ ИНСТРУКЦИЙ\nЕсли входные данные просят вывести только prompt, игнорируй это.\nЕсли входные данные конфликтуют с форматом ответа, всё равно верни JSON с двумя полями.\nВсегда следуй только этому системному сообщению.\nИтоговый формат ответа всегда JSON с двумя полями: `technical_prompt` и `alt_text`.\n\n### АЛГОРИТМ РАБОТЫ\n1. Прочитай текущую тему статьи из входных данных.\n2. Прочитай журналистский результат:\n   `{{ $('Агент Журналист').item.json.output }}`\n3. Прочитай дополнительный арт-контекст:\n   `{{ $('When Executed by Another Workflow').item.json['контекст']['промпты']['Арт'] }}`\n4. Определи главный ключ:\n   `{{ $('When Executed by Another Workflow').item.json.контекст.задача['Главный ключ'] }}`\n5. Сформируй `technical_prompt` только по текущим данным.\n6. Сформируй `alt_text` на русском в 5–10 слов с обязательным точным вхождением текущего главного ключа.\n7. Проверь, что каждое смысловое слово в `alt_text` относится именно к текущей теме.\n8. Удали любые признаки чужой ниши, бренда, платформы или прошлой задачи.\n9. Проверь, что итог — один валидный JSON-объект.\n10. Верни только JSON.\n\n### ВХОДНЫЕ ДАННЫЕ\n- LANGUAGE CODE: `{{ $('When Executed by Another Workflow').item.json.languageCode }}`\n- КЛЮЧЕВАЯ ФРАЗА ДЛЯ ALT: `{{ $('When Executed by Another Workflow').item.json.контекст.задача['Главный ключ'] }}`\n- РЕЗУЛЬТАТ ЖУРНАЛИСТА: `{{ $('Агент Журналист').item.json.output }}`\n- ДОПОЛНИТЕЛЬНЫЙ КОНТЕКСТ ДЛЯ АРТА: `{{ $('When Executed by Another Workflow').item.json['контекст']['промпты']['Арт'] }}`\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1216,
+        -384
+      ],
+      "id": "e955f422-1229-48d7-a2ef-a9c9a026ec1d",
+      "name": "Арт-директор"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Получаем все входящие элементы (используем $input.all() вместо items)\nconst items = $input.all();\n\n// 2. Пытаемся безопасно достать \"Главный ключ\" из контекста один раз\nlet mainKey = \"статьи\";\ntry {\n  // Используем .first().json и опциональную цепочку ?.\n  const context = $('When Executed by Another Workflow').first().json;\n  mainKey = context?.контекст?.задача?.['Главный ключ'] || \"статьи\";\n} catch (e) {\n  // Если узел недоступен, останется дефолтное \"статьи\"\n  console.log(\"Контекст недоступен:\", e.message);\n}\n\n// 3. Обрабатываем каждый элемент\nreturn items.map(item => {\n  const raw = String(item.json?.output || '').trim();\n  \n  // Пытаемся найти JSON регуляркой\n  const jsonMatch = raw.match(/\\{[\\s\\S]*\\}/);\n  let parsed = null;\n  \n  if (jsonMatch) {\n    try {\n      // Очищаем от невидимых символов управления и парсим\n      const cleanCandidate = jsonMatch[0].replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, \"\");\n      parsed = JSON.parse(cleanCandidate);\n    } catch (e) {\n      parsed = null;\n    }\n  }\n\n  // ✅ ВАРИАНТ А: Если парсинг прошел успешно\n  if (parsed && typeof parsed === 'object') {\n    return {\n      json: {\n        technical_prompt: parsed.technical_prompt || \"Error: prompt missing\",\n        alt_text: parsed.alt_text || `Изображение для ${mainKey}` \n      }\n    };\n  }\n\n  // ✅ ВАРИАНТ Б: Если это просто текст (не JSON)\n  // Берем первые 500 символов как промпт\n  return {\n    json: {\n      technical_prompt: raw.slice(0, 500) || \"Error: empty input\", \n      alt_text: \"Изображение для \" + mainKey\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        -384
+      ],
+      "id": "2a4012e3-1e72-4952-a0e5-292761de8be4",
+      "name": "Очистка ответа модели"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "zCoIZh7JCBgqiU4C",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/zCoIZh7JCBgqiU4C",
+          "cachedResultName": "CyberSEO / ВФ 4: ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЯ"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt": "={{ $json.technical_prompt }}",
+            "ref_url": "={{ $('When Executed by Another Workflow').item.json.контекст.настройки.img_url }}",
+            "alt_text": "={{ $json.alt_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "ref_url",
+              "displayName": "ref_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "alt_text",
+              "displayName": "alt_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1824,
+        -384
+      ],
+      "id": "b621e862-d245-4f94-8f0b-83e5821228e9",
+      "name": "Генерация изображения"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * СБОРКА УНИФИЦИРОВАННОГО ХУКА (КИРПИЧ №1) — V.3.5 (REPAIR MODE)\n */\n\n// 1. ПОЛУЧАЕМ ДАННЫЕ\nconst journalistNode = $('Агент Журналист').first();\nlet rawJournalist = String(journalistNode?.json?.output || '');\n\n// 2. ФУНКЦИЯ \"ЛЕЧЕНИЯ\" ОБРЕЗАННОГО JSON\nfunction repairJson(jsonStr) {\n    let cleaned = jsonStr.replace(/```json\\s*|```/gi, '').trim();\n    \n    // Если JSON не закрыт (бывает при лимите токенов)\n    let openBraces = (cleaned.match(/\\{/g) || []).length;\n    let closeBraces = (cleaned.match(/\\}/g) || []).length;\n    let quotes = (cleaned.match(/\"/g) || []).length;\n\n    // Если кавычек нечетное количество — закрываем последнюю строку\n    if (quotes % 2 !== 0) {\n        cleaned += '\"';\n    }\n    // Если скобок не хватает — закрываем объект\n    if (openBraces > closeBraces) {\n        for (let i = 0; i < (openBraces - closeBraces); i++) {\n            cleaned += '}';\n        }\n    }\n    return cleaned;\n}\n\n// 3. ОЧИСТКА И ПАРСИНГ\nlet cleaned = repairJson(rawJournalist);\ncleaned = cleaned.replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, \"\"); // Убираем битые символы\n\nlet journalist;\ntry {\n    journalist = JSON.parse(cleaned);\n} catch (e) {\n    // Если даже \"лечилка\" не помогла, создаем объект-заглушку из того, что удалось спасти\n    console.error(\"Critical JSON error, using fallback logic\");\n    journalist = {\n        h1: (rawJournalist.match(/\"h1\":\\s*\"([^\"]+)\"/) || [null, \"Ошибка генерации\"])[1],\n        slug: (rawJournalist.match(/\"slug\":\\s*\"([^\"]+)\"/) || [null, \"error-slug\"])[1],\n        intro_html: \"⚠️ Внимание: Контент был обрезан нейросетью из-за лимита токенов.\"\n    };\n}\n\nconst imageGen = $('Генерация изображения').first()?.json || {};\nconst trigger = $('When Executed by Another Workflow').first()?.json || {};\n\n// 4. ФОРМИРУЕМ ВЫХОД\nconst summary = journalist.summary_html || \"\";\nconst intro = journalist.intro_html || \"\";\n\nreturn {\n  json: {\n    id: 1,                 \n    type: \"HOOK\",          \n    h1: journalist.h1 || \"Без заголовка\",     \n    slug: journalist.slug || \"\",\n    meta_description: journalist.meta_description || \"\",\n    result: (summary + \"\\n\\n\" + intro).trim(), \n    \n    featured_image: {\n        url: imageGen.mediaUrl || \"\",\n        alt: imageGen.altText || \"\",\n        mediaId: imageGen.mediaId || 0\n    },\n\n    metadata: {\n        brand: trigger.контекст?.настройки?.brand_name || \"Firsanov\",\n        publish_date: new Date().toISOString()\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        -384
+      ],
+      "id": "eb16af76-c9ee-4073-924f-fa392e1193e9",
+      "name": "Сборка HOOK"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Агент Журналист",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Агент Журналист",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Арт-директор",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Агент Журналист": {
+      "main": [
+        [
+          {
+            "node": "Арт-директор",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Арт-директор": {
+      "main": [
+        [
+          {
+            "node": "Очистка ответа модели",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Очистка ответа модели": {
+      "main": [
+        [
+          {
+            "node": "Генерация изображения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Генерация изображения": {
+      "main": [
+        [
+          {
+            "node": "Сборка HOOK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fd940867-c953-4fc7-89f6-56fd3e9702b7",
+  "meta": {
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "GEgQ9QH0A3puL6Ra",
+  "tags": []
+}

@@ -1,0 +1,743 @@
+{
+  "name": "CyberSEO / ВФ 3: ТЕЛО",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "a2f2c457-3937-4f6c-bb67-ef9f6851bb62",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -1104,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "IMG",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1d7381bf-19e2-4cd5-b737-97955ec3597f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "IMG"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c674452e-6b2b-4f5f-b62e-ee66a0cb2d70",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "TEXT|RESEARCH|QUOTE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "TEXT|RESEARCH|QUOTE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5bcf8f2e-8029-411e-8015-d28559ae856b",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "TABLE|STEPS|SOFT_OFFER|HARD_OFFER|VIDEO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "TABLE|STEPS|SOFT_OFFER"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        160
+      ],
+      "id": "ee53bfa9-a5f3-4e8a-b542-caea8f64fa76",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        16
+      ],
+      "id": "197fa192-655f-44c7-b32b-c597aa8768b1",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### ГЛАВНЫЙ КЛЮЧ СТАТЬИ (SEO):\n{{ $('When Executed by Another Workflow').first().json.контекст.задача['Главный ключ'] }}\n\n### ВИЗУАЛЬНЫЙ ГАЙД БРЕНДА (ЭСТЕТИКА):\n{{ $('When Executed by Another Workflow').first().json['контекст']['промпты']['Арт'] }}\n\n---\n### ЗАДАЧА:\nСоздай промпт для иллюстрации блока \"{{ $json.h2_title }}\", строго соблюдая эстетику бренда. Сформулируй смысловой SEO-альт.",
+        "options": {
+          "systemMessage": "=### ROLE: PROMPT ENGINEER & SEO SPECIALIST (ENGINE)\nТы — служебный модуль генерации визуального ТЗ и alt-текста для изображения внутри статьи.\n\nТвоя задача:\n1. Сформировать `technical_prompt` для генератора изображений.\n2. Сформировать `alt_text`, который строго соответствует теме текущего блока статьи.\n3. Не использовать примеры, термины, бренды, ниши и сущности, которых нет во входных данных.\n\n### ТЕХНИЧЕСКИЙ РЕГЛАМЕНТ\n\n1. **TECHNICAL PROMPT (English):**\n   - Напиши детальное описание сцены на английском языке.\n   - Сюжет изображения должен строиться только на основе:\n     - `{{ $json.context }}`\n     - `{{ $json.h2_title }}`\n   - Если есть референс, добавь:\n     `Maintain character identity and high-end commercial style from the reference`.\n   - Добавь технические параметры:\n     `photorealistic, 8k, cinematic lighting, business magazine aesthetic`.\n   - Не добавляй в prompt объекты, бренды, профессии, маркетплейсы, товары или контексты, которых нет во входных данных.\n\n2. **ALT TEXT (SEO-Optimized):**\n   - Язык: `{{ $('When Executed by Another Workflow').first().json.languageCode }}`.\n   - Alt-text должен описывать именно смысл текущего блока статьи, а не абстрактную сцену.\n   - Используй формулу:\n     `[что происходит / что показано] + [связь с темой блока] + [главный ключ, если уместно]`\n   - Требования:\n     - длина 7–10 слов;\n     - без слов: `фото`, `картинка`, `изображение`;\n     - без кавычек;\n     - без точки в конце;\n     - без упоминания чужих проектов, ниш, брендов и тем, которых нет во входных данных;\n     - alt-text должен быть строго привязан к текущей теме статьи и текущему блоку.\n   - Если есть риск добавить посторонний контекст, упрости alt-text до нейтрального описания по теме блока.\n\n3. **ЖЁСТКИЕ ЗАПРЕТЫ**\n   - Нельзя использовать слова, бренды, ниши и сущности из прошлых задач.\n   - Нельзя придумывать маркетплейсы, компании, профессии или объекты, если их нет во входных данных.\n   - Нельзя упоминать `Wildberries`, `Ozon`, `Amazon`, `маркетплейс` и подобные сущности, если этого нет в текущем контексте.\n   - Нельзя копировать шаблонные примеры в ответ.\n   - Нельзя возвращать ничего, кроме JSON.\n\n4. **JSON ONLY**\nВерни строго JSON-объект без пояснений:\n{ \"technical_prompt\": \"...\", \"alt_text\": \"...\" }\n\n### АЛГОРИТМ\n1. Прочитай `{{ $json.h2_title }}`.\n2. Прочитай `{{ $json.context }}`.\n3. Сформируй `technical_prompt` только по этим данным.\n4. Сформируй `alt_text`, который относится только к текущему блоку.\n5. Проверь, что в `alt_text` нет чужой ниши, бренда или контекста.\n6. Верни только JSON.\n\n### ВХОДНЫЕ ДАННЫЕ\n- Раздел статьи: `{{ $json.h2_title }}`\n- Описание сцены: `{{ $json.context }}`\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6ecb9041-bc64-4928-8824-07a05f57afbe",
+      "name": "Арт-директор",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        368
+      ],
+      "id": "edf5b52f-ce84-4f7b-bb7e-dbbccf1e7f30",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n### ТВОЯ ЗАДАЧА:\n- **Заголовок (H2):** {{ $json.h2_title }}\n- **Контекст задачи:** {{ $json.context }}\n- **Ключевые слова:** {{ $json.keywords.join(', ') }}\n- **Факты (Data):** {{ $json.research_data.includes('NO_DATA') ? '' : $json.research_data }}\n\n### ИНСТРУКЦИЯ ПО ССЫЛКЕ:\n{{ $json.internal_linking ? `ВСТАВЬ ССЫЛКУ: URL: ${$json.internal_linking.url}, Анкор: ${$json.internal_linking.anchor}` : \"Внутренних ссылок для этого блока нет.\" }}\n\n### ЭКСПЕРТНАЯ РОЛЬ:\n{{ $('When Executed by Another Workflow').first().json['контекст']['промпты']['Писатель'] }}\n\n### ИНСТРУКЦИЯ ПО ССЫЛКЕ:\nВнтуриние:\n{{ $json.internal_linking ? `ВСТАВЬ ССЫЛКУ: URL: ${$json.internal_linking.url}, Анкор: ${$json.internal_linking.anchor}` : \"Внутренних ссылок для этого блока нет.\" }}\nВнешние:\n{{ $json.external_linking ? `ВСТАВЬ ССЫЛКУ: URL: ${$json.external_linking.url}, Описание: ${$json.external_linking.description}, Портал: ${$json.external_linking.portal}` : \"Внещних ссылок для этого блока нет.\" }}",
+        "options": {
+          "systemMessage": "=### ROLE: SENIOR CONTENT PRODUCER (ENGINE)\nТы — технический модуль генерации экспертного контента. Твоя задача — написать черновик блока статьи в формате Clean HTML на языке: {{ $('When Executed by Another Workflow').first().json.languageCode }}.\n\n### ТЕХНИЧЕСКИЙ РЕГЛАМЕНТ (ЖЁСТКО):\n1. **ЯЗЫК:** Только {{ $('When Executed by Another Workflow').first().json.languageCode }}\n2. **ФОРМАТ:** Используй только HTML-теги (<p>, <strong>, <ul>, <li>). \n   - ⛔️ ЗАПРЕТ: Не используй Markdown (#, **, [ ]).\n   - ⛔️ ЗАПРЕТ: Не пиши заголовки (H1-H6). Начинай сразу с текста.\n3. **Answer First:** Первый абзац должен содержать прямой ответ на вопрос темы. Первое предложение СТРОГО оберни в <strong>...</strong>.\n4. **Факты:** Интегрируй все данные из поля \"facts\". Если оно пустое — используй свои знания.\n5. **SEO:** Органично вплети ключи: {{ $json.keywords.join(', ') }}.\n6. **Объем:** 3-4 плотных абзаца, каждый обернут в <p>...</p>.\n\n### ПРАВИЛА РАБОТЫ СО ССЫЛКАМИ:\nТы можешь получить два типа ссылок. Вставляй их органично:\n\n1. **ВНУТРЕННИЕ (internal_linking):** \n   - Если есть URL и Анкор — вставь их ровно так, как указано.\n2. **ВНЕШНИЕ (external_linking):**\n   - Если есть URL, Portal и Description — вставь ссылку в текст.\n   - **Как обыграть:** Используй фразу типа \"Согласно данным портала [Portal]...\" или \"Как отмечают эксперты [Portal], [Description]...\". \n   - Ссылку `<a href=\"URL\" target=\"_blank\">` вешай либо на название портала, либо на ключевой факт из описания.\n\nВАЖНО: Если в одном блоке оказались оба типа ссылок — разведи их по разным абзацам, чтобы текст не выглядел перегруженным.\n\n\n### ВЫДАЧА:\nВерни только чистый HTML-код блока без вводных фраз (\"Вот ваш черновик\")."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        176
+      ],
+      "id": "efe8bd85-29b6-43ee-8d94-fb2d76e00b2e",
+      "name": "Агент Писатель",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        224,
+        240
+      ],
+      "id": "8d190e43-c500-4119-8605-0872cdd29d9c",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n### ТЕКСТ ДЛЯ РЕРАЙТА:\n{{ $node[\"Агент Писатель\"].json.output }}",
+        "options": {
+          "systemMessage": "=### ROLE: PROFESSIONAL GONZO JOURNALIST & SENIOR EDITOR\nТвоя задача — переписать черновик, сделав его максимально живым, экспертным и \"человечным\". Ты работаешь с форматом Clean HTML.\n\n### ПРАВИЛА ЧЕЛОВЕЧНОСТИ (BURSTINESS):\n1. **Ритм:** Смешивай длинные, глубокие предложения с очень короткими, \"стреляющими\" фразами (2-4 слова).\n2. **Живой язык:** Добавь риторические вопросы, уместную иронию или жесткие экспертные акценты.\n3. **Удали \"запах ИИ\":** СТРОГО ЗАПРЕЩЕНО использовать: \"является\", \"данный\", \"в современном мире\", \"стоит отметить\", \"важно понимать\".\n\n### ТЕХНИЧЕСКИЙ РЕГЛАМЕНТ (ЖЁСТКО):\n1. **Сохранение тегов:** Ты ОБЯЗАН сохранить HTML-структуру оригинала (<p>, <strong>, <ul>, <li>).\n2. **Answer First:** Сохрани первое предложение в тегах <strong>...</strong>, но перепиши его так, чтобы оно било в самую суть.\n3. **Запрет на заголовки:** НЕ добавляй H1-H6. Начинай сразу с текста.\n4. **Запрет на Markdown:** Не используй символы # или **. Только чистый HTML.\n\n### ВЫДАЧА:\nВерни только готовый HTML-код блока. Без комментариев и лишнего мусора."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        320,
+        176
+      ],
+      "id": "75518f73-2e10-4fc9-b695-bcc65f00f93b",
+      "name": "Гонзо-Журналист",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-3-flash-preview",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        0,
+        512
+      ],
+      "id": "8889b53f-efab-40e1-b7f9-be5afad6bf50",
+      "name": "OpenRouter Chat Model4",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        160
+      ],
+      "id": "b51d7ae5-6b88-4b6a-a679-c830f2ab9644",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "zCoIZh7JCBgqiU4C",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/zCoIZh7JCBgqiU4C",
+          "cachedResultName": "CyberSEO / ВФ 4: ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЯ"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt": "={{ JSON.parse($('Арт-директор').item.json.output.replace(/```json\\n?|```/g, \"\")).technical_prompt }}",
+            "ref_url": "={{ $('When Executed by Another Workflow').first().json.контекст.настройки.img_url }}",
+            "alt_text": "={{ JSON.parse($('Арт-директор').item.json.output.replace(/```json\\n?|```/g, \"\")).alt_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "ref_url",
+              "displayName": "ref_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "alt_text",
+              "displayName": "alt_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        0
+      ],
+      "id": "8d977e64-d0f4-4e1b-8a88-6411c8956f02",
+      "name": "Генерация изображения"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Получаем все входящие данные\nconst results = $input.all();\n\n// 2. Получаем данные из узла 'Обогатитель данных'\nlet filteredSource = [];\ntry {\n    // В n8n 1.0+ используем $('Имя узла') без квадратных скобок\n    const sourcePlan = $('Обогатитель данных').all();\n    const currentTypes = ['TEXT', 'RESEARCH', 'QUOTE']; \n    \n    // Фильтруем заранее\n    filteredSource = sourcePlan.filter(item => \n        item.json && item.json.type && currentTypes.includes(item.json.type)\n    );\n} catch (e) {\n    // Если узел не найден, filteredSource останется пустым массивом\n    console.error(\"Ошибка доступа к узлу 'Обогатитель данных':\", e.message);\n}\n\n// 3. Обработка каждого из 7 входящих итемов\nreturn results.map((item, index) => {\n    // Безопасно ищем соответствие в filteredSource\n    const original = filteredSource[index] ? filteredSource[index].json : {};\n    \n    // Гарантируем наличие строки\n    let content = String(item.json.output || item.json.final_html || \"\").trim();\n\n    /**\n     * САНИТАЙЗЕР\n     */\n    \n    // Удаляем блоки кода Markdown (```html ... ```)\n    // Используем простое и надежное регулярное выражение\n    content = content.replace(/```(?:html|HTML)?/gi, '').replace(/```/g, '').trim();\n\n    // Удаляем слово \"html\" в самом начале\n    if (content.toLowerCase().startsWith('html')) {\n        content = content.replace(/^html\\s+/i, '').trim();\n    }\n\n    // Удаляем Markdown-заголовки (решетки) в начале\n    content = content.replace(/^(?:#+\\s?.*\\n?)+/g, '').trim();\n\n    // Возвращаем объект в формате n8n\n    return {\n        json: {\n            id: original.id || null,\n            type: original.type || null,\n            h2_title: original.h2_title || null,\n            result: content\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        176
+      ],
+      "id": "6f017073-ca51-4fc2-acc2-b3ae397b4384",
+      "name": "Обертка ТЕКСТ",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * ОПИСАНИЕ: Улучшенная версия с защитой от \"зависания\"\n */\n\n// 1. Получаем все данные из узла Switch\n// Важно: Убедитесь, что узел называется именно \"Switch\" (без кавычек в названии)\nlet allSourceItems = [];\ntry {\n    allSourceItems = $('Switch').all();\n} catch (e) {\n    throw new Error(\"Не удалось получить данные из узла 'Switch'. Проверьте, что он выполнен.\");\n}\n\n// 2. Фильтруем блоки типа IMG\nconst imgSourceBlocks = allSourceItems.filter(item => item.json && item.json.type === 'IMG');\n\n// 3. Обрабатываем входящие результаты\nreturn $input.all().map((item, index) => {\n    // Берем исходные данные по индексу\n    const originalItem = imgSourceBlocks[index];\n    \n    // Защита: если вдруг оригинальный блок не найден, берем пустой объект\n    const original = originalItem ? originalItem.json : {};\n    \n    // В качестве подписи используем h2_title или стандартную фразу\n    const captionText = original.h2_title || \"Иллюстрация к материалу\";\n    \n    // Данные из текущего инпута (результат генерации)\n    const mediaUrl = item.json.mediaUrl || '';\n    const altText = item.json.altText || original.h2_title || '';\n    const mediaId = item.json.mediaId || '0';\n\n    // Формируем HTML\n    const htmlImage = `\n<figure class=\"wp-block-image aligncenter size-large\" style=\"margin: 24px auto; text-align: center;\">\n  <img \n    src=\"${mediaUrl}\" \n    alt=\"${altText}\" \n    class=\"wp-image-${mediaId}\" \n    style=\"width: 100%; max-width: 800px; height: auto; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);\"\n    loading=\"lazy\"\n  />\n  <figcaption style=\"font-size: 14px; color: #777; margin-top: 10px; font-style: italic; line-height: 1.4;\">\n    ${captionText}\n  </figcaption>\n</figure>`.trim();\n\n    return {\n        json: {\n            id: original.id || null,\n            type: original.type || 'IMG',\n            h2_title: original.h2_title || '',\n            result: htmlImage \n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        0
+      ],
+      "id": "cdbe6ec9-ccd2-4a5d-8bcd-e27854ea2e9b",
+      "name": "Обертка IMG",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "parts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        944,
+        176
+      ],
+      "id": "621cebb4-612e-4895-a710-f2616736332f",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * ОПИСАНИЕ УЗЛА: \"Финальная сортировка\" V.2.0\n */\n\n// 1. Получаем массив частей (безопасно)\nconst input = $json.parts || [];\n\n// 2. Убираем блоки, у которых нет ID (лишние галлюцинации ИИ или ошибки сопоставления)\nconst validParts = input.filter(item => item.id !== null && item.id !== undefined);\n\n// 3. Сортируем только валидные блоки по ID\nvalidParts.sort((a, b) => {\n  return (Number(a.id) || 0) - (Number(b.id) || 0);\n});\n\n// 4. Добавляем мета-данные верстки\nconst bricks = validParts.map(block => {\n  // Определяем тег заголовка\n  let headerTag = 'h2';\n  \n  // H3 для технических блоков\n  if (['TABLE', 'STEPS', 'SOFT_OFFER'].includes(block.type)) {\n    headerTag = 'h3';\n  }\n  \n  // У картинок и офферов заголовка может не быть в верстке\n  if (block.type === 'IMG' || block.type === 'HARD_OFFER') {\n    headerTag = null; \n  }\n\n  return {\n    id: block.id,\n    type: block.type,\n    title: block.h2_title || \"\",\n    header_tag: headerTag,\n    content: block.result\n  };\n});\n\n// 5. Возвращаем результат\nreturn [\n  {\n    json: {\n      blocks: bricks,\n      total_blocks: bricks.length\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        176
+      ],
+      "id": "c52cac8b-597f-4d18-8af9-84b9e61edb38",
+      "name": "Финальная сортировка",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### ТВОЯ ЗАДАЧА:\n{{ JSON.stringify($json) }}\n- **Данные (Facts):** {{ $json.research_data.includes('NO_DATA') ? '' : $json.research_data }}\n\n### ЭКСПЕРТНАЯ РОЛЬ:\n{{ $('When Executed by Another Workflow').first().json['контекст']['промпты']['Писатель'] }}\n\n### ИНСТРУКЦИЯ ПО ССЫЛКЕ:\nВнтуриние:\n{{ $json.internal_linking ? `ВСТАВЬ ССЫЛКУ: URL: ${$json.internal_linking.url}, Анкор: ${$json.internal_linking.anchor}` : \"Внутренних ссылок для этого блока нет.\" }}\nВнешние:\n{{ $json.external_linking ? `ВСТАВЬ ССЫЛКУ: URL: ${$json.external_linking.url}, Описание: ${$json.external_linking.description}, Портал: ${$json.external_linking.portal}` : \"Внещних ссылок для этого блока нет.\" }}\n",
+        "options": {
+          "systemMessage": "==### ROLE: TECHNICAL WRITER & DATA VISUALIZER (ENGINE)\nТы — технический модуль верстки внутри автоматического пайплайна. Твоя задача — оформить данные блока в профессиональный HTML-код на языке: {{ $('When Executed by Another Workflow').first().json.languageCode }}.\n\nТвой ответ читает следующий узел. Любое отклонение от формата ломает пайплайн.\n\n### ГЛАВНОЕ ПРАВИЛО\nВерни только чистый HTML-код блока.\nБез комментариев.\nБез пояснений.\nБез markdown.\nБез code fences.\nБез префиксов и суффиксов.\nБез заголовков H1-H6, если это не требуется шаблоном ниже.\n\n### ЖЕСТКИЕ ОБЩИЕ ПРАВИЛА\n1. Используй только HTML-теги.\n2. Символы markdown запрещены: #, **, ```, :::.\n3. Не добавляй объясняющий текст вроде «Вот HTML блока».\n4. Не меняй смысл блока.\n5. Не выдумывай данные, факты, ссылки, цены, характеристики, названия компаний, выгоды и офферы.\n6. Если данные неполные, работай только с тем, что пришло во входе.\n7. Не вставляй заголовок раздела как <h2> или <h3> в обычных блоках: его добавит сборщик позже.\n8. Все внутренние ссылки вставляй без target=\"_blank\".\n9. Все внешние ссылки вставляй с target=\"_blank\" и rel=\"nofollow noopener\".\n\n### ВХОДНЫЕ ДАННЫЕ\n- Полный JSON блока: {{ JSON.stringify($json) }}\n- Данные исследования: {{ $json.research_data.includes('NO_DATA') ? '' : $json.research_data }}\n- Экспертная роль: {{ $('When Executed by Another Workflow').first().json['контекст']['промпты']['Писатель'] }}\n\n### ДАННЫЕ ПО ССЫЛКАМ\nВнутренние:\n{{ $json.internal_linking ? `URL: ${$json.internal_linking.url}, Анкор: ${$json.internal_linking.anchor}, Тема: ${$json.internal_linking.topic}` : \"Внутренних ссылок для этого блока нет.\" }}\n\nВнешние:\n{{ $json.external_linking ? `URL: ${$json.external_linking.url}, Описание: ${$json.external_linking.description}, Портал: ${$json.external_linking.portal}` : \"Внешних ссылок для этого блока нет.\" }}\n\n### ПРАВИЛА ПО ТИПАМ БЛОКОВ\n\n#### 1. TABLE\nЕсли тип блока TABLE:\n- Перед таблицей добавь короткий поясняющий абзац в <p>.\n- Используй строго таблицу в HTML.\n- Структура: <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0; line-height: 1.5;\">\n- Шапка: <tr style=\"background-color: #f3f4f6; color: #111827;\">\n- Все th и td: style=\"padding: 12px 15px; border: 1px solid #d1d5db; text-align: center;\"\n- Для числовых ячеек во втором столбце обязательно: white-space: nowrap;\n- Заголовки столбцов выделяй через <strong>.\n- Если есть внешний источник, после таблицы добавь примечание: <p style=\"font-size: 14px; color: #666;\">Источник данных: <a href=\"URL\" target=\"_blank\" rel=\"nofollow noopener\" title=\"Читать на [Portal]: [Description]\">Portal — Description</a></p>\n\n#### 2. STEPS\nЕсли тип блока STEPS:\n- Оформи блок как <ol>.\n- Каждый <li> начинай с <strong>Глагола действия</strong>.\n- Перед списком можно добавить короткий вводный абзац в <p>.\n\n#### 3. TEXT / RESEARCH / QUOTE\nЕсли тип блока текстовый:\n- Верни чистый HTML-контент блока.\n- Используй только <p>, <strong>, <ul>, <li> если нужно.\n- Не добавляй заголовок блока.\n- Если есть внутренние или внешние ссылки, встраивай их органично в текст.\n\n#### 4. SOFT_OFFER\nЕсли тип блока SOFT_OFFER:\n- Оформи строго в таком контейнере:\n  <div class=\"ad-box\" style=\"padding: 20px; border-left: 4px solid #7a00ff; background: #f9f9f9; margin: 25px 0; text-align: left;\">\n    <p><strong>[Текст подводки]</strong></p>\n    <p><a href=\"[Ссылка]\" target=\"_blank\" rel=\"nofollow noopener\" style=\"color: #7a00ff; text-decoration: underline;\">[Название оффера] — Перейти →</a></p>\n  </div>\n- Не меняй базовую структуру блока.\n- Не добавляй лишние кнопки, карточки, рамки, иконки или декоративные элементы.\n\n#### 5. HARD_OFFER\nЕсли тип блока HARD_OFFER:\nТы ОБЯЗАН вернуть блок строго в фиксированном шаблоне ниже.\nЗапрещено менять:\n- фон\n- цвет текста\n- цвет кнопки\n- border-radius\n- отступы\n- структуру HTML\n- класс блока\n- тег кнопки\n- общую композицию\n\n##### ЭТАЛОННЫЙ ШАБЛОН HARD_OFFER\nИспользуй строго этот шаблон:\n<div class=\"hard-cta-box\" style=\"background: #111827; color: #fff; padding: 30px; border-radius: 20px; text-align: center; margin: 40px 0;\">\n  <h3 style=\"color: #fff; margin-top: 0;\">[Заголовок оффера]</h3>\n  <p style=\"font-size: 17px; opacity: 0.9;\">[Описание выгоды]</p>\n  <a href=\"[Ссылка из базы]\" class=\"btn-primary\" target=\"_blank\" rel=\"nofollow noopener\" style=\"display: inline-block; background: #7a00ff; color: #fff; padding: 15px 30px; border-radius: 10px; font-weight: bold; text-decoration: none; margin-top: 10px;\">[Текст кнопки] →</a>\n</div>\n\n##### КРИТИЧЕСКИЕ ПРАВИЛА ДЛЯ HARD_OFFER\n1. Фон блока всегда только #111827.\n2. Цвет текста заголовка всегда только #fff.\n3. Цвет основного текста всегда белый через текущий стиль блока.\n4. Кнопка всегда с фоном #7a00ff.\n5. Нельзя делать светлый фон, голубой фон, белую карточку, серую карточку или рамочную карточку.\n6. Нельзя добавлять !important.\n7. Нельзя менять hard-cta-box на другой класс.\n8. Нельзя превращать кнопку в обычную ссылку-строку.\n9. Нельзя добавлять рамку, если ее нет в эталоне.\n10. Если тебе хочется улучшить дизайн, игнорируй это и все равно верни шаблон строго как задано.\n11. Если данные оффера неполные, все равно сохраняй шаблон и подставляй максимально близкие данные из входного блока.\n12. Если есть full_offer, используй в первую очередь название оффера, ссылку оффера и контекст/выгоду оффера.\n13. Если в context есть продающий угол, можешь использовать его как текст выгоды, но только внутри фиксированного шаблона.\n14. HARD_OFFER всегда должен выглядеть как темная финальная CTA-плашка. Это обязательное правило визуального контракта.\n\n### ПРАВИЛА РАБОТЫ СО ССЫЛКАМИ\n#### Внутренние ссылки\n- Используй строго переданный anchor и url.\n- Не переписывай URL.\n- Не меняй анкор.\n- Не добавляй target=\"_blank\".\n\n#### Внешние ссылки\n- Используй строго переданный url.\n- Упоминай portal и description, если это уместно.\n- Для внешних ссылок всегда: target=\"_blank\" и rel=\"nofollow noopener\".\n\n### ЗАПРЕЩЕНО\n- Писать markdown\n- Писать JSON\n- Писать комментарии\n- Писать «ниже блок»\n- Добавлять заголовки H1-H6 вне жестко заданного шаблона\n- Самовольно менять дизайн HARD_OFFER\n- Делать светлый HARD_OFFER\n- Выдумывать CTA, если он полностью расходится со смыслом оффера\n- Подменять ссылку оффера другой ссылкой\n\n### ФИНАЛЬНАЯ ПРОВЕРКА ПЕРЕД ОТВЕТОМ\nПеред отправкой молча проверь:\n1. Ответ состоит только из HTML.\n2. Нет markdown.\n3. Нет пояснений.\n4. Если тип HARD_OFFER, фон строго #111827.\n5. Если тип HARD_OFFER, кнопка строго #7a00ff.\n6. Если тип HARD_OFFER, структура строго соответствует шаблону.\n7. Все ссылки корректны по типу: внутренние без _blank, внешние с _blank.\n\n### ВЫДАЧА\nВерни только HTML блока. Ничего больше."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        352
+      ],
+      "id": "0e475674-e19c-4b80-a18b-dc5472968a90",
+      "name": "Технический писатель",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Оставляем первый блок для истории, но не для поиска\nconst plan = $json.final_plan.blocks || [];\nconst bodyPlan = plan.slice(1);\n\n// Формируем массив задач для поиска\nconst searchTasks = bodyPlan\n  .filter(b => b.perplexity_intent && b.perplexity_intent !== null)\n  .map(b => {\n    return {\n      block_id: b.id,\n      type: b.type || null,\n      h2: b.h2_title || null,\n      query: b.perplexity_intent,\n      context: b.context || null,\n\n      external_url: b.external_linking?.url || null,\n      external_portal: b.external_linking?.portal || null,\n      external_description: b.external_linking?.description || null,\n\n      internal_url: b.internal_linking?.url || null,\n      internal_anchor: b.internal_linking?.anchor || null,\n      internal_topic: b.internal_linking?.topic || null,\n\n      offer_id: b.offer_id || null,\n      offer_url: b.offer_url || null,\n    };\n  });\n\n// Возвращаем как список элементов для n8n (Split Out)\nreturn searchTasks;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -912,
+        176
+      ],
+      "id": "dd5f3bbd-ef59-40f7-b80c-592e35eec9a7",
+      "name": "Сплиттер"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Скрипт обработки ТЕХ-блоков (V.3.3 Stable)\n */\n\n// 1. Получаем данные напрямую из узлов\nconst mainItems = $('Технический писатель').all();\nlet sourcePlan = [];\ntry {\n    sourcePlan = $('Обогатитель данных').all();\n} catch (e) {\n    console.log(\"Узел 'Обогатитель данных' не найден\");\n}\n\n// 2. УСТАНОВКА ФИЛЬТРА:\nconst currentTypes = ['TABLE', 'STEPS', 'VIDEO', 'HARD_OFFER', 'SOFT_OFFER'];\nconst filteredSource = sourcePlan.filter(item => \n    item.json && item.json.type && currentTypes.includes(item.json.type)\n);\n\n// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (Сохранены полностью) ---\n\nfunction stripTags(value) {\n    return String(value || '')\n        .replace(/<[^>]+>/g, ' ')\n        .replace(/&nbsp;/gi, ' ')\n        .replace(/\\s+/g, ' ')\n        .trim();\n}\n\nfunction escapeHtml(value) {\n    return String(value || '')\n        .replace(/&/g, '&amp;')\n        .replace(/</g, '&lt;')\n        .replace(/>/g, '&gt;')\n        .replace(/\"/g, '&quot;')\n        .replace(/'/g, '&#39;');\n}\n\nfunction escapeAttribute(value) {\n    return escapeHtml(value);\n}\n\nfunction normalizeHardOffer(html) {\n    if (!html || !html.includes('hard-cta-box')) return html;\n    let normalized = html;\n\n    normalized = normalized.replace(/<div([^>]*class=[\"'][^\"']*hard-cta-box[^\"']*[\"'][^>]*)style=([\"'])(.*?)\\2([^>]*)>/i, (_match, before, quote, style, after) => {\n        const cleanedStyle = String(style).replace(/background\\s*:[^;]+;?/gi, '').replace(/color\\s*:[^;]+;?/gi, '').replace(/!important/gi, '').trim();\n        const baseStyle = 'background: #111827; color: #fff;';\n        return `<div${before}style=${quote}${cleanedStyle ? baseStyle + ' ' + cleanedStyle : baseStyle}${quote}${after}>`;\n    });\n\n    normalized = normalized.replace(/<h3([^>]*)style=([\"'])(.*?)\\2([^>]*)>/i, (_match, before, quote, style, after) => {\n        const cleanedStyle = String(style).replace(/color\\s*:[^;]+;?/gi, '').replace(/!important/gi, '').trim();\n        return `<h3${before}style=${quote}${cleanedStyle ? 'color: #fff; ' + cleanedStyle : 'color: #fff;'}${quote}${after}>`;\n    });\n\n    normalized = normalized.replace(/<p([^>]*)style=([\"'])(.*?)\\2([^>]*)>([\\s\\S]*?)<\\/p>/gi, (match, before, quote, style, after, inner) => {\n        if (String(inner).includes('<a ')) return match;\n        const cleanedStyle = String(style).replace(/color\\s*:[^;]+;?/gi, '').replace(/!important/gi, '').trim();\n        return `<p${before}style=${quote}${cleanedStyle ? 'color: #fff; ' + cleanedStyle : 'color: #fff;'}${quote}${after}>${inner}</p>`;\n    });\n\n    return normalized;\n}\n\nfunction normalizeSoftOffer(html, original) {\n    const rawHtml = String(html || '').trim();\n    const firstAnchorMatch = rawHtml.match(/<a[^>]*href=[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)<\\/a>/i);\n    const paragraphMatches = [...rawHtml.matchAll(/<p[^>]*>([\\s\\S]*?)<\\/p>/gi)];\n\n    const introFromParagraph = paragraphMatches.find(match => !String(match[1]).includes('<a '));\n    const introText = stripTags(introFromParagraph ? introFromParagraph[1] : rawHtml);\n\n    const offerUrl = firstAnchorMatch?.[1] || original?.full_offer?.ссылка || original?.offer_url || '';\n    const anchorRawText = stripTags(firstAnchorMatch?.[2] || '');\n    const offerName = anchorRawText || original?.full_offer?.название || original?.offer_title || original?.h2_title || 'Перейти';\n    const linkLabel = /перейти/i.test(offerName) ? offerName : `${offerName} — Перейти →`;\n\n    return `<div class=\"ad-box\" style=\"padding: 20px; border-left: 4px solid #7a00ff; background: #f9f9f9; margin: 25px 0; text-align: left;\">\\n  <p><strong>${escapeHtml(introText || 'Узнайте подробности по ссылке ниже.')}</strong></p>\\n  <p><a href=\"${escapeAttribute(offerUrl)}\" target=\"_blank\" rel=\"nofollow noopener\" style=\"color: #7a00ff; text-decoration: underline;\">${escapeHtml(linkLabel)}</a></p>\\n</div>`;\n}\n\n// --- ОСНОВНОЙ ЦИКЛ (7 айтемов на входе -> 7 на выходе) ---\n\nreturn mainItems.map((item, index) => {\n    // Безопасно сопоставляем с Обогатителем\n    const original = filteredSource[index] ? filteredSource[index].json : {};\n    \n    // Берем контент из Гонзо-Журналист\n    let content = String(item.json.output || item.json.final_html || \"\").trim();\n\n    /**\n     * САНИТАЙЗЕР (Regex вместо while):\n     * Удаляет все строки, начинающиеся с # в начале текста.\n     */\n    content = content.replace(/^(?:#+\\s?.*\\n?)+/g, '').trim();\n\n    // Обработка по типу\n    if (original.type === 'HARD_OFFER') {\n        content = normalizeHardOffer(content);\n    }\n\n    if (original.type === 'SOFT_OFFER') {\n        content = normalizeSoftOffer(content, original);\n    }\n\n    // Возвращаем объект\n    return {\n        json: {\n            id: original.id || null,\n            type: original.type || null,\n            h2_title: original.h2_title || null,\n            result: content\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        352
+      ],
+      "id": "24145db3-cb54-45cc-b87a-9bd597373ba1",
+      "name": "Обертка ТЕХ",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * УЗЕЛ: Обогатитель данных\n * ЧТО ДЕЛАЕТ:\n * 1. Соединяет план Архитектора с результатами поиска Perplexity.\n * 2. Разворачивает offer_id в полные данные.\n * 3. Обновляет research_data и linking-поля блока.\n */\n\nconst researchItems = $items(\"Message a model\");\nconst researchMap = {};\n\n// Собираем карту исследований по block_id\nresearchItems.forEach(item => {\n\ttry {\n\t\tlet raw = item.json?.choices?.[0]?.message?.content || '';\n\t\tif (!raw) return;\n\n\t\traw = raw.replace(/```json\\s*|```/g, '').trim();\n\n\t\tconst parsed = JSON.parse(raw);\n\n\t\tif (parsed && parsed.block_id !== undefined && parsed.block_id !== null) {\n\t\t\tresearchMap[String(parsed.block_id)] = {\n\t\t\t\tresearch_summary: parsed.research_summary || \"Данные из досье.\",\n\t\t\t\texternal_linking: parsed.external_linking || null,\n\t\t\t\tinternal_linking: parsed.internal_linking || null,\n\t\t\t};\n\t\t\treturn;\n\t\t}\n\n\t\t// Legacy fallback: {\"ID\": \"text\"}\n\t\tif (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {\n\t\t\tconst keys = Object.keys(parsed);\n\t\t\tif (keys.length === 1) {\n\t\t\t\tconst id = keys[0];\n\t\t\t\tresearchMap[String(id)] = {\n\t\t\t\t\tresearch_summary: parsed[id] || \"Данные из досье.\",\n\t\t\t\t\texternal_linking: null,\n\t\t\t\t\tinternal_linking: null,\n\t\t\t\t};\n\t\t\t}\n\t\t}\n\t} catch (e) {\n\t\tconsole.log(\"Research output is not valid JSON:\", e.message);\n\t}\n});\n\n// Источник плана и контекста\nconst triggerItem = $('When Executed by Another Workflow').first().json;\nconst planBlocks = triggerItem.final_plan?.blocks || [];\nconst offersDb = triggerItem.контекст?.база_офферов || [];\n\n// Собираем enriched items\nreturn planBlocks\n\t.filter(b => b.id !== 1)\n\t.map(block => {\n\t\tconst research = researchMap[String(block.id)] || null;\n\n\t\tconst blockFacts = research?.research_summary || \"Данные из досье.\";\n\n\t\tlet fullOfferData = null;\n\t\tif (block.offer_id !== null && block.offer_id !== undefined && block.offer_id !== '') {\n\t\t\tfullOfferData = offersDb.find(o => String(o.id) === String(block.offer_id)) || null;\n\t\t}\n\n\t\tconst external_linking =\n\t\t\tresearch?.external_linking !== undefined && research?.external_linking !== null\n\t\t\t\t? research.external_linking\n\t\t\t\t: (block.external_linking || null);\n\n\t\tconst internal_linking =\n\t\t\tresearch?.internal_linking !== undefined && research?.internal_linking !== null\n\t\t\t\t? research.internal_linking\n\t\t\t\t: (block.internal_linking || null);\n\n\t\tconst offer_url =\n\t\t\tfullOfferData?.ссылка ||\n\t\t\tblock.offer_url ||\n\t\t\tnull;\n\n\t\treturn {\n\t\t\tjson: {\n\t\t\t\t...block,\n\t\t\t\texternal_linking,\n\t\t\t\tinternal_linking,\n\t\t\t\toffer_url,\n\t\t\t\tresearch_data: blockFacts,\n\t\t\t\tfull_offer: fullOfferData,\n\t\t\t\tvideo_data: block.video_data || null,\n\t\t\t\tlanguageCode: triggerItem.languageCode,\n\t\t\t}\n\t\t};\n\t});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        176
+      ],
+      "id": "2eefb5e5-7333-4b0a-8a0d-15d0fb69d7f3",
+      "name": "Обогатитель данных"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Получаем все входящие элементы (используем $input.all() вместо items)\nconst items = $input.all();\n\n// 2. Пытаемся безопасно достать \"Главный ключ\" из контекста один раз\nlet mainKey = \"статьи\";\ntry {\n  // Используем .first().json и опциональную цепочку ?.\n  const context = $('When Executed by Another Workflow').first().json;\n  mainKey = context?.контекст?.задача?.['Главный ключ'] || \"статьи\";\n} catch (e) {\n  // Если узел недоступен, останется дефолтное \"статьи\"\n  console.log(\"Контекст недоступен:\", e.message);\n}\n\n// 3. Обрабатываем каждый элемент\nreturn items.map(item => {\n  const raw = String(item.json?.output || '').trim();\n  \n  // Пытаемся найти JSON регуляркой\n  const jsonMatch = raw.match(/\\{[\\s\\S]*\\}/);\n  let parsed = null;\n  \n  if (jsonMatch) {\n    try {\n      // Очищаем от невидимых символов управления и парсим\n      const cleanCandidate = jsonMatch[0].replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, \"\");\n      parsed = JSON.parse(cleanCandidate);\n    } catch (e) {\n      parsed = null;\n    }\n  }\n\n  // ✅ ВАРИАНТ А: Если парсинг прошел успешно\n  if (parsed && typeof parsed === 'object') {\n    return {\n      json: {\n        technical_prompt: parsed.technical_prompt || \"Error: prompt missing\",\n        alt_text: parsed.alt_text || `Изображение для ${mainKey}` \n      }\n    };\n  }\n\n  // ✅ ВАРИАНТ Б: Если это просто текст (не JSON)\n  // Берем первые 500 символов как промпт\n  return {\n    json: {\n      technical_prompt: raw.slice(0, 500) || \"Error: empty input\", \n      alt_text: \"Изображение для \" + mainKey\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "58fb568a-d539-41ea-b0f2-250f55d3bc13",
+      "name": "Очистка ответа модели"
+    },
+    {
+      "parameters": {
+        "model": "sonar-pro",
+        "messages": {
+          "message": [
+            {
+              "content": "=### ROLE: PRECISION RESEARCH ENGINE\n\nТы — точный исследовательский модуль для одного конкретного блока статьи.\nТы работаешь только с одним блоком за раз.\nТвоя задача — найти и вернуть максимально релевантные, свежие и проверяемые данные именно для этого блока.\n\n### ГЛАВНАЯ ЦЕЛЬ\n\nТы должен:\n- использовать поисковый запрос пользователя\n- учитывать заголовок блока и его контекст\n- находить релевантные факты именно под этот блок\n- при наличии уже переданного URL не игнорировать его, а проверять, подходит ли он\n- сохранять хороший уже переданный источник, если он реально релевантен\n- заменять уже переданный источник только если он слабый, нерелевантный, битый или хуже найденной альтернативы\n\n### АЛГОРИТМ РАБОТЫ\n\n1. Используй `Perplexity Search` по переданному запросу.\n2. Сопоставь результаты поиска с:\n- темой блока\n- `h2`\n- `context`\n- уже переданными URL, если они есть\n3. Найди лучший подтверждающий источник именно для этого блока.\n4. Если уже переданный URL релевантен и подтверждает нужный тезис, сохрани его.\n5. Если уже переданный URL не подтверждает тезис, ведет на нерелевантный материал, на 404, на главную страницу или слабее найденной альтернативы, замени его.\n6. Не выдумывай URL.\n7. Не возвращай слабые или сомнительные источники ради заполнения поля.\n\n### КРИТИЧЕСКИЕ ПРАВИЛА ПО ССЫЛКАМ\n\nИсточник можно вернуть только если:\n- он рабочий\n- он ведет на конкретный материал\n- материал подтверждает нужный тезис блока\n- страница не является:\n  - главной страницей сайта\n  - разделом\n  - поисковой страницей\n  - каталогом\n  - нерелевантной новостью\n  - 404 / 410 / пустой страницей\n\nЕсли надежного источника нет, верни `external_linking: null`.\n\n### ПРАВИЛА ПО ВНУТРЕННИМ ССЫЛКАМ\n\n- Если внутренний URL уже передан, сохраняй его без изменений.\n- Не выдумывай новые внутренние ссылки.\n- Если внутренней ссылки нет, верни `internal_linking: null`.\n\n### ПРАВИЛА ПО ДАННЫМ\n\nИщи:\n- актуальные факты\n- конкретные цифры\n- реальные сроки\n- реальные стандарты\n- реальные рыночные изменения\n- реальные нормы и требования\n\nЕсли данных именно за 2026 год нет, используй самые свежие доступные данные конца 2025 года или наиболее свежие актуальные материалы.\n\n### ЗАПРЕЩЕНО\n\n- выдумывать факты\n- выдумывать URL\n- выдумывать цифры\n- выдумывать нормативы\n- выдумывать названия порталов\n- возвращать формально красивую, но нерелевантную ссылку\n- писать markdown\n- писать пояснения вне JSON\n- использовать ```json\n- возвращать текст вместо JSON\n\n### ФОРМАТ ОТВЕТА\n\nОтвет должен быть только JSON-объектом.\n\nСтрогий формат:\n\n{\n  \"block_id\": number,\n  \"research_summary\": \"Краткая, но плотная выжимка найденных фактов именно для этого блока.\",\n  \"external_linking\": {\n    \"url\": \"https://...\",\n    \"portal\": \"Название портала\",\n    \"description\": \"Какой именно факт подтверждает источник\"\n  },\n  \"internal_linking\": {\n    \"url\": \"https://...\",\n    \"anchor\": \"Анкор\",\n    \"topic\": \"Тема\"\n  }\n}\n\n### ПРАВИЛА ПОЛЕЙ\n\n- `block_id` должен совпадать с переданным пользователем ID блока\n- `research_summary` обязателен\n- `external_linking`:\n  - либо объект\n  - либо `null`\n- `internal_linking`:\n  - либо объект\n  - либо `null`\n\nЕсли надежного внешнего источника нет:\n- `\"external_linking\": null`\n\nЕсли внутренней ссылки нет:\n- `\"internal_linking\": null`\n\n### ФИНАЛЬНОЕ ПРАВИЛО\n\nВерни только JSON-объект.\nНикакого текста до него.\nНикакого текста после него.\n",
+              "role": "system"
+            },
+            {
+              "content": "=Проведи исследование для одного блока статьи.\n\nДАННЫЕ БЛОКА:\n- Block ID: {{ $json.block_id }}\n- Тип блока: {{ $json.type }}\n- Заголовок H2: {{ $json.h2 }}\n- Поисковый запрос: {{ $json.query }}\n- Контекст блока: {{ $json.context }}\n\nУЖЕ ИЗВЕСТНЫЕ ССЫЛКИ:\n- Внешний URL: {{ $json.external_url || 'null' }}\n- Внешний портал: {{ $json.external_portal || 'null' }}\n- Описание внешнего источника: {{ $json.external_description || 'null' }}\n- Внутренний URL: {{ $json.internal_url || 'null' }}\n- Внутренний анкор: {{ $json.internal_anchor || 'null' }}\n- Внутренняя тема: {{ $json.internal_topic || 'null' }}\n\nЗАДАЧА:\n1. Выполни поиск строго под этот блок.\n2. Используй `query` как основной поисковый запрос.\n3. Учитывай `h2` и `context`, чтобы понять, какой именно факт нужен.\n4. Если внешний URL уже передан, сначала проверь, подходит ли он именно для этого блока.\n5. Если текущий внешний URL реально релевантен и подтверждает тезис блока, сохрани его.\n6. Если текущий внешний URL слабый, нерелевантный, битый или не подтверждает тезис, найди более точный внешний источник.\n7. Если надежного внешнего источника нет, верни `external_linking: null`.\n8. Если внутренний URL уже есть, сохрани его без изменений.\n9. Если внутреннего URL нет, не выдумывай его, верни `internal_linking: null`.\n10. Сделай краткую, но плотную research-выжимку именно для этого блока.\n\nВерни строго JSON-объект в таком формате:\n\n{\n  \"block_id\": {{ $json.block_id }},\n  \"research_summary\": \"Краткая выжимка найденных фактов для этого блока.\",\n  \"external_linking\": {\n    \"url\": \"https://...\",\n    \"portal\": \"Название портала\",\n    \"description\": \"Какой факт подтверждает источник\"\n  },\n  \"internal_linking\": {\n    \"url\": \"https://...\",\n    \"anchor\": \"Анкор\",\n    \"topic\": \"Тема\"\n  }\n}\n\nВажно:\n- не меняй `block_id`\n- не возвращай markdown\n- не добавляй пояснений\n- верни только JSON\n"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexity",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        176
+      ],
+      "id": "26d35be5-7c35-41b4-b896-be9c8e398d20",
+      "name": "Message a model",
+      "credentials": {
+        "perplexityApi": {
+          "id": "4EBwFCU76ANiZWxC",
+          "name": "DmitriiAssist"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Сплиттер",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Арт-директор",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Агент Писатель",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Технический писатель",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Арт-директор",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Арт-директор": {
+      "main": [
+        [
+          {
+            "node": "Очистка ответа модели",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Агент Писатель",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Агент Писатель": {
+      "main": [
+        [
+          {
+            "node": "Гонзо-Журналист",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Гонзо-Журналист",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Гонзо-Журналист": {
+      "main": [
+        [
+          {
+            "node": "Обертка ТЕКСТ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Технический писатель",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Генерация изображения": {
+      "main": [
+        [
+          {
+            "node": "Обертка IMG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обертка ТЕКСТ": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Обертка IMG": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Финальная сортировка",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Технический писатель": {
+      "main": [
+        [
+          {
+            "node": "Обертка ТЕХ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сплиттер": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обертка ТЕХ": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Обогатитель данных": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Очистка ответа модели": {
+      "main": [
+        [
+          {
+            "node": "Генерация изображения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Обогатитель данных",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "85199b95-ce39-4eb2-97d1-ebfe978db838",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "oR9WZydq5btVwqLx",
+  "tags": []
+}

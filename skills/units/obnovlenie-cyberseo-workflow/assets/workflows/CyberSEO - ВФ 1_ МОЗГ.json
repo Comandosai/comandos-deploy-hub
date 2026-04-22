@@ -1,0 +1,823 @@
+{
+  "name": "CyberSEO / ВФ 1: МОЗГ",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "f76c9ad8-13ee-46eb-a466-103098b50120",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -2608,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 4,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -752,
+        240
+      ],
+      "id": "d2865f54-3389-4675-84bc-05934769df1c",
+      "name": "Соединение данных"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * УЗЕЛ: Валидатор Плана V3.2 (БЕЗ ПРОВЕРКИ СЛОВ)\n */\n\nconst MAX_PLAN_ATTEMPTS = 2;\nconst state = $getWorkflowStaticData('node');\n\nif (typeof state.planValidationFailCount !== 'number') {\n\tstate.planValidationFailCount = 0;\n}\n\nconst inputItem = $input.first()?.json || {};\nconst rawOutput = typeof inputItem.output === 'string' ? inputItem.output : '';\n\nconst errors = [];\n\n// -----------------------------------------------------------------------------\n// HELPERS\n// -----------------------------------------------------------------------------\n\nfunction stripMarkdownFences(str) {\n\tif (!str || typeof str !== 'string') return '';\n\treturn str.replace(/```json\\s*|```/gi, '').trim();\n}\n\nfunction safeJsonParse(str) {\n\ttry {\n\t\treturn JSON.parse(str);\n\t} catch {\n\t\treturn null;\n\t}\n}\n\nfunction isNonEmptyObject(value) {\n\treturn !!value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0;\n}\n\nfunction normalizePlan(raw) {\n\tconst cleaned = stripMarkdownFences(raw);\n\tif (!cleaned) {\n\t\terrors.push('Пустой ответ от Архитектора.');\n\t\treturn { blocks: [] };\n\t}\n\tconst parsed = safeJsonParse(cleaned);\n\tif (!parsed) {\n\t\terrors.push('JSON Syntax Error: не удалось распарсить output Архитектора.');\n\t\treturn { blocks: [] };\n\t}\n\tif (Array.isArray(parsed)) return { blocks: parsed };\n\tif (parsed && Array.isArray(parsed.blocks)) return { blocks: parsed.blocks };\n\terrors.push('Структура плана некорректна: ожидается JSON-массив.');\n\treturn { blocks: [] };\n}\n\nfunction parseInternalLinks(rawInternal) {\n\tif (!rawInternal || typeof rawInternal !== 'string') return [];\n\tconst trimmed = rawInternal.trim();\n\tif (!trimmed || trimmed === 'Внутренних ссылок пока нет') return [];\n\tconst cleaned = stripMarkdownFences(trimmed);\n\tconst parsed = safeJsonParse(cleaned);\n\treturn Array.isArray(parsed) ? parsed.filter(isNonEmptyObject) : [];\n}\n\nfunction collectOffers(context) {\n\tconst offers = Array.isArray(context?.база_офферов) ? context.база_офферов : [];\n\tconst map = new Map();\n\tfor (const offer of offers) {\n\t\tif (offer && offer.id !== undefined && offer.id !== null) {\n\t\t\tmap.set(String(offer.id), offer);\n\t\t}\n\t}\n\treturn {\n\t\tall: offers,\n\t\tmap,\n\t\tsoft: offers.filter(o => String(o?.тип || '').toLowerCase() === 'soft'),\n\t\thard: offers.filter(o => String(o?.тип || '').toLowerCase() === 'hard'),\n\t};\n}\n\n// -----------------------------------------------------------------------------\n// SOURCE DATA\n// -----------------------------------------------------------------------------\n\nlet geoData = {};\nlet dossierData = {};\nlet connectionData = {};\n\ntry {\n\tgeoData = $('Ключи LSI').first()?.json || {};\n\tdossierData = $('Очистка досье').first()?.json || {};\n\tconnectionData = $('Соединение данных').first()?.json || {};\n} catch (e) {\n\terrors.push(`Ошибка доступа к исходным нодам: ${e.message}`);\n}\n\nconst context = connectionData?.контекст || dossierData?.контекст || {};\nconst externalSources = Array.isArray(dossierData?.external_sources) ? dossierData.external_sources : [];\nconst internalLinks = parseInternalLinks(connectionData?.output);\nconst offerData = collectOffers(context);\n\nconst externalMap = new Map();\nfor (const src of externalSources) {\n\tif (src?.url) externalMap.set(String(src.url), src);\n}\n\nconst internalMap = new Map();\nfor (const link of internalLinks) {\n\tif (link?.url) internalMap.set(String(link.url), link);\n}\n\n// -----------------------------------------------------------------------------\n// PARSE PLAN\n// -----------------------------------------------------------------------------\n\nconst plan = normalizePlan(rawOutput);\nconst blocks = Array.isArray(plan.blocks) ? plan.blocks : [];\n\nif (blocks.length === 0) {\n\terrors.push('Пустой план: Архитектор не вернул ни одного блока.');\n}\n\n// -----------------------------------------------------------------------------\n// BASIC STRUCTURE CHECKS\n// -----------------------------------------------------------------------------\n\nif (blocks.length > 0) {\n\tif (blocks.length < 13 || blocks.length > 16) {\n\t\terrors.push(`Неверное количество блоков: ${blocks.length}. Нужно от 13 до 16.`);\n\t}\n\n\tfor (let i = 0; i < blocks.length; i++) {\n\t\tconst expectedId = i + 1;\n\t\tif (blocks[i]?.id !== expectedId) {\n\t\t\terrors.push(`Нарушена последовательность id: ожидался id=${expectedId}, получен id=${blocks[i]?.id ?? 'null'}.`);\n\t\t}\n\t}\n\n\tconst lastBlock = blocks[blocks.length - 1];\n\tif (lastBlock?.type !== 'HARD_OFFER') {\n\t\terrors.push('Последний блок должен быть HARD_OFFER.');\n\t}\n\n\tconst imgAfter12 = blocks.findIndex((block, index) => block?.type === 'IMG' && index >= 12);\n\tif (imgAfter12 !== -1) {\n\t\terrors.push(`IMG нельзя размещать после 12 блока. Нарушение в блоке id=${blocks[imgAfter12]?.id}.`);\n\t}\n\n\tconst tableCount = blocks.filter(block => block?.type === 'TABLE').length;\n\tif (tableCount !== 2) {\n\t\terrors.push(`Неверное количество TABLE-блоков: ${tableCount}. Нужно ровно 2.`);\n\t}\n\n\tconst verdictIndex = blocks.findIndex(\n\t\tblock =>\n\t\t\tblock?.type === 'TEXT' &&\n\t\t\t(typeof block?.h2_title === 'string') &&\n\t\t\t['Заключение', 'Итоги'].includes(block.h2_title.trim())\n\t);\n\n\tif (verdictIndex === -1) {\n\t\terrors.push('Не найден блок TEXT с заголовком \"Заключение\" или \"Итоги\".');\n\t} else if (verdictIndex !== blocks.length - 2) {\n\t\terrors.push('Блок \"Заключение\" / \"Итоги\" должен быть предпоследним.');\n\t}\n}\n\n// -----------------------------------------------------------------------------\n// OFFER CHECKS + NORMALIZATION\n// -----------------------------------------------------------------------------\n\nconst offerBlocks = blocks.filter(block => block?.type === 'SOFT_OFFER' || block?.type === 'HARD_OFFER');\n\nif (offerData.all.length === 1) {\n\tif (offerBlocks.length !== 1) {\n\t\terrors.push(`При одном реальном оффере должен быть ровно один офферный блок. Сейчас: ${offerBlocks.length}.`);\n\t}\n}\n\nif (offerData.all.length > 1 && offerData.soft.length > 0 && offerData.hard.length > 0) {\n\tconst softCount = offerBlocks.filter(block => block?.type === 'SOFT_OFFER').length;\n\tconst hardCount = offerBlocks.filter(block => block?.type === 'HARD_OFFER').length;\n\n\tif (softCount !== 1) {\n\t\terrors.push(`Если доступны Soft и Hard, должен быть ровно один SOFT_OFFER. Сейчас: ${softCount}.`);\n\t}\n\tif (hardCount !== 1) {\n\t\terrors.push(`Если доступны Soft и Hard, должен быть ровно один HARD_OFFER. Сейчас: ${hardCount}.`);\n\t}\n}\n\nfor (const block of offerBlocks) {\n\tconst offerId = block?.offer_id;\n\tif (offerId === null || offerId === undefined || offerId === '') {\n\t\terrors.push(`В офферном блоке id=${block?.id} отсутствует offer_id.`);\n\t\tcontinue;\n\t}\n\tconst canonicalOffer = offerData.map.get(String(offerId));\n\tif (!canonicalOffer) {\n\t\terrors.push(`В блоке id=${block?.id} указан несуществующий offer_id=${offerId}.`);\n\t\tcontinue;\n\t}\n\tif (String(canonicalOffer?.тип || '').toLowerCase() === 'soft' && block.type === 'HARD_OFFER') {\n\t\tconst isSingleOfferSoftFallback =\n\t\t\tofferData.all.length === 1 &&\n\t\t\tofferBlocks.length === 1 &&\n\t\t\tblock.id === blocks[blocks.length - 1]?.id;\n\n\t\tif (!isSingleOfferSoftFallback) {\n\t\t\terrors.push(`Блок id=${block?.id}: Soft-оффер можно использовать как HARD_OFFER только как единственный финальный оффер.`);\n\t\t}\n\t}\n\tif (String(canonicalOffer?.тип || '').toLowerCase() === 'hard' && block.type === 'SOFT_OFFER') {\n\t\terrors.push(`Блок id=${block?.id}: Hard-оффер нельзя использовать как SOFT_OFFER.`);\n\t}\n\tconst canonicalUrl = canonicalOffer?.ссылка || null;\n\tif (canonicalUrl) block.offer_url = canonicalUrl;\n}\n\n// -----------------------------------------------------------------------------\n// EXTERNAL LINK CHECKS + NORMALIZATION\n// -----------------------------------------------------------------------------\n\nlet usedExternalCount = 0;\nfor (const block of blocks) {\n\tconst ext = block?.external_linking;\n\tif (!ext) continue;\n\tconst canonical = externalMap.get(String(ext.url || ''));\n\tif (!canonical) {\n\t\terrors.push(`В блоке id=${block?.id} используется внешний URL, которого нет в реестре: ${ext.url || 'null'}.`);\n\t\tcontinue;\n\t}\n\tusedExternalCount += 1;\n\tblock.external_linking = {\n\t\turl: canonical.url,\n\t\tportal: canonical.portal || ext.portal || null,\n\t\tdescription: ext.description || canonical.context || null,\n\t};\n}\n\nif (externalSources.length > 0 && usedExternalCount === 0) {\n\terrors.push('Во входных данных есть внешние источники, но ни один не распределен по блокам.');\n}\n\n// -----------------------------------------------------------------------------\n// INTERNAL LINK CHECKS + NORMALIZATION\n// -----------------------------------------------------------------------------\n\nlet usedInternalCount = 0;\nfor (const block of blocks) {\n\tconst internal = block?.internal_linking;\n\tif (!internal) continue;\n\tconst canonical = internalMap.get(String(internal.url || ''));\n\tif (!canonical) {\n\t\terrors.push(`В блоке id=${block?.id} используется внутренняя ссылка, которой нет во входных данных: ${internal.url || 'null'}.`);\n\t\tcontinue;\n\t}\n\tusedInternalCount += 1;\n\tblock.internal_linking = {\n\t\turl: canonical.url,\n\t\tanchor: internal.anchor || canonical.anchor || null,\n\t\ttopic: internal.topic || canonical.topic || null,\n\t};\n}\n\nif (internalLinks.length > 0 && usedInternalCount === 0) {\n\terrors.push('Во входных данных есть внутренние ссылки, но ни одна не распределена по блокам.');\n}\n\n// -----------------------------------------------------------------------------\n// FINAL OUTPUT\n// -----------------------------------------------------------------------------\n\nconst isValid = errors.length === 0;\n\nif (isValid) {\n\tstate.planValidationFailCount = 0;\n} else {\n\tstate.planValidationFailCount += 1;\n}\n\nconst retryCount = state.planValidationFailCount;\nconst canRetry = !isValid && retryCount < MAX_PLAN_ATTEMPTS;\n\nreturn {\n\tjson: {\n\t\tisValid,\n\t\tcan_retry: canRetry,\n\t\terror_report: errors.join(' | '),\n\t\tfinal_plan: { blocks },\n\t\tlanguageCode: geoData.languageCode || 'ru',\n\t\tlsi_keywords: geoData.lsi_keywords || '',\n\t\tdossier_content: dossierData.dossier_content || '',\n\t\ttags: dossierData.tags || [],\n\t\tконтекст: context || {},\n\t\tretry_index: retryCount,\n\t\tretries_left: isValid ? MAX_PLAN_ATTEMPTS : Math.max(MAX_PLAN_ATTEMPTS - retryCount, 0),\n\t\tdebug: {\n\t\t\texternal_sources_count: externalSources.length,\n\t\t\tinternal_links_count: internalLinks.length,\n\t\t\toffers_count: offerData.all.length,\n\t\t\tused_external_links: usedExternalCount,\n\t\t\tused_internal_links: usedInternalCount,\n\t\t\tplan_validation_fail_count: retryCount,\n\t\t},\n\t},\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        272
+      ],
+      "id": "984a10eb-affb-4fd4-a3ed-cabd6c217b14",
+      "name": "Валидатор Плана"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=--- 1. ГЛАВНЫЙ КОНТЕКСТ ---\n- ТЕМА: {{ $('When Executed by Another Workflow').item.json.контекст.задача['Главный ключ'] }}\n- LSI КЛЮЧИ: {{ $('Соединение данных').item.json.lsi_keywords }}\n- ЛОКАЦИЯ: {{ $('When Executed by Another Workflow').item.json['контекст']['задача']['Город'] }}, {{ $('When Executed by Another Workflow').item.json['контекст']['задача']['Страна'] }}\n- ЗАМЕТКИ: {{ $('When Executed by Another Workflow').item.json.контекст.задача['Заметки'] }}\n\nКРИТИЧЕСКОЕ ПРАВИЛО О ТЕМЕ:\nТы проектируешь статью строго по теме из поля `ТЕМА`.\nТема статьи НЕ равна системным инструкциям.\nСистемные инструкции описывают только формат и ограничения JSON.\nЗапрещено делать статью про JSON, JSON-план, структуру JSON, контент-план, workflow, SEO-план, автоматизацию или валидацию.\n\n--- 2. ДОСЬЕ ФАКТОВ (ИСТОЧНИК ТЕКСТА) ---\n{{ $('Очистка досье').item.json.dossier_content }}\n\n--- 3. РЕЕСТР ВНЕШНИХ ИСТОЧНИКОВ (EVIDENCE) ---\n{{ JSON.stringify($('Очистка досье').item.json.external_sources, null, 2) }}\n\nПРАВИЛО ПО ВНЕШНИМ ССЫЛКАМ:\nНе оставляй все `external_linking` пустыми, если во входных данных уже переданы релевантные источники.\nРаспредели известные внешние ссылки по самым подходящим блокам.\nЕсли блок опирается на цены, регулирование, легальность, рыночные изменения, контроль, статистику или экспертные выводы, сначала проверь, можно ли привязать к нему один из известных источников.\n`external_linking: null` допустим только там, где реального совпадения нет.\n\n--- 4. СТАТЬИ ДЛЯ ПЕРЕЛИНКОВКИ (INTERNAL) ---\n{{\n(() => {\n  const raw = $('Соединение данных').item.json.output || '[]';\n  const cleaned = raw.replace(/```json\\s*|```/g, '').trim();\n  try {\n    return JSON.stringify(JSON.parse(cleaned), null, 2);\n  } catch {\n    return '[]';\n  }\n})()\n}}\n\nПРАВИЛО ПО ВНУТРЕННИМ ССЫЛКАМ:\nЕсли внутренние статьи переданы, подставляй их в релевантные блоки обязательно.\nЕсли внутренние статьи не переданы или массив пустой, используй `internal_linking: null` и ничего не выдумывай.\n\n--- 5. МАРКЕТИНГОВЫЕ ОФФЕРЫ ---\n- ПРИОРИТЕТНЫЙ ОФФЕР (Выбор пользователя):\n{{ JSON.stringify($item(\"0\").$node[\"Фильтр оферов\"].json[\"выбранный_оффер\"] ?? null, null, 2) }}\n\n- ДОПОЛНИТЕЛЬНЫЕ ОФФЕРЫ:\n{{ JSON.stringify($item(\"0\").$node[\"Фильтр оферов\"].json[\"доп_офферы\"] ?? [], null, 2) }}\n\nКРИТИЧЕСКИЕ ПРАВИЛА ПО ОФФЕРАМ:\n1. Если приоритетный оффер передан, он обязателен.\n2. Используй только реальные `offer_id` из входных данных.\n3. Не придумывай `offer_id`.\n4. Не ставь `offer_id = null` в `SOFT_OFFER` или `HARD_OFFER`.\n5. Не используй `Hard`-оффер как `Soft`-оффер.\n6. Не используй `Soft`-оффер как `Hard`-оффер.\n7. Если офферов противоположного типа нет, не выдумывай их.\n8. Если есть только один реальный оффер любого типа, используй только его и поставь его финальным офферным блоком.\n9. Не используй заглушки вроде `example_soft_offer_id` или `example_hard_offer_id`.\n\nКРИТИЧЕСКИЕ ПРАВИЛА ПО URL:\n1. Все входные URL канонические.\n2. Не изменяй URL.\n3. Не выдумывай URL.\n4. Не подставляй примерные URL.\n5. Для internal/external linking используй только реальные входные URL.\n6. Если релевантного URL нет, ставь `null`.\n\n--- 6. АНАЛИЗ ПРЕДЫДУЩИХ ОШИБОК ---\n{{ \n  $node[\"Валидатор Плана\"]?.exists && !$node[\"Валидатор Плана\"]?.json?.isValid \n  ? \"ПРЕДЫДУЩАЯ ПОПЫТКА ОТКЛОНЕНА.\\nПРИЧИНЫ: \" + $node[\"Валидатор Плана\"].json.error_report + \"\\nИсправь все ошибки. Верни только новый валидный JSON-массив.\"\n  : \"Это первая попытка. Верни сразу валидный JSON-массив строго по теме из поля ТЕМА.\"\n}}\n\n--- 7. ЗАДАЧА ---\nСпроектируй статью-воронку по реальной теме из поля `ТЕМА`.\n\nОбязательные требования:\n1. Статья должна быть строго по теме `ТЕМА`, а не по устройству JSON или workflow.\n2. Используй факты из Досье как основу содержания блоков.\n3. Распредели внешние ссылки только по смысловому совпадению.\n4. Используй внутренние ссылки только если они реально есть и релевантны.\n5. Если внутренние ссылки отсутствуют, не выдумывай их.\n6. Если доступен hard offer, используй его корректный `offer_id`.\n7. Если доступен soft offer, используй его корректный `offer_id`.\n8. Если второго типа оффера нет, не выдумывай его.\n9. Финальный блок должен быть реальным офферным блоком из входных данных.\n10. Если внешний источник явно подходит по смыслу к блоку, обязательно заполни `external_linking`.\n11. Не оставляй все `external_linking` пустыми, если во входе уже есть готовые релевантные источники.\n12. Верни только валидный JSON-массив.\n",
+        "options": {
+          "systemMessage": "=### ROLE: UNIVERSAL STRATEGIC ARCHITECT (CONVERSION & FLOW ENGINEER)\n\nYou design a valid JSON article plan for a real article topic using the input context.\nYour task is to produce a strict article-funnel structure for the actual topic from input.\nYou are not allowed to switch the subject to JSON, workflow logic, prompt engineering, validation, automation, or content-planning methodology.\n\nCRITICAL:\nThe article topic always comes only from the input field `ТЕМА`.\nAll instructions below describe output rules and constraints only.\nThey are NOT the topic of the article.\n\nIf the topic is \"имплантация зубов москва\", then every content block must be about dental implantation in Moscow.\nIt is forbidden to create blocks about:\n- JSON\n- JSON plans\n- content architecture\n- workflow structure\n- validation logic\n- automation\n- SEO planning\n- prompt construction\n\nIf you do that, the result is invalid.\n\n### 1. OUTPUT CONTRACT\n\nReturn ONLY a valid JSON array.\nDo not return markdown.\nDo not return explanations.\nDo not return prose before or after JSON.\nThe output must start with `[` and end with `]`.\n\n### 2. BLOCK COUNT\n\nThe plan must contain from 13 to 16 blocks inclusive.\n\nIf fewer than 13 or more than 16 blocks are produced, the result is invalid.\n\n### 3. STRUCTURE LAYERS\n\nRespect this sequence:\n\n- Layer 1: main expert content\n  Allowed block types here:\n  `TEXT`, `RESEARCH`, `TABLE`, `STEPS`, `IMG`, `QUOTE`, `SOFT_OFFER`\n\n- Layer 2: verdict block\n  A `TEXT` block with `h2_title` equal to `\"Заключение\"` or `\"Итоги\"`\n\n- Layer 3: final conversion\n  The final block must always be `HARD_OFFER`.\n\nAfter the final offer block, no blocks are allowed.\n\n### 4. TYPE RULES\n\n- `HARD_OFFER`: `h2_title` must be `null`\n- `SOFT_OFFER`: `h2_title` must be `null`\n- `IMG`: `h2_title` must be `null`\n- `IMG` is allowed only in blocks 1-12\n- There must be exactly 2 `TABLE` blocks\n\n### 5. OFFER RULES\n\nUse only offers from the input section `МАРКЕТИНГОВЫЕ ОФФЕРЫ`.\n\n#### Priority offer\nIf `ПРИОРИТЕТНЫЙ ОФФЕР (Выбор пользователя)` is present, it is mandatory.\nYou must use it.\nYou must not replace it.\nYou must not ignore it.\n\n#### Offer IDs\nFor every `SOFT_OFFER` and `HARD_OFFER` block:\n- `offer_id` is mandatory\n- `offer_id` must be one of the real incoming offer IDs\n- `offer_id` must never be `null`\n- you must never invent IDs\n- you must never output placeholders like:\n  - `example_soft_offer_id`\n  - `example_hard_offer_id`\n  - any fake ID string\n\n#### Offer URLs\nFor every `SOFT_OFFER` and `HARD_OFFER` block:\n- `offer_url` is mandatory if the selected incoming offer contains a URL\n- `offer_url` must be copied exactly from the selected incoming offer\n- you must never invent `offer_url`\n- you must never rewrite `offer_url`\n- you must never replace one offer URL with another\n- if `offer_id` is selected, `offer_url` must match that exact incoming offer\n\n#### Standard pair logic\nIf both real offer types exist in input:\n- place one `SOFT_OFFER` in the middle of the funnel\n- place one `HARD_OFFER` as the final block\n\n#### Single-offer fallback\nIf only one real offer exists in input:\n- use only that one real offer\n- place it as the final block\n- the final block must still be typed as `HARD_OFFER`\n- do not invent a second offer\n- do not duplicate the same offer under two blocks\n\nIMPORTANT:\nIf the only real incoming offer is of type `Soft`, you must still output it as the final block with type `HARD_OFFER` for rendering compatibility.\nIn that case:\n- keep its real `offer_id`\n- keep its exact `offer_url`\n- do not invent another offer\n- do not create a separate `SOFT_OFFER`\n\n#### Missing offer logic\nIf no additional opposite-type offer exists, do not invent it.\nIf only one real offer exists, use only one final `HARD_OFFER`.\n\n### 6. URL DISCIPLINE\n\nAll incoming URLs are canonical and must be treated as source-of-truth.\n\nYou must never:\n- invent URLs\n- rewrite URLs\n- shorten URLs\n- replace one URL with another\n- generate placeholder URLs\n- output `example.com`\n- output fake links\n- mutate URLs from input\n\nFor offer logic:\n- do not invent offer URLs\n- if `offer_url` is required by schema, copy it exactly from the selected incoming offer\n- never place an offer URL into `external_linking` or `internal_linking` unless it truly belongs there by input design\n\n### 7. LINK ASSIGNMENT RULES (MANDATORY WHEN RELEVANT)\n\nYou must actively distribute known links across the plan when a relevant match exists.\n\n#### External links\nIf the input contains external evidence sources, you must attach them to the most relevant blocks.\nDo not leave all `external_linking` fields as `null` by default.\n\nRules:\n- use only URLs from the provided external evidence registry\n- match each source to the most semantically relevant block\n- prefer attaching external links to `TEXT`, `RESEARCH`, `TABLE`, or `QUOTE` blocks\n- if a block discusses prices, regulation, legality, market shifts, official control, statistics, or evidence-backed claims, check external sources first\n- if a relevant external source exists, `external_linking` is mandatory for that block\n- use `external_linking: null` only if there is genuinely no relevant source\n\n#### Internal links\nIf the input contains internal article candidates, you must attach them to the most relevant blocks.\nDo not leave all `internal_linking` fields as `null` if relevant internal articles were provided.\n\nRules:\n- use only URLs from the provided internal links input\n- choose the best semantic match between block theme and internal article topic\n- `anchor` must be natural and topically aligned with the block\n- use `internal_linking: null` only if there is genuinely no relevant internal article\n\n#### Anti-empty-link rule\nIf external sources were provided, at least some relevant blocks must use them.\nIf internal links were provided, at least some relevant blocks must use them.\nLeaving every link field empty despite having usable input is invalid.\n\n### 8. RELEVANCE RULES\n\nEvery block must be semantically relevant to the actual article topic.\nEvery internal or external link must match the block topic.\n\nIf the block is about prices:\n- do not attach an unrelated law-related link unless directly relevant\n\nIf the block is about risks:\n- do not attach an unrelated market-trend link\n\nNo link stuffing.\nNo filler links.\nIf relevance is weak, set linking to `null`.\n\n### 9. RESEARCH RULES\n\n- Never invent numbers, fines, market shares, prices, legal norms, models, statistics, or expert names\n- If factual support is missing for a `RESEARCH` or `TABLE` block, use `perplexity_intent`\n- `TABLE` blocks must not have `perplexity_intent: null` when data still needs to be gathered\n- `RESEARCH` intents must be in English and highly specific\n\n### 10. WRITING-BRIEF RULE FOR `context`\n\n`context` is a short task for the writer.\nMaximum length: 30 words.\nIt must describe what the writer should cover in that block.\nNo long explanations.\nNo meta comments.\n\n### 11. JSON SCHEMA\n\nEach array item must follow this schema:\n\n{\n  \"id\": number,\n  \"type\": \"TEXT\" | \"TABLE\" | \"RESEARCH\" | \"IMG\" | \"QUOTE\" | \"STEPS\" | \"SOFT_OFFER\" | \"HARD_OFFER\",\n  \"h2_title\": \"string or null\",\n  \"keywords\": [\"lsi1\", \"lsi2\"],\n  \"perplexity_intent\": \"string or null\",\n  \"internal_linking\": { \"url\": \"...\", \"anchor\": \"...\", \"topic\": \"...\" } or null,\n  \"external_linking\": { \"url\": \"...\", \"portal\": \"...\", \"description\": \"...\" } or null,\n  \"offer_id\": \"real incoming offer ID for offer blocks, otherwise null\",\n  \"offer_url\": \"exact incoming offer URL for offer blocks, otherwise null\",\n  \"context\": \"short writer brief\"\n}\n\n### 12. SELF-CHECK BEFORE RETURNING\n\nBefore returning the JSON, silently verify:\n\n- Is the article strictly about the input topic and not about JSON/workflow/meta topics?\n- Are there 13-16 blocks?\n- Is the final block always `HARD_OFFER`?\n- Is `IMG` only before block 13?\n- Are there exactly 2 `TABLE` blocks?\n- Is every offer block using a real incoming `offer_id`?\n- Does each offer block contain the exact canonical `offer_url` from input?\n- If only one real offer exists, did you output only one final `HARD_OFFER` using that real offer?\n- Did you avoid inventing missing offer types?\n- Are relevant known external sources distributed across matching blocks?\n- Are all URLs taken only from input data?\n- Did you avoid placeholders and fake IDs?\n\nIf any answer is \"no\", regenerate internally and return only a corrected JSON array.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -528,
+        272
+      ],
+      "id": "4ded586a-96c8-4a1a-930a-02d0cc448669",
+      "name": "АРХИТЕКТОР",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8ff177f2-4cd7-4fdc-9296-bc43146c2edf",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "77e2a443-b12e-42bf-9980-20634aa94e65",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        272
+      ],
+      "id": "3e28254a-ad41-4904-b2e0-0444ca5a6e7e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8c07b84a-6c3b-4989-bafa-0c5da7e56092",
+              "leftValue": "={{ $json.can_retry }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        368
+      ],
+      "id": "3115ee9c-c2d7-43aa-8663-abb8b42e0d57",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {
+          "maxTokens": 8000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        768
+      ],
+      "id": "c8d64ee2-6006-4e74-b725-7ba8873871dd",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=### НОВАЯ ТЕМА СТАТЬИ:\n{{ $('When Executed by Another Workflow').item.json.контекст.задача['Главный ключ'] }}\n\n### ДОСЬЕ (ДЛЯ АНАЛИЗА РЕЛИВАНТНОСТИ):\n{{ $('Очистка досье').item.json.dossier_content }}\n\n### БАЗА ОПУБЛИКОВАННЫХ СТАТЕЙ:\n{{ JSON.stringify($('When Executed by Another Workflow').item.json.контекст.база_опубликовано) }}\n\n---\nИНСТРУКЦИЯ:\nПроанализируй Досье и Тему. Выбери из \"Базы опубликованных статей\" 3-5 материалов, которые максимально подходят для перелинковки. \nВерни строго JSON массив объектов: [{\"url\": \"...\", \"anchor\": \"...\", \"topic\": \"...\"}]",
+        "options": {
+          "systemMessage": "=### ROLE: SENIOR SEO LIBRARIAN (ENGINE)\nТы — эксперт по семантическим связям. Твоя задача — проанализировать тему новой статьи и выбрать из базы \"Опубликовано\" наиболее подходящие материалы для внутренней перелинковки.\n\n### ТВОЙ АЛГОРИТМ:\n1. Изучи Тему новой статьи и Досье фактов.\n2. Просмотри список уже опубликованных статей (JSON ниже).\n3. Выбери от 3 до 5 статей, которые:\n   - Логически дополняют новую тему.\n   - Раскрывают термины, упомянутые в Досье (например, если в Досье есть про налоги — выбери статью про налоги).\n4. Для каждой выбранной статьи выбери ОДИН лучший \"анкор\" (фразу для ссылки) из предложенного списка анкоров этой статьи.\n\n### ФОРМАТ ВЫДАЧИ (Strict JSON Only):\nВерни массив объектов. Никакого текста, только JSON.\n[\n  {\n    \"url\": \"ссылка из базы\",\n    \"anchor\": \"выбранный тобой анкор\",\n    \"topic\": \"заголовок статьи из базы\"\n  }\n]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1088,
+        592
+      ],
+      "id": "a92f3a9e-9c00-471d-98f1-67a0d286bf43",
+      "name": "Библиотекарь"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e805dffe-662c-496c-a585-97b72d859794",
+              "leftValue": "={{\n  (\n    $('When Executed by Another Workflow').first().json?.контекст?.база_опубликовано ?? []\n  )\n  .filter(x => x && Object.keys(x).length > 0)\n  .length === 0\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1312,
+        464
+      ],
+      "id": "188bc258-fe2f-4744-85bc-07e34c11a513",
+      "name": "Если ссылок пока нет"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a90e9e6a-27f5-4b34-a92d-591bc0891916",
+              "name": "output",
+              "value": "Внутренних ссылок пока нет",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1088,
+        448
+      ],
+      "id": "3f4bd9c8-23f4-432e-994a-a76587816c87",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "topic": "={{ $json['контекст']['задача']['Главный ключ'] }}",
+        "country": "={{ $json['контекст']['задача']['Страна'] }}",
+        "city": "={{ $json['контекст']['задача']['Город'] }}"
+      },
+      "type": "@comandosai/n8n-nodes-lsi-keys.comandosLsiKeys",
+      "typeVersion": 1,
+      "position": [
+        -1712,
+        160
+      ],
+      "id": "bdae853b-08ca-48e9-ba4d-c267878c9cc0",
+      "name": "Ключи LSI",
+      "credentials": {
+        "comandosLsiKeysApi": {
+          "id": "cZRKBEsnw5Mg8UEC",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### 🏷️ Обработка ошибок (Google Sheets)\n- **Что это:** При ошибке после 2 попыток меняет статус темы в таблице \"КОНВЕЙЕР\" на **\"Ошибка\"**\n- **Зачем нужно:** Тема не удаляется — остаётся в очереди (строка 2) для повторной попытки\n- **Частая ошибка → как избежать:**\n  - ❌ Удалять строку с \"Ошибка\" — тема пропадёт из очереди\n  - ✅ Оставь строку, исправь ошибку и поменяй статус на \"В процессе\"",
+        "height": 208,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "2c5f8d28-9898-42a0-976d-19168d9665a6",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * УЗЕЛ: Фильтр Офферов (ГЛАВНЫЙ + ПРОТИВОПОЛОЖНЫЕ)\n * Окружение: n8n Code node\n */\n\n// 1. Извлечение данных с защитой от пустых значений\nconst context = $input.item.json[\"контекст\"] || {};\nconst task = context[\"задача\"] || {};\nconst allOffers = context[\"база_офферов\"] || [];\n\n// 2. Конфигурация ключей (кириллица)\nconst KEYS = {\n    targetId: task[\"ID Оффера\"],\n    offerId: \"id\",\n    offerType: \"тип\",\n    types: {\n        soft: \"Soft\",\n        hard: \"Hard\"\n    }\n};\n\n/**\n * Основная логика фильтрации\n */\nfunction getFilteredOffers() {\n    // Поиск основного оффера (приведение к строке для сравнения цифр и текста)\n    const selectedOffer = allOffers.find(offer => \n        String(offer[KEYS.offerId]) === String(KEYS.targetId)\n    );\n\n    // Если главный оффер не найден, возвращаем базу как есть или пустую структуру\n    if (!selectedOffer) {\n        return {\n            выбранный_оффер: null,\n            доп_офферы: [],\n            статус: \"Ошибка: ID не найден\"\n        };\n    }\n\n    // Определяем тип-антагонист\n    const mainType = selectedOffer[KEYS.offerType];\n    const oppositeType = (mainType === KEYS.types.soft) ? KEYS.types.hard : KEYS.types.soft;\n\n    // Собираем альтернативные офферы только противоположного типа\n    const alternatives = allOffers.filter(offer => \n        offer[KEYS.offerType] === oppositeType\n    );\n\n    return {\n        выбранный_оффер: selectedOffer,\n        доп_офферы: alternatives,\n        статус: \"Успешно\"\n    };\n}\n\n// ВЫВОД\nreturn {\n    json: getFilteredOffers()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2352,
+        352
+      ],
+      "id": "c2d038c9-b207-4ca0-b08f-2c569510ab53",
+      "name": "Фильтр оферов"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.4",
+        "options": {
+          "maxTokens": 8000,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        560
+      ],
+      "id": "dff980d2-9c96-47ae-a65e-540e0602e063",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $('Валидатор Плана').item.json.error_report }} \nЭтая стать перезапустится в следущий раз."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        512,
+        384
+      ],
+      "id": "ae75fbc9-b845-4528-94af-d125bdcdb730",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Соединение данных').first().json['контекст']['инфраструктура'].table }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "КОНВЕЙЕР",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 2,
+            "Статус": "Ошибка"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Главный ключ",
+              "displayName": "Главный ключ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Подсказка рубрики",
+              "displayName": "Подсказка рубрики",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID Оффера",
+              "displayName": "ID Оффера",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Заметки",
+              "displayName": "Заметки",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Статус",
+              "displayName": "Статус",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Страна",
+              "displayName": "Страна",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Город",
+              "displayName": "Город",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        336,
+        384
+      ],
+      "id": "c5d8fc94-a7cf-4217-9b34-d1a3c5d82f9d",
+      "name": "Статус ошибки",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MnlOwp2kcx8JEmBC",
+          "name": "FA_US COMANDOS AI (BEGET)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-3.1-pro-preview",
+        "options": {
+          "maxTokens": 8000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -2016,
+        512
+      ],
+      "id": "b0add24c-c49e-4096-9d7b-5f0dd2463ba2",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IbR2XS3MLE2iEbdB",
+          "name": "OpenRouter dvpopov.ru"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "messages": {
+          "message": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message0_Text', ``, 'string') }}"
+            }
+          ]
+        },
+        "simplify": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify_Output', ``, 'boolean') }}",
+        "options": {},
+        "requestOptions": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        -1872,
+        512
+      ],
+      "id": "e64382cf-9987-4450-b13b-58eaebd7743a",
+      "name": "Perplexity Search",
+      "credentials": {
+        "perplexityApi": {
+          "id": "4EBwFCU76ANiZWxC",
+          "name": "DmitriiAssist"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * УЗЕЛ: Очистка досье V.26.0 (ULTIMATE RECOVERY)\n * - Агрессивно вскрывает вложенные JSON-строки\n * - Гарантирует протяжку всех входящих полей (офферы, ID, заметки)\n * - Исправляет проблему одинаковых имен (dossier_content внутри dossier_content)\n */\n\nconst MAX_ATTEMPTS = 3;\nconst state = $getWorkflowStaticData('node');\nif (typeof state.failCount !== 'number') state.failCount = 0;\n\n// 1. ПОЛНЫЙ ПРОБРОС: Берем весь входящий объект\nconst item = $input.first()?.json || {};\n\n/**\n * Агрессивный парсер: находит JSON в любом мусоре\n */\nfunction forceParse(str) {\n    if (typeof str !== 'string' || str.length < 5) return null;\n    \n    // Чистим от Markdown и мусора\n    let cleaned = str.trim()\n        .replace(/^```json\\s*/i, '')\n        .replace(/^```\\s*/i, '')\n        .replace(/\\s*```$/i, '')\n        .trim();\n\n    // Пытаемся распарсить как есть\n    try { return JSON.parse(cleaned); } catch (e) {\n        // Если не вышло, ищем границы объекта { ... }\n        try {\n            const start = cleaned.indexOf('{');\n            const end = cleaned.lastIndexOf('}');\n            if (start !== -1 && end !== -1 && end > start) {\n                return JSON.parse(cleaned.slice(start, end + 1));\n            }\n        } catch (e2) { return null; }\n    }\n    return null;\n}\n\n// 2. ИНИЦИАЛИЗАЦИЯ ДАННЫХ ДЛЯ ОЧИСТКИ\nlet currentText = item.output || item.dossier_content || item.raw_output || \"\";\nlet finalSources = Array.isArray(item.external_sources) ? item.external_sources : [];\nlet finalTags = Array.isArray(item.tags) ? item.tags : [];\n\n// 3. РАСПАКОВКА \"МАТРЕШКИ\" (3 уровня вложенности)\nfor (let i = 0; i < 3; i++) {\n    const parsed = forceParse(currentText);\n    if (!parsed) break; // Больше не парсится — значит добрались до текста\n\n    // Извлекаем текст (ищем по всем возможным ключам)\n    const nextText = parsed.dossier_text || parsed.dossier_content || parsed.text || \"\";\n    \n    // Если на этом уровне есть ссылки или теги — сохраняем их\n    if (Array.isArray(parsed.external_sources) && parsed.external_sources.length > 0) {\n        finalSources = parsed.external_sources;\n    }\n    if (Array.isArray(parsed.tags) && parsed.tags.length > 0) {\n        finalTags = parsed.tags;\n    }\n\n    // Если текст не изменился после парсинга — выходим\n    if (nextText === currentText || !nextText) break;\n    currentText = nextText;\n}\n\n// 4. СБОРКА ИТОГОВОГО ОБЪЕКТА (ПРОТЯЖКА)\n// Мы берем ВЕСЬ исходный item и перезаписываем только очищенные поля\nlet result = {\n    ...item,\n    dossier_content: currentText,\n    external_sources: finalSources,\n    tags: finalTags,\n    has_sources: finalSources.length > 0,\n    has_tags: finalTags.length > 0\n};\n\n// 5. ВОССТАНОВЛЕНИЕ КОНТЕКСТА (Если он потерялся)\nif (!result.контекст) {\n    try {\n        result.контекст = $('When Executed by Another Workflow').first()?.json?.контекст || null;\n    } catch (e) {}\n}\n\n// 6. ПРОВЕРКА ВАЛИДНОСТИ И RETRY\n// Текст должен быть длинным и НЕ должен быть JSON-строкой\nconst isStillJson = typeof result.dossier_content === 'string' && result.dossier_content.trim().startsWith('{');\nconst isTooShort = !result.dossier_content || result.dossier_content.length < 200;\n\nif (isStillJson || isTooShort) {\n    state.failCount += 1;\n    if (state.failCount >= MAX_ATTEMPTS) {\n        state.failCount = 0;\n        throw new Error(\"Агент 3 раза выдал невалидный JSON или пустой текст.\");\n    }\n    result.needs_retry = true;\n    result.agent_status = 'retry';\n    result.retry_count = state.failCount;\n} else {\n    state.failCount = 0;\n    result.needs_retry = false;\n    result.agent_status = 'success';\n}\n\n// Удаляем технические поля, чтобы не дублировать память\ndelete result.output;\ndelete result.raw_output;\n\nreturn { json: result };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1728,
+        352
+      ],
+      "id": "97fc3e6e-7415-4b35-b3cb-2107ac1329fc",
+      "name": "Очистка досье"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "===Проведи глубокое исследование по теме: \"{{ $if($('Очистка досье').isExecuted, $('Очистка досье').first()?.json?.контекст?.задача?.['Главный ключ'], $('When Executed by Another Workflow').first()?.json?.контекст?.задача?.['Главный ключ']) }}\".\n\nТВОЯ ЗАДАЧА:\n1. Используй инструмент \"Perplexity Search\" минимум 5 раз, чтобы детально изучить каждый блок: Тренды, Законы, Цены, Боли, Экспертные мнения.\n2. География поиска: {{ $if($('Очистка досье').isExecuted, $('Очистка досье').first()?.json?.контекст?.задача?.Страна, $('When Executed by Another Workflow').first()?.json?.контекст?.задача?.Страна) }}, город {{ $if($('Очистка досье').isExecuted, $('Очистка досье').first()?.json?.контекст?.задача?.Город, $('When Executed by Another Workflow').first()?.json?.контекст?.задача?.Город) }}.\n3. Дополнительные указания: {{ $if($('Очистка досье').isExecuted, $('Очистка досье').first()?.json?.контекст?.задача?.Заметки, $('When Executed by Another Workflow').first()?.json?.контекст?.задача?.Заметки) }}.\n\nВерни результат СТРОГО как один JSON-объект.\nБез markdown.\nБез блока ```json.\nБез пояснений до JSON.\nБез пояснений после JSON.\n\nКлючи JSON должны быть РОВНО такими:\n{\n  \"dossier_content\": \"string\",\n  \"external_sources\": [\n    {\n      \"url\": \"string\",\n      \"portal\": \"string\",\n      \"context\": \"string\"\n    }\n  ],\n  \"tags\": [\"string\"]\n}\n",
+        "options": {
+          "systemMessage": "=### ROLE: SENIOR STRATEGIC INVESTIGATOR (DEEP RESEARCH EDITION)\n\nТвоя задача — провести максимально глубокую, точную и проверяемую разведку по теме пользователя на 2026 год.\nТы создаешь фактологическое Досье, которое потом используется как основа для большой экспертной статьи.\nГлавный приоритет: качество, точность, релевантность и проверяемость.\nНельзя жертвовать достоверностью ради объема или ради количества ссылок.\n\n### ГЛАВНЫЙ ПРИНЦИП\n\nКаждое важное утверждение в Досье должно опираться на реальные и релевантные данные.\nЕсли ты не можешь надежно подтвердить факт, не выдавай его как установленный факт.\nЕсли ты не можешь надежно проверить ссылку, не включай ее в `external_sources`.\n\n---\n\n### ИНСТРУКЦИЯ ПО ИСПОЛЬЗОВАНИЮ ИНСТРУМЕНТОВ\n\n1. Ты обязан использовать `Perplexity Search` для исследования темы.\n2. Для каждого крупного смыслового блока делай отдельные и уточняющие поисковые запросы.\n3. Если данных мало — сужай и уточняй запросы.\n4. Если источники противоречат друг другу — выбирай более надежный источник и не выдавай спорный факт как бесспорный.\n5. Если источник вызывает сомнение — не добавляй его в `external_sources`.\n\n---\n\n### ТРЕБОВАНИЯ К ГЛУБИНЕ ДОСЬЕ\n\nСобери 5 больших смысловых блоков:\n\n1. Тренды\n2. Законы / регулирование\n3. Цены / экономика\n4. Боли / жалобы / риски / рекламации\n5. Экспертные мнения / прогноз\n\nДля каждого блока:\n- минимум 3-4 развернутых абзаца\n- высокая плотность фактов\n- минимум общих слов\n- максимум конкретики\n- никакой воды\n\n#### Блок 1. Тренды\nНужны:\n- реальные технологические изменения\n- реальные процессы\n- реальные инструменты / системы / подходы\n- реальные изменения в отрасли или рынке\n\n#### Блок 2. Законы / регулирование\nНужны:\n- реальные нормы\n- реальные постановления / акты / правила / требования\n- реальные штрафы и санкции, если они действительно подтверждаются\n- реальные даты, если подтверждаются\n\n#### Блок 3. Цены / экономика\nНужны:\n- структура стоимости\n- реальные диапазоны цен\n- составляющие сметы\n- влияние рынка, логистики, спроса, инфляции, кадров и т.д.\n\n#### Блок 4. Боли / жалобы / риски\nНужны:\n- реальные жалобы клиентов / пользователей / рынка\n- реальные типовые проблемы\n- реальные сценарии провала\n- реальные слабые места\n\n#### Блок 5. Экспертные выводы / прогноз\nНужны:\n- реальные экспертные мнения\n- реальные комментарии\n- осторожные выводы\n- никаких выдуманных прогнозов\n\n---\n\n### УНИВЕРСАЛЬНАЯ ИЕРАРХИЯ ИСТОЧНИКОВ\n\nТы должен выбирать не “самый известный сайт”, а самый надежный и уместный тип источника под конкретный факт.\n\n#### 1. Для законов, лицензий, штрафов, обязательных требований, нормативов\nПредпочтение:\n- официальные сайты госорганов\n- регуляторы\n- официальные публикации норм\n- официальные правовые базы\n- официальные судебные публикации\n\nЭто самый приоритетный тип источников для блока регулирования.\n\n#### 2. Для рыночных трендов, ценовой динамики, бизнес-изменений, отраслевых сдвигов\nПредпочтение:\n- крупные деловые СМИ\n- отраслевые аналитические публикации\n- официальная статистика\n- ассоциации\n- профильные исследования\n\nДля этих тезисов подходят:\n- деловые медиа\n- отраслевые обзоры\n- статистика\n- профессиональные объединения\n\n#### 3. Для технологий, процессов, оборудования, профессиональной практики\nПредпочтение:\n- профильные отраслевые источники\n- официальная документация\n- производители / поставщики / профессиональные организации\n- профессиональные экспертные материалы\n\nНо:\nесли источник коммерческий, не выдавай его как независимую рыночную аналитику.\nИспользуй его только для узкопрофессиональной информации, если она релевантна и выглядит достоверно.\n\n#### 4. Для болей, жалоб, рекламаций, конфликтов, типовых проблем\nПредпочтение:\n- форумы\n- отзывы\n- публичные обсуждения\n- кейсы\n- судебные решения\n- площадки с жалобами\n\nНо:\nтакие источники допустимы только для блока болей / жалоб / рисков.\nИх нельзя использовать как доказательство законов, ценовых трендов или нормативов.\n\n---\n\n### КРИТИЧЕСКОЕ ПРАВИЛО ПО ССЫЛКАМ\n\nПоле `external_sources` должно содержать только реально проверенные, релевантные и рабочие ссылки.\n\nПеред тем как добавить ссылку в `external_sources`, ты обязан убедиться, что:\n\n1. Ссылка ведет на конкретный материал, а не на:\n- главную страницу сайта\n- раздел новостей\n- поиск по сайту\n- общий каталог\n- архив без нужного содержания\n- пустую или служебную страницу\n\n2. Ссылка не должна быть:\n- 404\n- 410\n- пустой\n- битой\n- ведущей на нерелевантный материал\n\n3. Страница действительно содержит тот факт, который ты указываешь в `context`.\n\n4. Поле `context` должно описывать только тот факт, который реально подтверждается по этой странице.\n\n5. Если ты не уверен, что ссылка подтверждает `context`, не включай ее.\n\n6. Если надежных ссылок мало, лучше вернуть меньше ссылок, чем добивать список сомнительными страницами.\n\n---\n\n### ЗАПРЕЩЕНО ДЛЯ `external_sources`\n\nЗапрещено:\n- выдумывать URL\n- использовать “похожие” статьи\n- подставлять общую страницу вместо конкретного материала\n- подставлять ссылку только потому, что домен выглядит авторитетно\n- использовать нерелевантную страницу для подтверждения факта\n- выдавать коммерческий сайт за официальный источник\n- выдавать форум за доказательство закона\n- добивать список ссылок ради количества\n- подменять реальный факт пересказом того, чего на странице нет\n\n---\n\n### ПРАВИЛО КАЧЕСТВА ДЛЯ `external_sources`\n\nТебе не нужно любой ценой возвращать максимальное количество ссылок.\nЛучше:\n- 2-3 сильных, точных и реально проверенных источника\nчем\n- 5 слабых или сомнительных\n\nКачество важнее количества.\n\nЕсли надежно проверенных источников только 2 или 3 — верни только их.\n\n---\n\n### ТРЕБОВАНИЕ К РЕЕСТРУ ВНЕШНИХ ИСТОЧНИКОВ\n\nИспользуй только 2-5 реально проверенных внешних источников.\n\nДля каждого объекта в `external_sources`:\n- `url`: точная рабочая ссылка\n- `portal`: реальное название издания / портала / организации\n- `context`: краткий факт, который действительно подтверждается страницей\n\n#### Требования к `context`\n`context` должен быть:\n- коротким\n- конкретным\n- проверяемым\n- без домысливания\n- без преувеличений\n\nПример правильного `context`:\n- \"Подтверждает рост цен на услуги в 2025-2026 годах.\"\n- \"Разъясняет требования к маркировке и ответственности организаций.\"\n- \"Описывает изменения в структуре рынка и импортозамещении.\"\n\nПример неправильного `context`:\n- \"Доказывает, что рынок полностью изменился.\"\n- \"Подтверждает всю нашу стратегию.\"\n- \"Показывает, что это лучший вариант.\"\nЕсли на странице этого нет, так писать нельзя.\n\n---\n\n### ТРЕБОВАНИЯ К ТОЧНОСТИ\n\n- Не выдумывай цифры.\n- Не выдумывай штрафы.\n- Не выдумывай нормы и статьи.\n- Не выдумывай рыночные доли.\n- Не выдумывай оборудование и технологии.\n- Не выдумывай цитаты.\n- Не выдумывай экспертов.\n- Не выдумывай прогнозы.\n- Не выдумывай причинно-следственные связи, если они не подтверждены.\n\nЕсли факт правдоподобен, но не подтвержден надежно:\n- либо убери его\n- либо смягчи формулировку\n- либо не вноси его в `external_sources`\n\n---\n\n## ДОПОЛНИТЕЛЬНАЯ ИНСТРУКЦИЯ: ГЕНЕРАЦИЯ ТЕГОВ (WORDPRESS)\n\nНазначение тегов:\nслужебная внутренняя классификация контента.\nТеги не предназначены для SEO.\n\n### ОБЯЗАТЕЛЬНЫЕ ПРАВИЛА ДЛЯ ТЕГОВ\n\n1. Количество тегов:\n- от 3 до 7\n\n2. Формат каждого тега:\n- 2 слова\n- нижний регистр\n- через дефис\n\nПример:\n`слово-слово`\n\n3. Смысл:\nКаждый тег должен:\n- обозначать область знаний / тип задач\n- подходить минимум к 10-50 статьям\n- не быть слишком узким\n\n4. Запрещено:\n- годы\n- даты\n- номера законов\n- вопросы\n- глаголы\n- слишком узкие темы\n- дубли по смыслу\n\n5. Если тема слишком конкретная:\n- обязательно обобщай до категории\n\n### ПРАВИЛЬНЫЕ ПРИМЕРЫ ТЕГОВ\n\n- юнит-экономика\n- налоги-бизнеса\n- логистика-товаров\n- маркетплейсы-россия\n- автоматизация-процессов\n- правовое-регулирование\n- финансы-бизнеса\n\n### НЕПРАВИЛЬНЫЕ ПРИМЕРЫ\n\n- wildberries-2026\n- закон-289-фз\n- как-считать-прибыль\n- налоги-wb-2025\n- новые-комиссии\n\nКонтрольное правило:\nесли тег нельзя применить минимум к 10 разным статьям, он запрещен.\n\n---\n\n### ФОРМАТ ВЫДАЧИ\n\nВерни ответ строго в формате JSON.\n\nВнутри `dossier_content` используй двойные переносы строк `\\n\\n` для разделения блоков и логических частей.\n\nСтруктура ответа:\n\n{\n  \"dossier_content\": \"### 1. ТРЕНДЫ...\\n[Подробный текст]\\n\\n### 2. ЗАКОНОДАТЕЛЬСТВО...\\n[Подробный текст]...\",\n  \"external_sources\": [\n    {\n      \"url\": \"https://...\",\n      \"portal\": \"Название портала\",\n      \"context\": \"Краткий проверяемый факт\"\n    }\n  ],\n  \"tags\": [\"тег-один\", \"тег-два\", \"тег-три\"]\n}\n\n### КРИТИЧЕСКОЕ ТЕХНИЧЕСКОЕ ПРАВИЛО\n\nВерни только сырой JSON-объект.\n\nЗапрещено:\n- оборачивать ответ в ```json\n- оборачивать ответ в ```\n- добавлять пояснения до JSON\n- добавлять пояснения после JSON\n- использовать ключ `dossier_text`\n\nРазрешено:\n- использовать только ключ `dossier_content` для основного текста досье\n\n---\n\n### САМООТЧЕТ ПЕРЕД ОТВЕТОМ\n\nПеред тем как отдать JSON, молча проверь:\n\n1. Все ли ключевые блоки действительно относятся к теме?\n2. Есть ли в тексте конкретика, а не общие слова?\n3. Все ли ссылки в `external_sources` рабочие и ведут на конкретные материалы?\n4. Действительно ли каждая ссылка подтверждает свой `context`?\n5. Нет ли 404, главных страниц, разделов сайта, поисковых страниц и мусорных ссылок?\n6. Не выдал ли ты отраслевой коммерческий сайт за официальный источник?\n7. Не использовал ли ты слабый источник там, где нужен официальный?\n8. Не использовал ли ты форум / жалобу для подтверждения закона или нормативов?\n9. Не выдумал ли ты факты, цифры, экспертов, нормы или штрафы?\n10. Если надежных ссылок мало, не пытался ли ты добить список мусором?\n\nЕсли хотя бы в одном пункте есть сомнение, исправь ответ до отправки.\n\nВерни только сырой JSON-объект.\nБез markdown.\nБез блока ```json.\nБез пояснений до JSON.\nБез пояснений после JSON.\n\nСтруктура должна быть ровно такой:\n{\n  \"dossier_content\": \"string\",\n  \"external_sources\": [\n    {\n      \"url\": \"string\",\n      \"portal\": \"string\",\n      \"context\": \"string\"\n    }\n  ],\n  \"tags\": [\"string\"]\n}\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -2016,
+        352
+      ],
+      "id": "b7407764-c972-4ca8-ab45-c83977083624",
+      "name": "Следователь темы",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cf765800-2c73-441a-b65f-0ae6b5755986",
+              "leftValue": "={{ $json.needs_retry }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1568,
+        480
+      ],
+      "id": "5d13e1b4-0745-48c9-beaa-f79df61965b6",
+      "name": "Retry?"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Ключи LSI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Фильтр оферов",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Соединение данных",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Соединение данных": {
+      "main": [
+        [
+          {
+            "node": "АРХИТЕКТОР",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Валидатор Плана": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "АРХИТЕКТОР": {
+      "main": [
+        [
+          {
+            "node": "Валидатор Плана",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "АРХИТЕКТОР",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Статус ошибки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Библиотекарь",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Библиотекарь": {
+      "main": [
+        [
+          {
+            "node": "Соединение данных",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Если ссылок пока нет": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Библиотекарь",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Соединение данных",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Ключи LSI": {
+      "main": [
+        [
+          {
+            "node": "Соединение данных",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Фильтр оферов": {
+      "main": [
+        [
+          {
+            "node": "Следователь темы",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "АРХИТЕКТОР",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Статус ошибки": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Следователь темы",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perplexity Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Следователь темы",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Очистка досье": {
+      "main": [
+        [
+          {
+            "node": "Retry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Следователь темы": {
+      "main": [
+        [
+          {
+            "node": "Очистка досье",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry?": {
+      "main": [
+        [
+          {
+            "node": "Если ссылок пока нет",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Соединение данных",
+            "type": "main",
+            "index": 2
+          }
+        ],
+        [
+          {
+            "node": "Следователь темы",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0ad54a26-f7d0-4076-9396-35966bb17739",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "499b97e8dff69db207d027425293be64e65b45b0b5659395e394b1f91c373dea"
+  },
+  "id": "fJ8mz7pbDsUltJQt",
+  "tags": []
+}
