@@ -60,14 +60,71 @@ python3 scripts/update_cyberseo_workflows.py --ssh-host <host> --dry-run
 - Сначала настроить вход по SSH-ключу, если его ещё нет. Приватный ключ не печатать.
 - После настройки ключа сказать пользователю простую команду входа на сервер.
 - До замены всегда делать резервную копию.
-- Если старый `ВФ 0` не найден, остановиться и попросить пользователя дать `table` и `domen`.
-- Перед тем как просить `table` и `domen`, обязательно искать не только по имени workflow, но и по узлу `Установка ID таблицы` внутри всех workflow.
+- `table` и `domen` искать только в базе `n8n`, в таблице `workflow_entity`, в JSON-поле `nodes`.
+- Не искать `table` и `domen` в `.env`, файлах сервера, docker compose, логах, истории команд и рабочих папках.
+- Перед тем как просить `table` и `domen`, выполнить точечный SQL-поиск узла `Установка ID таблицы`.
+- Если старый `ВФ 0` переименован, искать любой workflow, где в `nodes` есть узел `Установка ID таблицы`.
+- Если после точечного SQL-поиска узел не найден, остановиться и сказать, что в этой базе n8n нет старого workflow с узлом `Установка ID таблицы`.
 - Если после импорта остались подключения с `name`, но без `id`, не говорить, что всё готово.
 - Если не найден нужный кастомный узел n8n, остановиться и прямо назвать, какого пакета не хватает.
 - Не удалять старые workflow, пока новая версия не импортирована и не проверена.
 - Если есть дубли CyberSEO workflow, работать с теми, у которых ID совпадают с новым пакетом или которые были обновлены последними.
 - Для `n8n` 2.x и выше одного `active=true` недостаточно: после импорта нужно выполнить `publish:workflow` для `ВФ 0-4`, потом включить их.
 - Для `n8n` ниже 2.x подворкфлоу не включать: активным должен быть только мастер `ВФ 0`.
+
+## Где именно лежат table и domen
+
+В JSON-файле шаблона это здесь:
+
+```text
+assets/workflows/CyberSEO - ВФ 0_ МАСТЕР.json
+строки 139-148: assignments с table и domen
+строка 162: name = "Установка ID таблицы"
+```
+
+В живом `n8n` эти же данные лежат не в файлах сервера, а в базе:
+
+```text
+workflow_entity.nodes
+```
+
+Точечный запрос:
+
+```sql
+select
+  we.id,
+  we.name,
+  node->>'name' as node_name,
+  node->'parameters'->'assignments'->'assignments' as assignments
+from workflow_entity we
+cross join lateral json_array_elements(we.nodes) node
+where node->>'name' = 'Установка ID таблицы';
+```
+
+Из `assignments` взять элементы:
+
+```text
+name = table -> value
+name = domen -> value
+```
+
+Если нужен сразу готовый вывод:
+
+```sql
+select
+  we.id,
+  we.name,
+  max(item->>'value') filter (where item->>'name' = 'table') as table,
+  max(item->>'value') filter (where item->>'name' = 'domen') as domen
+from workflow_entity we
+cross join lateral json_array_elements(we.nodes) node
+cross join lateral json_array_elements(node->'parameters'->'assignments'->'assignments') item
+where node->>'name' = 'Установка ID таблицы'
+group by we.id, we.name
+having
+  max(item->>'value') filter (where item->>'name' = 'table') is not null
+  and max(item->>'value') filter (where item->>'name' = 'domen') is not null;
+```
 
 ## Что должно быть в конце
 

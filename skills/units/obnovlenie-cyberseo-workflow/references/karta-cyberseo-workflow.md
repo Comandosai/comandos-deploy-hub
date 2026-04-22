@@ -25,6 +25,23 @@
 
 Если workflow переименован, искать нужно не по имени, а по наличию узла `Установка ID таблицы`.
 
+Не искать эти значения в `.env`, docker compose, логах и папках сервера. В живом `n8n` источник только один: `workflow_entity.nodes`.
+
+SQL для поиска:
+
+```sql
+select
+  we.id,
+  we.name,
+  max(item->>'value') filter (where item->>'name' = 'table') as table,
+  max(item->>'value') filter (where item->>'name' = 'domen') as domen
+from workflow_entity we
+cross join lateral json_array_elements(we.nodes) node
+cross join lateral json_array_elements(node->'parameters'->'assignments'->'assignments') item
+where node->>'name' = 'Установка ID таблицы'
+group by we.id, we.name;
+```
+
 Правило включения:
 
 - `n8n` 2.x и выше: `ВФ 0-4` должны быть опубликованы и активны.

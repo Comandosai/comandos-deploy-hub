@@ -209,19 +209,20 @@ def sql_literal(value) -> str:
 
 
 def read_existing(host: str, remote: dict[str, str]) -> list[dict]:
-    names_sql = ",".join("'" + name.replace("'", "''") + "'" for name in EXPECTED_NAMES)
-    sql = f"""
+    sql = """
 select coalesce(json_agg(row_to_json(t)), '[]'::json)
 from (
-  select id, name, active, nodes::jsonb as nodes, connections::jsonb as connections, settings::jsonb as settings
-  from workflow_entity
-  where
-    name in ({names_sql})
-    or name like 'CyberSEO / ВФ%'
-    or nodes::text like '%Установка ID таблицы%'
-    or nodes::text like '%"name":"table"%'
-    or nodes::text like '%"name": "table"%'
-  order by "updatedAt" desc nulls last
+  select distinct
+    we.id,
+    we.name,
+    we.active,
+    we.nodes::jsonb as nodes,
+    we.connections::jsonb as connections,
+    we.settings::jsonb as settings
+  from workflow_entity we
+  cross join lateral json_array_elements(we.nodes) node
+  where node->>'name' = 'Установка ID таблицы'
+  order by we.name
 ) t;
 """
     return psql_json(host, remote, sql) or []

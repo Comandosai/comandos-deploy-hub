@@ -76,6 +76,26 @@ ssh -i ~/.ssh/ssh_server_root_1.2.3.4 root@1.2.3.4
 assets/workflows
 ```
 
+## Где искать table и domen
+
+Не в `.env` и не в файлах сервера.
+
+В живом `n8n` смотреть только:
+
+```text
+workflow_entity.nodes
+узел: Установка ID таблицы
+assignments: table, domen
+```
+
+В шаблоне это:
+
+```text
+assets/workflows/CyberSEO - ВФ 0_ МАСТЕР.json
+строки 139-148: table и domen
+строка 162: Установка ID таблицы
+```
+
 ## Главный скрипт
 
 ```text
