@@ -393,13 +393,14 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
 - не пересказывать reference-файлы коротко, если из них можно перенести полноразмерные operational blocks;
 - сначала перенести зрелые rule blocks из reference и baseline, а уже потом адаптировать их под проект;
-- отдельно прописать orientation-first rule, completion threshold, post-consultation handoff mode, DB/CRM rules, forbidden actions, strict output discipline.
+- отдельно прописать orientation-first rule, completion threshold, post-consultation handoff mode, DB rules, forbidden actions, strict output discipline.
+- На текущем этапе CRM не включать в prompt вообще: если нет отдельной явной команды на CRM-интеграцию, итоговый prompt не должен содержать `CRM`, `AMO`, `AmoCRM`, `MCP CRM`, `MCP AmoCRM` или `skip CRM`.
 - если в проекте есть `MCP Postgres` lead write-back path, обязательно явно прописать `public.update_lead_profile_safe(...)`, allowed params и sequencing persistence;
 - наличие `MCP Postgres` в инструментах без explicit DB write-back layer считать ошибкой сборки prompt.
 
 Требование к качеству:
 - prompt должен быть production-ready;
-- prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB/CRM rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
+- prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
 - prompt должен содержать explicit safe DB contract, если проект использует persisted lead memory;
 - prompt должен быть собран после чтения reference -> skeleton -> baseline -> project docs -> brief/profile, а не в обратном порядке;
 - ориентир — полноценный системный prompt на несколько сотен строк, а не короткий contract.

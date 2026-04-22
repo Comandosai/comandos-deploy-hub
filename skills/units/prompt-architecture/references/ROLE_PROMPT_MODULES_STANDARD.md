@@ -48,7 +48,7 @@
 - post-consultation handoff mode;
 - lead-capture after consultation;
 - safe DB contract;
-- CRM as secondary behavior;
+- optional external CRM behavior only when explicitly enabled;
 - strict JSON contract;
 - state rules and completion threshold.
 

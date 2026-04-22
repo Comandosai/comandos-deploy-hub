@@ -30,8 +30,8 @@ Builder собирает итоговый prompt из:
    - source priority.
 9. Добавить technical layer:
    - tools;
-   - CRM rules;
    - DB write rules;
+   - optional external-system rules only if explicitly enabled in `input_profile`;
    - allowed/forbidden actions.
 10. Добавить handoff/state/output layer.
 11. Сверить результат с mature baseline для той же роли.
@@ -73,13 +73,26 @@ Builder собирает итоговый prompt из:
 - Для `consultant` project-specific live schema, category values, attribute keys, commercial facts и write-back discipline считаются обязательными секциями, если они подтверждены в brief/profile/project docs.
 - Наличие `MCP Postgres` в tools без описанной логики записи в лид-профиль считается ошибкой сборки prompt.
 - Prompt нельзя считать production-ready, если `result_summary` описан, но persisted memory / summary write-back contract отсутствует.
-- Если CRM не подтверждена до exact-action уровня, builder обязан собирать prompt с явным `skip CRM` и не имеет права описывать `MCP CRM` как активный tool path.
+- По умолчанию CRM считается выключенной для prompt-а.
+- Если CRM не подтверждена до exact-action уровня, builder обязан полностью исключить CRM-слой из итогового prompt.
+- В этом режиме итоговый prompt не должен содержать слова или tool names: `CRM`, `AMO`, `AmoCRM`, `amoCRM`, `MCP CRM`, `MCP AmoCRM`, `skip CRM`.
 - Builder обязан сначала определить:
   - `crm_enabled`
   - `crm_type`
   - `crm_write_enabled`
   - `crm_exact_actions`
   и только потом решать, включать ли CRM-слой вообще.
+- CRM-слой можно включать в итоговый prompt только если `crm_enabled = true`, `crm_write_enabled = true` и `crm_exact_actions` непустой.
+- Перед сохранением итогового prompt builder обязан выполнить text audit.
+- Если CRM-слой не включен явно, итоговый prompt считается невалидным при любом вхождении:
+  - `CRM`
+  - `crm`
+  - `AMO`
+  - `AmoCRM`
+  - `amoCRM`
+  - `MCP CRM`
+  - `MCP AmoCRM`
+  - `skip CRM`
 
 ## Hard prohibitions
 
@@ -93,4 +106,4 @@ Builder собирает итоговый prompt из:
 - не завершать сборку `sdr_qualifier`, если safe DB contract разрешает укороченный SQL-вызов, пропускает `p_lead_id`, допускает untyped `NULL` или не фиксирует named-argument форму `=>`.
 - не завершать сборку prompt, если хотя бы одна обязательная секция роли отсутствует как самостоятельный явный блок.
 - не завершать сборку sales/runtime prompt, если project-specific sections схлопнуты в generic fallback при наличии подтвержденных project docs.
-- не выпускать prompt, где `MCP CRM` упомянут как рабочий инструмент, если в `input_profile` не подтверждены exact CRM actions.
+- не выпускать prompt, где есть любое упоминание `CRM`, `AMO`, `AmoCRM`, `MCP CRM` или `MCP AmoCRM`, если в `input_profile` не подтверждены exact CRM actions.

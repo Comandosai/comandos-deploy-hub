@@ -8,7 +8,7 @@
 - `sdr_qualifier`;
 - `consultant`;
 - orchestrator-adjacent sales prompts;
-- runtime prompts, где критичны state transitions, DB discipline, CRM gate и handoff logic.
+- runtime prompts, где критичны state transitions, DB discipline, optional external-system gate и handoff logic.
 
 ## Default output policy
 
@@ -60,12 +60,10 @@ Heavy prompt обязан содержать явно и отдельно:
 - sequencing;
 - что считается ошибкой persistence discipline.
 
-5. CRM layer
-- `crm_enabled`;
-- `crm_type`;
-- `crm_write_enabled`;
-- `crm_exact_actions`;
-- mandatory `skip CRM`, если exact actions не подтверждены.
+5. Optional external CRM layer
+- по умолчанию не включать в итоговый prompt;
+- включать только отдельным будущим этапом, если exact actions подтверждены runtime/reference;
+- если слой не включен, итоговый prompt должен быть DB-only и не должен содержать упоминаний CRM/AMO/MCP CRM даже как отключенного или пропускаемого слоя.
 
 6. State / handoff layer
 - explicit state rules;

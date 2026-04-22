@@ -31,12 +31,11 @@ Builder должен работать только по структуриров
 - `fallback_policy`
 - `handoff_rules`
 - `state_rules`
-- `crm_rules`
 - `db_write_rules`
-- `crm_enabled`
-- `crm_type`
-- `crm_write_enabled`
-- `crm_exact_actions`
+- `external_crm_enabled` или `crm_enabled`
+- `external_crm_type` или `crm_type`
+- `external_crm_write_enabled` или `crm_write_enabled`
+- `external_crm_exact_actions` или `crm_exact_actions`
 
 ## Minimal viable profile
 
@@ -44,19 +43,21 @@ Builder должен работать только по структуриров
 
 При неполном профиле builder обязан:
 - не выдумывать отсутствующие таблицы;
-- не выдумывать CRM-поля;
-- не выдумывать, включена ли CRM запись;
-- не выдумывать тип CRM;
+- не выдумывать внешние CRM-поля;
+- не выдумывать, включена ли внешняя CRM запись;
+- не выдумывать тип внешней CRM;
 - не выдумывать exact CRM actions;
 - не выдумывать output contract;
 - не выдумывать tool contract;
 - явно сокращать или пропускать недоопределенные technical blocks.
 
-## CRM gating rule
+## External CRM gating rule
 
-Для ролей с CRM/DB integration builder обязан различать:
-- CRM присутствует как система;
-- CRM write реально разрешен;
-- exact CRM actions подтверждены runtime/reference.
+По умолчанию внешний CRM-слой выключен и не должен попадать в итоговые prompt-ы.
 
-Если подтверждены только наличие CRM или ее тип, но не exact actions, builder обязан собирать prompt с явным `skip CRM`, а не с абстрактным CRM write behavior.
+Для ролей с DB integration builder обязан различать:
+- внешний CRM-слой вообще включен или нет;
+- write реально разрешен или нет;
+- exact actions подтверждены runtime/reference или нет.
+
+Если exact actions не подтверждены, итоговый prompt должен быть DB-only и не должен содержать упоминания CRM/AMO/MCP CRM даже как отключенного слоя.

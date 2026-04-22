@@ -50,7 +50,10 @@ description: Собирает только системный промпт `cons
   - обновление `consultation_summary` после каждого meaningful consultation fact;
   - использование только confirmed safe path `public.update_lead_profile_safe(...)`;
   - запрет считать `result_summary` заменой persisted memory;
-  - последовательность `summary refresh -> DB write-back -> confirmed CRM sync -> user-facing reply`.
+  - последовательность `summary refresh -> DB write-back -> user-facing reply`.
+- На текущем этапе CRM не включать в итоговый prompt вообще.
+- Если `crm_enabled`, `crm_write_enabled` и exact runtime actions не подтверждены явно, итоговый prompt не должен содержать слова или tool names: `CRM`, `AMO`, `AmoCRM`, `amoCRM`, `MCP CRM`, `MCP AmoCRM`, `skip CRM`.
+- CRM-слой добавлять только отдельным будущим этапом, когда будет явная команда подключать CRM.
 - Если пользователь подтвердил конкретный стандартный вариант и количество уже известно, prompt обязан завершать консультацию через `completed + human_handoff`.
 - Prompt не должен разрешать `create_lead`, автономное создание заказа, автономное создание сделки или autonomous order acceptance со стороны consultant.
 - Prompt не должен считать первый shortlist, первый browse result или первый narrowed path достаточным основанием для `completed`.
@@ -111,5 +114,16 @@ description: Собирает только системный промпт `cons
 - отсутствие unjustified compression.
 - отдельные заголовки или явные блоки для всех `Mandatory sections`;
 - project-specific live schema, category values, attribute keys и commercial facts не схлопнуты до generic fallback, если они подтверждены в проектных документах.
+
+Перед сохранением итогового prompt обязательно выполнить text audit.
+Если CRM-слой не включен отдельной явной командой, итоговый prompt невалиден при любом вхождении:
+- `CRM`
+- `crm`
+- `AMO`
+- `AmoCRM`
+- `amoCRM`
+- `MCP CRM`
+- `MCP AmoCRM`
+- `skip CRM`
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.

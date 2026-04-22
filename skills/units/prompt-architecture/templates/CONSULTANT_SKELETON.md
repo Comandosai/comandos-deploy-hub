@@ -124,7 +124,8 @@ Allowed actions:
 Forbidden actions:
 - `<forbidden_actions>`
 
-Если есть CRM или DB-write actions, использовать их только если это явно разрешено в profile.
+Если есть external write actions вне DB, использовать их только если это явно разрешено в profile.
+По умолчанию итоговый prompt должен быть DB-only и не должен упоминать внешнюю CRM/AMO/MCP CRM.
 
 ## Dialog policy
 

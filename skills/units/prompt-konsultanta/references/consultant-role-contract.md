@@ -100,11 +100,24 @@ First-step recommendation rule:
 - использовать safe lead-profile write-back через `public.update_lead_profile_safe(...)`, если write-back включен;
 - обновлять `consultation_summary` после каждого meaningful consultation fact;
 - никогда не считать `result_summary` заменой persisted memory.
-- не разрешать generic CRM creation actions вроде `create_lead`;
-- если CRM contract присутствует, consultant может только обновлять или дополнять уже связанную запись, и только если exact action явно подтвержден runtime.
-- если `crm_enabled != true` или `crm_write_enabled != true`, итоговый prompt не должен описывать `MCP CRM` как активный инструмент вообще;
-- если exact CRM actions не подтверждены, итоговый prompt обязан явно требовать `skip CRM`;
 - `MCP Postgres` при этом должен оставаться обязательным write/read path независимо от того, есть CRM или нет.
+
+## No external CRM layer by default
+
+На текущем этапе итоговый prompt консультанта должен быть DB-only.
+
+Если CRM не включена отдельным будущим этапом и в profile нет явно подтвержденных exact actions, итоговый prompt не должен содержать слова или tool names:
+- `CRM`
+- `AMO`
+- `AmoCRM`
+- `amoCRM`
+- `MCP CRM`
+- `MCP AmoCRM`
+- `skip CRM`
+
+Не описывай CRM даже как неактивную, отключенную или пропускаемую возможность.
+Не добавляй CRM-step в normal path.
+Не добавляй generic external sync.
 
 ## Handoff threshold
 

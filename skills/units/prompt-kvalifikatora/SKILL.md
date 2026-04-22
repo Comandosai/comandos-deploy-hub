@@ -31,13 +31,9 @@ description: Собирает только системный промпт `sdr_
 - Используй только `sdr_qualifier`, а не `interviewer`.
 - Сохраняй fixed JSON output.
 - Используй только confirmed safe DB write contract.
-- Разрешай CRM actions только если они явно подтверждены в profile / runtime contract.
-- Не выпускай prompt с абстрактной фразой про CRM. В prompt должен быть явный CRM gate:
-  - `crm_enabled`;
-  - `crm_type`;
-  - `crm_write_enabled`;
-  - exact CRM actions only if confirmed.
-- Если CRM не подтверждена или runtime не дал exact actions, итоговый prompt обязан требовать полный `skip CRM`.
+- На текущем этапе CRM не включать в итоговый prompt вообще.
+- Если `crm_enabled`, `crm_write_enabled` и exact runtime actions не подтверждены явно, итоговый prompt не должен содержать слова или tool names: `CRM`, `AMO`, `AmoCRM`, `amoCRM`, `MCP CRM`, `MCP AmoCRM`, `skip CRM`.
+- Не выпускай prompt с абстрактной фразой про CRM или с упоминанием CRM как будущей/неактивной возможности.
 - Не разрешай `products_live` lookup, `exact_match`, `relaxed_match` или `category_browse`.
 - Не проваливайся в plain text, если downstream ожидает fixed JSON.
 - Не выпускай short / compact / compressed prompt по умолчанию.
@@ -60,13 +56,10 @@ description: Собирает только системный промпт `sdr_
   - `public.update_lead_profile_safe(...)`;
   - список разрешенных параметров;
   - канонический call pattern с `p_lead_id => <lead_id>::integer`;
-  - sequencing `qualification_summary -> DB write-back -> confirmed CRM sync -> user-facing reply`;
+  - sequencing `qualification_summary -> DB write-back -> user-facing reply`;
   - правило, что `p_qualification_summary` обновляется при каждом meaningful new fact.
   - запрет на укороченный или ad-hoc SQL-вызов.
-- Если в profile указано `crm_enabled = true`, prompt обязан явно различать:
-  - CRM включена на уровне проекта;
-  - CRM write остается runtime-gated;
-  - без exact runtime actions CRM write не выполняется.
+- CRM-слой добавлять только отдельным будущим этапом, когда будет явная команда подключать CRM и в profile появятся confirmed exact actions.
 - Prompt обязан явно требовать summary write-back discipline: meaningful new facts должны отражаться в `p_qualification_summary`, если DB runtime доступен.
 - Prompt обязан явно требовать useful handoff payload, а не completion по одному только телефону.
 - Если этих правил нет в финальном prompt, сборка считается проваленной, а prompt — не production-ready.
@@ -85,7 +78,6 @@ description: Собирает только системный промпт `sdr_
 - `Post-consultation Handoff Mode`
 - `Data Sources and Routing Boundaries`
 - `MCP Postgres: Mandatory Safe DB Contract`
-- `CRM Gate`
 - `Allowed / Forbidden Actions`
 - `Dialog Policy`
 - `Status Machine`
@@ -121,11 +113,22 @@ description: Собирает только системный промпт `sdr_
 - orientation-first и post-consultation handoff mode;
 - natural phone gate;
 - mcp_log discipline;
-- правило `DB first, CRM second`;
+- правило `DB first, reply after persistence`;
 - heavy production completeness;
 - отсутствие unjustified compression.
 - отдельные заголовки или явные блоки для всех `Mandatory sections`;
 - literal canonical SQL block, а не только упоминание safe function;
 - явный запрет на `=` вместо `=>`, untyped `NULL` и ad-hoc сокращения safe call pattern.
+
+Перед сохранением итогового prompt обязательно выполнить text audit.
+Если CRM-слой не включен отдельной явной командой, итоговый prompt невалиден при любом вхождении:
+- `CRM`
+- `crm`
+- `AMO`
+- `AmoCRM`
+- `amoCRM`
+- `MCP CRM`
+- `MCP AmoCRM`
+- `skip CRM`
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.

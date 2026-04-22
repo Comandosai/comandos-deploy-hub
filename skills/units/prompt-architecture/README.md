@@ -47,5 +47,5 @@
 
 - не генерировать prompt напрямую из `brief` без skeleton-layer;
 - не брать смысл prompt только из `03_WF_Qualification.json` или `04_WF_Consultation.json`;
-- не выдумывать tool contract, live schema, CRM rules или output contract, если они не описаны в profile;
+- не выдумывать tool contract, live schema, optional external CRM rules или output contract, если они не описаны в profile;
 - не копировать зрелые prompt-версии целиком как новый universal template без role-level нормализации.

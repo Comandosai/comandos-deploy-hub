@@ -15,7 +15,7 @@ Derived from latest mature qualifier prompts in `Cyber_OP/02_Prompty`, with emph
 - post-consultation handoff mode обязателен;
 - после consultant result нельзя заново открывать broad discovery;
 - safe DB contract должен быть явным;
-- CRM sync должен быть secondary behavior, а не свободная импровизация;
+- external CRM sync должен быть secondary behavior только после отдельного включения, а не свободная импровизация;
 - output должен быть строго JSON по фиксированному contract;
 - status machine должна быть узкой и предсказуемой;
 - explicit handoff wording допустим только с ясным next step.
@@ -23,7 +23,7 @@ Derived from latest mature qualifier prompts in `Cyber_OP/02_Prompty`, with emph
 ## Project-specific patterns to keep out of universal skeleton
 
 - конкретные DB function names, если они не universal;
-- конкретные CRM tool names конкретного проекта;
+- конкретные external CRM tool names конкретного проекта;
 - конкретная channel assumption;
 - конкретные domain examples и product families.
 
