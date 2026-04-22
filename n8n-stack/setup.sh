@@ -454,6 +454,13 @@ EOF
     restart: always
     depends_on: [n8n]
     environment:
+      - N8N_HOST=\${DOMAIN_NAME}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_PROXY_HOPS=1
+      - N8N_EDITOR_BASE_URL=https://\${DOMAIN_NAME}
+      - WEBHOOK_URL=https://\${DOMAIN_NAME}/
+      - GENERIC_TIMEZONE=\${GENERIC_TIMEZONE}
       - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
@@ -513,6 +520,8 @@ start_services() {
     
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
+    print_info "Проверьте доменные переменные worker: docker exec <worker> env | grep -E 'N8N_HOST|N8N_EDITOR_BASE_URL|WEBHOOK_URL'"
+    print_info "В выводе должен быть домен https://$DOMAIN, не localhost."
 }
 
 main() {

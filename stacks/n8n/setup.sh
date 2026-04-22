@@ -572,6 +572,14 @@ EOF
       redis: { condition: service_healthy }
       n8n: { condition: service_started }
     environment:
+      - N8N_HOST=\${DOMAIN_NAME}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_PROXY_HOPS=\${N8N_PROXY_HOPS}
+      - N8N_EDITOR_BASE_URL=\${N8N_EDITOR_BASE_URL}
+      - N8N_PUSH_BACKEND=\${N8N_PUSH_BACKEND}
+      - WEBHOOK_URL=\${WEBHOOK_URL}
+      - GENERIC_TIMEZONE=\${GENERIC_TIMEZONE}
       - N8N_ENCRYPTION_KEY=\${N8N_ENCRYPTION_KEY}
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
@@ -1164,6 +1172,8 @@ start_services() {
     
     print_success "Система запущена!"
     print_info "Доступ: https://$DOMAIN"
+    print_info "Проверьте доменные переменные worker: docker exec <worker> env | grep -E 'N8N_HOST|N8N_EDITOR_BASE_URL|WEBHOOK_URL'"
+    print_info "В выводе должен быть домен https://$DOMAIN, не localhost."
 }
 
 main() {
