@@ -6,13 +6,13 @@
         "inputSource": "passthrough"
       },
       "id": "c055762a-8fe7-4141-a639-df2372f30060",
-      "typeVersion": 1.1,
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
         -160,
         560
-      ]
+      ],
+      "typeVersion": 1.1
     },
     {
       "parameters": {
@@ -21,17 +21,18 @@
           "responseFormat": "text"
         }
       },
+      "id": "3c461096-590c-45d2-9bf7-df6c66aab0eb",
+      "name": "OpenRouter Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
       "position": [
         448,
         784
       ],
-      "id": "3c461096-590c-45d2-9bf7-df6c66aab0eb",
-      "name": "OpenRouter Chat Model",
+      "typeVersion": 1,
       "alwaysOutputData": true,
       "credentials": {
         "openRouterApi": {
+          "id": "XoyHPHR961lxz8SB",
           "name": "OpenRouter"
         }
       }
@@ -41,147 +42,147 @@
         "description": "=Выполнить воркфлоу. Аргументы: {\"lead_id\": integer, \"input\": string}. Обязательно разделяй ID и текст.",
         "workflowId": {
           "__rl": true,
-          "value": "PfOC1TVZyJuArLy2",
           "mode": "list",
+          "value": "PfOC1TVZyJuArLy2",
           "cachedResultUrl": "/workflow/PfOC1TVZyJuArLy2",
           "cachedResultName": "03_WF_Qualification"
         },
         "workflowInputs": {
-          "mappingMode": "defineBelow",
           "value": {
-            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}",
-            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}"
+            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}",
+            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}"
           },
-          "matchingColumns": [],
           "schema": [
             {
               "id": "input",
-              "displayName": "input",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
               "type": "string",
-              "removed": false
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "input",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
             },
             {
               "id": "lead_id",
-              "displayName": "lead_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
               "type": "number",
-              "removed": false
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "lead_id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
             }
           ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         }
       },
+      "id": "197259cd-83e9-4f3f-95c8-c812d1e2482a",
+      "name": "run_qualification",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 2.2,
       "position": [
         768,
         784
       ],
-      "id": "197259cd-83e9-4f3f-95c8-c812d1e2482a",
-      "name": "run_qualification"
+      "typeVersion": 2.2
     },
     {
       "parameters": {
         "description": "Используй этот инструмент только для КВАЛИФИЦИРОВАННЫХ лидов (статус 'qualified'), которые задают конкретные, предметные вопросы по продукту, услугам, техническим характеристикам или детальным условиям. Этот воркфлоу работает как эксперт-консультант: он объясняет нюансы, помогает с выбором и мягко подталкивает к сделке. Не используй для новых лидов, которые еще не прошли опрос.",
         "workflowId": {
           "__rl": true,
-          "value": "fIMrKvKTv5BlFW9S",
           "mode": "list",
+          "value": "fIMrKvKTv5BlFW9S",
           "cachedResultUrl": "/workflow/fIMrKvKTv5BlFW9S",
           "cachedResultName": "04_WF_Consultation"
         },
         "workflowInputs": {
-          "mappingMode": "defineBelow",
           "value": {
-            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}",
-            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}"
+            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}",
+            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}"
           },
-          "matchingColumns": [],
           "schema": [
             {
               "id": "input",
-              "displayName": "input",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
               "type": "string",
-              "removed": false
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "input",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
             },
             {
               "id": "lead_id",
-              "displayName": "lead_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
               "type": "number",
-              "removed": false
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "lead_id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
             }
           ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         }
       },
+      "id": "56e60a49-e5d1-4000-952b-a8dc08b59019",
+      "name": "run_consultation",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 2.2,
       "position": [
         928,
         784
       ],
-      "id": "56e60a49-e5d1-4000-952b-a8dc08b59019",
-      "name": "run_consultation"
+      "typeVersion": 2.2
     },
     {
       "parameters": {
         "description": "ВЫСШИЙ ПРИОРИТЕТ. Используй этот инструмент немедленно, если клиент:\nПрямо просит менеджера или человека (\"позовите оператора\", \"хочу поговорить с живым\").\nПросит телефонный звонок или личную встречу.\nВыражает резкое недовольство или гнев.\nЗадает вопрос, на который бот уже дважды не смог ответить (цикл).\nЭтот воркфлоу мгновенно уведомляет живого сотрудника и передает ему управление чатом.",
         "workflowId": {
           "__rl": true,
-          "value": "J0BpTE1kU6WH3f4G",
           "mode": "list",
+          "value": "J0BpTE1kU6WH3f4G",
           "cachedResultUrl": "/workflow/J0BpTE1kU6WH3f4G",
           "cachedResultName": "04_WF_Human_handoff"
         },
         "workflowInputs": {
-          "mappingMode": "defineBelow",
           "value": {
             "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}"
           },
-          "matchingColumns": [
-            "lead_id"
-          ],
           "schema": [
             {
               "id": "lead_id",
-              "displayName": "lead_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
               "type": "number",
-              "removed": false
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "lead_id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
             }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "lead_id"
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         }
       },
+      "id": "839f78a1-2386-4a35-a45c-0f0b92e9c651",
+      "name": "run_human_handoff",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 2.2,
       "position": [
         1088,
         784
       ],
-      "id": "839f78a1-2386-4a35-a45c-0f0b92e9c651",
-      "name": "run_human_handoff"
+      "typeVersion": 2.2
     },
     {
       "parameters": {
@@ -193,38 +194,39 @@
           "returnIntermediateSteps": true
         }
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        760,
-        560
-      ],
       "id": "1c8c7410-02c7-402d-b6cb-4a41349c4985",
       "name": "Оркестратор",
-      "alwaysOutputData": false,
-      "retryOnFail": true
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        768,
+        560
+      ],
+      "retryOnFail": true,
+      "typeVersion": 3.1,
+      "alwaysOutputData": false
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
-          "value": "gpt-4.1-mini",
           "mode": "list",
+          "value": "gpt-4.1-mini",
           "cachedResultName": "gpt-4.1-mini"
         },
         "builtInTools": {},
         "options": {}
       },
+      "id": "b6d39906-8a9f-4610-b444-06a992f05de8",
+      "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
       "position": [
         608,
         784
       ],
-      "id": "b6d39906-8a9f-4610-b444-06a992f05de8",
-      "name": "OpenAI Chat Model",
+      "typeVersion": 1.3,
       "credentials": {
         "openAiApi": {
+          "id": "OZvZt7wcqfivK7dd",
           "name": "OpenAI"
         }
       }
@@ -235,16 +237,17 @@
         "query": "INSERT INTO public.workflow_runs (\n  lead_id, \n  workflow_name, \n  trigger_type, \n  status, \n  input_payload_json, \n  started_at\n)\nVALUES (\n  {{ $json.lead_id }}, \n  '02_Main_Orchestrator', \n  'execute_workflow', \n  'started', \n  '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb, \n  NOW()\n)\nRETURNING id AS run_id;",
         "options": {}
       },
+      "id": "9c3322a3-528d-4e8e-88ea-9ccc7b68a678",
+      "name": "Регистрация запуска Оркестратора",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         64,
         560
       ],
-      "id": "9c3322a3-528d-4e8e-88ea-9ccc7b68a678",
-      "name": "Регистрация запуска Оркестратора",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
@@ -253,25 +256,25 @@
       "parameters": {
         "jsCode": "// 1. Получаем данные из узлов\nconst leadContext = $(\"Загрузить полный контекст\").first().json;\nconst runContext = $(\"Регистрация запуска Оркестратора\").first().json;\nconst aiData = $(\"Оркестратор\").first().json;\n\nlet rawOutput = aiData.output || \"\";\nlet parsedDecision = {};\n\n// 2. Очистка строки от Markdown (```json ... ```)\nif (typeof rawOutput === 'string') {\n  // Убираем ```json в начале и ``` в конце, а также лишние пробелы\n  rawOutput = rawOutput.replace(/^```json\\s*/i, '').replace(/\\s*```$/, '').trim();\n}\n\n// 3. Парсинг очищенной строки\ntry {\n  parsedDecision = typeof rawOutput === 'string' ? JSON.parse(rawOutput) : rawOutput;\n} catch (e) {\n  // Если всё равно не распарсилось, сохраняем как текст\n  parsedDecision = { \n    reply_to_user: rawOutput,\n    orchestrator_summary: \"Ошибка парсинга после очистки Markdown\",\n    route_taken: \"error_parsing\"\n  };\n}\n\n// 4. Обработка шагов (инструментов)\nconst steps = (aiData.intermediateSteps || []).map((s, i) => {\n  let observationData;\n  try {\n    observationData = typeof s.observation === 'string' ? JSON.parse(s.observation) : s.observation;\n  } catch (e) {\n    observationData = s.observation;\n  }\n\n  return {\n    step: i + 1,\n    tool: s.action?.tool || \"no_tool\",\n    input: s.action?.toolInput?.input || s.action?.toolInput,\n    output: observationData\n  };\n});\n\n// 5. Формируем финальный объект\nreturn {\n  lead_id: leadContext.id,\n  run_id: runContext.run_id,\n  \n  // Берем reply_to_user из распарсенного JSON\n  reply_to_user: parsedDecision.reply_to_user || \"Не удалось получить текст ответа\",\n  should_send: parsedDecision.should_send_message !== false,\n  \n  // Данные для обновления БД\n  route: parsedDecision.route_taken || \"unknown\",\n  summary: parsedDecision.orchestrator_summary || \"No summary provided\",\n  next_step: parsedDecision.final_recommended_next_step || \"stay_in_qualification\",\n  \n  // Логи работы\n  steps: steps,\n  steps_summary: steps.map(s => s.tool).join(' -> ') || 'direct_answer'\n};"
       },
+      "id": "8455cc0a-a138-4c16-967f-1c0d81be8b3a",
+      "name": "Сборщик протокола",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
       "position": [
         1360,
         560
       ],
-      "id": "8455cc0a-a138-4c16-967f-1c0d81be8b3a",
-      "name": "Сборщик протокола"
+      "typeVersion": 2
     },
     {
       "parameters": {},
+      "id": "4c9a3e3d-f17d-4049-b044-6a46e8038ffe",
+      "name": "Think",
       "type": "@n8n/n8n-nodes-langchain.toolThink",
-      "typeVersion": 1.1,
       "position": [
         1248,
         784
       ],
-      "id": "4c9a3e3d-f17d-4049-b044-6a46e8038ffe",
-      "name": "Think"
+      "typeVersion": 1.1
     },
     {
       "parameters": {
@@ -279,16 +282,17 @@
         "query": "BEGIN;\n\n-- 1. Записываем ответ ИИ в историю сообщений (outbound)\nINSERT INTO public.messages (\n  lead_id, \n  conversation_id, \n  direction, \n  message_type, \n  text, \n  sent_by, \n  source_workflow,\n  created_at\n)\nVALUES (\n  {{ $('Загрузить канал ответа').item.json.lead_id }},\n  {{ $(\"Загрузить полный контекст\").first().json.internal_conv_id || 'NULL' }}, -- Если есть ID диалога\n  'outbound',\n  'text',\n  '{{ $(\"Оркестратор\").first().json.output.replace(/'/g, \"''\") }}',\n  'ai',\n  '02_Main_Orcestrator',\n  NOW()\n);\n\n-- 2. Обновляем время последнего контакта в карточке лида\nUPDATE public.leads \nSET \n  last_outbound_at = NOW(),\n  active_workflow = '02_Main_Orcestrator',\n  updated_at = NOW()\nWHERE id = {{ $('Загрузить канал ответа').item.json.lead_id }};\n\n-- 3. Регистрируем событие для аналитики (Бизнес-лог)\nINSERT INTO public.lead_events (\n  lead_id, \n  event_type, \n  event_category, \n  workflow_name,\n  status,\n  payload\n)\nVALUES (\n  {{ $('Загрузить канал ответа').item.json.lead_id }}, \n  'ai_reply_sent', \n  'communication',\n  '02_Main_Orcestrator',\n  'success',\n  '{{ JSON.stringify({\n      text: $(\"Оркестратор\").first().json.output,\n      amo_message_id: $json.id\n  }).replace(/'/g, \"''\") }}'::jsonb\n);\n\n-- 4. Закрываем технический лог запуска (чтобы не висел started)\nUPDATE public.workflow_runs \nSET \n  status = 'success', \n  finished_at = NOW(), \n  result_payload_json = '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb\nWHERE id = {{ $(\"Регистрация запуска Оркестратора\").first().json.run_id }};\n\nCOMMIT;",
         "options": {}
       },
+      "id": "df80141a-06b4-4414-a291-905720decb08",
+      "name": "Финализация Квалификации",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         2256,
         560
       ],
-      "id": "df80141a-06b4-4414-a291-905720decb08",
-      "name": "Финализация Квалификации",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
@@ -300,59 +304,59 @@
             {
               "conditions": {
                 "options": {
-                  "caseSensitive": true,
+                  "version": 3,
                   "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
                 },
+                "combinator": "and",
                 "conditions": [
                   {
-                    "leftValue": "={{ $('Загрузить полный контекст').item.json.reply_channel }}",
-                    "rightValue": "amocrm",
+                    "id": "759c8282-f52f-4c68-8f15-4159a3f567dc",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
                     },
-                    "id": "759c8282-f52f-4c68-8f15-4159a3f567dc"
+                    "leftValue": "={{ $('Загрузить полный контекст').item.json.reply_channel }}",
+                    "rightValue": "amocrm"
                   }
-                ],
-                "combinator": "and"
+                ]
               }
             },
             {
               "conditions": {
                 "options": {
-                  "caseSensitive": true,
+                  "version": 3,
                   "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
                 },
+                "combinator": "and",
                 "conditions": [
                   {
                     "id": "76f1e09b-1135-4b85-9572-6fe16388dcf2",
-                    "leftValue": "={{ $('Загрузить полный контекст').item.json.reply_channel }}",
-                    "rightValue": "telegram",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
-                    }
+                    },
+                    "leftValue": "={{ $('Загрузить полный контекст').item.json.reply_channel }}",
+                    "rightValue": "telegram"
                   }
-                ],
-                "combinator": "and"
+                ]
               }
             }
           ]
         },
         "options": {}
       },
+      "id": "ea6285fa-f98e-4ea2-b383-189882b132b8",
+      "name": "Выбрать канал ответа",
       "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
       "position": [
         1808,
         560
       ],
-      "id": "ea6285fa-f98e-4ea2-b383-189882b132b8",
-      "name": "Выбрать канал ответа"
+      "typeVersion": 3.4
     },
     {
       "parameters": {
@@ -362,17 +366,18 @@
           "appendAttribution": false
         }
       },
+      "id": "ce05b560-1640-4313-8d9c-b9b010ee1fff",
+      "name": "Отправить в Telegram",
       "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
       "position": [
         2032,
         656
       ],
-      "id": "ce05b560-1640-4313-8d9c-b9b010ee1fff",
-      "name": "Отправить в Telegram",
       "webhookId": "a982a30f-9518-445d-b425-1ac895c638dd",
+      "typeVersion": 1.2,
       "credentials": {
         "telegramApi": {
+          "id": "O34C1b9p9laCrAJ2",
           "name": "Telegram Sales Bot"
         }
       }
@@ -383,16 +388,17 @@
         "query": "-- 1. Сначала записываем событие в лог (как во втором запросе)\nWITH log_insert AS (\n  INSERT INTO public.lead_events (\n    lead_id,\n    event_type,\n    event_category,\n    workflow_name,\n    status,\n    payload,\n    created_at\n  )\n  VALUES (\n    {{ $('When Executed by Another Workflow').item.json.lead_id }},\n    'qualificationstarted',\n    'workflow',\n    '03_WF_Qualification',\n    'success',\n    jsonb_build_object(\n      'lead_id', {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ),\n    NOW()\n  )\n  RETURNING id\n),\n\n-- 2. Собираем полные данные лида из всех таблиц\nlead_combined AS (\n  SELECT DISTINCT ON (l.id)\n    -- Поля из первого запроса\n    l.id,\n    l.lead_status,\n    l.current_route,\n    l.qualification_summary,\n    l.handoff_status,\n    l.nurture_status,\n    \n    -- Поля из второго запроса\n    l.external_primary_id,\n    l.crm_contact_id,\n    l.crm_deal_id,\n    l.name,\n    l.source_metadata->>'amo_subdomain' AS subdomain,\n\n    -- Данные каналов и диалогов\n    ci.external_conversation_id AS reply_chat_id,\n    ci.channel AS reply_channel,\n    c.id AS internal_conv_id\n\n  FROM public.leads l\n  LEFT JOIN public.channel_identities ci\n    ON l.id = ci.lead_id\n  LEFT JOIN public.conversations c\n    ON c.lead_id = l.id\n   AND c.external_conversation_id = ci.external_conversation_id\n\n  WHERE l.id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n  \n  -- Важно для DISTINCT ON, чтобы выбрать приоритетный канал связи\n  ORDER BY l.id, ci.is_primary DESC, ci.id DESC\n),\n\n-- 3. Получаем историю сообщений (взял лимит 15 и формат с датой)\nhistory AS (\n  SELECT \n    COALESCE(string_agg(msg_row, E'\\n'), 'История пуста') AS chat_history\n  FROM (\n    SELECT \n      '[' || created_at || '] ' || sent_by || ': ' || text AS msg_row\n    FROM public.messages\n    WHERE lead_id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ORDER BY created_at DESC\n    LIMIT 15\n  ) sub\n)\n\n-- 4. Выводим всё вместе\nSELECT \n  l.*, \n  h.chat_history \nFROM lead_combined l, history h;",
         "options": {}
       },
+      "id": "183de28d-8d78-4152-a070-b7f380f2aeed",
+      "name": "Загрузить полный контекст",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         288,
         560
       ],
-      "id": "183de28d-8d78-4152-a070-b7f380f2aeed",
-      "name": "Загрузить полный контекст",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
@@ -403,16 +409,17 @@
         "query": "SELECT \n    l.id AS lead_id,\n    l.name,\n    l.qualification_summary,\n    -- ТЕХНИЧЕСКИЙ ПАСПОРТ ДЛЯ AmoCRM API\n    l.source_metadata->>'amo_account_id' AS reply_account_id,\n    l.source_metadata->>'amo_subdomain' AS reply_subdomain,\n    l.source_metadata->>'talk_id' AS reply_talk_id,\n    l.source_metadata->>'author_id' AS reply_recipient_id,\n    l.source_metadata->>'contact_id' AS reply_contact_id,\n    l.source_metadata->>'element_type' AS reply_entity_type,\n    l.crm_deal_id AS reply_entity_id,\n    \n    -- ТОТ САМЫЙ CHAT_ID ДЛЯ URL (из таблицы каналов)\n    ci.external_conversation_id AS reply_chat_id,\n    \n    -- ИСТОРИЯ ЧАТА ДЛЯ КОНТЕКСТА ИИ\n    (SELECT COALESCE(string_agg(sent_by || ': ' || text, E'\\n'), 'История пуста') \n     FROM (\n       SELECT sent_by, text \n       FROM public.messages \n       WHERE lead_id = l.id \n       ORDER BY created_at DESC \n       LIMIT 6\n     ) m) AS history_text\n\nFROM public.leads l\nLEFT JOIN public.channel_identities ci ON l.id = ci.lead_id\nWHERE l.id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n-- Берем самый свежий или основной канал\nORDER BY ci.is_primary DESC, ci.id DESC \nLIMIT 1;",
         "options": {}
       },
+      "id": "2d388205-37d2-4679-aec7-4447d7157aab",
+      "name": "Загрузить канал ответа",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         1584,
         560
       ],
-      "id": "2d388205-37d2-4679-aec7-4447d7157aab",
-      "name": "Загрузить канал ответа",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
@@ -423,22 +430,24 @@
         "leadId": "={{ $json.reply_entity_id }}",
         "messageText": "={{ $('Сборщик протокола').item.json.reply_to_user }}"
       },
+      "id": "708aab70-28c1-4ce9-ba87-bf2cf632caff",
+      "name": "Comandos AmoCRM1",
       "type": "@comandosai/n8n-nodes-amo-crm.comandosAmoCrm",
-      "typeVersion": 1,
       "position": [
         2032,
         464
       ],
-      "id": "708aab70-28c1-4ce9-ba87-bf2cf632caff",
-      "name": "Comandos AmoCRM1",
+      "typeVersion": 1,
       "credentials": {
         "comandosLsiKeysApi": {
+          "id": "FeYqgks7RHIeeS8f",
           "name": "Comandos LSI"
         }
       },
       "disabled": true
     }
   ],
+  "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
       "main": [
@@ -618,18 +627,19 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1",
-    "availableInMCP": false,
+    "binaryMode": "separate",
     "callerPolicy": "workflowsFromSameOwner",
-    "timeSavedMode": "fixed",
     "errorWorkflow": "EHFlcFWQqxnUwv4J",
-    "binaryMode": "separate"
+    "timeSavedMode": "fixed",
+    "availableInMCP": false,
+    "executionOrder": "v1"
   },
-  "versionId": "b60da081-833a-475c-a047-99b855e4c743",
+  "versionId": "6150a54b-c1fb-4e27-a301-0de6df96c7c5",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1164e28e5a09c82a6b8183392a8f71229b9563d6bd54d96703321f05bad3e98"
   },
   "id": "VAjfq9tiJqvHH2pR",
   "tags": []

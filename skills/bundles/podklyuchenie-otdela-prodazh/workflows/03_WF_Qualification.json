@@ -7,13 +7,13 @@
         "jsonExample": "{\n  \"input\": \"a string\",\n  \"lead_id\": 123\n}"
       },
       "id": "c055762a-8fe7-4141-a639-df2372f30060",
-      "typeVersion": 1.1,
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
         272,
         368
-      ]
+      ],
+      "typeVersion": 1.1
     },
     {
       "parameters": {
@@ -21,16 +21,17 @@
         "query": "INSERT INTO public.workflow_runs (\n  lead_id,\n  conversation_id,\n  workflow_name,\n  trigger_type,\n  status,\n  input_payload_json,\n  started_at\n)\nVALUES (\n  {{ $json.internal_lead_id }},\n  {{ $json.internal_conv_id ?? 'NULL' }},\n  '03_WF_Qualification',\n  'sub-workflow',\n  'started',\n  '{{ JSON.stringify($json).replace(/'/g, \"''\") }}'::jsonb,\n  NOW()\n)\nRETURNING id AS run_id;\n",
         "options": {}
       },
+      "id": "8b38242b-c89c-497b-8be3-cf570a86ef3e",
+      "name": "Регистрация запуска Квалификации",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         752,
         368
       ],
-      "id": "8b38242b-c89c-497b-8be3-cf570a86ef3e",
-      "name": "Регистрация запуска Квалификации",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
@@ -40,16 +41,17 @@
         "model": "openai/gpt-5.4-mini",
         "options": {}
       },
+      "id": "5d6789f9-07b8-4deb-84fa-2315a1a3f3b2",
+      "name": "OpenRouter Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
       "position": [
         848,
         592
       ],
-      "id": "5d6789f9-07b8-4deb-84fa-2315a1a3f3b2",
-      "name": "OpenRouter Chat Model",
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
+          "id": "XoyHPHR961lxz8SB",
           "name": "OpenRouter"
         }
       }
@@ -64,16 +66,17 @@
         "builtInTools": {},
         "options": {}
       },
+      "id": "689d7889-9a0b-4ca5-8be8-c1eaa5291642",
+      "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
       "position": [
         1168,
         592
       ],
-      "id": "689d7889-9a0b-4ca5-8be8-c1eaa5291642",
-      "name": "OpenAI Chat Model",
+      "typeVersion": 1.3,
       "credentials": {
         "openAiApi": {
+          "id": "OZvZt7wcqfivK7dd",
           "name": "OpenAI"
         }
       }
@@ -84,36 +87,38 @@
         "query": "WITH log_insert AS (\n  INSERT INTO public.lead_events (\n    lead_id,\n    event_type,\n    event_category,\n    workflow_name,\n    status,\n    payload,\n    created_at\n  )\n  VALUES (\n    {{ $('When Executed by Another Workflow').item.json.lead_id }},\n    'qualificationstarted',\n    'workflow',\n    '03_WF_Qualification',\n    'success',\n    jsonb_build_object(\n      'lead_id', {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ),\n    NOW()\n  )\n  RETURNING id\n),\nlead_data AS (\n  SELECT DISTINCT ON (l.id)\n    l.id AS internal_lead_id,\n    l.external_primary_id,\n    l.crm_contact_id,\n    l.crm_deal_id,\n    l.name,\n    l.qualification_summary,\n    l.lead_status,\n    l.source_metadata->>'amo_subdomain' AS subdomain,\n\n    -- Данные для маршрутизации ответа\n    ci.external_conversation_id AS reply_chat_id,\n    ci.channel AS reply_channel,\n\n    -- Внутренний ID диалога\n    c.id AS internal_conv_id\n\n  FROM public.leads l\n  LEFT JOIN public.channel_identities ci\n    ON l.id = ci.lead_id\n  LEFT JOIN public.conversations c\n    ON c.lead_id = l.id\n   AND c.external_conversation_id = ci.external_conversation_id\n\n  WHERE l.id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n\n  ORDER BY l.id, ci.is_primary DESC, ci.id DESC\n),\nchat_history AS (\n  SELECT COALESCE(string_agg(msg, E'\\n'), 'История пуста') AS history_text\n  FROM (\n    SELECT sent_by || ': ' || text AS msg\n    FROM public.messages\n    WHERE lead_id = {{ $('When Executed by Another Workflow').item.json.lead_id }}\n    ORDER BY created_at DESC\n    LIMIT 15\n  ) sub\n)\nSELECT * FROM lead_data, chat_history;\n",
         "options": {}
       },
+      "id": "e273bda8-8c89-47aa-a52f-8899c05089a2",
+      "name": "Загрузить Досье",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         512,
         368
       ],
-      "id": "e273bda8-8c89-47aa-a52f-8899c05089a2",
-      "name": "Загрузить Досье",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
     },
     {
       "parameters": {
-        "endpointUrl": "https://postgres.mcp.comandos.ai/",
+        "endpointUrl": "https://postgres.mcp.comandos.ai/sse",
         "authentication": "multipleHeadersAuth",
         "options": {}
       },
+      "id": "313b0471-63cc-4652-ad25-d98527104efd",
+      "name": "MCP POstgres",
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
-      "typeVersion": 1.2,
       "position": [
         1344,
         592
       ],
-      "id": "313b0471-63cc-4652-ad25-d98527104efd",
-      "name": "MCP POstgres",
+      "typeVersion": 1.2,
       "credentials": {
         "httpMultipleHeadersAuth": {
+          "id": "UqRg8eJvLqM7FGpz",
           "name": "MCP Postgres"
         }
       }
@@ -124,16 +129,17 @@
         "query": "UPDATE leads \nSET \n  lead_status = 'qualified',\n  current_route = 'consult',\n  last_status_changed_at = NOW(),\n  updated_at = NOW()\nWHERE id = {{ $('Разобрать ответ квалификатора').item.json.lead_id }};\n",
         "options": {}
       },
+      "id": "df4700b0-fb5e-4e4d-b98a-e63db8c0b737",
+      "name": "Смена статуса лида",
       "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
       "position": [
         2032,
         304
       ],
-      "id": "df4700b0-fb5e-4e4d-b98a-e63db8c0b737",
-      "name": "Смена статуса лида",
+      "typeVersion": 2.6,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
@@ -145,57 +151,57 @@
             {
               "id": "4b3a0a91-637e-4c56-8bc8-abd77d260c74",
               "name": "workflow_name",
-              "value": "03_WF_Qualification",
-              "type": "string"
+              "type": "string",
+              "value": "03_WF_Qualification"
             },
             {
               "id": "495e55a0-56e1-4168-ad29-b2172ea5e91e",
               "name": "lead_id",
-              "value": "={{ $('Разобрать ответ квалификатора').first().json.lead_id }}",
-              "type": "number"
+              "type": "number",
+              "value": "={{ $('Разобрать ответ квалификатора').first().json.lead_id }}"
             },
             {
               "id": "f1fbbd5e-80f1-4e2b-9f2b-8775749fbfc4",
               "name": "recommended_next_step",
-              "value": "={{ $node[\"Разобрать ответ квалификатора\"].json.status === 'completed' ? 'consult' : 'wait_for_reply' }}",
-              "type": "string"
+              "type": "string",
+              "value": "={{ $(\"Разобрать ответ квалификатора\").item.json.recommended_next_step || ($node[\"Разобрать ответ квалификатора\"].json.status === \"completed\" ? \"consult\" : \"wait_for_reply\") }}"
             },
             {
               "id": "ba05acd1-37d0-4e8b-9f7b-0509860b4a81",
               "name": "result_summary",
-              "value": "={{ $('Разобрать ответ квалификатора').item.json.mcp_log }}",
-              "type": "string"
+              "type": "string",
+              "value": "={{ $('Разобрать ответ квалификатора').item.json.mcp_log }}"
             },
             {
               "id": "11cbf7f0-1cf3-4c26-b811-5b32b7681ecb",
               "name": "is_qualified",
-              "value": "={{ $node[\"Разобрать ответ квалификатора\"].json.status === 'completed' }}",
-              "type": "boolean"
+              "type": "boolean",
+              "value": "={{ $(\"Разобрать ответ квалификатора\").item.json.recommended_next_step === \"consult\" }}"
             },
             {
               "id": "604590d0-9a0a-41c7-8968-f6d7dbc3c144",
               "name": "status",
-              "value": "={{ $('Разобрать ответ квалификатора').item.json.status }}",
-              "type": "string"
+              "type": "string",
+              "value": "={{ $('Разобрать ответ квалификатора').item.json.status }}"
             },
             {
               "id": "9722dea2-9321-4b7b-8846-8beb4e8c5068",
               "name": "text_to_user",
-              "value": "={{ $('Разобрать ответ квалификатора').item.json.text_to_user }}",
-              "type": "string"
+              "type": "string",
+              "value": "={{ $('Разобрать ответ квалификатора').item.json.text_to_user }}"
             }
           ]
         },
         "options": {}
       },
+      "id": "09b3730b-0658-4cef-b373-d22aee7c0904",
+      "name": "Ответ оркестратору",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
       "position": [
         2256,
         368
       ],
-      "id": "09b3730b-0658-4cef-b373-d22aee7c0904",
-      "name": "Ответ оркестратору"
+      "typeVersion": 3.4
     },
     {
       "parameters": {
@@ -203,16 +209,17 @@
         "authentication": "multipleHeadersAuth",
         "options": {}
       },
+      "id": "ae7df609-3f3c-4b53-9e0d-2622aa4b3da8",
+      "name": "MCP CRM",
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
-      "typeVersion": 1.2,
       "position": [
         1488,
         592
       ],
-      "id": "ae7df609-3f3c-4b53-9e0d-2622aa4b3da8",
-      "name": "MCP CRM",
+      "typeVersion": 1.2,
       "credentials": {
         "httpMultipleHeadersAuth": {
+          "id": "1cDc3sb79MDztuLr",
           "name": "MCP AmoCRM"
         }
       },
@@ -220,68 +227,49 @@
     },
     {
       "parameters": {
-        "jsCode": "const aiRaw = $(\"AI Квалификатор\").first().json.output;\n\nfunction stripMarkdown(text) {\n  return String(text || \"\")\n    .replace(/```json/gi, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = stripMarkdown(text);\n\n  let depth = 0;\n  let start = -1;\n  let inString = false;\n  let escaped = false;\n\n  for (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n\n    if (inString) {\n      if (escaped) {\n        escaped = false;\n      } else if (ch === \"\\\\\") {\n        escaped = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === \"{\") {\n      if (depth === 0) start = i;\n      depth++;\n      continue;\n    }\n\n    if (ch === \"}\") {\n      depth--;\n      if (depth === 0 && start !== -1) {\n        return s.slice(start, i + 1);\n      }\n    }\n  }\n\n  return null;\n}\n\nfunction safeParseAiOutput(value) {\n  if (value && typeof value === \"object\" && !Array.isArray(value)) {\n    return value;\n  }\n\n  if (Array.isArray(value)) {\n    const firstWithOutput = value.find(item => item && typeof item === \"object\" && item.output);\n    if (firstWithOutput) {\n      value = firstWithOutput.output;\n    } else {\n      return null;\n    }\n  }\n\n  if (typeof value !== \"string\") return null;\n\n  const cleaned = stripMarkdown(value);\n\n  try {\n    return JSON.parse(cleaned);\n  } catch {}\n\n  const firstJson = extractFirstJsonObject(cleaned);\n  if (firstJson) {\n    try {\n      return JSON.parse(firstJson);\n    } catch {}\n  }\n\n  return null;\n}\n\nfunction sanitizeTextToUser(parsed, raw) {\n  if (parsed && typeof parsed.text_to_user === \"string\" && parsed.text_to_user.trim()) {\n    return parsed.text_to_user.trim();\n  }\n\n  const firstJson = typeof raw === \"string\" ? extractFirstJsonObject(raw) : null;\n  if (firstJson) {\n    try {\n      const reparsed = JSON.parse(firstJson);\n      if (typeof reparsed.text_to_user === \"string\" && reparsed.text_to_user.trim()) {\n        return reparsed.text_to_user.trim();\n      }\n    } catch {}\n  }\n\n  return \"Понял ваш запрос. Могу продолжить, но сначала пришлите, пожалуйста, номер телефона.\";\n}\n\nconst parsed = safeParseAiOutput(aiRaw);\n\nreturn {\n  ...(parsed || {\n    status: \"error_fallback\",\n    is_qualified: false\n  }),\n  text_to_user: sanitizeTextToUser(parsed, aiRaw),\n  lead_id: $(\"When Executed by Another Workflow\").first().json.lead_id\n};\n"
+        "jsCode": "const aiRaw = $(\"AI Qualification\").first().json.output;\nconst userInput = String($(\"When Executed by Another Workflow\").first().json.input || \"\").toLowerCase();\n\nfunction stripMarkdown(text) {\n  return String(text || \"\")\n    .replace(/```json/gi, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = stripMarkdown(text);\n\n  let depth = 0;\n  let start = -1;\n  let inString = false;\n  let escaped = false;\n\n  for (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n\n    if (inString) {\n      if (escaped) {\n        escaped = false;\n      } else if (ch === \"\\\\\") {\n        escaped = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === \"{\") {\n      if (depth === 0) start = i;\n      depth++;\n      continue;\n    }\n\n    if (ch === \"}\") {\n      depth--;\n      if (depth === 0 && start !== -1) {\n        return s.slice(start, i + 1);\n      }\n    }\n  }\n\n  return null;\n}\n\nfunction safeParseAiOutput(value) {\n  if (value && typeof value === \"object\" && !Array.isArray(value)) {\n    return value;\n  }\n\n  if (Array.isArray(value)) {\n    const firstWithOutput = value.find(item => item && typeof item === \"object\" && item.output);\n    if (firstWithOutput) {\n      value = firstWithOutput.output;\n    } else {\n      return null;\n    }\n  }\n\n  if (typeof value !== \"string\") return null;\n\n  const cleaned = stripMarkdown(value);\n\n  try {\n    return JSON.parse(cleaned);\n  } catch {}\n\n  const firstJson = extractFirstJsonObject(cleaned);\n  if (firstJson) {\n    try {\n      return JSON.parse(firstJson);\n    } catch {}\n  }\n\n  return null;\n}\n\nfunction sanitizeTextToUser(parsed, raw) {\n  if (parsed && typeof parsed.text_to_user === \"string\" && parsed.text_to_user.trim()) {\n    return parsed.text_to_user.trim();\n  }\n\n  const firstJson = typeof raw === \"string\" ? extractFirstJsonObject(raw) : null;\n  if (firstJson) {\n    try {\n      const reparsed = JSON.parse(firstJson);\n      if (typeof reparsed.text_to_user === \"string\" && reparsed.text_to_user.trim()) {\n        return reparsed.text_to_user.trim();\n      }\n    } catch {}\n  }\n\n  return \"Понял ваш запрос. Чтобы продолжить, уточню один короткий момент: какая цель сейчас в приоритете?\";\n}\n\nconst parsed = safeParseAiOutput(aiRaw) || {\n  status: \"error_fallback\",\n  is_qualified: false\n};\n\nconst consultIntent = /(цена|стоим|сколько|бонус|скидк|разниц|сравн|какой лучше|какой вариант|вариант|продукт|выбираю|выбрал|спринт|практикум|резидент)/i.test(userInput);\n\nlet recommendedNextStep = parsed.status === \"completed\" ? \"consult\" : \"wait_for_reply\";\nif (parsed.status !== \"completed\" && consultIntent) {\n  recommendedNextStep = \"consult\";\n}\n\nreturn {\n  ...parsed,\n  text_to_user: sanitizeTextToUser(parsed, aiRaw),\n  lead_id: $(\"When Executed by Another Workflow\").first().json.lead_id,\n  recommended_next_step: recommendedNextStep\n};"
       },
+      "id": "95591d3f-23f8-4a69-8a10-668c35131cc7",
+      "name": "Разобрать ответ квалификатора",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
       "position": [
         1536,
         368
       ],
-      "id": "95591d3f-23f8-4a69-8a10-668c35131cc7",
-      "name": "Разобрать ответ квалификатора"
+      "typeVersion": 2
     },
     {
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 3,
             "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
+            "caseSensitive": true,
+            "typeValidation": "strict"
           },
+          "combinator": "and",
           "conditions": [
             {
               "id": "412e180f-6f9b-4680-b093-a45eebc0bb40",
-              "leftValue": "={{ $('Разобрать ответ квалификатора').item.json.status }}",
-              "rightValue": "=completed",
               "operator": {
                 "type": "string",
                 "operation": "equals"
-              }
+              },
+              "leftValue": "={{ $('Разобрать ответ квалификатора').item.json.status }}",
+              "rightValue": "=completed"
             }
-          ],
-          "combinator": "and"
+          ]
         },
         "options": {}
       },
+      "id": "19cdf8e2-7591-4910-8659-4c48d839142d",
+      "name": "Проверить завершение квалификации",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
       "position": [
         1808,
         368
       ],
-      "id": "19cdf8e2-7591-4910-8659-4c48d839142d",
-      "name": "Проверить завершение квалификации"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $(\"When Executed by Another Workflow\").first().json.input }}\n---LEAD_PASSPORT_START---\n### ТЕХНИЧЕСКИЙ ПАСПОРТ ЛИДА\nPostgres ID: {{ $('Загрузить Досье').item.json.internal_lead_id }} \nAmoCRM Contact ID: {{ $('Загрузить Досье').item.json.crm_contact_id }}  \nAmoCRM Deal ID: {{ $('Загрузить Досье').item.json.crm_deal_id }}\nКанал: {{ $('Загрузить Досье').item.json.reply_channel }}\n---\n\n### ТЕКУЩЕЕ ВРЕМЯ (МСК)\n\n{{ $now.setZone('Europe/Moscow').setLocale('ru').toFormat('dd.MM.yyyy, cccc, HH:mm') }}\n\n---\n\n### ТЕКУЩИЙ КОНТЕКСТ\n\nИмя клиента: {{ $('Загрузить Досье').item.json.name }}\n\nДосье клиента (qualification_summary):  \n{{ $('Загрузить Досье').item.json.qualification_summary || 'Пусто' }}",
-        "needsFallback": true,
-        "options": {
-          "systemMessage": "=",
-          "returnIntermediateSteps": true
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        1072,
-        368
-      ],
-      "id": "ef3c046c-59fd-4393-9205-47e889603b1d",
-      "name": "AI Квалификатор"
+      "typeVersion": 2.3
     },
     {
       "parameters": {
@@ -290,21 +278,42 @@
         "tableName": "chat_history",
         "contextWindowLength": 15
       },
+      "id": "d5c127c8-f685-4dbc-a8cd-d0e4c7b90449",
+      "name": "Postgres Chat Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "typeVersion": 1.3,
       "position": [
         1008,
         592
       ],
-      "id": "d5c127c8-f685-4dbc-a8cd-d0e4c7b90449",
-      "name": "Postgres Chat Memory",
+      "typeVersion": 1.3,
       "credentials": {
         "postgres": {
+          "id": "XpI2lY7hPopCOQAp",
           "name": "Postgres"
         }
       }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $(\"When Executed by Another Workflow\").first().json.input }}\n---LEAD_PASSPORT_START---\n### ТЕХНИЧЕСКИЙ ПАСПОРТ ЛИДА\nPostgres ID: {{ $('Загрузить Досье').item.json.internal_lead_id }} \nAmoCRM Contact ID: {{ $('Загрузить Досье').item.json.crm_contact_id }}  \nAmoCRM Deal ID: {{ $('Загрузить Досье').item.json.crm_deal_id }}\nКанал: {{ $('Загрузить Досье').item.json.reply_channel }}\n---\n\n### ТЕКУЩЕЕ ВРЕМЯ (МСК)\n\n{{ $now.setZone('Europe/Moscow').setLocale('ru').toFormat('dd.MM.yyyy, cccc, HH:mm') }}\n\n---\n\n### ТЕКУЩИЙ КОНТЕКСТ\n\nИмя клиента: {{ $('Загрузить Досье').item.json.name }}\n\nДосье клиента (qualification_summary):  \n{{ $('Загрузить Досье').item.json.qualification_summary || 'Пусто' }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "\n# SYSTEM PROMPT: SDR QUALIFIER (DEMO SOFT VERSION)\n\nТы — `sdr_qualifier`.\n\nТвоя задача:\n- спокойно понять запрос клиента;\n- собрать минимум данных для передачи в консультацию/менеджеру;\n- не давить вопросами и не торопить с передачей.\n\n## Роль и границы\n\nТы не консультант по продуктам.\nТы не делаешь подбор тарифа и не сравниваешь продукты подробно.\n\nЗапрещено:\n- `products_live lookup`\n- `exact_match`\n- `relaxed_match`\n- `category_browse`\n\n## Стиль\n\n- Коротко, по-человечески.\n- За один ход: один главный вопрос или один чёткий следующий шаг.\n- Не писать про внутренние ошибки, узлы, маршруты и технику.\n\n## Что собираем на этапе квалификации\n\nМинимально полезный набор:\n- цель обращения;\n- сроки (когда нужен результат);\n- ориентир по бюджету (если уместно);\n- контакт для передачи менеджеру (обычно телефон) — только ближе к передаче.\n\nНе проси телефон в самом начале, если человек ещё просто узнаёт варианты.\n\n## Логика диалога\n\nДержи только 2 статуса:\n- `identifying`\n- `completed`\n\nПока данных мало или нет явного запроса на менеджера:\n- оставайся в `identifying`;\n- задавай один следующий уместный вопрос.\n\nСтавь `completed`, когда:\n- клиент прямо просит подключить менеджера/оформление;\n- собран минимальный набор для передачи;\n- есть контакт для связи.\n\nЕсли клиент просит менеджера, но контакта нет:\n- попроси только контакт;\n- статус оставь `identifying`.\n\n## Память и запись в БД (обязательно при новом факте)\n\nЕсли появился новый значимый факт и есть `lead_id`, обновляй профиль лида через `MCP Postgres`.\n\nИспользуй безопасную функцию:\n\n```sql\nSELECT *\nFROM public.update_lead_profile_safe(\n  p_lead_id => <lead_id>::integer,\n  p_name => <name_or_null>::text,\n  p_phone => <phone_or_null>::text,\n  p_email => <email_or_null>::text,\n  p_qualification_summary => <qualification_summary_or_null>::text,\n  p_qualification_score => <score_or_null>::integer,\n  p_purchase_purpose => <purpose_or_null>::text,\n  p_budget_min => <budget_min_or_null>::numeric,\n  p_budget_max => <budget_max_or_null>::numeric,\n  p_purchase_timeline => <timeline_or_null>::text,\n  p_product_interest => <interest_or_null>::text\n);\n```\n\nПравило порядка:\n1. Сначала обнови summary и новые поля в БД.\n2. Потом отправляй ответ клиенту.\n\n## Нельзя\n\n- Слишком рано закрывать квалификацию.\n- Делать вид, что передача выполнена, если не хватает ключевых данных.\n- Писать пользователю служебный текст вроде \"ошибка маршрута\".\n\n## Fixed JSON Output Contract\n\nВозвращай только JSON:\n\n```json\n{\n  \"text_to_user\": \"string\",\n  \"status\": \"identifying | completed\",\n  \"missing_info\": [],\n  \"mcp_log\": \"string\",\n  \"message_sent\": true\n}\n```\n\nСтрого:\n- никаких дополнительных полей;\n- никаких комментариев вне JSON;\n- `missing_info` только реально блокирующие пункты;\n- `mcp_log` короткий, одной строкой.\n\n## Самопроверка перед ответом\n\n- Я точно в роли `sdr_qualifier`?\n- Я не ушёл в продуктовую консультацию?\n- Если есть новый факт, я обновил БД?\n- Статус выбран корректно?\n- JSON строго по контракту?\n",
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "ef3c046c-59fd-4393-9205-47e889603b1d",
+      "name": "AI Qualification",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1072,
+        368
+      ],
+      "typeVersion": 3.1
     }
   ],
+  "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
       "main": [
@@ -321,7 +330,7 @@
       "main": [
         [
           {
-            "node": "AI Квалификатор",
+            "node": "AI Qualification",
             "type": "main",
             "index": 0
           }
@@ -332,7 +341,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Квалификатор",
+            "node": "AI Qualification",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -343,7 +352,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Квалификатор",
+            "node": "AI Qualification",
             "type": "ai_languageModel",
             "index": 1
           }
@@ -365,7 +374,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Квалификатор",
+            "node": "AI Qualification",
             "type": "ai_tool",
             "index": 0
           }
@@ -378,17 +387,6 @@
           {
             "node": "Ответ оркестратору",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "MCP CRM": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Квалификатор",
-            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -423,7 +421,18 @@
         ]
       ]
     },
-    "AI Квалификатор": {
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Qualification",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Qualification": {
       "main": [
         [
           {
@@ -433,31 +442,21 @@
           }
         ]
       ]
-    },
-    "Postgres Chat Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Квалификатор",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1",
-    "availableInMCP": false,
-    "timeSavedMode": "fixed",
-    "errorWorkflow": "EHFlcFWQqxnUwv4J",
+    "binaryMode": "separate",
     "callerPolicy": "workflowsFromSameOwner",
-    "binaryMode": "separate"
+    "errorWorkflow": "EHFlcFWQqxnUwv4J",
+    "timeSavedMode": "fixed",
+    "availableInMCP": false,
+    "executionOrder": "v1"
   },
-  "versionId": "28fa33ac-a7a3-46fe-990b-773c4be1aba7",
+  "versionId": "ce123566-9832-48ed-bf49-1c9bb825a3b1",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1164e28e5a09c82a6b8183392a8f71229b9563d6bd54d96703321f05bad3e98"
   },
   "id": "PfOC1TVZyJuArLy2",
   "tags": []
