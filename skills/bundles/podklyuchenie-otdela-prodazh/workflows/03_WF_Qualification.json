@@ -118,7 +118,7 @@
       "typeVersion": 1.2,
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "UqRg8eJvLqM7FGpz",
+          "id": "C0MR8QMPG26X2LK",
           "name": "MCP Postgres"
         }
       }
@@ -205,28 +205,6 @@
     },
     {
       "parameters": {
-        "endpointUrl": "https://amocrm.mcp.comandos.ai",
-        "authentication": "multipleHeadersAuth",
-        "options": {}
-      },
-      "id": "ae7df609-3f3c-4b53-9e0d-2622aa4b3da8",
-      "name": "MCP CRM",
-      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
-      "position": [
-        1488,
-        592
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "httpMultipleHeadersAuth": {
-          "id": "1cDc3sb79MDztuLr",
-          "name": "MCP AmoCRM"
-        }
-      },
-      "disabled": true
-    },
-    {
-      "parameters": {
         "jsCode": "const aiRaw = $(\"AI Qualification\").first().json.output;\nconst userInput = String($(\"When Executed by Another Workflow\").first().json.input || \"\").toLowerCase();\n\nfunction stripMarkdown(text) {\n  return String(text || \"\")\n    .replace(/```json/gi, \"\")\n    .replace(/```/g, \"\")\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = stripMarkdown(text);\n\n  let depth = 0;\n  let start = -1;\n  let inString = false;\n  let escaped = false;\n\n  for (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n\n    if (inString) {\n      if (escaped) {\n        escaped = false;\n      } else if (ch === \"\\\\\") {\n        escaped = true;\n      } else if (ch === '\"') {\n        inString = false;\n      }\n      continue;\n    }\n\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n\n    if (ch === \"{\") {\n      if (depth === 0) start = i;\n      depth++;\n      continue;\n    }\n\n    if (ch === \"}\") {\n      depth--;\n      if (depth === 0 && start !== -1) {\n        return s.slice(start, i + 1);\n      }\n    }\n  }\n\n  return null;\n}\n\nfunction safeParseAiOutput(value) {\n  if (value && typeof value === \"object\" && !Array.isArray(value)) {\n    return value;\n  }\n\n  if (Array.isArray(value)) {\n    const firstWithOutput = value.find(item => item && typeof item === \"object\" && item.output);\n    if (firstWithOutput) {\n      value = firstWithOutput.output;\n    } else {\n      return null;\n    }\n  }\n\n  if (typeof value !== \"string\") return null;\n\n  const cleaned = stripMarkdown(value);\n\n  try {\n    return JSON.parse(cleaned);\n  } catch {}\n\n  const firstJson = extractFirstJsonObject(cleaned);\n  if (firstJson) {\n    try {\n      return JSON.parse(firstJson);\n    } catch {}\n  }\n\n  return null;\n}\n\nfunction sanitizeTextToUser(parsed, raw) {\n  if (parsed && typeof parsed.text_to_user === \"string\" && parsed.text_to_user.trim()) {\n    return parsed.text_to_user.trim();\n  }\n\n  const firstJson = typeof raw === \"string\" ? extractFirstJsonObject(raw) : null;\n  if (firstJson) {\n    try {\n      const reparsed = JSON.parse(firstJson);\n      if (typeof reparsed.text_to_user === \"string\" && reparsed.text_to_user.trim()) {\n        return reparsed.text_to_user.trim();\n      }\n    } catch {}\n  }\n\n  return \"Понял ваш запрос. Чтобы продолжить, уточню один короткий момент: какая цель сейчас в приоритете?\";\n}\n\nconst parsed = safeParseAiOutput(aiRaw) || {\n  status: \"error_fallback\",\n  is_qualified: false\n};\n\nconst consultIntent = /(цена|стоим|сколько|бонус|скидк|разниц|сравн|какой лучше|какой вариант|вариант|продукт|выбираю|выбрал|спринт|практикум|резидент)/i.test(userInput);\n\nlet recommendedNextStep = parsed.status === \"completed\" ? \"consult\" : \"wait_for_reply\";\nif (parsed.status !== \"completed\" && consultIntent) {\n  recommendedNextStep = \"consult\";\n}\n\nreturn {\n  ...parsed,\n  text_to_user: sanitizeTextToUser(parsed, aiRaw),\n  lead_id: $(\"When Executed by Another Workflow\").first().json.lead_id,\n  recommended_next_step: recommendedNextStep\n};"
       },
       "id": "95591d3f-23f8-4a69-8a10-668c35131cc7",
@@ -299,7 +277,7 @@
         "text": "={{ $(\"When Executed by Another Workflow\").first().json.input }}\n---LEAD_PASSPORT_START---\n### ТЕХНИЧЕСКИЙ ПАСПОРТ ЛИДА\nPostgres ID: {{ $('Загрузить Досье').item.json.internal_lead_id }} \nAmoCRM Contact ID: {{ $('Загрузить Досье').item.json.crm_contact_id }}  \nAmoCRM Deal ID: {{ $('Загрузить Досье').item.json.crm_deal_id }}\nКанал: {{ $('Загрузить Досье').item.json.reply_channel }}\n---\n\n### ТЕКУЩЕЕ ВРЕМЯ (МСК)\n\n{{ $now.setZone('Europe/Moscow').setLocale('ru').toFormat('dd.MM.yyyy, cccc, HH:mm') }}\n\n---\n\n### ТЕКУЩИЙ КОНТЕКСТ\n\nИмя клиента: {{ $('Загрузить Досье').item.json.name }}\n\nДосье клиента (qualification_summary):  \n{{ $('Загрузить Досье').item.json.qualification_summary || 'Пусто' }}",
         "needsFallback": true,
         "options": {
-          "systemMessage": "\n# SYSTEM PROMPT: SDR QUALIFIER (DEMO SOFT VERSION)\n\nТы — `sdr_qualifier`.\n\nТвоя задача:\n- спокойно понять запрос клиента;\n- собрать минимум данных для передачи в консультацию/менеджеру;\n- не давить вопросами и не торопить с передачей.\n\n## Роль и границы\n\nТы не консультант по продуктам.\nТы не делаешь подбор тарифа и не сравниваешь продукты подробно.\n\nЗапрещено:\n- `products_live lookup`\n- `exact_match`\n- `relaxed_match`\n- `category_browse`\n\n## Стиль\n\n- Коротко, по-человечески.\n- За один ход: один главный вопрос или один чёткий следующий шаг.\n- Не писать про внутренние ошибки, узлы, маршруты и технику.\n\n## Что собираем на этапе квалификации\n\nМинимально полезный набор:\n- цель обращения;\n- сроки (когда нужен результат);\n- ориентир по бюджету (если уместно);\n- контакт для передачи менеджеру (обычно телефон) — только ближе к передаче.\n\nНе проси телефон в самом начале, если человек ещё просто узнаёт варианты.\n\n## Логика диалога\n\nДержи только 2 статуса:\n- `identifying`\n- `completed`\n\nПока данных мало или нет явного запроса на менеджера:\n- оставайся в `identifying`;\n- задавай один следующий уместный вопрос.\n\nСтавь `completed`, когда:\n- клиент прямо просит подключить менеджера/оформление;\n- собран минимальный набор для передачи;\n- есть контакт для связи.\n\nЕсли клиент просит менеджера, но контакта нет:\n- попроси только контакт;\n- статус оставь `identifying`.\n\n## Память и запись в БД (обязательно при новом факте)\n\nЕсли появился новый значимый факт и есть `lead_id`, обновляй профиль лида через `MCP Postgres`.\n\nИспользуй безопасную функцию:\n\n```sql\nSELECT *\nFROM public.update_lead_profile_safe(\n  p_lead_id => <lead_id>::integer,\n  p_name => <name_or_null>::text,\n  p_phone => <phone_or_null>::text,\n  p_email => <email_or_null>::text,\n  p_qualification_summary => <qualification_summary_or_null>::text,\n  p_qualification_score => <score_or_null>::integer,\n  p_purchase_purpose => <purpose_or_null>::text,\n  p_budget_min => <budget_min_or_null>::numeric,\n  p_budget_max => <budget_max_or_null>::numeric,\n  p_purchase_timeline => <timeline_or_null>::text,\n  p_product_interest => <interest_or_null>::text\n);\n```\n\nПравило порядка:\n1. Сначала обнови summary и новые поля в БД.\n2. Потом отправляй ответ клиенту.\n\n## Нельзя\n\n- Слишком рано закрывать квалификацию.\n- Делать вид, что передача выполнена, если не хватает ключевых данных.\n- Писать пользователю служебный текст вроде \"ошибка маршрута\".\n\n## Fixed JSON Output Contract\n\nВозвращай только JSON:\n\n```json\n{\n  \"text_to_user\": \"string\",\n  \"status\": \"identifying | completed\",\n  \"missing_info\": [],\n  \"mcp_log\": \"string\",\n  \"message_sent\": true\n}\n```\n\nСтрого:\n- никаких дополнительных полей;\n- никаких комментариев вне JSON;\n- `missing_info` только реально блокирующие пункты;\n- `mcp_log` короткий, одной строкой.\n\n## Самопроверка перед ответом\n\n- Я точно в роли `sdr_qualifier`?\n- Я не ушёл в продуктовую консультацию?\n- Если есть новый факт, я обновил БД?\n- Статус выбран корректно?\n- JSON строго по контракту?\n",
+          "systemMessage": "",
           "returnIntermediateSteps": true
         }
       },
@@ -453,7 +431,7 @@
     "availableInMCP": false,
     "executionOrder": "v1"
   },
-  "versionId": "ce123566-9832-48ed-bf49-1c9bb825a3b1",
+  "versionId": "484e8827-5270-4477-80bf-678baf0a1c63",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f1164e28e5a09c82a6b8183392a8f71229b9563d6bd54d96703321f05bad3e98"

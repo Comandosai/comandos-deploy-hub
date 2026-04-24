@@ -11,7 +11,7 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
         -1584,
-        -48
+        -40
       ],
       "typeVersion": 1.1
     },
@@ -25,7 +25,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "position": [
         -912,
-        192
+        184
       ],
       "typeVersion": 1,
       "credentials": {
@@ -50,7 +50,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "position": [
         -784,
-        192
+        184
       ],
       "typeVersion": 1.3,
       "credentials": {
@@ -71,36 +71,15 @@
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
       "position": [
         -528,
-        192
+        184
       ],
       "typeVersion": 1.2,
       "credentials": {
         "httpMultipleHeadersAuth": {
-          "id": "UqRg8eJvLqM7FGpz",
+          "id": "C0MR8QMPG26X2LK",
           "name": "MCP Postgres"
         }
       }
-    },
-    {
-      "parameters": {
-        "endpointUrl": "https://amocrm.mcp.comandos.ai",
-        "authentication": "multipleHeadersAuth",
-        "options": {}
-      },
-      "id": "043a448e-68d5-4763-a104-d482567994ce",
-      "name": "MCP Amocrm",
-      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
-      "position": [
-        -400,
-        192
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "httpMultipleHeadersAuth": {
-          "name": "MCP AmoCRM"
-        }
-      },
-      "disabled": true
     },
     {
       "parameters": {
@@ -108,7 +87,7 @@
         "text": "={{ $(\"When Executed by Another Workflow\").first().json.input }}\n---LEAD_PASSPORT_START---\n### ТЕХНИЧЕСКИЙ ПАСПОРТ ЛИДА\nPostgres ID: {{ $('Загрузить Досье').item.json.internal_lead_id }} \nAmoCRM Contact ID: {{ $('Загрузить Досье').item.json.crm_contact_id }}  \nAmoCRM Deal ID: {{ $('Загрузить Досье').item.json.crm_deal_id }}\nКанал: {{ $('Загрузить Досье').item.json.reply_channel }}\n---\n\n### ТЕКУЩЕЕ ВРЕМЯ (МСК)\n\n{{ $now.setZone('Europe/Moscow').setLocale('ru').toFormat('dd.MM.yyyy, cccc, HH:mm') }}\n\n---\n\n### ТЕКУЩИЙ КОНТЕКСТ\n\nИмя клиента: {{ $('Загрузить Досье').item.json.name }}\n\nДосье клиента (qualification_summary):  \n{{ $('Загрузить Досье').item.json.qualification_summary || 'Пусто' }}",
         "needsFallback": true,
         "options": {
-          "systemMessage": "\n# SYSTEM PROMPT: SDR CONSULTANT (DEMO SOFT VERSION)\n\nТы — `consultant`.\n\nТвоя задача:\n- дать понятную консультацию по продуктам;\n- помочь выбрать лучший следующий шаг;\n- передавать менеджеру только когда это действительно уместно.\n\n## Роль и границы\n\nТы не заменяешь квалификатор и не начинаешь с допроса.\nТы не должен делать раннюю передачу менеджеру после первого ответа.\n\n## Приоритет источников\n\nВсегда работай в порядке:\n1. `knowledge_rag`\n2. `product_memory` (если есть)\n3. live-данные из `products_live` через `MCP Postgres`\n\nЕсли данных не хватает:\n- честно скажи, что нужно уточнить;\n- задай один короткий уточняющий вопрос.\n\n## Как вести консультацию\n\n- Сначала ответ по сути вопроса клиента.\n- Потом коротко объясни, почему такой вариант.\n- В конце один следующий шаг.\n\nОграничения:\n- не больше одного уточняющего вопроса за сообщение;\n- не перескакивай сразу к handoff;\n- дай клиенту пройти хотя бы 2 содержательных шага консультации,\n  если только он сам явно не просит менеджера сразу.\n\n## Когда передавать менеджеру\n\nПередача уместна, если:\n- клиент подтвердил выбор;\n- или прямо попросил менеджера/оформление;\n- или нужна ручная часть, которую бот не делает.\n\nЕсли для передачи не хватает телефона:\n- попроси только телефон;\n- оставь `in_progress` + `continue_consultation`.\n\n## Запись в БД (обязательно при новом факте)\n\nЕсли в диалоге появился новый значимый факт, обновляй лид через `MCP Postgres`:\n- обновляй `consultation_summary`;\n- при необходимости обновляй `product_interest`, бюджет, сроки, контакт.\n\nИспользуй безопасную функцию:\n\n```sql\nSELECT *\nFROM public.update_lead_profile_safe(\n  p_lead_id => <lead_id>::integer,\n  p_name => <name_or_null>::text,\n  p_phone => <phone_or_null>::text,\n  p_email => <email_or_null>::text,\n  p_qualification_summary => <qualification_summary_or_null>::text,\n  p_qualification_score => <score_or_null>::integer,\n  p_purchase_purpose => <purpose_or_null>::text,\n  p_budget_min => <budget_min_or_null>::numeric,\n  p_budget_max => <budget_max_or_null>::numeric,\n  p_purchase_timeline => <timeline_or_null>::text,\n  p_product_interest => <interest_or_null>::text\n);\n```\n\nПорядок:\n1. Сохрани новый факт в БД.\n2. Потом отправь ответ клиенту.\n\n## Запрещено\n\n- Придумывать цены/офферы, которых нет в данных.\n- Показывать внутренние служебные поля пользователю.\n- Писать пользователю про внутренние ошибки и технику.\n\n## Output contract\n\nВозвращай только JSON:\n\n```json\n{\n  \"text_to_user\": \"string\",\n  \"consultation_status\": \"in_progress | completed\",\n  \"recommended_next_step\": \"continue_consultation | human_handoff\",\n  \"result_summary\": \"string\",\n  \"message_sent\": true\n}\n```\n\nСтрого:\n- без лишних полей;\n- без markdown снаружи JSON;\n- значения только из разрешённых.\n\n## Самопроверка\n\n- Я дал содержательную консультацию, а не раннюю передачу?\n- Если появился новый факт, я записал его в БД?\n- Я не выдал выдуманные данные?\n- JSON строго по контракту?\n",
+          "systemMessage": "",
           "returnIntermediateSteps": true
         }
       },
@@ -116,8 +95,8 @@
       "name": "Consultation",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
-        -672,
-        -48
+        -728,
+        -40
       ],
       "retryOnFail": true,
       "typeVersion": 3.1
@@ -146,8 +125,8 @@
       "name": "Supabase Vector Store",
       "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
       "position": [
-        -272,
-        192
+        -400,
+        184
       ],
       "typeVersion": 1.3,
       "credentials": {
@@ -165,8 +144,8 @@
       "name": "Embeddings OpenAI",
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "position": [
-        -192,
-        400
+        -320,
+        392
       ],
       "typeVersion": 1.2,
       "credentials": {
@@ -184,8 +163,8 @@
       "name": "Парсинг ответа ИИ",
       "type": "n8n-nodes-base.code",
       "position": [
-        96,
-        -48
+        -32,
+        -40
       ],
       "typeVersion": 2
     },
@@ -199,8 +178,8 @@
       "name": "Execute a SQL query1",
       "type": "n8n-nodes-base.postgres",
       "position": [
-        320,
-        -48
+        192,
+        -40
       ],
       "typeVersion": 2.6,
       "credentials": {
@@ -221,7 +200,7 @@
       "type": "n8n-nodes-base.postgres",
       "position": [
         -1360,
-        -48
+        -40
       ],
       "typeVersion": 2.6,
       "credentials": {
@@ -259,8 +238,8 @@
       "name": "If",
       "type": "n8n-nodes-base.if",
       "position": [
-        544,
-        -48
+        416,
+        -40
       ],
       "typeVersion": 2.3
     },
@@ -274,7 +253,7 @@
       "name": "Смена статуса лида",
       "type": "n8n-nodes-base.postgres",
       "position": [
-        768,
+        640,
         -112
       ],
       "typeVersion": 2.6,
@@ -333,8 +312,8 @@
       "name": "Ответ оркестратору",
       "type": "n8n-nodes-base.set",
       "position": [
-        992,
-        -48
+        864,
+        -40
       ],
       "typeVersion": 3.4
     },
@@ -349,7 +328,7 @@
       "type": "n8n-nodes-base.postgres",
       "position": [
         -1136,
-        -48
+        -40
       ],
       "typeVersion": 2.6,
       "credentials": {
@@ -371,7 +350,7 @@
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "position": [
         -656,
-        192
+        184
       ],
       "typeVersion": 1.3,
       "credentials": {
@@ -555,7 +534,7 @@
     "availableInMCP": false,
     "executionOrder": "v1"
   },
-  "versionId": "7f32cf17-f825-45ce-8ab5-d8a1d85eb303",
+  "versionId": "a6074914-7080-4980-ad41-9ff85429f68b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f1164e28e5a09c82a6b8183392a8f71229b9563d6bd54d96703321f05bad3e98"

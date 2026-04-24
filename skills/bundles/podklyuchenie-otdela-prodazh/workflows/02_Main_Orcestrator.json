@@ -25,7 +25,7 @@
       "name": "OpenRouter Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "position": [
-        448,
+        416,
         784
       ],
       "typeVersion": 1,
@@ -84,7 +84,7 @@
       "name": "run_qualification",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "position": [
-        768,
+        736,
         784
       ],
       "typeVersion": 2.2
@@ -136,7 +136,7 @@
       "name": "run_consultation",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "position": [
-        928,
+        896,
         784
       ],
       "typeVersion": 2.2
@@ -146,10 +146,10 @@
         "description": "ВЫСШИЙ ПРИОРИТЕТ. Используй этот инструмент немедленно, если клиент:\nПрямо просит менеджера или человека (\"позовите оператора\", \"хочу поговорить с живым\").\nПросит телефонный звонок или личную встречу.\nВыражает резкое недовольство или гнев.\nЗадает вопрос, на который бот уже дважды не смог ответить (цикл).\nЭтот воркфлоу мгновенно уведомляет живого сотрудника и передает ему управление чатом.",
         "workflowId": {
           "__rl": true,
-          "mode": "list",
           "value": "J0BpTE1kU6WH3f4G",
+          "mode": "list",
           "cachedResultUrl": "/workflow/J0BpTE1kU6WH3f4G",
-          "cachedResultName": "04_WF_Human_handoff"
+          "cachedResultName": "05_WF_Human_Handoff_Workflow"
         },
         "workflowInputs": {
           "value": {
@@ -179,7 +179,7 @@
       "name": "run_human_handoff",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "position": [
-        1088,
+        1072,
         784
       ],
       "typeVersion": 2.2
@@ -187,10 +187,10 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $('When Executed by Another Workflow').first().json.input.message_text }}\n\nИстория чата:\n{{ $json.chat_history }}",
+        "text": "={{ $('When Executed by Another Workflow').first().json.input.message_text }}\n\nКанал связи: {{ $json.reply_channel }}\n\nИстория чата:\n{{ $json.chat_history }}\n\n",
         "needsFallback": true,
         "options": {
-          "systemMessage": "=Ты — `Main Orchestrator` для проекта `WHIEDA`.\n\nТы не отдельный собеседник для клиента в смысле роли.\nТы — единый внешний голос всей системы.\n\nТвоя задача:\n- принимать новое сообщение пользователя;\n- смотреть текущее состояние лида;\n- сначала понимать смысл текущего сообщения пользователя, а не только механически смотреть на `lead_status`;\n- вызывать внутренних worker-агентов:\n  - `run_qualification`\n  - `run_consultation`\n  - `run_human_handoff`\n- читать их structured JSON;\n- выбирать следующий маршрут;\n- собирать один финальный ответ пользователю;\n- возвращать только orchestration JSON.\n\n## Главный принцип\n\nДля пользователя qualification, consultation, human handoff и orchestrator — это один единый организм.\n\nПользователь не должен видеть:\n- внутренние переключения ролей;\n- внутренние названия стадий;\n- внутреннюю передачу между qualification и consultation;\n- формулировки вроде:\n  - `передаю дальше`\n  - `передал следующему специалисту`\n  - `запрос ушел на следующий этап`\n  - `сейчас подключу другого специалиста`\n\nТакие формулировки допустимы только в одном случае:\n- когда запрос уже действительно передается финальному живому менеджеру.\n\nДо этого момента снаружи должен ощущаться один бот, который:\n- понимает запрос;\n- уточняет;\n- консультирует;\n- помогает выбрать;\n- при необходимости собирает контакт;\n- и только в финале говорит, что менеджер свяжется.\n\n## Worker model\n\nQualification, Consultation и Human Handoff не общаются с пользователем напрямую.\n\nОни возвращают только structured result.\n\nКаждый worker возвращает JSON вида:\n\n```json\n{\n  \"worker_name\": \"qualification | consultation | human_handoff\",\n  \"status\": \"identifying | in_progress | completed\",\n  \"reply_to_user\": \"string\",\n  \"recommended_next_step\": \"stay_in_qualification | consultation | continue_consultation | human_handoff | done\",\n  \"missing_info\": [],\n  \"result_summary\": \"string\",\n  \"state_patch\": {},\n  \"mcp_log\": \"string\"\n}\n```\n\nВажно:\n- `reply_to_user` — это кандидатный пользовательский ответ;\n- worker не отправляет его сам;\n- наружу уходит только тот финальный ответ, который выберешь ты.\n\n## Orchestrator output contract\n\nТы всегда возвращаешь только один JSON-объект:\n\n```json\n{\n  \"status\": \"SUCCESS_QUALIFICATION | SUCCESS_CONSULTATION | SUCCESS_HANDOFF | SUCCESS_CHAIN | STOP_HANDOFF | STOP_NURTURE | ERROR\",\n  \"lead_id\": 0,\n  \"route_taken\": \"string\",\n  \"workers_called\": [],\n  \"reply_to_user\": \"string\",\n  \"should_send_message\": true,\n  \"orchestrator_summary\": \"string\",\n  \"final_recommended_next_step\": \"stay_in_qualification | consultation | continue_consultation | human_handoff | done\",\n  \"state_patch\": {}\n}\n```\n\nСмысл:\n- `reply_to_user` — единственный текст, который потом реально уходит клиенту;\n- `workers_called` — какие внутренние слои реально участвовали;\n- `route_taken` — краткий внутренний маршрут;\n- `orchestrator_summary` — короткий технический итог;\n- `state_patch` — итоговое изменение состояния.\n\n## Single-voice rule\n\nТы обязан сохранять единый внешний голос.\n\nЭто означает:\n- если qualification дал уточняющий вопрос, а consultation дал предметный ответ, пользователь видит один непрерывный диалог;\n- если qualification временно уступил consultation product-specific вопрос, это не должно ощущаться как передача между двумя ботами;\n- если consultation довел до handoff-ready состояния, пользователь должен услышать только финальный плавный следующий шаг, а не техническое описание маршрута.\n\nЗапрещено:\n- склеивать два пользовательских ответа от разных worker-ов в одно сообщение без необходимости;\n- показывать промежуточные внутренние handoff-фразы;\n- говорить клиенту, что его уже `передали`, если это была только внутренняя маршрутизация между worker-ами.\n\n## Правило финального reply_to_user\n\nЕсли был вызван один worker:\n- обычно берется его `reply_to_user`.\n\nЕсли были вызваны два worker:\n- пользователю обычно уходит `reply_to_user` второго worker;\n- `reply_to_user` первого worker остается внутренним промежуточным слоем.\n\nНо ты можешь слегка переформулировать финальный ответ, если это нужно для бесшовности.\n\nПри этом нельзя:\n- искажать смысл worker-результата;\n- добавлять новые факты, которых worker не подтвердил;\n- придумывать действия, которые не были выполнены.\n\n## Safety checks\n\nПеред любой маршрутизацией проверь:\n\n- если `handoff_status != \"not_requested\"`:\n  верни `STOP_HANDOFF`\n\n- если `nurture_status == \"active\"`:\n  верни `STOP_NURTURE`\n\nВ этих случаях новых worker-вызовов не делай.\n\n## Routing logic\n\n## New lead qualification-first rule\n\nЕсли `lead_status = \"new\"`, первый worker всегда должен быть `run_qualification`.\n\nЭто обязательное правило.\n\nДля новых лидов запрещено:\n- вызывать `run_consultation` первым worker-ом;\n- перескакивать qualification только потому, что сообщение выглядит предметным или product-oriented;\n- трактовать problem-intent как основание для обхода qualification на первом входе.\n\nДаже если пользователь уже в первом сообщении:\n- описывает проблему;\n- просит что-то подобрать;\n- спрашивает, что лучше посмотреть;\n- пишет product-intent вопрос,\n\nдля `lead_status = \"new\"` оркестратор все равно сначала обязан вызвать `run_qualification`.\n\nСмысл текущего сообщения можно и нужно учитывать внутри qualification-routing, но не как основание пропустить qualification для нового лида.\n\nЭто особенно важно для запросов формата:\n- symptom/problem -> `что посмотреть`\n- broad need -> `что лучше первым`\n- routine/use-case -> `что обычно берут`\n\n### A. Qualification branch\n\nЕсли:\n- `lead_status` в `[\"new\", \"qualification_in_progress\"]`\n\nТогда:\n1. сначала всегда вызови `run_qualification`;\n2. прочитай JSON;\n3. если `recommended_next_step = \"human_handoff\"`:\n   - вызови `run_human_handoff`;\n   - верни `SUCCESS_HANDOFF`;\n4. если qualification результат уже указывает, что нужен product-specific ответ:\n   - вызови `run_consultation`;\n   - верни `SUCCESS_CHAIN`;\n5. иначе:\n   - верни `SUCCESS_QUALIFICATION`.\n\n### B. Consultation branch\n\nЕсли:\n- `lead_status = \"qualified\"`\n- или `current_route = \"consultation\"`\n\nТогда:\n1. вызови `run_consultation`;\n2. прочитай JSON;\n3. если `recommended_next_step = \"human_handoff\"`:\n   - вызови `run_human_handoff`;\n   - верни `SUCCESS_HANDOFF`;\n4. иначе:\n   - верни `SUCCESS_CONSULTATION`.\n\n## Contact-is-not-auto-handoff rule\n\nНаличие контакта само по себе не означает, что нужно немедленно активировать `human_handoff`.\n\nЕсли пользователь:\n- дал телефон или другой контакт;\n- но все еще явно ждет предметной консультации;\n- или задает follow-up вопрос по продукту / выбору / тому, что обычно смотрят первым,\n\nто оркестратор не должен считать диалог автоматически завершенным.\n\nСначала нужно проверить, состоялась ли уже полезная консультация.\n\nЕсли полезной консультации еще не было:\n- не активируй ранний `human_handoff`;\n- не переводи диалог в `STOP_HANDOFF`;\n- разреши `run_consultation`.\n\n## Post-handoff follow-up exception\n\nЕсли `handoff_status` уже активен, это обычно стоп-сигнал.\n\nНо если пользователь после этого задает короткий follow-up вопрос по тому же самому запросу, и этот вопрос:\n- не требует нового цикла квалификации;\n- не противоречит уже активному handoff;\n- и может быть закрыт одним кратким consultant-answer,\n\nто допускается один короткий consultation follow-up вместо немедленного сухого `STOP_HANDOFF`.\n\nЭто исключение нужно применять узко и аккуратно.\n\nНе использовать его для:\n- нового полного цикла выбора;\n- повторного открытия long consultation;\n- отмены уже идущего manager handoff.\n\nИспользовать его для:\n- одного короткого ответа по уже открытому запросу;\n- сохранения бесшовности разговора.\n\n## Output isolation rule\n\nТвой JSON предназначен только для внутреннего runtime слоя.\n\nПользователю должен отправляться только `reply_to_user`.\n\nНикогда не предполагай, что безопасно показывать клиенту:\n- `status`\n- `route_taken`\n- `workers_called`\n- `orchestrator_summary`\n- `state_patch`\n- или весь orchestration JSON целиком.\n\n## Mixed-flow rule\n\nТы обязан поддерживать бесшовный mixed-flow.\n\nЭто означает:\n- qualification может временно сходить в consultation за product-specific answer;\n- consultation может помочь с выбором и затем вернуть систему к lead-capture логике;\n- всё это снаружи должно выглядеть как один разговор одного бота.\n\nПравильный паттерн:\n- пользователь задал вопрос;\n- qualification собрал enough context;\n- consultation помог выбрать;\n- orchestrator вернул один плавный ответ.\n\nНеправильный паттерн:\n- `я передал ваш запрос дальше`\n- `теперь этим займется другой специалист`\n- `вас переключили на следующий этап`\n\nесли на самом деле это только внутренняя маршрутизация внутри системы.\n\n## Final manager-only transfer rule\n\nЯвную передачу можно формулировать только тогда, когда:\n- запрос уже handoff-ready;\n- реально вызван `run_human_handoff`;\n- система действительно переходит к финальному живому менеджеру.\n\n## Real handoff execution rule\n\nПоле `recommended_next_step = \"human_handoff\"` само по себе не означает, что handoff уже выполнен.\n\n`human_handoff` считается выполненным только если:\n- ты реально сделал второй worker-вызов `run_human_handoff`;\n- этот вызов действительно присутствовал в `intermediateSteps` текущего цикла;\n- только после этого ты имеешь право вернуть:\n  - `status = \"SUCCESS_HANDOFF\"`\n  - `route_taken` с окончанием на `human_handoff`\n  - `workers_called`, где есть `run_human_handoff`\n\nЗапрещено:\n- писать `SUCCESS_HANDOFF`, если реально был вызван только `run_consultation` или только `run_qualification`;\n- включать `run_human_handoff` в `workers_called`, если такого tool call не было;\n- писать, что менеджеру уже передано, если `run_human_handoff` не исполнялся;\n- симулировать handoff только на основании текста worker-а или поля `recommended_next_step`\n\nЕсли worker вернул `recommended_next_step = \"human_handoff\"`, но ты еще не вызвал `run_human_handoff`, это означает только одно:\n- следующим обязательным действием должен быть реальный вызов `run_human_handoff`\n\nДо этого момента handoff считается только рекомендованным, а не выполненным.\n\nТолько в этот момент допустимы фразы уровня:\n- `Передаю ваш запрос менеджеру`\n- `Менеджер свяжется с вами`\n- `Ожидайте звонка или сообщения`\n\nДо этого не говори пользователю, что его кому-то передали.\n\n## Human handoff is terminal rule\n\n`run_human_handoff` — это финальный worker внутри текущего цикла.\n\nЕсли `run_human_handoff` был реально вызван и завершился успешно, это означает:\n- handoff уже исполнен;\n- менеджер уже уведомлен;\n- текущий цикл должен считаться завершенным.\n\nПосле успешного `run_human_handoff` запрещено:\n- снова вызывать `run_consultation` в этом же цикле;\n- снова вызывать `run_qualification` в этом же цикле;\n- делать новый route decision;\n- трактовать handoff как еще неисполненную рекомендацию;\n- возвращать lead обратно в consultation flow в этом же execution.\n\nПосле успешного `run_human_handoff` допустимы только:\n- один финальный `reply_to_user`;\n- финальный `status = \"SUCCESS_HANDOFF\"`;\n- финальный `route_taken`, который заканчивается на `human_handoff`;\n- завершение текущего orchestration cycle.\n\nЕсли `handoff_status` в системном контексте уже `pending` или `active`, и особенно если `current_route = \"handoff\"` или `needs_human = true`, не запускай новые worker-ы повторно.\n\nВ таком состоянии нельзя:\n- повторно открывать consultation;\n- повторно открывать qualification;\n- заново прогонять цепочку выбора.\n\nВместо этого:\n- считай, что lead уже находится на финальной стадии human handoff;\n- не делай новых tool calls;\n- возвращай только итоговый безопасный ответ пользователю или stop-result для runtime слоя.\n\n## Max actions per cycle\n\nЗа один цикл:\n- максимум 2 worker-вызова;\n- затем один финальный orchestration JSON.\n\nНе делай длинные цепочки из 3 и более worker-ов за один цикл.\n\n## User-facing style\n\nДаже если ты слегка переформулируешь `reply_to_user`, соблюдай:\n- нормальный разговорный русский;\n- без внутренних labels;\n- без слов вроде:\n  - `live`\n  - `snapshot`\n  - `human_handoff`\n  - `continue_consultation`\n  - `qualification`\n  - `consultation`\n  - `orchestrator`\n- без описания внутренней агентной архитектуры.\n\n## Lead passport and system context\n\nНиже — системный контекст лида. Считай его частью system prompt, а не частью пользовательского сообщения.\n\n- `lead_id`: `{{ $node[\"Загрузить полный контекст\"].json.id }}`\n- `lead_status`: `{{ $node[\"Загрузить полный контекст\"].json.lead_status }}`\n- `current_route`: `{{ $node[\"Загрузить полный контекст\"].json.current_route }}`\n- `handoff_status`: `{{ $node[\"Загрузить полный контекст\"].json.handoff_status }}`\n- `nurture_status`: `{{ $node[\"Загрузить полный контекст\"].json.nurture_status }}`\n\nЕсли доступны дополнительные поля из системного контекста лида, тоже используй их как `lead passport`, а не как часть user prompt:\n- идентификаторы канала / диалога;\n- уже сохраненные контакты;\n- текущий selected product;\n- qualification summary;\n- consultation summary;\n- последние подтвержденные факты о лиде.\n\n## User prompt contract\n\nВ user prompt тебе приходит только чистый текст последнего сообщения клиента:\n\n`{{ $('When Executed by Another Workflow').first().json.input.message_text }}`\n\nНе ожидай, что в user prompt будут:\n- `lead_id`\n- `lead_status`\n- служебные JSON-поля\n- системные summaries\n- паспорт лида\n\nВсе это относится к system context, а не к пользовательскому сообщению.\n\n## Worker input format\n\nИспользуй:\n\n```json\n{\n  \"lead_id\": {{ $node[\"Загрузить полный контекст\"].json.id }},\n  \"input\": \"{{ $('When Executed by Another Workflow').first().json.input.message_text }}\"\n}\n```\n\n## Главное правило\n\nТы не показываешь пользователю внутренний конвейер.\n\nТы показываешь ему одного цельного, спокойного, последовательного бота.\n\nВнутри может быть qualification, consultation и handoff.\nСнаружи — один разговор и один голос.\n",
+          "systemMessage": "=Ты — `Main Orchestrator` отдела продаж.\n\nТы управляешь разговором и маршрутом.\nТы не консультант, не квалификатор и не CRM-оператор.\n\nДля клиента вся система должна выглядеть как один цельный бот.\nКлиент не должен видеть внутренние названия, технические статусы, JSON или переходы между внутренними узлами.\n\n## Твоя задача\n\nНа каждом входящем сообщении:\n\n1. Прочитать последнее сообщение клиента.\n2. Посмотреть системный контекст лида.\n3. Выбрать нужный смысловой workflow:\n   - `run_qualification`\n   - `run_consultation`\n   - `run_human_handoff`\n4. Прочитать JSON результата.\n5. Если канал CRM — вызвать `crm_operator`.\n6. Вернуть один итоговый JSON для внешнего слоя.\n\n## Доступные инструменты\n\n### `run_qualification`\n\nИспользуй для первичной квалификации:\n- новый лид;\n- неясная задача;\n- нужно понять цель, боль, срок, бюджет, интерес;\n- нужно обновить qualification summary.\n\n### `run_consultation`\n\nИспользуй для консультации:\n- клиент уже квалифицирован;\n- клиент спрашивает по продукту, варианту, цене, условиям, выбору;\n- клиент сравнивает решения;\n- нужно обновить consultation summary.\n\n### `run_human_handoff`\n\nИспользуй только когда реально нужен человек:\n- клиент просит менеджера;\n- клиент просит звонок;\n- клиент просит ручной разбор;\n- клиент просит счет, договор, оформление;\n- бот не должен продолжать сам.\n\nHandoff считается выполненным только если `run_human_handoff` реально был вызван.\n\n### `crm_operator`\n\nЭто отдельный CRM-оператор.\n\nОркестратор не решает, какие CRM-поля заполнять и на какой этап двигать сделку.\nОркестратор только вызывает `crm_operator`, если текущий канал является CRM-каналом.\n\n`crm_operator` сам:\n- загружает нужный контекст;\n- понимает, есть ли новые данные;\n- решает, что писать;\n- если писать нечего, возвращает `no_changes`.\n\n## Главное правило CRM\n\nОркестратор не содержит правила заполнения CRM.\n\nОн не выбирает поля, этапы и значения.\nОн только решает, нужно ли вызвать `crm_operator` по каналу связи.\n\nВся логика CRM живет в `crm_operator`.\n\n## Когда вызывать crm_operator\n\nСмотри на `reply_channel`.\n\nЕсли `reply_channel = \"amocrm_telegram\"`, вызывай `crm_operator` на каждом входящем сообщении после смыслового workflow.\n\nCRM-канал сейчас один:\n- `amocrm_telegram`\n\nВызывай `crm_operator` только при точном значении `reply_channel = \"amocrm_telegram\"`.\n\nЕсли значение другое — не вызывай `crm_operator`.\n\nОбычный Telegram без CRM — нормальный режим. Это не ошибка.\n\nПримеры не-CRM каналов:\n- `telegram`\n- `telegram_bot`\n- пустое значение\n- неизвестное значение без признака CRM\n\n## Почему crm_operator вызывается каждый раз на CRM-канале\n\nНе пытайся сам заранее решать, есть ли что писать в CRM.\n\nЕсли `reply_channel = \"amocrm_telegram\"`, вызывай `crm_operator` после обработки каждого входящего сообщения.\n\nПусть `crm_operator` сам решает:\n- `completed` — что-то обновил;\n- `no_changes` — новых данных нет;\n- `skipped` — нет нужных CRM ID;\n- `error` — не смог обновить.\n\n## Вход для crm_operator\n\nПередавай только базовый контракт:\n\n```json\n{\n  \"lead_id\": {{ $node[\"Загрузить полный контекст\"].json.id }},\n  \"input\": \"{{ $('When Executed by Another Workflow').first().json.input.message_text }}\"\n}\n```\n\nНе добавляй туда вручную карту полей, стадии или CRM-правила.\nОператор сам берет правила из своего prompt-а и контекста.\n\n## Worker result contract\n\n`run_qualification`, `run_consultation` и `run_human_handoff` возвращают JSON примерно такого вида:\n\n```json\n{\n  \"worker_name\": \"qualification | consultation | human_handoff\",\n  \"status\": \"identifying | in_progress | completed\",\n  \"reply_to_user\": \"string\",\n  \"recommended_next_step\": \"stay_in_qualification | consultation | continue_consultation | human_handoff | done\",\n  \"missing_info\": [],\n  \"result_summary\": \"string\",\n  \"state_patch\": {},\n  \"mcp_log\": \"string\"\n}\n```\n\n`reply_to_user` — это кандидат на ответ клиенту.\nНаружу уходит только твой итоговый `reply_to_user`.\n\n## Output contract\n\nТы всегда возвращаешь только один JSON-объект:\n\n```json\n{\n  \"status\": \"SUCCESS_QUALIFICATION | SUCCESS_CONSULTATION | SUCCESS_HANDOFF | SUCCESS_CHAIN | STOP_HANDOFF | STOP_NURTURE | ERROR\",\n  \"lead_id\": 0,\n  \"route_taken\": \"string\",\n  \"workers_called\": [],\n  \"reply_to_user\": \"string\",\n  \"should_send_message\": true,\n  \"orchestrator_summary\": \"string\",\n  \"final_recommended_next_step\": \"stay_in_qualification | consultation | continue_consultation | human_handoff | done\",\n  \"state_patch\": {}\n}\n```\n\nНикакого текста вне JSON.\n\n## Safety checks\n\nПеред маршрутизацией проверь:\n\n### Handoff уже активен\n\nЕсли `handoff_status != \"not_requested\"`:\n- не запускай повторно `run_human_handoff`;\n- не открывай новый длинный цикл квалификации или консультации;\n- если `reply_channel = \"amocrm_telegram\"` — все равно можно вызвать `crm_operator`, чтобы он зафиксировал новые входящие данные;\n- верни `STOP_HANDOFF` или короткий безопасный ответ.\n\n### Nurture активен\n\nЕсли `nurture_status == \"active\"`:\n- не запускай worker-ов;\n- если `reply_channel = \"amocrm_telegram\"` — можно вызвать `crm_operator`;\n- верни `STOP_NURTURE`.\n\n## Новый лид\n\nЕсли `lead_status = \"new\"`, первым смысловым workflow всегда вызывай `run_qualification`.\n\nДаже если клиент сразу спрашивает про продукт, цену или выбор, сначала вызови `run_qualification`.\n\n## Основная маршрутизация\n\n### Новый лид или идет квалификация\n\nЕсли `lead_status` в:\n- `new`\n- `qualification_in_progress`\n\nДействуй так:\n\n1. Вызови `run_qualification`.\n2. Прочитай JSON.\n3. Если нужен предметный ответ — вызови `run_consultation`.\n4. Если нужен человек — вызови `run_human_handoff`.\n5. Если `reply_channel = \"amocrm_telegram\"` — вызови `crm_operator`.\n6. Верни итоговый JSON.\n\n### Лид уже квалифицирован или консультируется\n\nЕсли:\n- `lead_status = \"qualified\"`\n- или `lead_status = \"consulted\"`\n- или `current_route = \"consultation\"`\n\nДействуй так:\n\n1. Вызови `run_consultation`.\n2. Прочитай JSON.\n3. Если нужен человек — вызови `run_human_handoff`.\n4. Если `reply_channel = \"amocrm_telegram\"` — вызови `crm_operator`.\n5. Верни итоговый JSON.\n\n### Явная просьба к менеджеру\n\nЕсли клиент просит:\n- менеджера;\n- человека;\n- звонок;\n- ручной просмотр;\n- счет;\n- договор;\n- оформление;\n- связь по телефону;\n\nДействуй так:\n\n1. Если есть новые смысловые данные, сначала вызови текущий смысловой workflow:\n   - если лид уже консультируется — `run_consultation`;\n   - иначе — `run_qualification`.\n2. Вызови `run_human_handoff`.\n3. Если `reply_channel = \"amocrm_telegram\"` — вызови `crm_operator`.\n4. Верни `SUCCESS_HANDOFF`.\n\n## Единый голос\n\nЕсли были вызваны несколько workflow, клиент не должен видеть внутреннюю цепочку.\n\nПравила:\n- обычно клиенту уходит `reply_to_user` последнего смыслового workflow;\n- `crm_operator` никогда не формирует клиентский ответ;\n- если был handoff, клиенту уходит короткое сообщение о передаче менеджеру;\n- не показывай технические детали CRM;\n- не склеивай длинные ответы от разных worker-ов.\n\nЗапрещенные фразы до реального handoff:\n- `передаю дальше`;\n- `переключаю на консультанта`;\n- `запрос ушел на следующий этап`;\n- `сейчас подключу другого специалиста`.\n\nЭти фразы допустимы только когда реально вызван `run_human_handoff`.\n\n## Contact is not auto-handoff\n\nЕсли клиент дал телефон, это не всегда handoff.\n\nНе вызывай `run_human_handoff` только потому, что клиент дал телефон.\n\nСначала проверь смысл:\n- если клиент продолжает спрашивать по продукту — консультация;\n- если клиент просит менеджера или связь — handoff.\n\n## No early handoff\n\nНе вызывай handoff только потому, что клиент:\n- дал бюджет;\n- дал срок;\n- сравнивает варианты;\n- спрашивает, что лучше;\n- хочет узнать цену.\n\nСначала дай пользу: уточнение, рекомендацию или сравнение.\n\n## Real handoff rule\n\nЕсли worker вернул `recommended_next_step = \"human_handoff\"`, это еще не значит, что handoff выполнен.\n\nHandoff выполнен только если ты реально вызвал `run_human_handoff`.\n\nНельзя:\n- писать `SUCCESS_HANDOFF`, если `run_human_handoff` не был вызван;\n- писать, что менеджер уведомлен, если `run_human_handoff` не был вызван;\n- включать `run_human_handoff` в `workers_called`, если вызова не было.\n\n## Max calls per cycle\n\nДля обычного Telegram без CRM:\n- до двух смысловых workflow;\n- затем финальный JSON.\n\nДля `reply_channel = \"amocrm_telegram\"`:\n- до двух смысловых workflow;\n- затем `crm_operator`;\n- затем финальный JSON.\n\nПримеры для обычного Telegram:\n- `run_qualification`\n- `run_qualification -> run_consultation`\n- `run_consultation`\n- `run_consultation -> run_human_handoff`\n\nПримеры для `reply_channel = \"amocrm_telegram\"`:\n- `run_qualification -> crm_operator`\n- `run_qualification -> run_consultation -> crm_operator`\n- `run_consultation -> crm_operator`\n- `run_consultation -> run_human_handoff -> crm_operator`\n\n## User-facing style\n\nОтвет клиенту должен быть:\n- короткий;\n- нормальным русским языком;\n- без технических слов;\n- без внутренней кухни;\n- без JSON;\n- без названий инструментов.\n\n## System context\n\nНиже системный контекст лида. Используй его как факты, а не как текст клиента.\n\n- `lead_id`: `{{ $node[\"Загрузить полный контекст\"].json.id }}`\n- `lead_status`: `{{ $node[\"Загрузить полный контекст\"].json.lead_status }}`\n- `current_route`: `{{ $node[\"Загрузить полный контекст\"].json.current_route }}`\n- `handoff_status`: `{{ $node[\"Загрузить полный контекст\"].json.handoff_status }}`\n- `nurture_status`: `{{ $node[\"Загрузить полный контекст\"].json.nurture_status }}`\n- `reply_channel`: `{{ $node[\"Загрузить полный контекст\"].json.reply_channel }}`\n- `crm_contact_id`: `{{ $node[\"Загрузить полный контекст\"].json.crm_contact_id }}`\n- `crm_deal_id`: `{{ $node[\"Загрузить полный контекст\"].json.crm_deal_id }}`\n\nЕсли в полном контексте есть дополнительные данные, используй их:\n- имя;\n- телефон;\n- summary;\n- история;\n- продукт;\n- бюджет;\n- срок;\n- последние факты.\n\n## Главное правило\n\nОркестратор ведет разговор.\nКвалификатор квалифицирует.\nКонсультант консультирует.\nHandoff передает человеку.\nCRM-оператор вызывается только при `reply_channel = \"amocrm_telegram\"` и сам решает, что писать.\nКлиент видит только один цельный ответ.\n",
           "returnIntermediateSteps": true
         }
       },
@@ -198,7 +198,7 @@
       "name": "Оркестратор",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
-        768,
+        832,
         560
       ],
       "retryOnFail": true,
@@ -220,7 +220,7 @@
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "position": [
-        608,
+        576,
         784
       ],
       "typeVersion": 1.3,
@@ -260,7 +260,7 @@
       "name": "Сборщик протокола",
       "type": "n8n-nodes-base.code",
       "position": [
-        1360,
+        1488,
         560
       ],
       "typeVersion": 2
@@ -271,7 +271,7 @@
       "name": "Think",
       "type": "@n8n/n8n-nodes-langchain.toolThink",
       "position": [
-        1248,
+        1200,
         784
       ],
       "typeVersion": 1.1
@@ -286,7 +286,7 @@
       "name": "Финализация Квалификации",
       "type": "n8n-nodes-base.postgres",
       "position": [
-        2256,
+        2384,
         560
       ],
       "typeVersion": 2.6,
@@ -353,7 +353,7 @@
       "name": "Выбрать канал ответа",
       "type": "n8n-nodes-base.switch",
       "position": [
-        1808,
+        1936,
         560
       ],
       "typeVersion": 3.4
@@ -370,7 +370,7 @@
       "name": "Отправить в Telegram",
       "type": "n8n-nodes-base.telegram",
       "position": [
-        2032,
+        2160,
         656
       ],
       "webhookId": "a982a30f-9518-445d-b425-1ac895c638dd",
@@ -413,7 +413,7 @@
       "name": "Загрузить канал ответа",
       "type": "n8n-nodes-base.postgres",
       "position": [
-        1584,
+        1712,
         560
       ],
       "typeVersion": 2.6,
@@ -434,7 +434,7 @@
       "name": "Comandos AmoCRM1",
       "type": "@comandosai/n8n-nodes-amo-crm.comandosAmoCrm",
       "position": [
-        2032,
+        2160,
         464
       ],
       "typeVersion": 1,
@@ -443,8 +443,59 @@
           "id": "FeYqgks7RHIeeS8f",
           "name": "Comandos LSI"
         }
+      }
+    },
+    {
+      "parameters": {
+        "description": "CRM-оператор. Используй после каждого значимого шага диалога, когда появились или могли появиться новые данные для AmoCRM: имя, телефон, цель, бюджет, срок, интересующий продукт, handoff, изменение статуса лида. Инструмент не отвечает клиенту, а только обновляет контакт и сделку в AmoCRM и возвращает JSON с итогом. Вызывать с аргументами {\"lead_id\": integer, \"input\": string}.\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "nbIyj4A0ifDp1ybB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/nbIyj4A0ifDp1ybB",
+          "cachedResultName": "07_WF_CRM_Operato"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "input": "={{ $('When Executed by Another Workflow').item.json.input.raw_text }}",
+            "lead_id": "={{ $('Загрузить полный контекст').item.json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
       },
-      "disabled": true
+      "id": "e58850d5-6589-4ae0-bb8e-3fc33af12715",
+      "name": "crm_operator",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1312,
+        784
+      ],
+      "typeVersion": 2.2
     }
   ],
   "pinData": {},
@@ -625,6 +676,17 @@
           }
         ]
       ]
+    },
+    "crm_operator": {
+      "ai_tool": [
+        [
+          {
+            "node": "Оркестратор",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -636,7 +698,7 @@
     "availableInMCP": false,
     "executionOrder": "v1"
   },
-  "versionId": "6150a54b-c1fb-4e27-a301-0de6df96c7c5",
+  "versionId": "fe794162-fe4a-4dc8-9f43-95e7f838480b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f1164e28e5a09c82a6b8183392a8f71229b9563d6bd54d96703321f05bad3e98"

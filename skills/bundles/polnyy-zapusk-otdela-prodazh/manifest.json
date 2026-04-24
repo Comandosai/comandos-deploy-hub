@@ -1,7 +1,7 @@
 {
   "bundle_id": "polnyy-zapusk-otdela-prodazh",
   "bundle_name": "Полный запуск отдела продаж",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "clients": ["antigravity", "claude", "codex", "terminal"],
   "required_inputs": [],
   "optional_inputs": [

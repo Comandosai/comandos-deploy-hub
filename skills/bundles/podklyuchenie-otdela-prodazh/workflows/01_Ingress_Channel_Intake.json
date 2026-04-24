@@ -18,10 +18,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        848,
-        -544
+        1088,
+        144
       ],
-      "id": "cadf655f-ea81-46da-b891-dd969869d8cb",
+      "id": "744b1bec-3569-4b94-9a8a-ccedf9e5c99e",
       "name": "Prepare Text"
     },
     {
@@ -33,14 +33,15 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 2.1,
       "position": [
-        656,
-        -688
+        896,
+        0
       ],
-      "id": "aaa9022b-6b0e-4c95-9869-b5dd28175b07",
+      "id": "222edd96-2b44-46d7-bbad-6916d57a00bd",
       "name": "Transcribe a recording",
       "credentials": {
         "openAiApi": {
-          "name": "OpenAI"
+          "id": "9xhQD4zX7u5CRvSA",
+          "name": "OpenAi account"
         }
       }
     },
@@ -52,10 +53,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        432,
-        -688
+        672,
+        0
       ],
-      "id": "f7ed1717-59bb-4ca8-af0f-726e1015d233",
+      "id": "e96c5fef-04a3-45ea-811f-19a616485192",
       "name": "Get Audio"
     },
     {
@@ -118,10 +119,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        208,
-        -672
+        448,
+        16
       ],
-      "id": "0dd6431f-1f8f-40b5-b9c8-c7685a329cd9",
+      "id": "02619ca6-5141-4d9d-abf1-e6584a4c51e3",
       "name": "Text & Voice"
     },
     {
@@ -129,10 +130,10 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        -688,
-        -288
+        -448,
+        400
       ],
-      "id": "804e8ba9-d3fe-4eeb-be04-94239d8b7e11",
+      "id": "074d5b0d-e264-4929-9c1c-f67a176672bf",
       "name": "Stop"
     },
     {
@@ -144,10 +145,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -1808,
-        -480
+        -1568,
+        208
       ],
-      "id": "b68bc53e-ea78-4c33-bd77-e6976594785f",
+      "id": "3ad3ec3e-25c1-4434-9928-149d93d5b9fc",
       "name": "Webhook1",
       "webhookId": "eab1c99f-48f8-4784-8607-b26bbfed3d75"
     },
@@ -158,10 +159,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1584,
-        -384
+        -1344,
+        304
       ],
-      "id": "2f2800e7-dd86-4c3a-90b7-ce401baa3f7c",
+      "id": "af8091b5-bb57-4337-a04c-4c9f5b969634",
       "name": "Нормализовать вход"
     },
     {
@@ -171,10 +172,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1104,
-        -544
+        1344,
+        144
       ],
-      "id": "285c7e36-b50e-42d1-9c51-9fc163e9a5b5",
+      "id": "cce74e6a-19e9-48a1-91b4-0f5de0474fb0",
       "name": "Универсальный код-стандартизатор"
     },
     {
@@ -201,10 +202,10 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1328,
-        -544
+        1568,
+        144
       ],
-      "id": "9966ff64-3c5e-45f2-9d38-6b4c61221140",
+      "id": "df42ebc9-c7c0-4cbf-94d1-c5be35506a22",
       "name": "Главный Оркестратор"
     },
     {
@@ -216,14 +217,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -240,
-        -688
+        0,
+        0
       ],
-      "id": "6521f1ec-ac61-41b0-803e-2412ebdf4ad3",
+      "id": "e3f1908b-b600-469f-ab74-896c33e7074d",
       "name": "Записать входящее сообщение",
       "credentials": {
         "postgres": {
-          "name": "Postgres"
+          "id": "ZAIiLNBwyIbtvBaH",
+          "name": "Postgres Internal"
         }
       }
     },
@@ -236,10 +238,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -16,
-        -672
+        224,
+        16
       ],
-      "id": "62d075b8-0eb7-4d76-9d48-d47fce621160",
+      "id": "265e281a-bdef-45e3-94fe-8ae51afe7a49",
       "name": "Merge"
     },
     {
@@ -251,14 +253,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -1360,
-        -384
+        -1120,
+        304
       ],
-      "id": "ab03c56c-002f-4275-ba84-806254c80791",
+      "id": "96cd4aff-cc40-46de-8cea-6ca49575a55d",
       "name": "Дедуп события",
       "credentials": {
         "postgres": {
-          "name": "Postgres"
+          "id": "ZAIiLNBwyIbtvBaH",
+          "name": "Postgres Internal"
         }
       }
     },
@@ -271,14 +274,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1552,
-        -544
+        1792,
+        144
       ],
-      "id": "687cf592-73e1-43df-a509-2dee608ac770",
+      "id": "bbe69e36-9d4e-423e-8f72-ee33be36fe4a",
       "name": "Лог Ingress завершен",
       "credentials": {
         "postgres": {
-          "name": "Postgres"
+          "id": "ZAIiLNBwyIbtvBaH",
+          "name": "Postgres Internal"
         }
       }
     },
@@ -292,15 +296,16 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -1808,
-        -288
+        -1568,
+        400
       ],
-      "id": "8bfddd9d-30c6-40fa-978b-0dab8794bb67",
+      "id": "498d9128-fa9a-4d72-b056-7e326add209f",
       "name": "Telegram Trigger",
       "webhookId": "abb8bf7f-b5f0-4867-87e0-1840fc1ffd59",
       "credentials": {
         "telegramApi": {
-          "name": "Telegram Sales Bot"
+          "id": "hWCrOlfpVrsD80d7",
+          "name": "Отдел продаж"
         }
       }
     },
@@ -313,15 +318,16 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        96,
-        -144
+        336,
+        544
       ],
-      "id": "b95203e9-f071-4642-a7eb-aef83829b6c7",
+      "id": "719aa9ab-4eba-49ae-8b5b-a87ad53a3f10",
       "name": "Get a file1",
       "webhookId": "9debd444-cd95-4bf4-a513-6145757e6549",
       "credentials": {
         "telegramApi": {
-          "name": "Telegram Sales Bot"
+          "id": "hWCrOlfpVrsD80d7",
+          "name": "Отдел продаж"
         }
       }
     },
@@ -334,14 +340,15 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 2.1,
       "position": [
-        320,
-        -144
+        560,
+        544
       ],
-      "id": "a1b8b48c-7036-4c47-9b87-22884d46a0cb",
+      "id": "314c5f55-7641-424f-8646-4bb3a741f4f7",
       "name": "Transcribe a recording1",
       "credentials": {
         "openAiApi": {
-          "name": "OpenAI"
+          "id": "eTC0H5yeIYYYf1Ai",
+          "name": "OpenAI account"
         }
       }
     },
@@ -425,10 +432,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -144,
-        -320
+        96,
+        368
       ],
-      "id": "8a7ecc27-517e-4c1e-8b9d-944a6171b455",
+      "id": "648acc31-37ea-4cc1-8ca0-791393c61460",
       "name": "Switch1"
     },
     {
@@ -440,15 +447,16 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        96,
-        -336
+        336,
+        352
       ],
-      "id": "dcd24a37-9c9f-487a-9c97-53f686503da7",
+      "id": "4e0c39b9-ea10-43df-8e89-ee938bea3e5f",
       "name": "Get a file",
       "webhookId": "9debd444-cd95-4bf4-a513-6145757e6549",
       "credentials": {
         "telegramApi": {
-          "name": "Telegram Sales Bot"
+          "id": "hWCrOlfpVrsD80d7",
+          "name": "Отдел продаж"
         }
       }
     },
@@ -457,14 +465,15 @@
       "type": "@comandosai/n8n-nodes-doc-extract.comandosDocExtract",
       "typeVersion": 1,
       "position": [
-        320,
-        -336
+        560,
+        352
       ],
-      "id": "dda4a09d-dcc2-45a4-8b5b-b391bb6c17e7",
+      "id": "f66c340e-95c0-40e9-bc4d-5ade5ac93644",
       "name": "Comandos Document Extract",
       "credentials": {
         "comandosLsiKeysApi": {
-          "name": "Comandos LSI"
+          "id": "TotQ6HMR4DE9zv1E",
+          "name": "Таня"
         }
       }
     },
@@ -477,14 +486,15 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        -368,
-        -304
+        -128,
+        384
       ],
-      "id": "4967cacd-6674-40c9-86f5-e37e20446b2c",
+      "id": "7a80c28b-2e03-45b9-83e5-26cedc143f0c",
       "name": "Регистрировать лид",
       "credentials": {
         "postgres": {
-          "name": "Postgres"
+          "id": "ZAIiLNBwyIbtvBaH",
+          "name": "Postgres Internal"
         }
       }
     },
@@ -516,10 +526,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1136,
-        -384
+        -896,
+        304
       ],
-      "id": "bd4bf5d7-3f68-4c4b-b0f6-df654d49be08",
+      "id": "fba01f5d-64a5-4d0f-899e-6159fa2597de",
       "name": "Повтор?"
     },
     {
@@ -559,10 +569,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -912,
-        -448
+        -672,
+        240
       ],
-      "id": "bb7a95be-98b4-4248-9bd0-095f66183d72",
+      "id": "b7e7c501-6074-4eb2-9d17-068e8c8635ac",
       "name": "Сообщение?"
     },
     {
@@ -620,10 +630,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -688,
-        -496
+        -448,
+        192
       ],
-      "id": "274377c9-fe7b-49cf-a71d-dd4fa6e352f6",
+      "id": "c67ec5ae-7ed2-4e6b-9f7d-ba74d2b5f965",
       "name": "Выбор канала"
     },
     {
@@ -633,19 +643,15 @@
       "type": "@comandosai/n8n-nodes-amo-crm.comandosAmoCrm",
       "typeVersion": 1,
       "position": [
-        -464,
-        -672
+        -224,
+        16
       ],
-      "id": "2c2c4002-1dd3-46ed-b4a4-1634d06d7a98",
+      "id": "74dce6dd-69fe-433a-a956-7a853ea7ff9c",
       "name": "Comandos AmoCRM",
-      "credentials": {
-        "comandosLsiKeysApi": {
-          "name": "Comandos LSI"
-        }
-      },
       "disabled": true
     }
   ],
+  "pinData": {},
   "connections": {
     "Transcribe a recording": {
       "main": [
@@ -940,16 +946,12 @@
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false,
-    "timeSavedMode": "fixed",
-    "errorWorkflow": "EHFlcFWQqxnUwv4J",
-    "callerPolicy": "workflowsFromSameOwner"
+    "binaryMode": "separate"
   },
-  "versionId": "3aa42c15-c4e6-492d-bb59-79d4a25f9bd3",
+  "versionId": "b030766e-c177-4fad-be11-4bbf0469b3dc",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "instanceId": "89c34f47edf10ece056fe9ef5c8bd998aa2d583faaa01ecab842aac7c3628f39"
   },
-  "id": "XNoTGS8eZ2bs8EM1",
+  "id": "yjjOwoFeGtVZS5L7",
   "tags": []
 }
