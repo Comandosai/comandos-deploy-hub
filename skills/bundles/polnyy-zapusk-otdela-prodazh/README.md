@@ -628,7 +628,7 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 
 Перейди к этапу `Сборка AmoCRM-промптов и workflow`.
 
-На основе `Prompts/amocrm_crm_map.json` обнови `Prompts/prompt_orchestrator_crm_operator.md`, prompt AI-узла `CRM Operator` в `07_WF_CRM_Operato`, при необходимости промпты квалификатора и консультанта, а также handoff prompt. Проверь, что оркестратор вызывает `crm_operator`, а `MCP AmoCRM` не подключен к оркестратору напрямую. Обнови контекст и предложи следующий шаг: `AmoCRM sales-тест`.
+На основе `Prompts/amocrm_crm_map.json` обнови `Prompts/prompt_orchestrator_crm_operator.md`, prompt AI-узла `CRM Operator` в `07_WF_CRM_Operator`, при необходимости промпты квалификатора и консультанта, а также handoff prompt. Проверь, что оркестратор вызывает `crm_operator`, а `MCP AmoCRM` не подключен к оркестратору напрямую. Обнови контекст и предложи следующий шаг: `AmoCRM sales-тест`.
 ```
 
 ## Команда 16. AmoCRM sales-тест
@@ -640,5 +640,5 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 
 Перейди к этапу `AmoCRM sales-тест`.
 
-Проверь `07_WF_CRM_Operato`, очисти рабочие таблицы Supabase без `knowledge_rag` и `products_live`, запусти живой sales-тест, проверь `crm_sync`, заполнение полей AmoCRM, движение сделки, handoff, заметку и задачу. Сохрани raw и summary report, обнови контекст и предложи следующий шаг: `Точечная правка prompt-ов по итогам AmoCRM-теста`.
+Проверь `07_WF_CRM_Operator`, очисти рабочие таблицы Supabase без `knowledge_rag` и `products_live`, запусти живой sales-тест, проверь `crm_sync`, заполнение полей AmoCRM, движение сделки, handoff, заметку и задачу. Сохрани raw и summary report, обнови контекст и предложи следующий шаг: `Точечная правка prompt-ов по итогам AmoCRM-теста`.
 ```
