@@ -68,8 +68,9 @@ description: Подключает существующие Supabase и n8n кл�
 - Если у любого workflow, кроме `Уведомления об ошибках в N8N`, не задан `settings.errorWorkflow`, подключение workflow-пакета считается незавершенным.
 - При первом импорте workflow не активировать весь боевой отдел продаж автоматически.
 - При первом разворачивании активировать или публиковать только `06_WF_Test` и workflow `Уведомления об ошибках в N8N`.
-- Боевые workflow `01_Ingress_Channel_Intake`, `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow` держать выключенными до отдельного этапа боевого запуска.
-- `07_WF_CRM_Operator` считать внутренним workflow: импортировать и привязать, но не активировать как отдельный входящий сценарий. Он должен вызываться только из главного оркестратора как tool workflow.
+- Боевые workflow `01_Ingress_Channel_Intake`, `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow` и `07_WF_CRM_Operator` держать выключенными до отдельного этапа боевого запуска.
+- `07_WF_CRM_Operator` считать внутренним workflow: при первом импорте его нужно импортировать и привязать, но не активировать раньше времени как отдельный входящий сценарий.
+- При отдельном этапе боевого запуска и финального теста `07_WF_CRM_Operator` нужно публиковать или активировать вместе с остальными рабочими workflow, если он есть в пакете и участвует в текущем маршруте.
 - Боевые workflow можно активировать только после успешной проверки базы через `06_WF_Test` и явной команды пользователя на запуск отдела продаж.
 - Перед импортом workflow всегда проверять наличие обязательных custom node packages и credential types.
 - После импорта workflow нельзя завершать этап, пока не проверены editor `n8n`, свежие логи `n8n` и отсутствие битых credential refs.
@@ -115,7 +116,7 @@ description: Подключает существующие Supabase и n8n кл�
 - после импорта выставить режим активации:
   - `06_WF_Test` активировать или опубликовать;
   - `Уведомления об ошибках в N8N` активировать или опубликовать с `telegram_error_bot_token`;
-  - все боевые workflow и `07_WF_CRM_Operator` оставить выключенными;
+  - все боевые workflow и `07_WF_CRM_Operator` оставить выключенными до отдельного боевого запуска;
 - проверить unresolved credentials;
 - проверить refs, у которых есть `name`, но отсутствует `id`;
 - различать:
@@ -128,7 +129,7 @@ description: Подключает существующие Supabase и n8n кл�
 - если отсутствует credential type, поставить provider package или остановиться с явной ошибкой.
 - для каждого боевого workflow проверить draft и active/published version по отдельности, если опубликованная версия уже существует;
 - убедиться, что после rebind и сохранения binding с `id` не потерялся в active/published version;
-- до финального Telegram-теста выполнить отдельный smoke-test `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation` и `05_WF_Human_Handoff_Workflow`;
+- до финального Telegram-теста выполнить отдельный smoke-test `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow` и `07_WF_CRM_Operator`, если он есть в пакете;
 - открыть editor `n8n` после полного refresh страницы и убедиться, что он не уходит в постоянный `Connection lost`;
 - проверить свежие логи `n8n` и убедиться, что там нет:
   - `Found credential with no ID`;
