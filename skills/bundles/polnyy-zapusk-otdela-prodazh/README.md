@@ -1,7 +1,7 @@
 # Полный запуск отдела продаж
 
 Это верхнеуровневый навык, который ведет пользователя через весь сценарий внедрения как через один проект.
-Источник шагов для запуска: разделы `Команда 1..14` в этом `README.md`.
+Источник шагов для запуска: разделы `Команда 1..16` в этом `README.md`.
 
 Что делает:
 - читает общий файл входных данных проекта;
@@ -12,39 +12,37 @@
 - направляет пользователя в нужный поднавык;
 - после завершения этапа обновляет контекст и ведет дальше.
 
-## Короткий порядок (как идти по шагам)
+## Короткий порядок
 
 1. Установить навык `Полный запуск отдела продаж`.
 2. Установить или обновить `n8n`.
 3. Найти или поднять `Supabase`.
 4. Подготовить документы.
-5. Отдельной командой загрузить документы в базу (runner/ingestion).
-6. Подключить отдел продаж (`workflow`, `credentials`, `MCP`).
+5. Загрузить документы в базу.
+6. Подключить отдел продаж.
 7. Протестировать бота в Telegram.
 8. Собрать `brief`.
 9. Собрать промпт квалификатора.
 10. Собрать промпт консультанта.
 11. Вставить промпты в боевые `workflow`.
-12. Выключить `06_WF_Test` и провести финальное тестирование.
+12. Провести финальное тестирование.
 13. Снять структуру `AmoCRM`.
 14. Собрать CRM-карту `AmoCRM`.
 15. Собрать `AmoCRM`-промпты и workflow.
 16. Провести `AmoCRM` sales-тест.
 
-Полный детальный сценарий — ниже в командах 1-16. Не сокращать и не переставлять шаги местами без причины.
+Полный порядок не переставлять без причины.
 
 ## Когда использовать
 
-Использовать, когда нужно не просто выполнить один этап, а вести весь проект внедрения как единый сценарий:
+Использовать, когда нужно вести весь проект как единый сценарий:
 - `n8n`
 - база знаний и векторизация
 - подключение отдела продаж
 - Telegram-тестирование
 - сборка `brief`
-- сборка промпта консультанта
-- сборка промпта квалификатора
-- подключение AmoCRM через отдельный `crm_operator`
-- сборка CRM-карты и промпта оркестратора
+- сборка промптов
+- подключение `AmoCRM`
 
 ## На чем он опирается
 
@@ -71,19 +69,15 @@ Canonical prompt layer:
 Для всех команд ниже действуют жесткие правила:
 - локально не делать полный `git clone` репозитория без необходимости;
 - для установки навыков и шаблонов скачивать только папку `skills/`;
-- stack-папки скачивать отдельно и только по месту, когда до них реально дошел сценарий:
-  - `n8n-stack-v2` — только на этапе `n8n`;
-  - `supabase-stack` — только на этапе `Supabase`;
-- дальше работать только с нужными локальными файлами, а не с полным зеркалом репозитория;
+- stack-папки скачивать отдельно и только по месту, когда до них реально дошел сценарий;
 - не открывать браузер для поиска инструкций;
 - не использовать интернет как источник шагов или шаблонов;
 - не подключаться по `SSH` к серверу, где живет `MCP`-узел, `MCP`-контейнер или чужая служебная машина;
 - не заходить вручную в контейнеры `MCP` ради разведки структуры `AmoCRM`;
-- не использовать мой сервер или любой чужой служебный сервер как место для анализа клиентской `AmoCRM`;
-- все проверки и дальнейшая работа по `AmoCRM` должны идти так, как это будет у клиента: через клиентский `n8n`, через клиентские credentials и через уже созданный `MCP AmoCRM` внутри `n8n`;
+- все проверки и работа по `AmoCRM` должны идти через клиентский `n8n` и клиентский `MCP AmoCRM`;
 - не сочинять `DANNYE_DLYA_RAZVERTYVANIYA.md` и `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md` с нуля;
 - если файла нет, создавать его только копированием шаблона из репозитория;
-- если файл есть, обновлять существующий, а не перезаписывать произвольной новой версией.
+- если файл есть, обновлять существующий, а не переписывать случайной новой версией.
 
 Шаблоны брать строго отсюда:
 - `skills/DANNYE_DLYA_RAZVERTYVANIYA.md`
@@ -100,668 +94,299 @@ Canonical prompt layer:
 - взять следующий шаг из `RHYTHM_VNEDRENIYA_OTDELA_PRODAZH.md`;
 - предложить только один следующий шаг;
 - выдать этот шаг в готовом `text`-блоке;
-- если есть достаточно данных, предложить продолжить без лишнего ввода;
 - после Telegram-тестирования предложить сборку `brief`;
-- после сборки `brief` предложить сборку промпта квалификатора;
-- после промпта квалификатора предложить сборку промпта консультанта;
-- после финального sales-теста, если пользователь хочет подключить `AmoCRM`, предложить `Снятие структуры AmoCRM`;
-- после снятия структуры `AmoCRM` предложить `Сборка CRM-карты AmoCRM`;
+- после `brief` предложить промпт квалификатора;
+- после квалификатора предложить промпт консультанта;
+- после финального sales-теста, если пользователь идет дальше в CRM, предложить `Снятие структуры AmoCRM`;
 - после CRM-карты предложить `Сборка AmoCRM-промптов и workflow`;
-- после сборки `AmoCRM` workflow предложить `AmoCRM sales-тест`.
+- после сборки CRM workflow предложить `AmoCRM sales-тест`.
 
 ## Команда 1. Установить навык и сразу начать сценарий
 
-Эта команда ставит сам навык-оркестратор и сразу запускает общий сценарий.
-Агент прочитает входные данные, создаст или обновит файл контекста и сам предложит первый нужный этап.
-
 ```text
-Сначала поставь навык одной командой (без ручной раскладки файлов):
-
+Установи навык одной командой:
 `curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install polnyy-zapusk-otdela-prodazh --client codex`
 
-Если работаешь в Claude, замени `codex` на `claude`.
-Если работаешь в Gemini, замени `codex` на `gemini`.
-Если работаешь в Antigravity, замени `codex` на `antigravity`.
+Потом работай только через:
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/SKILL.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/README.md`
 
-Не делай полный `git clone`, если в этом шаге это не нужно.
-Stack-папки заранее не скачивай:
-- `n8n-stack-v2` нужен только на этапе `n8n`;
-- `supabase-stack` нужен только на этапе `Supabase`.
+Сначала проверь:
+- `DANNYE_DLYA_RAZVERTYVANIYA.md`
+- `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`
 
-После этого работай только с локальной папкой `skills/`.
-Не открывай браузер и не ищи инструкции в интернете.
-
-Проверь, что папка навыка появилась локально и доступна агенту.
-
-Сначала:
-- в корне проекта проверь `DANNYE_DLYA_RAZVERTYVANIYA.md` и `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- если `DANNYE_DLYA_RAZVERTYVANIYA.md` отсутствует, скопируй шаблон из `skills/DANNYE_DLYA_RAZVERTYVANIYA.md` без сокращений;
-- если `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md` отсутствует, скопируй шаблон из `skills/KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- не создавай эти файлы вручную по памяти и не пиши произвольные поля;
-- определи, какие этапы уже выполнены;
-- не заставляй меня вручную выбирать следующий шаг.
-
-После этого:
-- предложи только один следующий релевантный этап;
-- выдай его в готовом `text`-блоке;
-- если можно продолжать автоматически, прямо предложи это;
-- веди меня по цепочке:
-  - `n8n`
-  - `Supabase`
-  - векторизация
-  - подключение отдела продаж
-  - Telegram-тестирование
-  - `brief`
-  - промпт квалификатора
-  - промпт консультанта
+Если файлов нет, копируй шаблоны из `skills/`.
+Не открывай браузер.
+Не скачивай весь репозиторий.
+Сам определи следующий этап и предложи только один следующий шаг.
 ```
 
 ## Команда 2. Установить или обновить `n8n`
 
-Эта команда проверяет сервер, ищет существующий `n8n` и решает, что делать дальше.
-Если `n8n` уже есть, агент предложит обновление; если нет, развернет новый экземпляр.
-
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
-Не ищи инструкции по `n8n` в интернете.
-Работай только через навыки из репозитория `https://github.com/Comandosai/comandos-deploy-hub`.
-Для установки или обновления используй именно `n8n-stack-v2` из этого репозитория.
-Не используй старый `n8n-stack` и не собирай `n8n` по сторонним инструкциям.
-
 Начни с этапа `Развертывание и обновление n8n`.
-Если поднавык еще не установлен, поставь его одной командой:
-`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install razvertyvanie-i-obnovlenie-n8n --client codex`
-Если этап реально требует stack, скачивай только соответствующую stack-папку на сервер или в рабочую директорию этого этапа.
-Если `n8n` уже найден на сервере, не ставь заново, а предложи обновление.
-Если `n8n` не найден, разверни новый.
+Смотри правила только в:
+- `skills/units/razvertyvanie-i-obnovlenie-n8n/SKILL.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/SKILL.md`
 
-Если не хватает входных данных, прочитай `DANNYE_DLYA_RAZVERTYVANIYA.md` и спроси только недостающее.
-После завершения обнови контекст проекта и предложи следующий шаг.
+Не ищи внешние инструкции.
+Не используй старый `n8n-stack`.
+Если `n8n` уже найден, обнови.
+Если не найден, разверни.
+Сначала читай `DANNYE_DLYA_RAZVERTYVANIYA.md`, потом спрашивай только недостающее.
+Обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 3. Поднять или подключить `Supabase`
-
-Эта команда проверяет, есть ли уже `Supabase`, и либо подключает найденный проект, либо разворачивает новый.
-После завершения агент обязан показать URL, логин, пароль и параметры базы и сохранить их в файл данных.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Supabase`.
-Если `Supabase` уже найден, не развертывай его заново.
-Если `Supabase` не найден, разверни новый и подготовь его для дальнейшей векторизации.
+Смотри правила только в:
+- `skills/vektorizaciya-i-zagruzka-bazy/SKILL.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/SKILL.md`
 
-После завершения:
-- покажи URL или dashboard URL;
-- покажи логин или admin email;
-- покажи пароль;
-- покажи `db_host`, `db_port`, `db_name`, `db_user`, `db_schema`;
-- запиши эти данные в `DANNYE_DLYA_RAZVERTYVANIYA.md`;
-- обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- предложи следующий шаг.
+Если `Supabase` уже найден, не разворачивай его заново.
+Если не найден, разверни.
+Покажи URL, логин, пароль и параметры базы.
+Запиши их в `DANNYE_DLYA_RAZVERTYVANIYA.md`.
+Обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 4. Подготовить документы к векторизации
-
-Эта команда приводит документы к рабочему виду, но не запускает runner и не пишет данные в `Supabase`.
-После подготовки агент обязан остановиться и показать, что готово к проверке.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Подготовка документов к векторизации`.
-Если поднавык еще не установлен, поставь его одной командой:
-`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install vektorizaciya-i-zagruzka-bazy --client codex`
-Если `Supabase` нужно разворачивать с нуля, отдельно скачай только `supabase-stack`, а не весь репозиторий.
+Смотри правила только в:
+- `skills/vektorizaciya-i-zagruzka-bazy/SKILL.md`
+- `skills/vektorizaciya-i-zagruzka-bazy/skills/doc-splitter-launcher/SKILL.md`
+- `skills/vektorizaciya-i-zagruzka-bazy/skills/doc-splitter/SKILL.md`
 
-Сначала проверь, есть ли папка `Base/`.
-Если `Base/` нет, не считай документы готовыми к векторизации, даже если в проекте есть `bd/` или другие уже очищенные файлы.
-В этом случае сначала создай:
-- `Base/`
-- `Base/new_files/`
-- `Base/prepared_docs/`
-- `Base/vectorized_docs/`
-- `Base/processed/`
-- `Base/state/`
-
-Только после этого переходи к подготовке документов.
-Runner, ingestion, commandos-api и запись в `Supabase` на этом шаге не запускай.
-
-Используй текущие данные проекта, `DANNYE_DLYA_RAZVERTYVANIYA.md` и текущую структуру `Base/`.
-
-После завершения:
-- покажи, создана ли `Base/`;
-- покажи, сколько документов обработано;
-- покажи, какие файлы ушли из `Base/new_files/`;
-- покажи, что лежит в `Base/prepared_docs/`;
-- покажи, создан ли `products_live.tsv`;
-- покажи, создан ли `products_live_readable.md`;
-- покажи manifest/status из `Base/state/`;
-- обнови контекст проекта;
-- предложи следующий шаг: запуск runner / ingestion.
+Сначала проверь структуру `Base/`.
+Если `Base/` нет, создай её по канону.
+На этом шаге только подготовка документов.
+Runner и загрузку в `Supabase` не запускай.
+Покажи, что подготовлено, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 5. Запустить runner и загрузить данные в `Supabase`
-
-Эта команда запускает второй этап: отправляет уже подготовленные документы из `Base/prepared_docs` в runtime, получает chunks/embeddings и записывает результат в `Supabase`.
-Использовать только после проверки подготовленных документов.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Запуск runner и загрузка базы`.
-Если поднавык еще не установлен, поставь его одной командой:
-`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install vektorizaciya-i-zagruzka-bazy --client codex`
+Смотри правила только в:
+- `skills/vektorizaciya-i-zagruzka-bazy/SKILL.md`
+- `skills/vektorizaciya-i-zagruzka-bazy/skills/vector-ingestion-launcher/SKILL.md`
 
 Перед запуском проверь:
-- есть ли `Base/prepared_docs/`;
-- есть ли подготовленные документы;
-- есть ли `products_live.tsv`, если товарная таблица нужна;
-- есть ли доступы к `Supabase`;
-- есть ли `x-license-key` (или `x_license_key`, если в проекте ключ хранится со старым именем);
-- есть ли `supabase_service_role_key`, если нужен Supabase credential.
+- `Base/prepared_docs/`
+- доступы к `Supabase`
+- `x_license_key`
+- `supabase_service_role_key`
 
-Запусти runner / ingestion только сейчас.
-
-После завершения:
-- покажи, сколько документов отправлено;
-- сколько чанков записано в `knowledge_rag`;
-- сколько строк записано в `products_live`;
-- какие файлы перенесены в `Base/vectorized_docs`;
-- очищен ли `Base/prepared_docs`;
-- обнови контекст проекта;
-- предложи следующий шаг.
+Запусти только runner и загрузку.
+Покажи, сколько ушло в `knowledge_rag` и `products_live`.
+Обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 6. Подключить отдел продаж
-
-Эта команда связывает `n8n`, `Supabase`, `MCP`, workflow и credentials в один рабочий контур.
-На этом шаге агент должен импортировать workflow, создать недостающие соединения и проверить, что все связано корректно.
-При первом разворачивании агент должен активировать только тестовый workflow `06_WF_Test` и workflow `Уведомления об ошибках в N8N`.
-Боевые workflow отдела продаж, включая `07_WF_CRM_Operator`, должны остаться выключенными до отдельной команды на боевой запуск.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Подключение отдела продаж`.
-Если поднавык еще не установлен, поставь его одной командой:
-`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install podklyuchenie-otdela-prodazh --client codex`
+Смотри правила только в:
+- `skills/bundles/podklyuchenie-otdela-prodazh/SKILL.md`
+- `skills/bundles/podklyuchenie-otdela-prodazh/README.md`
 
-Подключи `n8n`, `Supabase`, `MCP`, workflow и credentials.
-Если нужных секретов не хватает, сначала прочитай `DANNYE_DLYA_RAZVERTYVANIYA.md`, а потом спроси только недостающие поля.
+Сделай:
+- импорт workflow;
+- создание и перепривязку credentials;
+- настройку `MCP Postgres`, `MCP AmoCRM`, `Supabase`, `Postgres`, `Telegram`, `OpenAI/OpenRouter`, если они нужны;
+- аудит `credential.id` внутри узлов.
 
-Правило активации при первом разворачивании:
-- активируй или опубликуй `06_WF_Test`;
-- активируй или опубликуй `Уведомления об ошибках в N8N` с credential из `telegram_error_bot_token`;
-- не активируй боевые workflow `01_Ingress_Channel_Intake`, `02_Main_Orcestrator`, `03_WF_Qualification`, `04_WF_Consultation`, `05_WF_Human_Handoff_Workflow`, `07_WF_CRM_Operator`;
-- боевой запуск делать только после теста базы знаний и отдельной команды пользователя.
+При первом разворачивании включай только:
+- `06_WF_Test`
+- `Уведомления об ошибках в N8N`
 
-После завершения:
-- обнови контекст проекта;
-- покажи, какие workflow подключены;
-- покажи, что активны только `06_WF_Test` и `Уведомления об ошибках в N8N`, а боевые workflow, включая `07_WF_CRM_Operator`, выключены;
-- покажи, какие credentials созданы;
-- предложи следующий шаг.
+Боевые workflow, включая `07_WF_CRM_Operator`, пока не включай.
+Покажи, что подключено, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 7. Протестировать бота в Telegram
-
-Эта команда запускает тесты живого бота в Telegram.
-Агент сначала обязан проверить, что тестовый workflow `06_WF_Test` реально активирован. Если в текущей версии `n8n` используется публикация, он должен сделать `publish`; если используется старый режим, он должен включить `Active`. Только после этого запускать Telegram-тесты.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Telegram-тестирование бота`.
-Если поднавык еще не установлен, поставь его одной командой:
-`curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install telegram-testirovanie-bota --client codex`
+Смотри правила только в:
+- `skills/telegram-testirovanie-bota/SKILL.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/SKILL.md`
 
-Перед тестами:
-- найди workflow `06_WF_Test`;
-- если он не активен, активируй его;
-- если в этой версии `n8n` нужен `publish`, опубликуй workflow;
-- не начинай Telegram-тестирование, пока тестовый workflow не переведен в рабочее состояние.
-- перед новым прогоном сначала очисти базу:
-  - очисти все рабочие тестовые данные прошлого прогона;
-  - не трогай только `knowledge_rag` и `products_live`;
-  - после очистки сразу переходи к тесту.
+Перед тестом:
+- проверь, что `06_WF_Test` включен или опубликован;
+- очисти рабочие тестовые данные, кроме `knowledge_rag` и `products_live`.
 
-Проведи тестовый прогон, используя текущий контекст проекта.
-Если не хватает Telegram-данных, сначала проверь `DANNYE_DLYA_RAZVERTYVANIYA.md`, потом спроси только недостающее.
-
-Режим отчета:
-- используй `report_mode = knowledge_base_test`;
-- сохрани raw dialog report;
-- сохрани normalized summary report;
-- в summary оцени не sales prompt-ы, а качество базы: `knowledge_rag`, `products_live`, точность фактов, пробелы в документах, ошибки по ценам/офферам/товарам и ожидаемые изменения к следующему прогону.
-
-После завершения:
-- обнови контекст проекта;
-- зафиксируй, был ли тестовый workflow активирован или опубликован;
-- покажи краткий summary по тесту базы;
-- предложи следующий шаг.
+Запусти тест базы в Telegram.
+Сохрани raw report и summary report.
+Обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 8. Собрать `brief`
-
-Эта команда собирает единый `brief` из документов, базы знаний и `products_live`.
-Именно этот `brief` потом используется как основа для системных промптов.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Сборка brief`.
 Используй навык `Сборка брифа`.
-Собери `brief` и `Prompt Input Profile` на основе документов, `products_live` и базы знаний.
+Смотри правила в:
+- `skills/brief-builder/SKILL.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/SKILL.md`
 
-После завершения:
-- покажи, где сохранен `brief`;
-- покажи, где сохранен `Prompt Input Profile`;
-- обнови контекст проекта;
-- предложи следующий шаг.
+Собери `brief` и `Prompt Input Profile`.
+Покажи, где они сохранены.
+Обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 9. Собрать промпт квалификатора
-
-Эта команда создает системный промпт квалификатора на основе готового `brief`.
-Результат нужен для агента, который квалифицирует лида, задает вопросы и двигает его дальше по воронке.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Промпт квалификатора`.
 Используй навык `Промпт квалификатора`.
-Собери production-ready системный промпт квалификатора через canonical layer, а не из workflow JSON и не из свободной генерации.
-
-Обязательно используй:
-- готовый `brief`
-- готовый `Prompt Input Profile`
+Смотри правила только в:
 - `skills/units/prompt-kvalifikatora/SKILL.md`
 - `skills/units/prompt-kvalifikatora/references/sdr-role-contract.md`
 - `skills/units/prompt-kvalifikatora/references/sdr-db-and-crm.md`
-- `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
-- `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
-- `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`
+- `skills/units/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`
+- `skills/units/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
 
-Сначала:
-- прочитай `skills/units/prompt-kvalifikatora/SKILL.md`;
-- прочитай `skills/units/prompt-kvalifikatora/references/sdr-role-contract.md`;
-- прочитай `skills/units/prompt-kvalifikatora/references/sdr-db-and-crm.md`;
-- прочитай `skills/prompt-architecture/templates/SDR_QUALIFIER_SKELETON.md`;
-- прочитай `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`;
-- прочитай `skills/prompt-architecture/references/MATURE_SDR_QUALIFIER_BASELINE.md`;
-- только после этого прочитай project документы, `brief` и `Prompt Input Profile`;
-- сначала собери в голове полный project contract, а не начинай сразу писать итоговый prompt;
-- проверь, есть ли `Prompts/qualifier_input_profile.json`;
-- если его нет, собери его как отдельный артефакт;
-- не перескакивай сразу к финальному prompt без input profile.
+Сначала собери `Prompts/qualifier_input_profile.json`, если его нет.
+Потом собери `Prompts/prompt_qualifier.md`.
+Не выдумывай output contract.
+Для `03_WF_Qualification` используй только поля:
+- `text_to_user`
+- `status`
+- `recommended_next_step`
+- `result_summary`
+- `is_qualified`
 
-Потом:
-- собери и сохрани итоговый prompt как `Prompts/prompt_qualifier.md`.
-
-Жесткие правила:
-- использовать только роль `sdr_qualifier`, а не `consultant` и не `interviewer`;
-- не разрешать `products_live` lookup, `exact_match`, `relaxed_match`, `category_browse`;
-- не использовать consultant-style behavior;
-- не выдумывать DB contract;
-- использовать только confirmed safe DB write contract;
-- использовать fixed JSON output contract;
-- exact output field names брать из workflow-bound контракта и не переименовывать их по смыслу;
-- для текущего `03_WF_Qualification` использовать literal keys:
-  - `text_to_user`
-  - `status`
-  - `recommended_next_step`
-  - `result_summary`
-  - `is_qualified`
-- запрещено выпускать варианты:
-  - `reply_to_user`
-  - `reply`
-  - `user_reply`
-  - `message_to_user`
-  - `qualification_status`
-- не сокращать prompt до короткой contract-версии;
-- не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
-- не пересказывать reference-файлы коротко, если из них можно перенести полноразмерные operational blocks;
-- сначала перенести зрелые rule blocks из reference и baseline, а уже потом адаптировать их под проект;
-- отдельно прописать orientation-first rule, completion threshold, post-consultation handoff mode, DB rules, forbidden actions, strict output discipline.
-- На текущем этапе CRM не включать в prompt вообще: если нет отдельной явной команды на CRM-интеграцию, итоговый prompt не должен содержать `CRM`, `AMO`, `AmoCRM`, `MCP CRM`, `MCP AmoCRM` или `skip CRM`.
-- если в проекте есть `MCP Postgres` lead write-back path, обязательно явно прописать `public.update_lead_profile_safe(...)`, allowed params и sequencing persistence;
-- наличие `MCP Postgres` в инструментах без explicit DB write-back layer считать ошибкой сборки prompt.
-
-Требование к качеству:
-- prompt должен быть production-ready;
-- prompt должен быть длинным, полным, с явными блоками role, goal, scope, data sources, routing, DB rules, dialog policy, output contract, status machine, anti-patterns, final self-check;
-- prompt должен содержать explicit safe DB contract, если проект использует persisted lead memory;
-- prompt должен быть собран после чтения reference -> skeleton -> baseline -> project docs -> brief/profile, а не в обратном порядке;
-- ориентир — полноценный системный prompt на несколько сотен строк, а не короткий contract.
-
-После завершения:
-- покажи, где сохранен промпт;
-- покажи, где сохранен input profile;
-- обнови контекст проекта;
-- предложи следующий шаг.
+Запрещены любые переименования вроде `reply_to_user`.
+Покажи, где сохранён prompt, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 10. Собрать промпт консультанта
-
-Эта команда создает системный промпт консультанта на основе готового `brief` и уже собранного промпта квалификатора.
-Результат нужен для продуктового консультанта, который отвечает с опорой на знания и товарную таблицу, не дублирует квалификатора и не ломает границы роли.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Промпт консультанта`.
 Используй навык `Промпт консультанта`.
-Собери production-ready системный промпт консультанта через canonical layer, а не из workflow JSON и не из свободной генерации.
-
-Обязательно используй:
-- готовый `brief`
-- готовый `Prompt Input Profile`
-- уже готовый `Prompts/prompt_qualifier.md`
+Смотри правила только в:
 - `skills/units/prompt-konsultanta/SKILL.md`
 - `skills/units/prompt-konsultanta/references/consultant-role-contract.md`
 - `skills/units/prompt-konsultanta/references/consultant-live-search.md`
-- `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`
-- `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
-- `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`
+- `skills/units/prompt-architecture/templates/CONSULTANT_SKELETON.md`
+- `skills/units/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`
 
-Сначала:
-- прочитай `skills/units/prompt-konsultanta/SKILL.md`;
-- прочитай `skills/units/prompt-konsultanta/references/consultant-role-contract.md`;
-- прочитай `skills/units/prompt-konsultanta/references/consultant-live-search.md`;
-- прочитай `skills/prompt-architecture/templates/CONSULTANT_SKELETON.md`;
-- прочитай `skills/prompt-architecture/references/PROMPT_BUILDER_CONTRACT.md`;
-- прочитай `skills/prompt-architecture/references/MATURE_CONSULTANT_BASELINE.md`;
-- только после этого прочитай project документы, `brief`, `Prompt Input Profile` и уже готовый `Prompts/prompt_qualifier.md`;
-- сначала собери в голове полный project-specific consultant contract, и только потом переходи к финальному prompt;
-- проверь, есть ли `Prompts/consultant_input_profile.json`;
-- если его нет, собери его как отдельный артефакт;
-- не перескакивай сразу к финальному prompt без input profile.
-- проверь, что уже существует `Prompts/prompt_qualifier.md`;
-- если промпта квалификатора еще нет, не собирай prompt консультанта и сначала вернись к этапу квалификатора.
+Сначала проверь, что уже есть `Prompts/prompt_qualifier.md`.
+Потом собери `Prompts/consultant_input_profile.json`, если его нет.
+Потом собери `Prompts/prompt_consultant.md`.
+Не выдумывай output contract.
+Для `04_WF_Consultation` используй только поля:
+- `text_to_user`
+- `status`
+- `recommended_next_step`
+- `result_summary`
 
-Потом:
-- собери и сохрани итоговый prompt как `Prompts/prompt_consultant.md`.
-
-Жесткие правила:
-- не использовать workflow JSON как источник prompt-смысла;
-- exact output field names брать из workflow-bound контракта и не переименовывать их по смыслу;
-- для текущего `04_WF_Consultation` использовать literal keys:
-  - `text_to_user`
-  - `status`
-  - `recommended_next_step`
-  - `result_summary`
-- запрещено выпускать варианты:
-  - `reply_to_user`
-  - `reply`
-  - `user_reply`
-  - `message_to_user`
-  - `consultation_status`
-- не генерировать prompt напрямую из `brief` без skeleton-layer;
-- не сокращать prompt до короткой contract-версии;
-- не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
-- не пересказывать reference-файлы коротко, если из них можно перенести полноразмерные operational blocks;
-- сначала перенести в prompt зрелые project-specific rule blocks из baseline и references, а уже потом адаптировать под текущий проект;
-- сохранить role boundary между consultant, qualifier и handoff;
-- учитывать уже собранный prompt квалификатора и не дублировать в prompt консультанта логику первичной qualification intake;
-- явно описать source ordering: knowledge -> product_memory (если есть) -> live;
-- явно описать live-search rules, anti-hallucination rules, handoff rules, output/state contract.
-- если в проекте подтвержден `MCP Postgres` write-back path, обязательно явно описать `Write-back and memory`;
-- нельзя выпускать consultant prompt, если в нем нет `consultation_summary` discipline и safe lead-profile write-back логики;
-- наличие `MCP Postgres` в инструментах без логики записи в лид-профиль считать ошибкой сборки prompt.
-
-Требование к качеству:
-- prompt должен быть production-ready;
-- prompt должен быть длинным, полным, с явными блоками роли, scope, data sources, routing, tool usage, live rules, fallback, dialog policy, output contract, forbidden actions;
-- prompt должен содержать explicit write-back layer, если проект использует persisted lead memory;
-- prompt должен быть собран после чтения reference -> skeleton -> baseline -> project docs -> brief/profile -> qualifier prompt, а не из одного `brief`;
-- ориентир — полноценный системный prompt, а не короткий skeleton fill.
-
-После завершения:
-- покажи, где сохранен промпт;
-- покажи, где сохранен input profile;
-- обнови контекст проекта;
-- предложи следующий шаг.
+Запрещены любые переименования вроде `reply_to_user` и `consultation_status`.
+Покажи, где сохранён prompt, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 11. Вставить prompt-ы в боевые workflow
-
-Эта команда не генерирует prompt-ы заново.
-Она берет уже готовые production prompt-артефакты и вставляет их в соответствующие AI-узлы боевых workflow в живом `n8n`.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Вставка prompt-ов в workflow`.
-
-Сначала проверь, что уже существуют:
-- `Prompts/prompt_consultant.md`
+Смотри правила в:
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/README.md`
 - `Prompts/prompt_qualifier.md`
+- `Prompts/prompt_consultant.md`
 
-Если хотя бы одного файла нет:
-- не вставляй ничего в workflow;
-- сначала вернись к этапу сборки недостающего prompt-а.
+Вставь:
+- `prompt_qualifier.md` в `03_WF_Qualification` -> `AI Квалификатор`
+- `prompt_consultant.md` в `04_WF_Consultation` -> `Consultation`
 
-Если оба prompt-а есть, выполни следующее:
-
-1. Возьми `Prompts/prompt_qualifier.md`.
-2. Найди в боевом workflow `03_WF_Qualification` AI-узел `AI Квалификатор`.
-3. Вставь содержимое `Prompts/prompt_qualifier.md` в `options.systemMessage` этого AI-узла в живом `n8n`.
-
-4. Возьми `Prompts/prompt_consultant.md`.
-5. Найди в боевом workflow `04_WF_Consultation` AI-узел `Consultation`.
-6. Вставь содержимое `Prompts/prompt_consultant.md` в `options.systemMessage` этого AI-узла в живом `n8n`.
-
-Важные правила:
-- не использовать workflow JSON как source of truth для prompt-ов;
-- source of truth для prompt-ов должен оставаться в `Prompts/`;
-- при вставке обновлять prompt не только в draft workflow, но и в active/published version, если workflow уже опубликован;
-- не вставлять prompt в тестовый workflow вместо боевых workflow;
-- не вставлять qualifier prompt в consultant workflow;
-- не вставлять consultant prompt в qualifier workflow.
-
-После вставки обязательно проверь:
-- что в `03_WF_Qualification` реально стоит prompt квалификатора;
-- что в `04_WF_Consultation` реально стоит prompt консультанта;
-- что prompt присутствует и в текущем draft, и в active/published version;
-- что workflow после этого не потеряли свои connections, tools и credentials.
-
-После завершения:
-- покажи, в какие workflow и в какие AI-узлы вставлены prompt-ы;
-- покажи, что вставка прошла успешно;
-- обнови контекст проекта;
-- предложи следующий шаг: `Финальное тестирование отдела продаж`.
+Обнови и draft, и active/published version, если она уже есть.
+Проверь, что связи и credentials не сломались.
+Обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 12. Запустить боевые тесты отдела продаж
-
-Эта команда запускает уже не проверку базы знаний, а полноценное тестирование рабочего sales-контура.
-Её нужно использовать после того, как вставлены `brief`, промпт консультанта и промпт квалификатора, и нужно проверить, как связка реально отрабатывает в диалоге.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Финальное тестирование отдела продаж`.
-
 Сначала проверь:
-- что `brief` уже собран и сохранен;
-- что промпт консультанта уже вставлен в нужный workflow или узел;
-- что промпт квалификатора уже вставлен в нужный workflow или узел;
-- что все нужные workflow активированы или опубликованы;
-- что `07_WF_CRM_Operator`, если он есть в пакете, тоже опубликован или активирован для боевого запуска;
-- что тестовый режим базы знаний уже пройден;
-- что тестовый workflow `06_WF_Test` выключен или снят с публикации;
-- если `06_WF_Test` еще активен, сначала выключи его, проверь, что тестовый триггер больше не слушает входящие сообщения, и только потом переходи к боевому прогону.
-- если `07_WF_CRM_Operator` есть в пакете, но еще не опубликован или не активирован, сначала включи его так же, как остальные боевые workflow, и только потом переходи к боевому прогону.
-- перед новым sales-прогоном сначала очисти базу:
-  - очисти все рабочие тестовые данные прошлого прогона;
-  - не трогай только `knowledge_rag` и `products_live`;
-  - после очистки сразу переходи к финальному тесту.
+- `brief` уже собран;
+- prompt-ы уже вставлены;
+- боевые workflow уже включены;
+- `06_WF_Test` выключен;
+- `07_WF_CRM_Operator`, если он есть, тоже включён.
 
-После этого запусти именно тестирование отдела продаж, а не тестирование только базы знаний.
-
-Режим отчета:
-- используй `report_mode = sales_final_test`;
-- сохрани raw dialog report отдельно;
-- сохрани normalized summary report отдельно;
-- raw dialog без summary не считать завершенным финальным тестом.
-
-Нужно проверить:
-- квалификацию лида;
-- переход между квалификатором и консультантом;
-- использование базы знаний и `products_live` в ответах;
-- корректность ответов по продуктам, ценам и офферам;
-- работу handoff-сценариев;
-- работу `07_WF_CRM_Operator`, если он участвует в текущем маршруте;
-- где контур отвечает сам, а где упирается в `MCP`, credentials или workflow-связки.
-
-Проведи серию живых тестов и после завершения:
-- сохрани итоговый отчет;
-- в summary отдельно покажи работу prompt-ов, агентов, routing, handoff, повторяемость, занудство, phone-gate и утечки служебных сообщений;
-- добавь `expected_changes_next_run`, чтобы после правок было видно, что должно измениться;
-- отдельно зафиксируй, что `06_WF_Test` был выключен перед боевым прогоном;
-- отдельно покажи критические ошибки;
-- отдельно покажи, что нужно исправить перед боевым запуском;
-- обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- предложи только один следующий шаг.
+Потом запусти боевой тест.
+Сохрани raw report и summary report.
+Проверь квалификацию, консультацию, handoff, ответы по базе и работу `07_WF_CRM_Operator`, если он участвует в маршруте.
+Обнови контекст и предложи только один следующий шаг.
 ```
 
 ## Команда 13. Снять структуру `AmoCRM`
-
-Эта команда не подключает CRM вслепую и не пишет в нее.
-Она нужна, чтобы аккуратно снять реальную структуру аккаунта клиента: воронки, статусы, поля, обязательные поля, доступные сущности и то, что реально видно через текущий `MCP AmoCRM`.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Снятие структуры AmoCRM`.
+Смотри правила только в:
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
 
-Работай только так, как это будет у клиента:
-- через клиентский `n8n`;
-- через клиентский credential `MCP AmoCRM` внутри `n8n`;
-- через workflow или узлы клиента, если для этого этапа нужен запуск из `n8n`.
-
-Жесткие запреты:
-- не подключайся по `SSH` к серверу, где развернут `MCP`;
-- не заходи в контейнер или на машину, где живет `MCP AmoCRM`;
-- не используй мой сервер, мой контейнер или чужую служебную среду как место разведки;
-- не обходи клиентский `n8n`, если задачу можно сделать через его текущие credentials и его текущую установку;
-- не спрашивай у пользователя доступы к внутреннему серверу `MCP`, если уже есть рабочий `MCP AmoCRM` в клиентском `n8n`.
-
-Сначала:
-- прочитай `DANNYE_DLYA_RAZVERTYVANIYA.md`;
-- прочитай `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- проверь, что у клиента уже есть рабочий `n8n`;
-- проверь, что в `n8n` уже существует credential `MCP AmoCRM`;
-- проверь, что credential реально привязан к проекту и виден в интерфейсе;
-- если credential не найден, не придумывай обходной путь и не лезь в `MCP` по `SSH`, а сначала корректно создай или обнови `MCP AmoCRM` через данные проекта;
-- если credential найден, не трать время на поиск способа подключения, а сразу проверь его через живой вызов из `n8n` по фиксированной схеме:
-  - узел: `MCP Client Tool` или текущий принятый `MCP`-узел пакета;
-  - endpoint: `https://amocrm.mcp.comandos.ai`;
-  - transport: `HTTP Streamable`;
-  - authentication: `Multiple Headers Auth`;
-  - credential: `MCP AmoCRM`;
-  - header: `x-license-key`.
-
-Первый вызов должен быть минимальным и проверочным:
-- сначала выполни короткий тестовый запрос через текущий `MCP AmoCRM`;
-- не пытайся сразу собирать всю структуру до успешного первого ответа;
-- если первый ответ не получен, не придумывай другой endpoint и не уходи в `SSH`-разведку, а чини только credential, привязку проекта или сам вызов из `n8n`;
-- только после успешного первого ответа переходи к снятию структуры CRM.
-
-Дальше сними структуру CRM:
-- список воронок;
-- список статусов по каждой воронке;
-- поля контакта;
-- поля сделки;
-- обязательные поля, если это видно;
-- пользовательские поля, если они доступны;
-- что реально можно читать и что реально можно писать через текущий `MCP AmoCRM`;
-- какие действия доступны для контактов;
-- какие действия доступны для сделок;
-- какие идентификаторы сущностей нужны для будущих записей и обновлений.
-
-Важно:
-- не ограничивайся словами “доступ есть”;
-- не считай этап завершенным, пока не показана фактическая структура аккаунта;
-- не выдумывай поля и статусы, если `MCP` их не вернул;
-- если `MCP AmoCRM` возвращает неполный набор данных, так и напиши и покажи, чего именно не хватает.
-- не трать время на выбор между разными способами доступа, если рабочий credential `MCP AmoCRM` уже есть в `n8n`;
-- не меняй URL, transport и тип аутентификации, если для клиента уже используется стандартный маршрут `https://amocrm.mcp.comandos.ai` + `HTTP Streamable` + `Multiple Headers Auth`.
-
-После завершения:
-- покажи найденные воронки;
-- покажи найденные статусы;
-- покажи поля контакта;
-- покажи поля сделки;
-- покажи, какие действия доступны через текущий `MCP AmoCRM`;
-- сохрани результат в файле проекта как отдельный артефакт структуры `AmoCRM`;
-- обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- предложи только один следующий шаг: сборка CRM-карты `AmoCRM`.
+Работай только через клиентский `n8n` и `MCP AmoCRM`.
+Не ходи в `SSH`.
+Не лезь в контейнер `MCP`.
+Сначала сделай короткий проверочный вызов через `MCP AmoCRM`.
+Потом сними воронки, статусы, поля и доступные действия.
+Сохрани результат, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 14. Собрать CRM-карту `AmoCRM`
-
-Эта команда берет уже снятую живую структуру `AmoCRM` и превращает ее в рабочую карту для дальнейшей интеграции: куда писать, что обновлять, какие поля нужны и при каких условиях двигать сделку.
 
 ```text
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Сборка CRM-карты AmoCRM`.
+Смотри правила только в:
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
 
-Работай только по реальным данным клиента:
-- используй уже снятую структуру `AmoCRM`;
-- используй текущий `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- используй текущий `DANNYE_DLYA_RAZVERTYVANIYA.md`;
-- если структура `AmoCRM` еще не снята, не выдумывай карту и сначала вернись к этапу `Снятие структуры AmoCRM`.
+Возьми уже снятую структуру `AmoCRM`.
+Собери по ней рабочую CRM-карту:
+- воронка
+- статусы
+- поля
+- правила создания и обновления контакта
+- правила создания и обновления сделки
+- что делает автоматика, а что остаётся человеку
 
-Жесткие запреты:
-- не придумывай поля, статусы и воронки по памяти;
-- не используй чужую `AmoCRM` как образец;
-- не лезь по `SSH` в `MCP`-сервер, контейнеры или служебные машины;
-- не собирай карту “на глаз” без фактических данных, снятых через клиентский `MCP AmoCRM`.
-
-Нужно собрать CRM-карту:
-- какая воронка используется для отдела продаж;
-- в какие статусы должна попадать сделка;
-- при каких условиях создавать контакт;
-- при каких условиях создавать сделку;
-- какие поля контакта заполнять всегда;
-- какие поля сделки заполнять всегда;
-- какие поля заполнять только если факт уже подтвержден;
-- какие поля нельзя трогать автоматически;
-- какие действия должен делать квалификатор;
-- какие действия должен делать консультант;
-- какие действия оставлять только человеку;
-- в какой момент допустим `handoff`;
-- что должно происходить при повторном обращении существующего лида;
-- что должно происходить, если контакт уже существует, а сделка новая;
-- что должно происходить, если и контакт, и сделка уже существуют;
-- какие события и записи идут только в `Postgres`, а какие потом можно будет отправлять в `AmoCRM`.
-
-Отдельно проверь и зафиксируй:
-- какие поля реально есть в аккаунте клиента, а какие только хотелось бы иметь;
-- какие поля обязательны;
-- какие поля безопасно заполнять автоматически;
-- какой минимальный набор полей нужен для первого рабочего запуска;
-- какие действия можно делать уже сейчас через текущий `MCP AmoCRM`, а какие пока нельзя.
-
-Результат должен быть не в виде краткой заметки, а в виде нормальной рабочей CRM-карты:
-- воронка;
-- статусы;
-- поля;
-- правила движения;
-- правила создания и обновления контакта;
-- правила создания и обновления сделки;
-- границы между автоматикой и ручной работой менеджера.
-
-После завершения:
-- покажи готовую CRM-карту по разделам;
-- сохрани ее в файл проекта;
-- обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- явно покажи, чего уже хватает для интеграции, а чего еще не хватает;
-- предложи только один следующий шаг: `Сборка AmoCRM-промптов и workflow`.
+Сохрани карту, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 15. Собрать AmoCRM-промпты и workflow
@@ -770,37 +395,15 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `Сборка AmoCRM-промптов и workflow`.
+Смотри правила только в:
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
 
-Сначала:
-- прочитай уже собранную CRM-карту клиента;
-- прочитай `DANNYE_DLYA_RAZVERTYVANIYA.md`;
-- прочитай `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- найди текущий workflow `07_WF_CRM_Operator`, если он уже существует;
-- найди текущий prompt для `CRM Operator`, если он уже существует;
-- не переписывай все вслепую, если часть структуры уже собрана корректно.
-
-Нужно:
-- на основе CRM-карты обновить `Prompts/prompt_orchestrator_crm_operator.md`;
-- обновить prompt AI-узла `CRM Operator` в `07_WF_CRM_Operator`;
-- при необходимости обновить handoff prompt;
-- при необходимости обновить prompt квалификатора и консультанта только в той части, где они должны отдавать данные в CRM-ветку;
-- проверить, что оркестратор вызывает именно `crm_operator`, а не пытается писать в `AmoCRM` напрямую;
-- проверить, что `MCP AmoCRM` не воткнут напрямую в главный оркестратор, если по логике это должен делать отдельный `CRM Operator`;
-- сохранить все изменения как рабочий набор файлов проекта.
-
-Жесткие правила:
-- не лезть по `SSH` в `MCP`-сервер или контейнеры;
-- не собирать CRM prompt по памяти;
-- не писать CRM-логику без CRM-карты;
-- не подключать `MCP AmoCRM` напрямую туда, где должен работать отдельный CRM-оператор;
-- не ломать текущую связку `Postgres` и sales workflow.
-
-После завершения:
-- покажи, какие prompt-ы обновлены;
-- покажи, какой workflow обновлен;
-- покажи, куда именно теперь идет CRM-маршрут;
-- обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- предложи следующий шаг: `AmoCRM sales-тест`.
+Работай от CRM-карты.
+Обновляй только нужные prompt-ы и `07_WF_CRM_Operator`.
+Не лезь в `SSH`.
+Не втыкай `MCP AmoCRM` напрямую туда, где должен работать `CRM Operator`.
+Покажи, что обновлено, обнови контекст и предложи следующий шаг.
 ```
 
 ## Команда 16. AmoCRM sales-тест
@@ -809,31 +412,14 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 Используй навык `Полный запуск отдела продаж`.
 
 Перейди к этапу `AmoCRM sales-тест`.
+Смотри правила только в:
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
 
-Сначала:
-- проверь `07_WF_CRM_Operator`;
-- проверь, что CRM prompt уже вставлен;
-- проверь, что `MCP AmoCRM` подключен корректно;
-- проверь, что `MCP Postgres` и CRM-ветка не конфликтуют;
-- перед новым прогоном очисти рабочие таблицы тестовых данных, не трогая `knowledge_rag` и `products_live`.
-
-После этого:
-- запусти живой sales-тест;
-- проверь `crm_sync`;
-- проверь создание или обновление контакта;
-- проверь создание или обновление сделки;
-- проверь заполнение полей `AmoCRM`;
-- проверь движение сделки по статусам, если это уже должно происходить;
-- проверь handoff;
-- проверь заметку и задачу, если они входят в текущую логику.
-
-Сохрани:
-- raw report;
-- summary report;
-- список найденных ошибок;
-- список того, что нужно поправить перед следующим прогоном.
-
-После завершения:
-- обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
-- предложи следующий шаг: `Точечная правка prompt-ов по итогам AmoCRM-теста`.
+Проверь `07_WF_CRM_Operator`, prompt-ы и `MCP AmoCRM`.
+Очисти рабочие тестовые данные.
+Запусти живой тест CRM-ветки.
+Проверь `crm_sync`, контакт, сделку, поля, статусы, handoff, заметку и задачу, если они есть в логике.
+Сохрани raw и summary report.
+Обнови контекст и предложи следующий шаг.
 ```
