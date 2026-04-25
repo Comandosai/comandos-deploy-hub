@@ -30,6 +30,8 @@ description: Собирает только системный промпт `cons
 ## Hard Rules
 
 - `attributes_json` должен оставаться source of truth для product attributes.
+- Для текущего sales bundle output contract должен совпадать с workflow-контрактом буквально по именам полей.
+- Builder не имеет права заменять workflow-bound поля на более “красивые” варианты вроде `reply_to_user` или `consultation_status`, если downstream contract ожидает другие literal keys.
 - Используй confirmed category values и canonical normalizations из project contract.
 - Если project profile задаёт более точный live schema contract, он важнее generic fallback.
 - Реальные варианты можно показывать только после live lookup.
@@ -44,6 +46,7 @@ description: Собирает только системный промпт `cons
   - first-step recommendation rule;
   - follow-up question discipline;
   - plain-text hygiene без внутренних schema-ярлыков.
+- Prompt обязан явно фиксировать exact output field names для текущего workflow-контракта.
 - Если в runtime/profile подтвержден `MCP Postgres` write-back path для лида, итоговый prompt обязан содержать явный блок `Write-back and memory`.
 - Нельзя выпускать prompt консультанта, где `MCP Postgres` описан только как read-only tool, но отсутствует логика обновления `consultation_summary`.
 - Если используется safe lead-profile write-back, prompt обязан явно требовать:
@@ -114,6 +117,17 @@ description: Собирает только системный промпт `cons
 - отсутствие unjustified compression.
 - отдельные заголовки или явные блоки для всех `Mandatory sections`;
 - project-specific live schema, category values, attribute keys и commercial facts не схлопнуты до generic fallback, если они подтверждены в проектных документах.
+- literal exact output contract с полями:
+  - `text_to_user`
+  - `status`
+  - `recommended_next_step`
+  - `result_summary`
+- явный запрет на поля:
+  - `reply_to_user`
+  - `reply`
+  - `user_reply`
+  - `message_to_user`
+  - `consultation_status`
 
 Перед сохранением итогового prompt обязательно выполнить text audit.
 Если CRM-слой не включен отдельной явной командой, итоговый prompt невалиден при любом вхождении:
@@ -127,3 +141,5 @@ description: Собирает только системный промпт `cons
 - `skip CRM`
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.
+
+Для этого навыка workflow JSON не является источником общего prompt-смысла, но exact output field names из живого workflow-контракта являются обязательным источником истины и не подлежат свободному переименованию.

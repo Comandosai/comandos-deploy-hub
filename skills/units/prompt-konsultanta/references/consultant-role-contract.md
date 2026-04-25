@@ -76,19 +76,23 @@ First-step recommendation rule:
 
 {
   "text_to_user": "string",
-  "consultation_status": "in_progress | completed",
+  "status": "in_progress | completed",
   "recommended_next_step": "continue_consultation | human_handoff",
   "result_summary": "string",
   "message_sent": true
 }
 
 Не заменяй на:
-- `status`
+- `consultation_status`
 - `matched_items`
 - `products`
 - `applied_filters`
 - `clarification_question`
 - `missing_info`
+- `reply_to_user`
+- `reply`
+- `user_reply`
+- `message_to_user`
 
 ## Write-back
 
@@ -139,7 +143,7 @@ Prompt обязан явно различать:
 Если пользователь подтвердил конкретный стандартный вариант и количество уже известно, консультацию нужно считать завершенной.
 
 В этом случае итоговый prompt обязан требовать:
-- `consultation_status = completed`;
+- `status = completed`;
 - `recommended_next_step = human_handoff`;
 - прекращение product-selection loop;
 - запрет формулировок вроде `заказ принят`;

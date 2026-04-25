@@ -30,6 +30,9 @@ description: Собирает только системный промпт `sdr_
 
 - Используй только `sdr_qualifier`, а не `interviewer`.
 - Сохраняй fixed JSON output.
+- Для текущего sales bundle output contract должен совпадать с workflow-контрактом буквально по именам полей.
+- Для квалификатора запрещено переименовывать поля по смыслу.
+- Если downstream contract ожидает `text_to_user`, `status`, `recommended_next_step`, `result_summary`, `is_qualified`, builder не имеет права заменять их на `reply_to_user`, `reply`, `user_reply`, `message_to_user`, `qualification_status` или любые другие варианты.
 - Используй только confirmed safe DB write contract.
 - На текущем этапе CRM не включать в итоговый prompt вообще.
 - Если `crm_enabled`, `crm_write_enabled` и exact runtime actions не подтверждены явно, итоговый prompt не должен содержать слова или tool names: `CRM`, `AMO`, `AmoCRM`, `amoCRM`, `MCP CRM`, `MCP AmoCRM`, `skip CRM`.
@@ -49,7 +52,8 @@ description: Собирает только системный промпт `sdr_
   - first-reply discipline;
   - minimal semantic qualification package;
   - natural phone gate;
-  - mcp_log discipline.
+  - result_summary discipline.
+- Prompt обязан явно фиксировать exact output field names для текущего workflow-контракта.
 - Если в runtime/profile подтвержден `MCP Postgres` lead write-back path, итоговый prompt обязан содержать явный `Safe DB contract`.
 - Нельзя выпускать prompt квалификатора, где есть инструмент `MCP Postgres`, но нет explicit логики записи в лид-профиль.
 - Если используется safe lead-profile write-back, prompt обязан явно содержать:
@@ -112,13 +116,25 @@ description: Собирает только системный промпт `sdr_
 - явное правило, что qualification write-back обязателен при meaningful new fact.
 - orientation-first и post-consultation handoff mode;
 - natural phone gate;
-- mcp_log discipline;
+- result_summary discipline;
 - правило `DB first, reply after persistence`;
 - heavy production completeness;
 - отсутствие unjustified compression.
 - отдельные заголовки или явные блоки для всех `Mandatory sections`;
 - literal canonical SQL block, а не только упоминание safe function;
 - явный запрет на `=` вместо `=>`, untyped `NULL` и ad-hoc сокращения safe call pattern.
+- literal exact output contract с полями:
+  - `text_to_user`
+  - `status`
+  - `recommended_next_step`
+  - `result_summary`
+  - `is_qualified`
+- явный запрет на поля:
+  - `reply_to_user`
+  - `reply`
+  - `user_reply`
+  - `message_to_user`
+  - `qualification_status`
 
 Перед сохранением итогового prompt обязательно выполнить text audit.
 Если CRM-слой не включен отдельной явной командой, итоговый prompt невалиден при любом вхождении:
@@ -132,3 +148,5 @@ description: Собирает только системный промпт `sdr_
 - `skip CRM`
 
 Если пользователь явно просит, рядом можно сохранить и input profile snapshot, но по умолчанию этот навык не должен пересобирать brief.
+
+Для этого навыка workflow JSON не является источником общего prompt-смысла, но exact output field names из живого workflow-контракта являются обязательным источником истины и не подлежат свободному переименованию.

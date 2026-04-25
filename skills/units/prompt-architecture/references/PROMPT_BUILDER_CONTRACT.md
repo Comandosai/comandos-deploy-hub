@@ -38,6 +38,11 @@ Builder собирает итоговый prompt из:
 12. Проверить, что prompt не был unjustifiably compressed.
 13. Сохранить `input_profile` и итоговый `prompt_*.md`.
 
+Важно:
+- workflow JSON не является главным источником prompt-смысла;
+- но exact output field names из workflow-bound contract являются обязательным источником истины для имен полей;
+- builder не имеет права “улучшать” или переименовывать output keys по смыслу.
+
 ## Mandatory sections mode
 
 Для sales/runtime prompt builder обязан работать в режиме `mandatory sections`.
@@ -56,6 +61,7 @@ Builder собирает итоговый prompt из:
 - все critical tool contracts описаны явно;
 - live schema не выдумана;
 - output contract определен;
+- exact output field names совпадают с workflow-bound contract;
 - state/handoff rules определены;
 - anti-hallucination rules присутствуют;
 - mature baseline invariants не потеряны.
@@ -73,6 +79,9 @@ Builder собирает итоговый prompt из:
 - Для `consultant` project-specific live schema, category values, attribute keys, commercial facts и write-back discipline считаются обязательными секциями, если они подтверждены в brief/profile/project docs.
 - Наличие `MCP Postgres` в tools без описанной логики записи в лид-профиль считается ошибкой сборки prompt.
 - Prompt нельзя считать production-ready, если `result_summary` описан, но persisted memory / summary write-back contract отсутствует.
+- Prompt нельзя считать production-ready, если literal field names не совпадают с downstream workflow contract.
+- Если workflow-bound contract требует `text_to_user`, builder не имеет права выпускать `reply_to_user`.
+- Если workflow-bound contract требует `status`, builder не имеет права выпускать `consultation_status` или `qualification_status`.
 - По умолчанию CRM считается выключенной для prompt-а.
 - Если CRM не подтверждена до exact-action уровня, builder обязан полностью исключить CRM-слой из итогового prompt.
 - В этом режиме итоговый prompt не должен содержать слова или tool names: `CRM`, `AMO`, `AmoCRM`, `amoCRM`, `MCP CRM`, `MCP AmoCRM`, `skip CRM`.
@@ -97,6 +106,7 @@ Builder собирает итоговый prompt из:
 ## Hard prohibitions
 
 - не использовать workflow JSON как основной источник prompt-смысла;
+- не переименовывать workflow-bound output fields по смыслу;
 - не собирать prompt напрямую из `brief` без skeleton;
 - не выдумывать отсутствующие technical contracts;
 - не сохранять только итоговый prompt без рядом лежащего input profile.
@@ -107,3 +117,4 @@ Builder собирает итоговый prompt из:
 - не завершать сборку prompt, если хотя бы одна обязательная секция роли отсутствует как самостоятельный явный блок.
 - не завершать сборку sales/runtime prompt, если project-specific sections схлопнуты в generic fallback при наличии подтвержденных project docs.
 - не выпускать prompt, где есть любое упоминание `CRM`, `AMO`, `AmoCRM`, `MCP CRM` или `MCP AmoCRM`, если в `input_profile` не подтверждены exact CRM actions.
+- не выпускать prompt, где literal output keys не совпадают с текущим workflow contract.

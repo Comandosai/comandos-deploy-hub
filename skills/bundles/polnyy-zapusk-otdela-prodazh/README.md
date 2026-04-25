@@ -407,6 +407,19 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 - не выдумывать DB contract;
 - использовать только confirmed safe DB write contract;
 - использовать fixed JSON output contract;
+- exact output field names брать из workflow-bound контракта и не переименовывать их по смыслу;
+- для текущего `03_WF_Qualification` использовать literal keys:
+  - `text_to_user`
+  - `status`
+  - `recommended_next_step`
+  - `result_summary`
+  - `is_qualified`
+- запрещено выпускать варианты:
+  - `reply_to_user`
+  - `reply`
+  - `user_reply`
+  - `message_to_user`
+  - `qualification_status`
 - не сокращать prompt до короткой contract-версии;
 - не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;
 - не пересказывать reference-файлы коротко, если из них можно перенести полноразмерные operational blocks;
@@ -473,6 +486,18 @@ Runner, ingestion, commandos-api и запись в `Supabase` на этом ш�
 
 Жесткие правила:
 - не использовать workflow JSON как источник prompt-смысла;
+- exact output field names брать из workflow-bound контракта и не переименовывать их по смыслу;
+- для текущего `04_WF_Consultation` использовать literal keys:
+  - `text_to_user`
+  - `status`
+  - `recommended_next_step`
+  - `result_summary`
+- запрещено выпускать варианты:
+  - `reply_to_user`
+  - `reply`
+  - `user_reply`
+  - `message_to_user`
+  - `consultation_status`
 - не генерировать prompt напрямую из `brief` без skeleton-layer;
 - не сокращать prompt до короткой contract-версии;
 - не делать draft prompt на 80-150 строк, если можно собрать полный production prompt;

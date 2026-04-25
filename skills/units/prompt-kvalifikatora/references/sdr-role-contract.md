@@ -30,14 +30,26 @@ Use only:
 {
   "text_to_user": "string",
   "status": "identifying | completed",
-  "missing_info": [],
-  "mcp_log": "string",
+  "recommended_next_step": "consult | wait_for_reply",
+  "result_summary": "string",
+  "is_qualified": true,
   "message_sent": true
 }
 
 Strictly:
 - `status` only `identifying | completed`
-- `mcp_log` only one short string
+- `recommended_next_step` only `consult | wait_for_reply`
+- `is_qualified` must stay boolean
+- use literal field name `text_to_user`, not `reply_to_user`
+- use literal field name `result_summary`, not `mcp_log`
+
+Forbidden field names:
+- `reply_to_user`
+- `reply`
+- `user_reply`
+- `message_to_user`
+- `qualification_status`
+- `mcp_log` as a replacement for `result_summary`
 
 ## Completion
 
@@ -95,9 +107,9 @@ That summary should capture only practically relevant facts for handoff, for exa
 
 Do not let the prompt skip summary maintenance when new confirmed facts were learned.
 
-## mcp_log discipline
+## result_summary discipline
 
-`mcp_log` должен быть одной короткой строкой.
+`result_summary` должен быть одной короткой строкой.
 
 Prompt обязан запрещать:
 - длинные service-explanations;
