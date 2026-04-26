@@ -183,17 +183,13 @@ VALUES (
 
 ## Промпты, которые меняются после AmoCRM
 
-После CRM-карты нужно обновить минимум три промпта:
+После CRM-карты нужно писать и сразу вставлять только три промпта.
 
-1. `Prompts/prompt_orchestrator_crm_operator.md`
+Оркестратор не переписывать.
+`reply_to_user` в оркестраторе оставить как есть.
+Оркестратор только проверить: он должен вызывать `crm_operator`.
 
-Оркестратор:
-- не трогает AmoCRM напрямую;
-- вызывает `crm_operator` после значимых шагов;
-- вызывает `crm_operator` после handoff;
-- не показывает клиенту технические детали CRM.
-
-2. Промпт `CRM Operator`
+1. Промпт `CRM Operator`
 
 Он находится в workflow `07_WF_CRM_Operator`, AI-узел `CRM Operator`.
 
@@ -206,17 +202,15 @@ VALUES (
 - что запрещено выдумывать;
 - когда возвращать `no_changes`.
 
-3. `Prompts/prompt_qualifier.md`
+2. `Prompts/prompt_qualifier.md`
 
 Квалификатор должен лучше возвращать подтвержденные факты в `state_patch` и summary, но не должен работать с AmoCRM напрямую.
 
-4. `Prompts/prompt_consultant.md`
+3. `Prompts/prompt_consultant.md`
 
 Консультант должен сохранять полезное consultation summary, чтобы CRM-оператор мог взять оттуда интересующий продукт, рекомендацию и состояние клиента.
 
-5. Handoff prompt в `05_WF_Human_Handoff_Workflow`
-
-Handoff должен создавать заметку и задачу, но не должен отвечать за поля и стадии AmoCRM.
+Handoff prompt в `05_WF_Human_Handoff_Workflow` менять только по отдельной явной команде пользователя.
 
 ## Тест после сборки
 

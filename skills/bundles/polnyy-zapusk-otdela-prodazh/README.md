@@ -400,7 +400,14 @@ Runner и загрузку в `Supabase` не запускай.
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
 
 Работай от CRM-карты.
-Обновляй только нужные prompt-ы и `07_WF_CRM_Operator`.
+Пиши и сразу вставляй только три prompt-а:
+- квалификатор;
+- консультант;
+- `CRM Operator` в `07_WF_CRM_Operator`.
+
+`02_Main_Orcestrator` не переписывай.
+`reply_to_user` в оркестраторе оставь как есть.
+Оркестратор только проверь: он должен вызывать `crm_operator`.
 Не лезь в `SSH`.
 Не втыкай `MCP AmoCRM` напрямую туда, где должен работать `CRM Operator`.
 Покажи, что обновлено, обнови контекст и предложи следующий шаг.

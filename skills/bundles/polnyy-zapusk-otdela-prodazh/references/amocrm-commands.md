@@ -119,17 +119,24 @@
 - шаблон или текущую версию `07_WF_CRM_Operator`.
 
 Собери или обнови:
-- `Prompts/prompt_orchestrator_crm_operator.md`;
-- prompt AI-узла `CRM Operator` в `07_WF_CRM_Operator`;
-- при необходимости `Prompts/prompt_qualifier.md`;
-- при необходимости `Prompts/prompt_consultant.md`;
-- handoff prompt в `05_WF_Human_Handoff_Workflow`, если он должен создавать заметку и задачу.
+- `Prompts/prompt_qualifier.md`;
+- `Prompts/prompt_consultant.md`;
+- prompt AI-узла `CRM Operator` в `07_WF_CRM_Operator`.
+
+После сборки сразу вставь эти три prompt-а в живой `n8n`:
+- квалификатор -> `03_WF_Qualification`;
+- консультант -> `04_WF_Consultation`;
+- CRM Operator -> `07_WF_CRM_Operator`.
+
+Не создавай и не обновляй `Prompts/prompt_orchestrator_crm_operator.md`.
+Не переписывай prompt оркестратора.
+Поле `reply_to_user` в оркестраторе оставь как есть.
+Handoff prompt меняй только по отдельной явной команде пользователя.
 
 Правила:
 - оркестратор не должен напрямую использовать `MCP AmoCRM`;
-- оркестратор должен вызывать `crm_operator` после значимых шагов;
+- оркестратор только проверяется: он должен вызывать `crm_operator`;
 - `crm_operator` должен работать с полями и стадиями;
-- handoff workflow создает заметку и задачу;
 - квалификатор и консультант не работают с AmoCRM напрямую;
 - source of truth для карты AmoCRM — `Prompts/amocrm_crm_map.json` и `DANNYE_DLYA_RAZVERTYVANIYA.md`.
 
@@ -137,6 +144,7 @@
 - workflow `07_WF_CRM_Operator` существует;
 - workflow `02_Main_Orcestrator` имеет tool `crm_operator`;
 - `MCP AmoCRM` не подключен напрямую к оркестратору;
+- prompt оркестратора не был изменен;
 - `crm_operator` возвращает нормальный JSON, а не строку внутри `output`;
 - результат `crm_operator` пишется в `public.lead_events.payload`.
 
@@ -195,8 +203,8 @@
 - какие поля заполнились;
 - какой этап сделки поставлен;
 - где агент ошибся в диалоге;
-- что нужно поправить в трех промптах: оркестратор, квалификатор, консультант;
-- что нужно поправить в CRM operator prompt.
+- что нужно поправить в трех промптах: квалификатор, консультант, CRM Operator;
+- отдельно покажи, если проблема не в prompt-е, а в связи workflow.
 
 Обнови `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`.
 
