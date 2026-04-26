@@ -14,6 +14,12 @@
 - что есть `x-license-key` или другой ключ, через который MCP AmoCRM понимает клиента;
 - что в `DANNYE_DLYA_RAZVERTYVANIYA.md` есть данные проекта.
 
+Если в проекте еще нет `AmoCRM_skill/runtime_map.md`, создай его по шаблону:
+- `references/project-runtime-map-template.md`
+
+Реальные `workflow id`, имена узлов и активные версии сохраняй только в проектный `AmoCRM_skill/runtime_map.md`.
+В общий skill эти данные не переносить.
+
 Не трать время на поиск способа подключения.
 Если `MCP AmoCRM` уже есть в `n8n`, используй сразу фиксированный маршрут:
 - узел: `MCP Client Tool` или текущий `MCP`-узел пакета;
@@ -113,6 +119,7 @@
 - `Prompts/amocrm_crm_map.json`;
 - `DANNYE_DLYA_RAZVERTYVANIYA.md`;
 - `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md`;
+- `AmoCRM_skill/runtime_map.md`, если он уже есть;
 - текущие промпты квалификатора и консультанта;
 - текущий workflow `02_Main_Orcestrator`;
 - workflow `05_WF_Human_Handoff_Workflow`;
@@ -128,6 +135,14 @@
 - консультант -> `04_WF_Consultation`;
 - CRM Operator -> `07_WF_CRM_Operator`.
 
+Перед вставкой prompt-ов:
+- найди workflow по имени, если их нет в `AmoCRM_skill/runtime_map.md`;
+- найди AI-узлы по имени или типу;
+- обнови `AmoCRM_skill/runtime_map.md`;
+- используй `references/fast-ops.md` как порядок быстрой вставки;
+- если текущий `n8n` использует активные версии workflow, обнови и черновик, и активную версию;
+- после вставки перечитай живые prompt-ы и сравни их с файлами в `Prompts/`.
+
 Не создавай и не обновляй `Prompts/prompt_orchestrator_crm_operator.md`.
 Не переписывай prompt оркестратора.
 Поле `reply_to_user` в оркестраторе оставь как есть.
@@ -139,6 +154,7 @@ Handoff prompt меняй только по отдельной явной ком
 - `crm_operator` должен работать с полями и стадиями;
 - квалификатор и консультант не работают с AmoCRM напрямую;
 - source of truth для карты AmoCRM — `Prompts/amocrm_crm_map.json` и `DANNYE_DLYA_RAZVERTYVANIYA.md`.
+- source of truth для найденных workflow и узлов — проектный `AmoCRM_skill/runtime_map.md`.
 
 Проверь в n8n:
 - workflow `07_WF_CRM_Operator` существует;
@@ -169,6 +185,7 @@ Handoff prompt меняй только по отдельной явной ком
 - попроси пользователя удалить тестовые сделки/контакты в AmoCRM, если нужен полностью чистый визуальный прогон;
 - очисти рабочие таблицы Supabase;
 - не трогай `knowledge_rag` и `products_live`.
+- используй `references/fast-ops.md` для очистки и проверок;
 
 Запусти живой sales-тест.
 
@@ -191,6 +208,7 @@ Handoff prompt меняй только по отдельной явной ком
 - движение сделки по правильному этапу;
 - создание заметки и задачи при handoff;
 - отсутствие прямых вызовов `MCP AmoCRM` из оркестратора.
+- фактический payload вызова `update_contact`: если пишутся кастомные поля, там должен быть `custom_fields_values`.
 
 Сохрани:
 - raw dialog report;

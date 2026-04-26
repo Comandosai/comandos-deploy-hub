@@ -60,6 +60,9 @@
 AmoCRM этапы:
 - [AmoCRM и CRM-оператор](references/amocrm-crm-operator.md)
 - [Команды для этапа AmoCRM](references/amocrm-commands.md)
+- [Шаблон проектной runtime-карты](references/project-runtime-map-template.md)
+- [Быстрые операции проекта](references/fast-ops.md)
+- [Рабочие схемы MCP AmoCRM](references/mcp-amocrm-working-payloads.md)
 
 Canonical prompt layer:
 - [Prompt Architecture](../prompt-architecture/README.md)
@@ -78,6 +81,9 @@ Canonical prompt layer:
 - не сочинять `DANNYE_DLYA_RAZVERTYVANIYA.md` и `KONTEXT_VNEDRENIYA_OTDELA_PRODAZH.md` с нуля;
 - если файла нет, создавать его только копированием шаблона из репозитория;
 - если файл есть, обновлять существующий, а не переписывать случайной новой версией.
+- реальные `workflow id`, id узлов, ключи, телефоны, сделки и контакты клиента не записывать в общий skill;
+- для конкретного проекта создавать `AmoCRM_skill/runtime_map.md` по шаблону `references/project-runtime-map-template.md`;
+- после заполнения runtime-карты использовать ее как карту проекта и не искать одни и те же workflow заново.
 
 Шаблоны брать строго отсюда:
 - `skills/DANNYE_DLYA_RAZVERTYVANIYA.md`
@@ -358,12 +364,14 @@ Runner и загрузку в `Supabase` не запускай.
 Смотри правила только в:
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/project-runtime-map-template.md`
 
 Работай только через клиентский `n8n` и `MCP AmoCRM`.
 Не ходи в `SSH`.
 Не лезь в контейнер `MCP`.
 Сначала сделай короткий проверочный вызов через `MCP AmoCRM`.
 Потом сними воронки, статусы, поля и доступные действия.
+Если находишь реальные workflow, узлы или версии, сохрани их только в проектный `AmoCRM_skill/runtime_map.md`, а не в skill.
 Сохрани результат, обнови контекст и предложи следующий шаг.
 ```
 
@@ -398,6 +406,8 @@ Runner и загрузку в `Supabase` не запускай.
 Смотри правила только в:
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/fast-ops.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/mcp-amocrm-working-payloads.md`
 
 Работай от CRM-карты.
 Пиши и сразу вставляй только три prompt-а:
@@ -405,10 +415,18 @@ Runner и загрузку в `Supabase` не запускай.
 - консультант;
 - `CRM Operator` в `07_WF_CRM_Operator`.
 
+Перед вставкой:
+- создай или обнови проектный `AmoCRM_skill/runtime_map.md`;
+- найди workflow по имени;
+- найди AI-узлы по имени или типу;
+- проверь активную версию workflow, если она есть;
+- после вставки проверь, что prompt обновился в черновике и в активной версии.
+
 `02_Main_Orcestrator` не переписывай.
 `reply_to_user` в оркестраторе оставь как есть.
 Оркестратор только проверь: он должен вызывать `crm_operator`.
-Не лезь в `SSH`.
+Не лезь в `SSH` на сервер или контейнер `MCP`.
+Клиентский сервер `n8n` можно использовать только если доступ уже есть в `DANNYE_DLYA_RAZVERTYVANIYA.md` и иначе prompt нельзя быстро вставить в живой workflow.
 Не втыкай `MCP AmoCRM` напрямую туда, где должен работать `CRM Operator`.
 Покажи, что обновлено, обнови контекст и предложи следующий шаг.
 ```
@@ -422,6 +440,8 @@ Runner и загрузку в `Supabase` не запускай.
 Смотри правила только в:
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-commands.md`
 - `skills/bundles/polnyy-zapusk-otdela-prodazh/references/amocrm-crm-operator.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/fast-ops.md`
+- `skills/bundles/polnyy-zapusk-otdela-prodazh/references/mcp-amocrm-working-payloads.md`
 
 Проверь `07_WF_CRM_Operator`, prompt-ы и `MCP AmoCRM`.
 Очисти рабочие тестовые данные.
@@ -430,6 +450,7 @@ Runner и загрузку в `Supabase` не запускай.
 Не повторяй один и тот же набор вопросов между прогонами.
 Имитируй живого человека по-разному, чтобы вскрывать слабые места.
 Проверь `crm_sync`, контакт, сделку, поля, статусы, handoff, заметку и задачу, если они есть в логике.
+Проверь не только ответ агента, но и фактический вызов `MCP AmoCRM`: для кастомных полей контакта должен уйти `custom_fields_values`.
 Сохрани raw и summary report.
 Обнови контекст и предложи следующий шаг.
 ```

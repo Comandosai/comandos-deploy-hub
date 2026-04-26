@@ -23,6 +23,31 @@ AmoCRM не должен висеть напрямую на оркестрато
 
 Оркестратор вызывает `crm_operator` как отдельный tool workflow после значимого шага.
 
+## Проектная runtime-карта
+
+Не записывать реальные `workflow id`, id узлов и активные версии в общий skill.
+
+При первом проходе по AmoCRM-этапам создать или обновить в проекте:
+
+```text
+AmoCRM_skill/runtime_map.md
+```
+
+Шаблон брать из:
+
+```text
+references/project-runtime-map-template.md
+```
+
+Дальше использовать эту карту, чтобы не искать заново:
+- `03_WF_Qualification`;
+- `04_WF_Consultation`;
+- `05_WF_Human_Handoff_Workflow`;
+- `07_WF_CRM_Operator`;
+- AI-узлы с prompt-ами;
+- активные версии workflow;
+- узлы заметки, задачи и разбора времени.
+
 ## Что запрещено
 
 Оркестратору запрещено:
@@ -83,6 +108,14 @@ AmoCRM не должен висеть напрямую на оркестрато
 Разрешены только действия:
 - `update_contact`;
 - `update_lead`.
+
+Рабочие шаблоны payload брать из:
+
+```text
+references/mcp-amocrm-working-payloads.md
+```
+
+Если CRM-карта требует писать кастомные поля контакта, фактический вызов `update_contact` должен содержать `custom_fields_values`.
 
 Если конкретный handoff workflow делает заметку и задачу, то в `07_WF_CRM_Operator` нельзя использовать:
 - `create_note`;
@@ -216,7 +249,7 @@ Handoff prompt в `05_WF_Human_Handoff_Workflow` менять только по 
 
 Перед каждым тестом:
 - пользователь удаляет тестовые сделки/контакты в AmoCRM, если хочет полностью чистый визуальный прогон;
-- агент очищает рабочие таблицы Supabase;
+- агент очищает рабочие таблицы Supabase по `references/fast-ops.md`;
 - нельзя трогать `knowledge_rag` и `products_live`.
 
 Проверить:
@@ -224,6 +257,7 @@ Handoff prompt в `05_WF_Human_Handoff_Workflow` менять только по 
 - `crm_operator` вызывается оркестратором;
 - в `lead_events` появляется `crm_sync`;
 - поля AmoCRM заполняются;
+- фактический payload `update_contact` содержит `custom_fields_values`, если пишутся кастомные поля контакта;
 - сделка двигается на правильный этап;
 - handoff создает заметку и задачу;
 - оркестратор не вызывает `MCP Amocrm` напрямую.
