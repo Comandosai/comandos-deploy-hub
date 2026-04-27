@@ -3,7 +3,11 @@
   "bundle_name": "Подключение отдела продаж",
   "version": "0.2.0",
   "clients": ["antigravity", "claude", "codex", "terminal"],
-  "workflows_dir": "workflows",
+  "workflow_artifact": {
+    "name": "sales-workflows",
+    "url": "https://api.comandos.ai/skill-runtime/artifacts/sales-workflows/latest",
+    "auth_header": "X-License-Key"
+  },
   "required_inputs": [
     "x-license-key"
   ],

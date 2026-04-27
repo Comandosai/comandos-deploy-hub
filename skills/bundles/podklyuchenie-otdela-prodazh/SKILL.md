@@ -11,7 +11,8 @@ description: Подключает существующие Supabase и n8n кл�
 - если файла нет, спрашивать только недостающие поля;
 - найти или принять доступы к `Supabase`;
 - найти или принять доступы к `n8n`;
-- загрузить workflow;
+- скачать закрытый архив workflow по `x_license_key`;
+- загрузить workflow из скачанного архива;
 - загрузить внутренний `07_WF_CRM_Operator`, если в пакете используется CRM-оператор;
 - создать и привязать соединения;
 - отдельно поднять тестового ИИ-агента для проверки базы;
@@ -25,6 +26,7 @@ description: Подключает существующие Supabase и n8n кл�
 4. Прочитай [preflight-проверку](references/preflight-proverka.md).
 5. Прочитай [поиск секретов](references/poisk-sekretov.md).
 6. Прочитай [Credential Binding LITE](references/credential-binding-lite.md).
+7. Прочитай [закрытую загрузку workflow](references/zakrytaya-zagruzka-workflow.md).
 
 Тяжёлые reference-файлы читать только когда дошёл до соответствующей фазы:
 - [аудит перепривязки](references/audit-pereprivyazki.md) — только на этапе `Workflow import + rebind audit`;
@@ -44,6 +46,9 @@ description: Подключает существующие Supabase и n8n кл�
 - Если `Supabase` и `n8n` уже стоят, не разворачивать их заново.
 - Не плодить дубликаты соединений, если корректные уже существуют.
 - Для `MCP` поле `x-license-key` обязательно. Без него настройка `MCP` не считается завершенной.
+- Workflow отдела продаж не лежат в открытом GitHub как источник файлов. Перед импортом всегда скачивать закрытый архив `sales-workflows` через `api.comandos.ai` по `x_license_key`.
+- Если `x_license_key` отсутствует, не импортировать workflow и спросить только этот ключ.
+- Нельзя придумывать workflow вручную или искать их в интернете: источник файлов только закрытый архив.
 - Если в `DANNYE_DLYA_RAZVERTYVANIYA.md` уже есть `x_license_key`, не просить у пользователя ручные headers для `MCP AmoCRM`, а собрать credential автоматически.
 - Для `MCP Postgres` одного `x_license_key` недостаточно: нужны все DB-параметры и 7 HTTP headers.
 - Если `OpenRouter`, `OpenAI` или `Telegram` для конкретного сценария не нужны, не требовать их.
@@ -98,6 +103,9 @@ description: Подключает существующие Supabase и n8n кл�
   - `не нашел, нужно спросить у пользователя`.
 
 3. `Workflow import + rebind audit`
+- скачать закрытый архив workflow по `x_license_key`;
+- распаковать архив во временную папку;
+- проверить, что внутри есть `manifest.json` и папка `workflows`;
 - импортировать workflow;
 - собрать список live credentials из `credentials_entity`;
 - сопоставить credentials по паре `(type + name)`;
