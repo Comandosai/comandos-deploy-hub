@@ -10,7 +10,7 @@
 
 ## Быстрый старт (Установка одной командой)
 ```bash
-curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/wp/setup.sh | bash
 ```
 
 *Для установки не требуется наличие Git. Достаточно Docker и Curl.*
@@ -21,7 +21,7 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 Если нужно восстановить полный клон, включите режим snapshot:
 ```bash
 COMANDOS_RESTORE_SNAPSHOT=true \
-curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/wp/setup.sh | bash
 ```
 
 Если в `snapshot/` лежат файлы:
@@ -36,7 +36,7 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 COMANDOS_RESTORE_SNAPSHOT=true \
 COMANDOS_SNAPSHOT_URL="https://your-host/wordpress_data.tar.gz" \
 COMANDOS_SNAPSHOT_DB_URL="https://your-host/wordpress_db.sql.gz" \
-curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/wp/setup.sh | bash
 ```
 
 Чтобы выполнить обычную установку темы без восстановления — не задавайте `COMANDOS_RESTORE_SNAPSHOT=true`.
