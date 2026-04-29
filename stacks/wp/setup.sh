@@ -1,4 +1,5 @@
 #!/bin/bash
+set -E
 
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
@@ -177,11 +178,12 @@ fi
 echo -e "\n"
 print_header "ПОДГОТОВКА КОМПОНЕНТОВ СИСТЕМЫ..."
 
-GITHUB_BASE="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/wp-stack"
+GITHUB_BASE="https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/wp"
 
 download_if_missing() {
     local file=$1
     local dir=$(dirname "$file")
+    local tmp_file
     
     # Создаем подпапку локально, если её нет
     if [ "$dir" != "." ]; then
@@ -189,7 +191,14 @@ download_if_missing() {
     fi
     
     print_info "Проверка $file..."
-    curl -sL "$GITHUB_BASE/$file" -o "$file"
+    tmp_file=$(mktemp)
+    if ! curl --http1.1 --retry 3 --retry-delay 1 -fsSL "$GITHUB_BASE/$file" -o "$tmp_file"; then
+        rm -f "$tmp_file"
+        echo -e "${RED}Ошибка: не удалось скачать файл: $file${NC}"
+        echo -e "${RED}Источник: $GITHUB_BASE/$file${NC}"
+        exit 1
+    fi
+    mv "$tmp_file" "$file"
     if [ ! -s "$file" ]; then
         echo -e "${RED}Ошибка: не удалось скачать или файл пуст: $file${NC}"
         exit 1
@@ -280,7 +289,29 @@ docker compose pull >/dev/null 2>&1 || true
 
 # 8. Запуск (или обновление)
 print_success "Запуск/Обновление контейнеров..."
-docker compose up -d
+if ! docker compose config >/dev/null; then
+    print_error "docker-compose.yml некорректный. Останавливаю установку."
+    exit 1
+fi
+
+if ! docker compose up -d; then
+    print_error "Контейнеры WordPress не запустились. Останавливаю установку."
+    docker compose ps || true
+    docker compose logs --tail=80 || true
+    exit 1
+fi
+
+if ! docker ps --format '{{.Names}}' | grep -Fx 'comandos-wp' >/dev/null; then
+    print_error "Контейнер comandos-wp не найден после запуска. Останавливаю установку."
+    docker compose ps || true
+    exit 1
+fi
+
+if ! docker ps --format '{{.Names}}' | grep -Fx 'comandos-db' >/dev/null; then
+    print_error "Контейнер comandos-db не найден после запуска. Останавливаю установку."
+    docker compose ps || true
+    exit 1
+fi
 
 # 8.5 Восстановление полного сайта из snapshot (если найден)
 if [ "$MODE" == "INSTALL" ] && [ "$RESTORE_SNAPSHOT" == "true" ]; then
