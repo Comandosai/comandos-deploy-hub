@@ -59,15 +59,17 @@ print_info() {
 ask_user() {
     local prompt=$1
     local var_name=$2
-    local extra_opt=$3
+    local extra_opt=${3:-}
     
     # Пытаемся читать из /dev/tty напрямую
     if [ -c /dev/tty ]; then
-        read $extra_opt -p "$prompt" "$var_name" < /dev/tty
-    else
-        # Fallback если /dev/tty нет (редкий случай)
-        read $extra_opt -p "$prompt" "$var_name"
+        if { read $extra_opt -p "$prompt" "$var_name" < /dev/tty; } 2>/dev/null; then
+            return 0
+        fi
     fi
+
+    # Fallback для SSH без TTY и автоматических тестов.
+    read $extra_opt -p "$prompt" "$var_name"
 }
 
 detect_snapshot() {
@@ -168,8 +170,16 @@ if [ "$MODE" == "INSTALL" ]; then
 
     ask_user "WP Domain (blog.site.com): " RAW_WP
     WP_DOMAIN=$(clean_url "$RAW_WP")
+    if [ -z "$WP_DOMAIN" ]; then
+        print_error "Домен WordPress не указан. Останавливаю установку."
+        exit 1
+    fi
 
     ask_user "SSL Email: " SSL_EMAIL
+    if [ -z "$SSL_EMAIL" ]; then
+        print_error "Email для SSL не указан. Останавливаю установку."
+        exit 1
+    fi
     
     DB_PASSWORD=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
 fi
@@ -310,6 +320,13 @@ fi
 if ! docker ps --format '{{.Names}}' | grep -Fx 'comandos-db' >/dev/null; then
     print_error "Контейнер comandos-db не найден после запуска. Останавливаю установку."
     docker compose ps || true
+    exit 1
+fi
+
+if ! wait_for_db; then
+    print_error "База данных WordPress не готова. Останавливаю установку."
+    docker compose ps || true
+    docker compose logs --tail=80 comandos-db || true
     exit 1
 fi
 
@@ -596,30 +613,44 @@ if [ "$MODE" == "INSTALL" ]; then
 
     ensure_wp_cli
 
-    print_info "Активация темы..."
-    if ! docker exec comandos-wp bash -c "wp theme activate $THEME_NAME --allow-root"; then
-        print_warning "WP-CLI не смог активировать тему. Пробую через SQL..."
-        DB_PASS_SQL="${DB_PASSWORD:-$(grep DB_PASSWORD .env | cut -d= -f2)}"
-        docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
-        "UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
+    if ! docker exec comandos-wp bash -c "wp core is-installed --allow-root" >/dev/null 2>&1; then
+        print_warning "WordPress ещё не установлен через браузер. Пропускаю активацию темы и плагинов."
+        print_warning "Завершите установку в админке, затем повторно запустите скрипт и выберите режим обновления."
+        SKIP_WP_ACTIVATION="true"
     fi
 
-    print_info "Установка и активация плагинов..."
-    docker exec comandos-wp bash -c "wp plugin install wordpress-seo wp-graphql indexnow --activate --allow-root" || true
-    docker exec comandos-wp bash -c "wp plugin install https://github.com/ashhitch/wp-graphql-yoast-seo/archive/refs/tags/v5.0.0.zip --activate --allow-root" || true
+    if [ "${SKIP_WP_ACTIVATION:-false}" != "true" ]; then
+        print_info "Активация темы..."
+        if ! docker exec comandos-wp bash -c "wp theme activate $THEME_NAME --allow-root"; then
+            print_warning "WP-CLI не смог активировать тему. Пробую через SQL..."
+            DB_PASS_SQL="${DB_PASSWORD:-$(grep DB_PASSWORD .env | cut -d= -f2)}"
+            docker exec comandos-db mysql -uwordpress -p"$DB_PASS_SQL" wordpress -e \
+            "UPDATE wp_options SET option_value = '$THEME_NAME' WHERE option_name IN ('template', 'stylesheet');"
+        fi
 
-    print_info "Очистка дефолтного контента (пустой сайт)..."
-    docker exec comandos-wp bash -c 'IDS=$(wp post list --post_type=post,page --format=ids --allow-root); if [ -n "$IDS" ]; then wp post delete $IDS --force --allow-root; fi'
-    docker exec comandos-wp bash -c 'CIDS=$(wp comment list --format=ids --allow-root); if [ -n "$CIDS" ]; then wp comment delete $CIDS --force --allow-root; fi'
-    docker exec comandos-wp bash -c 'wp plugin delete akismet hello --allow-root >/dev/null 2>&1 || true'
+        print_info "Установка и активация плагинов..."
+        docker exec comandos-wp bash -c "wp plugin install wordpress-seo wp-graphql indexnow --activate --allow-root" || true
+        docker exec comandos-wp bash -c "wp plugin install https://github.com/ashhitch/wp-graphql-yoast-seo/archive/refs/tags/v5.0.0.zip --activate --allow-root" || true
 
-    print_info "Удаление стандартных тем WordPress..."
-    docker exec comandos-wp bash -c "wp theme list --field=name --allow-root | grep -v \"^${THEME_NAME}$\" | xargs -r wp theme delete --allow-root" || true
+        print_info "Очистка дефолтного контента (пустой сайт)..."
+        docker exec comandos-wp bash -c 'IDS=$(wp post list --post_type=post,page --format=ids --allow-root); if [ -n "$IDS" ]; then wp post delete $IDS --force --allow-root; fi'
+        docker exec comandos-wp bash -c 'CIDS=$(wp comment list --format=ids --allow-root); if [ -n "$CIDS" ]; then wp comment delete $CIDS --force --allow-root; fi'
+        docker exec comandos-wp bash -c 'wp plugin delete akismet hello --allow-root >/dev/null 2>&1 || true'
+
+        print_info "Удаление стандартных тем WordPress..."
+        docker exec comandos-wp bash -c "wp theme list --field=name --allow-root | grep -v \"^${THEME_NAME}$\" | xargs -r wp theme delete --allow-root" || true
+    fi
 fi
 fi
 
 # 11. Финализация
 echo -e "\n"
+if [ "${SKIP_WP_ACTIVATION:-false}" == "true" ]; then
+print_header "WORDPRESS ГОТОВ К ЗАВЕРШЕНИЮ УСТАНОВКИ"
+print_info "WordPress: https://$WP_DOMAIN/"
+print_info "Админка:   https://$WP_DOMAIN/wp-admin/install.php"
+print_warning "Завершите установку WordPress в браузере, затем повторно запустите скрипт и выберите режим обновления."
+else
 print_header "СИСТЕМА ГОТОВА И ПЕРЕНЕСЕНА!"
 print_info "WordPress: https://$WP_DOMAIN/"
 if [ "$RESTORE_SNAPSHOT" == "true" ]; then
@@ -629,4 +660,5 @@ print_info "Тема:      Comandos AI Blog (Premium v2.5.1)"
 fi
 print_info "Админка:   https://$WP_DOMAIN/wp-admin"
 print_warning "Совет: Если дизайн не обновился, сбросьте кэш (Ctrl+F5 или Cmd+Shift+R на Mac)"
+fi
 echo -e "${BLUE}================================================${NC}"
