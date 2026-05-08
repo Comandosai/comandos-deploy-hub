@@ -1,6 +1,6 @@
 ---
 name: Полный запуск CyberSEO
-description: Общий навык CyberSEO для развёртывания WordPress, развёртывания CyberSEO, подготовки профиля, промптов, поиска тем и финального импорта. Работает через пользовательский файл cyberseo.project.yml и служебный файл .cyberseo.state.yml.
+description: Общий навык CyberSEO для развёртывания WordPress, развёртывания CyberSEO, подготовки профиля, промптов, поиска тем и финального импорта. Работает только через один файл cyberseo.project.yml.
 ---
 
 # Полный запуск CyberSEO
@@ -10,7 +10,7 @@ description: Общий навык CyberSEO для развёртывания Wo
 Он не должен делать всё одним большим действием. Его задача:
 
 - найти или создать `cyberseo.project.yml`;
-- хранить служебные данные отдельно в `.cyberseo.state.yml`;
+- хранить служебные данные в блоке `state` внутри `cyberseo.project.yml`;
 - понять, что нужно сейчас: развёртывание или темы;
 - передать работу нужному внутреннему навыку;
 - не спрашивать повторно то, что уже есть в файле;
@@ -19,10 +19,11 @@ description: Общий навык CyberSEO для развёртывания Wo
 ## Что читать
 
 1. `cyberseo.project.yml` в текущем проекте клиента.
-2. `.cyberseo.state.yml`, если он уже создан.
-3. Если `cyberseo.project.yml` нет, создать его по шаблону [assets/cyberseo.project.yml](assets/cyberseo.project.yml).
-4. Для развёртывания читать [Развёртывание CyberSEO](../../units/cyberseo-deploy/SKILL.md).
-5. Для тем читать [Поиск и импорт тем CyberSEO](../../units/cyberseo-topic-research/SKILL.md).
+2. Если `cyberseo.project.yml` нет, создать его по шаблону [assets/cyberseo.project.yml](assets/cyberseo.project.yml).
+3. Для развёртывания читать [Развёртывание CyberSEO](../../units/cyberseo-deploy/SKILL.md).
+4. Для тем читать [Поиск и импорт тем CyberSEO](../../units/cyberseo-topic-research/SKILL.md).
+
+Отдельный `.cyberseo.state.yml` не создавать. Если такой файл уже есть от старого запуска, перенести нужные значения в `cyberseo.project.yml -> state` и больше его не использовать.
 
 ## Как выбрать шаг
 
@@ -30,7 +31,7 @@ description: Общий навык CyberSEO для развёртывания Wo
 
 Если пользователь просит заполнить профиль сайта до развёртывания — обновить поля `site.*`, `topics.main_topic`, `topics.language` и `prompts.*` в `cyberseo.project.yml`, ничего не разворачивать.
 
-Если пользователь просит развернуть WordPress — поставить WordPress только из стека, который лежит внутри этого навыка: `assets/wordpress/cyberseo-publisher-stack`. Это специализированная сборка под CyberSEO, а не общий WordPress-стек.
+Если пользователь просит развернуть WordPress — поставить WordPress только из стека, который лежит внутри этого навыка: `assets/wordpress/cyberseo-publisher-stack`. Это специализированная сборка под CyberSEO, а не общий WordPress-стек. WordPress-доступы записать в `state.wordpress` внутри `cyberseo.project.yml`.
 
 Не ставить WordPress вручную с официального сайта, не использовать `wp-next-stack` и не использовать общий `stacks/wp` для CyberSEO. Источник WordPress-стека:
 
@@ -44,19 +45,20 @@ cyberseo-full/assets/wordpress/cyberseo-publisher-stack
 
 Если пользователь просит найти темы, собрать план публикаций, сделать 20-50 тем, убрать дубли или импортировать темы — использовать `cyberseo-topic-research`.
 
-Если неясно, сначала посмотреть `cyberseo.project.yml` и `.cyberseo.state.yml`:
+Если неясно, сначала посмотреть `cyberseo.project.yml`:
 
 - если нет `cyberseo.project.yml` — создать шаблон и остановиться;
 - если профиль сайта пустой, а WordPress ещё не развёрнут — предложить сначала заполнить SEO/GEO-профиль сайта;
 - если WordPress ещё не развёрнут — предложить команду развёртывания WordPress;
 - если CyberSEO ещё не развёрнут — предложить команду развёртывания CyberSEO;
-- если есть адрес API и токен в `.cyberseo.state.yml` — можно идти к темам;
+- если есть адрес API и токен в `state.cyberseo` — можно идти к темам;
 - если человек прямо сказал “только темы”, не запускать развёртывание.
 
 ## Правила
 
 - Все пользовательские секреты брать только из `cyberseo.project.yml` или спрашивать у пользователя.
-- Технические секреты, созданные агентом, хранить только в `.cyberseo.state.yml`.
+- Технические секреты, созданные агентом, хранить только в `cyberseo.project.yml -> state`.
+- Не создавать второй YAML-файл для состояния.
 - Полные ключи и токены не печатать в ответах и логах.
 - Если обязательного поля нет, спросить коротко.
 - Если поле полезное, но не обязательное, спросить один раз.
@@ -78,16 +80,7 @@ cyberseo-full/assets/wordpress/cyberseo-publisher-stack
 - промпт писателя;
 - промпт художника;
 - ссылка на референс изображения.
-
-В `.cyberseo.state.yml` должны жить только служебные данные:
-
-- WordPress пароль;
-- WordPress пароль приложения;
-- URL админки;
-- адрес API CyberSEO;
-- админ-токен CyberSEO;
-- статусы этапов;
-- отметки, что уже импортировано.
+- служебный блок `state` с созданными доступами и статусами.
 
 ## Выход
 
@@ -95,6 +88,6 @@ cyberseo-full/assets/wordpress/cyberseo-publisher-stack
 
 - что сделано;
 - какие данные сохранены в `cyberseo.project.yml`;
-- какие служебные данные сохранены в `.cyberseo.state.yml`;
+- какие служебные данные сохранены в блоке `state`;
 - что не заполнено;
 - какой один следующий шаг имеет смысл.

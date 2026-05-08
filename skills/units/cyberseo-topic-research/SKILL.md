@@ -1,6 +1,6 @@
 ---
 name: Поиск и импорт тем CyberSEO
-description: Ищет темы для блога CyberSEO по cyberseo.project.yml, строит главные темы и подтемы, проверяет очередь и опубликованные статьи через .cyberseo.state.yml, убирает дубли, готовит import-rows.json и по подтверждению импортирует темы через /api/v1/queue/batch.
+description: Ищет темы для блога CyberSEO по cyberseo.project.yml, строит главные темы и подтемы, проверяет очередь и опубликованные статьи через state.cyberseo, убирает дубли, сохраняет темы в state.topics и по подтверждению импортирует темы через /api/v1/queue/batch.
 ---
 
 # Поиск и импорт тем CyberSEO
@@ -10,15 +10,16 @@ description: Ищет темы для блога CyberSEO по cyberseo.project.
 ## Что читать
 
 1. `cyberseo.project.yml`.
-2. `.cyberseo.state.yml`.
-3. [Контракт импорта тем](references/topic-import-contract.md).
-4. [Правила поиска тем](references/research-rules.md).
+2. [Контракт импорта тем](references/topic-import-contract.md).
+3. [Правила поиска тем](references/research-rules.md).
+
+Отдельный `.cyberseo.state.yml` не создавать и не использовать.
 
 ## Что нужно для работы
 
 Обязательное:
 
-- API CyberSEO и админ-токен в `.cyberseo.state.yml`;
+- API CyberSEO и админ-токен в `cyberseo.project.yml -> state.cyberseo`;
 - `topics.main_topic`;
 - `topics.country`;
 - `topics.count`.
@@ -41,23 +42,22 @@ description: Ищет темы для блога CyberSEO по cyberseo.project.
 ## Порядок работы
 
 1. Прочитать `cyberseo.project.yml`.
-2. Прочитать `.cyberseo.state.yml`.
-3. Получить текущую очередь:
+2. Получить текущую очередь:
    - `GET /api/v1/queue`
-4. Получить опубликованные статьи:
+3. Получить опубликованные статьи:
    - `GET /api/v1/published`
-5. Использовать реальные данные CyberSEO для ключей и спроса, если API доступен.
-6. Если есть Firecrawl, аккуратно посмотреть конкурентов.
-7. Собрать главные темы и подтемы.
-8. Создать стабильные ID.
-9. Убрать дубли.
-10. Подготовить:
-   - `cyberseo.topics.yml`;
-   - `import-rows.json`;
-   - `import-report.md`.
-11. Показать список пользователю.
-12. Импортировать только после подтверждения:
+4. Использовать реальные данные CyberSEO для ключей и спроса, если API доступен.
+5. Если есть Firecrawl, аккуратно посмотреть конкурентов.
+6. Собрать главные темы и подтемы.
+7. Создать стабильные ID.
+8. Убрать дубли.
+9. Сохранить результат в `cyberseo.project.yml -> state.topics`.
+10. Показать список пользователю.
+11. Импортировать только после подтверждения:
    - `POST /api/v1/queue/batch`
+12. После импорта обновить `state.import.topics_imported` в `cyberseo.project.yml`.
+
+Не создавать `cyberseo.topics.yml`, `import-rows.json`, `import-report.md` и другие отдельные файлы.
 
 ## Структура тем
 
@@ -99,5 +99,5 @@ Perplexity использовать, если ключ заполнен и по�
 - сколько тем найдено;
 - сколько пропущено как дубли;
 - сколько не подошло;
-- какие файлы созданы;
+- что сохранено в `state.topics`;
 - был ли импорт в очередь.

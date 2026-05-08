@@ -1,6 +1,7 @@
 # Контракт импорта тем
 
-Адрес API и админ-токен брать из `.cyberseo.state.yml`.
+Адрес API и админ-токен брать из `cyberseo.project.yml`, блок `state.cyberseo`.
+Отдельный `.cyberseo.state.yml` не создавать и не использовать.
 
 Заголовки:
 
@@ -22,7 +23,7 @@ GET /api/v1/published
 POST /api/v1/queue/batch
 ```
 
-Тело — массив строк:
+Тело — массив строк из `cyberseo.project.yml -> state.topics.rows`:
 
 ```json
 [

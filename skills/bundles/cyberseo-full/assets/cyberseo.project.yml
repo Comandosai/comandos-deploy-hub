@@ -1,7 +1,7 @@
 # Файл проекта CyberSEO.
 # Заполни только то, что знаешь.
 # Если поле не нужно или пока неизвестно, оставь пустым.
-# Служебные данные агент будет хранить отдельно в .cyberseo.state.yml.
+# Агент работает только с этим YAML-файлом и не создаёт отдельный .cyberseo.state.yml.
 
 server:
   # SSH-доступ к серверу. Можно указать IP, домен или SSH-алиас.
@@ -114,3 +114,61 @@ prompts:
   # Промпт художника.
   # Если пусто, агент предложит вариант позже.
   image_style_prompt: ""
+
+state:
+  # Служебный блок. Его заполняет агент во время развёртывания и импорта.
+  # Пользователь руками обычно не трогает.
+  wordpress:
+    # WordPress уже развёрнут агентом.
+    installed: false
+
+    # Адрес админки WordPress.
+    admin_url: ""
+
+    # Логин администратора WordPress.
+    admin_username: ""
+
+    # Пароль администратора WordPress, созданный агентом.
+    admin_password: ""
+
+    # Пароль приложения WordPress для публикации.
+    app_password: ""
+
+    # Язык установленного WordPress, например ru_RU, de_DE, en_US.
+    locale: ""
+
+  cyberseo:
+    # CyberSEO уже развёрнут агентом.
+    installed: false
+
+    # Адрес панели CyberSEO.
+    panel_url: ""
+
+    # Адрес API CyberSEO.
+    api_url: ""
+
+    # Админ-токен CyberSEO, созданный при развёртывании.
+    admin_token: ""
+
+    # Последняя проверка /healthz прошла успешно.
+    healthz_ok: false
+
+  import:
+    # Профиль сайта импортирован в WordPress.
+    wordpress_profile_imported: false
+
+    # Настройки и секреты импортированы в CyberSEO.
+    cyberseo_settings_imported: false
+
+    # Темы импортированы в очередь CyberSEO.
+    topics_imported: false
+
+  topics:
+    # Темы уже подготовлены агентом.
+    generated: false
+
+    # Список тем для импорта. Агент заполняет массивом объектов.
+    rows: []
+
+    # Короткий отчёт по темам: что добавлено, что пропущено, где возможные дубли.
+    report: ""

@@ -1,6 +1,7 @@
 # Импорт настроек в CyberSEO
 
-Адрес API и админ-токен брать из `.cyberseo.state.yml`.
+Адрес API и админ-токен брать из `cyberseo.project.yml`, блок `state.cyberseo`.
+Отдельный `.cyberseo.state.yml` не создавать и не использовать.
 
 Заголовки:
 

@@ -3,4 +3,5 @@
 Сначала открой `README.md`, потом `SKILL.md`.
 
 Главный файл клиента: `cyberseo.project.yml`.
-Служебный файл агента: `.cyberseo.state.yml`.
+Служебные данные хранятся в этом же файле, в блоке `state`.
+Не создавай `.cyberseo.state.yml`.

@@ -8,7 +8,7 @@
 # Файл проекта CyberSEO.
 # Заполни только то, что знаешь.
 # Если поле не нужно или пока неизвестно, оставь пустым.
-# Служебные данные агент будет хранить отдельно в .cyberseo.state.yml.
+# Агент работает только с этим YAML-файлом и не создаёт отдельный .cyberseo.state.yml.
 
 server:
   # SSH-доступ к серверу. Можно указать IP, домен или SSH-алиас.
@@ -67,10 +67,34 @@ topics:
 prompts:
   writer_style_prompt: ""
   image_style_prompt: ""
+
+state:
+  wordpress:
+    installed: false
+    admin_url: ""
+    admin_username: ""
+    admin_password: ""
+    app_password: ""
+    locale: ""
+  cyberseo:
+    installed: false
+    panel_url: ""
+    api_url: ""
+    admin_token: ""
+    healthz_ok: false
+  import:
+    wordpress_profile_imported: false
+    cyberseo_settings_imported: false
+    topics_imported: false
+  topics:
+    generated: false
+    rows: []
+    report: ""
 ```
 
 Реальные ключи не коммитить.
-Служебные данные вроде WordPress-пароля, адреса API CyberSEO и админ-токена хранить в `.cyberseo.state.yml`.
+Служебные данные вроде WordPress-пароля, адреса API CyberSEO и админ-токена хранить в блоке `state` этого же файла.
+Отдельный `.cyberseo.state.yml` не создавать.
 
 `topics.country` — где искать спрос. `topics.language` — на каком языке писать статьи и подбирать ключи.
 Если `topics.language` пустой, агент выбирает язык по стране.

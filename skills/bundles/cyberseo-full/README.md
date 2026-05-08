@@ -54,6 +54,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 Ничего не разворачивай.
 Никакие ключи не выдумывай.
 Просто создай файл и скажи, какие поля человеку нужно заполнить руками.
+Не создавай .cyberseo.state.yml и другие YAML-файлы состояния.
 
 После создания файла остановись.
 ```
@@ -137,10 +138,11 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - загрузи favicon, если site.favicon_path заполнен;
 - заполни название сайта, описание сайта, название блога, описание блога и блок "О блоге", если эти поля заполнены;
 - выстави язык WordPress по topics.language, а если он пустой — по topics.country;
-- создай или обнови служебный файл .cyberseo.state.yml и запиши туда созданные WordPress-доступы.
+- запиши созданные WordPress-доступы в cyberseo.project.yml, блок state.wordpress.
 
 Полные пароли покажи только в финальном отчёте один раз.
 Ничего не выдумывай за пользователя, кроме технических паролей, которые сам создаёшь.
+Не создавай .cyberseo.state.yml.
 ```
 
 ## Команда 4. Развернуть CyberSEO
@@ -149,7 +151,6 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 Запусти навык CyberSEO.
 
 Открой cyberseo.project.yml.
-Открой .cyberseo.state.yml, если он уже есть.
 Открой cyberseo-full/SKILL.md.
 
 Разверни CyberSEO на сервере.
@@ -158,14 +159,14 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - проверь лицензионный ключ license.cyberseo_key;
 - скачай закрытый архив CyberSEO только с заголовком X-License-Key;
 - разверни client-api, client-worker, client-web;
-- свяжи CyberSEO с WordPress из .cyberseo.state.yml;
+- свяжи CyberSEO с WordPress из cyberseo.project.yml, блок state.wordpress;
 - подключи лицензию;
 - сохрани ключи KIE, Perplexity, Firecrawl и Telegram в секреты CyberSEO, если они заполнены;
 - проверь client-api /healthz;
-- запиши в .cyberseo.state.yml адрес панели, адрес API, админ-токен и технические статусы.
+- запиши адрес панели, адрес API, админ-токен и технические статусы в cyberseo.project.yml, блок state.cyberseo.
 
-Не добавляй в cyberseo.project.yml служебные поля вроде client_api_url, admin_token и status.
-Они должны жить только в .cyberseo.state.yml.
+Не создавай .cyberseo.state.yml.
+Все служебные данные должны жить в одном файле cyberseo.project.yml внутри блока state.
 ```
 
 ## Команда 5. Доработать профиль и промпты
@@ -174,7 +175,6 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 Запусти навык CyberSEO.
 
 Открой cyberseo.project.yml.
-Открой .cyberseo.state.yml, если он есть.
 
 Нужно доработать профиль сайта и промпты после развёртывания.
 
@@ -205,7 +205,6 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 Запусти навык CyberSEO.
 
 Открой cyberseo.project.yml.
-Открой .cyberseo.state.yml.
 Запусти внутренний навык cyberseo-topic-research.
 
 Нужно найти темы для блога.
@@ -221,7 +220,7 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - keys.firecrawl_api_key, если заполнен;
 - keys.perplexity_api_key, если заполнен.
 
-Сначала прочитай текущую очередь и опубликованные статьи CyberSEO через API из .cyberseo.state.yml:
+Сначала прочитай текущую очередь и опубликованные статьи CyberSEO через API из cyberseo.project.yml, блок state.cyberseo:
 GET /api/v1/queue
 GET /api/v1/published
 
@@ -232,10 +231,12 @@ GET /api/v1/published
 - cluster_id у подтем равен topic_id главной темы.
 
 Не импортируй темы сразу.
-Сохрани результат в файлы:
-- cyberseo.topics.yml
-- import-rows.json
-- import-report.md
+Сохрани результат в cyberseo.project.yml, блок state.topics:
+- state.topics.generated;
+- state.topics.rows;
+- state.topics.report.
+
+Не создавай cyberseo.topics.yml, import-rows.json и другие отдельные файлы.
 
 В конце покажи список тем и спроси подтверждение на импорт.
 ```
@@ -247,9 +248,6 @@ GET /api/v1/published
 
 Открой:
 - cyberseo.project.yml
-- .cyberseo.state.yml
-- cyberseo.topics.yml, если есть
-- import-rows.json, если есть
 
 Импортируй всё, что подготовлено:
 
@@ -275,7 +273,7 @@ GET /api/v1/published
 - img_url / reference_image_url.
 
 3. В очередь CyberSEO:
-- темы из import-rows.json через POST /api/v1/queue/batch.
+- темы из cyberseo.project.yml, блок state.topics.rows, через POST /api/v1/queue/batch.
 
 После импорта проверь:
 GET /api/v1/settings
