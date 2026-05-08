@@ -16,9 +16,17 @@ NONINTERACTIVE_MODE="${COMANDOS_NONINTERACTIVE:-false}"
 NONINTERACTIVE_WP_DOMAIN="${COMANDOS_WP_DOMAIN:-}"
 NONINTERACTIVE_SSL_EMAIL="${COMANDOS_SSL_EMAIL:-}"
 NONINTERACTIVE_WP_SITE_TITLE="${COMANDOS_WP_SITE_TITLE:-}"
+NONINTERACTIVE_WP_SITE_DESCRIPTION="${COMANDOS_WP_SITE_DESCRIPTION:-}"
+NONINTERACTIVE_WP_BLOG_TITLE="${COMANDOS_WP_BLOG_TITLE:-}"
+NONINTERACTIVE_WP_BLOG_DESCRIPTION="${COMANDOS_WP_BLOG_DESCRIPTION:-}"
+NONINTERACTIVE_WP_ABOUT_BLOG="${COMANDOS_WP_ABOUT_BLOG:-}"
 NONINTERACTIVE_WP_ADMIN_USER="${COMANDOS_WP_ADMIN_USER:-}"
 WP_DEFAULT_LOCALE="${COMANDOS_WP_DEFAULT_LOCALE:-ru_RU}"
 WP_DEFAULT_SITE_TITLE="${COMANDOS_WP_DEFAULT_SITE_TITLE:-Comandos AI Blog}"
+WP_DEFAULT_SITE_DESCRIPTION="${COMANDOS_WP_DEFAULT_SITE_DESCRIPTION:-}"
+WP_DEFAULT_BLOG_TITLE="${COMANDOS_WP_DEFAULT_BLOG_TITLE:-}"
+WP_DEFAULT_BLOG_DESCRIPTION="${COMANDOS_WP_DEFAULT_BLOG_DESCRIPTION:-}"
+WP_DEFAULT_ABOUT_BLOG="${COMANDOS_WP_DEFAULT_ABOUT_BLOG:-}"
 WP_DEFAULT_ADMIN_USER="${COMANDOS_WP_DEFAULT_ADMIN_USER:-siteadmin}"
 WP_GRAPHQL_YOAST_SEO_ZIP="https://github.com/ashhitch/wp-graphql-yoast-seo/archive/refs/tags/v5.0.0.zip"
 
@@ -173,6 +181,83 @@ wp_cli() {
     docker exec comandos-wp bash -lc "wp ${command} --allow-root"
 }
 
+env_quote() {
+    python3 - "$1" <<'PY'
+import sys
+
+value = sys.argv[1]
+print("'" + value.replace("'", "'\"'\"'") + "'")
+PY
+}
+
+env_assignment() {
+    local key="$1"
+    local value="$2"
+    printf '%s=%s\n' "$key" "$(env_quote "$value")"
+}
+
+load_env_file() {
+    if [ ! -f ".env" ]; then
+        return 0
+    fi
+
+    local safe_env
+    safe_env="$(mktemp)"
+    python3 - ".env" > "$safe_env" <<'PY'
+from pathlib import Path
+import re
+import shlex
+import sys
+
+path = Path(sys.argv[1])
+
+def quote(value: str) -> str:
+    return "'" + value.replace("'", "'\"'\"'") + "'"
+
+for raw in path.read_text().splitlines():
+    line = raw.strip()
+    if not line or line.startswith("#") or "=" not in line:
+        continue
+    key, value = line.split("=", 1)
+    key = key.strip()
+    value = value.strip()
+    if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", key):
+        continue
+    if (value.startswith("'") and value.endswith("'")) or (value.startswith('"') and value.endswith('"')):
+        try:
+            parsed = shlex.split(value, posix=True)
+            value = parsed[0] if parsed else ""
+        except ValueError:
+            value = value[1:-1]
+    print(f"{key}={quote(value)}")
+PY
+    # shellcheck disable=SC1090
+    source "$safe_env"
+    rm -f "$safe_env"
+}
+
+set_wp_option_if_value() {
+    local option_name="$1"
+    local option_value="$2"
+    if [ -z "$option_value" ]; then
+        return 0
+    fi
+
+    docker exec -e COMANDOS_WP_OPTION_VALUE="$option_value" comandos-wp \
+        bash -lc "wp option update '$option_name' \"\$COMANDOS_WP_OPTION_VALUE\" --allow-root" >/dev/null
+}
+
+set_theme_mod_if_value() {
+    local mod_name="$1"
+    local mod_value="$2"
+    if [ -z "$mod_value" ]; then
+        return 0
+    fi
+
+    docker exec -e COMANDOS_THEME_MOD_VALUE="$mod_value" comandos-wp \
+        bash -lc "wp eval 'set_theme_mod(\"$mod_name\", getenv(\"COMANDOS_THEME_MOD_VALUE\"));' --allow-root" >/dev/null
+}
+
 sync_policy_layer() {
     docker exec comandos-wp mkdir -p /var/www/html/wp-content/mu-plugins
     for plugin in "cyberseo-site-policy.php" "cyberseo-review-sync-hook.php"; do
@@ -196,6 +281,20 @@ set_publish_ready_mode() {
     wp_cli "rewrite structure '/%postname%/' --hard" >/dev/null 2>&1 || true
     wp_cli "rewrite flush --hard" >/dev/null 2>&1 || true
     print_success "Сайт переведен в publish-ready SEO mode"
+}
+
+apply_site_profile_runtime() {
+    local theme_blog_title="${WP_BLOG_TITLE:-$WP_SITE_TITLE}"
+    local theme_blog_description="${WP_BLOG_DESCRIPTION:-$WP_SITE_DESCRIPTION}"
+
+    ensure_wp_cli
+    set_wp_option_if_value "blogname" "${WP_SITE_TITLE:-}"
+    set_wp_option_if_value "blogdescription" "${WP_SITE_DESCRIPTION:-}"
+    set_theme_mod_if_value "blog_title" "$theme_blog_title"
+    set_theme_mod_if_value "blog_description" "$theme_blog_description"
+    set_theme_mod_if_value "about_blog" "${WP_ABOUT_BLOG:-}"
+    set_wp_option_if_value "cyberseo_about_blog" "${WP_ABOUT_BLOG:-}"
+    print_success "Профиль сайта и поля темы применены"
 }
 
 activate_wordpress_locale() {
@@ -456,19 +555,20 @@ import sys
 path = Path(".env")
 key = sys.argv[1]
 value = sys.argv[2]
+quoted = "'" + value.replace("'", "'\"'\"'") + "'"
 lines = path.read_text().splitlines()
 updated = False
 for index, line in enumerate(lines):
     if line.startswith(f"{key}="):
-        lines[index] = f"{key}={value}"
+        lines[index] = f"{key}={quoted}"
         updated = True
         break
 if not updated:
-    lines.append(f"{key}={value}")
+    lines.append(f"{key}={quoted}")
 path.write_text("\n".join(lines) + "\n")
 PY
     else
-        printf '%s=%s\n' "$key" "$value" >> .env
+        env_assignment "$key" "$value" >> .env
     fi
 }
 
@@ -590,18 +690,26 @@ if [ -f ".env" ]; then
     ask_user "Выберите вариант (1/2/3): " choice
     if [ "$choice" == "1" ]; then
         MODE="UPDATE"
-        source .env
+        load_env_file
         WP_LOCALE="${WP_LOCALE:-$WP_DEFAULT_LOCALE}"
         WP_ADMIN_USER="${WP_ADMIN_USER:-$WP_DEFAULT_ADMIN_USER}"
         WP_SITE_TITLE="${WP_SITE_TITLE:-$WP_DEFAULT_SITE_TITLE}"
+        WP_SITE_DESCRIPTION="${WP_SITE_DESCRIPTION:-$WP_DEFAULT_SITE_DESCRIPTION}"
+        WP_BLOG_TITLE="${WP_BLOG_TITLE:-$WP_DEFAULT_BLOG_TITLE}"
+        WP_BLOG_DESCRIPTION="${WP_BLOG_DESCRIPTION:-$WP_DEFAULT_BLOG_DESCRIPTION}"
+        WP_ABOUT_BLOG="${WP_ABOUT_BLOG:-$WP_DEFAULT_ABOUT_BLOG}"
         WP_ADMIN_EMAIL="${WP_ADMIN_EMAIL:-$SSL_EMAIL}"
         print_success "Режим ОБНОВЛЕНИЯ активирован."
     elif [ "$choice" == "3" ]; then
         MODE="THEME_SYNC"
-        source .env
+        load_env_file
         WP_LOCALE="${WP_LOCALE:-$WP_DEFAULT_LOCALE}"
         WP_ADMIN_USER="${WP_ADMIN_USER:-$WP_DEFAULT_ADMIN_USER}"
         WP_SITE_TITLE="${WP_SITE_TITLE:-$WP_DEFAULT_SITE_TITLE}"
+        WP_SITE_DESCRIPTION="${WP_SITE_DESCRIPTION:-$WP_DEFAULT_SITE_DESCRIPTION}"
+        WP_BLOG_TITLE="${WP_BLOG_TITLE:-$WP_DEFAULT_BLOG_TITLE}"
+        WP_BLOG_DESCRIPTION="${WP_BLOG_DESCRIPTION:-$WP_DEFAULT_BLOG_DESCRIPTION}"
+        WP_ABOUT_BLOG="${WP_ABOUT_BLOG:-$WP_DEFAULT_ABOUT_BLOG}"
         WP_ADMIN_EMAIL="${WP_ADMIN_EMAIL:-$SSL_EMAIL}"
         print_success "Режим THEME SYNC активирован."
     else
@@ -624,12 +732,20 @@ if [ "$MODE" == "INSTALL" ]; then
         RAW_WP="$NONINTERACTIVE_WP_DOMAIN"
         SSL_EMAIL="$NONINTERACTIVE_SSL_EMAIL"
         RAW_SITE_TITLE="${NONINTERACTIVE_WP_SITE_TITLE:-$WP_DEFAULT_SITE_TITLE}"
+        RAW_SITE_DESCRIPTION="${NONINTERACTIVE_WP_SITE_DESCRIPTION:-$WP_DEFAULT_SITE_DESCRIPTION}"
+        RAW_BLOG_TITLE="${NONINTERACTIVE_WP_BLOG_TITLE:-$WP_DEFAULT_BLOG_TITLE}"
+        RAW_BLOG_DESCRIPTION="${NONINTERACTIVE_WP_BLOG_DESCRIPTION:-$WP_DEFAULT_BLOG_DESCRIPTION}"
+        RAW_ABOUT_BLOG="${NONINTERACTIVE_WP_ABOUT_BLOG:-$WP_DEFAULT_ABOUT_BLOG}"
         RAW_ADMIN_USER="${NONINTERACTIVE_WP_ADMIN_USER:-$WP_DEFAULT_ADMIN_USER}"
         print_info "Non-interactive install: использую значения из env"
     else
         ask_user "WP Domain (blog.site.com): " RAW_WP
         ask_user "SSL Email: " SSL_EMAIL
         ask_user "Название сайта [${WP_DEFAULT_SITE_TITLE}]: " RAW_SITE_TITLE
+        RAW_SITE_DESCRIPTION="$WP_DEFAULT_SITE_DESCRIPTION"
+        RAW_BLOG_TITLE="$WP_DEFAULT_BLOG_TITLE"
+        RAW_BLOG_DESCRIPTION="$WP_DEFAULT_BLOG_DESCRIPTION"
+        RAW_ABOUT_BLOG="$WP_DEFAULT_ABOUT_BLOG"
         ask_user "Логин админа [${WP_DEFAULT_ADMIN_USER}]: " RAW_ADMIN_USER
     fi
 
@@ -640,6 +756,10 @@ if [ "$MODE" == "INSTALL" ]; then
     WP_ADMIN_USER="${RAW_ADMIN_USER:-$WP_DEFAULT_ADMIN_USER}"
     WP_ADMIN_PASSWORD=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9')
     WP_SITE_TITLE="${RAW_SITE_TITLE:-$WP_DEFAULT_SITE_TITLE}"
+    WP_SITE_DESCRIPTION="$RAW_SITE_DESCRIPTION"
+    WP_BLOG_TITLE="$RAW_BLOG_TITLE"
+    WP_BLOG_DESCRIPTION="$RAW_BLOG_DESCRIPTION"
+    WP_ABOUT_BLOG="$RAW_ABOUT_BLOG"
     WP_ADMIN_EMAIL="$SSL_EMAIL"
     WP_LOCALE="$WP_DEFAULT_LOCALE"
     WP_APP_PASSWORD=""
@@ -720,21 +840,25 @@ REVIEW_SYNC_SECRET="${REVIEW_SYNC_SECRET:-}"
 # 5. Генерация конфигов (только если новая установка)
 if [ "$MODE" == "INSTALL" ]; then
     print_header "ГЕНЕРАЦИЯ КОНФИГУРАЦИИ..."
-    cat <<EOF_ENV > .env
-WP_DOMAIN=$WP_DOMAIN
-SSL_EMAIL=$SSL_EMAIL
-DB_PASSWORD=$DB_PASSWORD
-DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
-STATIC_CACHE_MAX_AGE=$STATIC_CACHE_MAX_AGE
-STATIC_CACHE_IMMUTABLE=$STATIC_CACHE_IMMUTABLE
-WP_ADMIN_USER=$WP_ADMIN_USER
-WP_ADMIN_PASSWORD=$WP_ADMIN_PASSWORD
-WP_SITE_TITLE=$WP_SITE_TITLE
-WP_ADMIN_EMAIL=$WP_ADMIN_EMAIL
-WP_LOCALE=$WP_LOCALE
-REVIEW_SYNC_WEBHOOK_URL=$REVIEW_SYNC_WEBHOOK_URL
-REVIEW_SYNC_SECRET=$REVIEW_SYNC_SECRET
-EOF_ENV
+    {
+        env_assignment "WP_DOMAIN" "$WP_DOMAIN"
+        env_assignment "SSL_EMAIL" "$SSL_EMAIL"
+        env_assignment "DB_PASSWORD" "$DB_PASSWORD"
+        env_assignment "DB_ROOT_PASSWORD" "$DB_ROOT_PASSWORD"
+        env_assignment "STATIC_CACHE_MAX_AGE" "$STATIC_CACHE_MAX_AGE"
+        env_assignment "STATIC_CACHE_IMMUTABLE" "$STATIC_CACHE_IMMUTABLE"
+        env_assignment "WP_ADMIN_USER" "$WP_ADMIN_USER"
+        env_assignment "WP_ADMIN_PASSWORD" "$WP_ADMIN_PASSWORD"
+        env_assignment "WP_SITE_TITLE" "$WP_SITE_TITLE"
+        env_assignment "WP_SITE_DESCRIPTION" "$WP_SITE_DESCRIPTION"
+        env_assignment "WP_BLOG_TITLE" "$WP_BLOG_TITLE"
+        env_assignment "WP_BLOG_DESCRIPTION" "$WP_BLOG_DESCRIPTION"
+        env_assignment "WP_ABOUT_BLOG" "$WP_ABOUT_BLOG"
+        env_assignment "WP_ADMIN_EMAIL" "$WP_ADMIN_EMAIL"
+        env_assignment "WP_LOCALE" "$WP_LOCALE"
+        env_assignment "REVIEW_SYNC_WEBHOOK_URL" "$REVIEW_SYNC_WEBHOOK_URL"
+        env_assignment "REVIEW_SYNC_SECRET" "$REVIEW_SYNC_SECRET"
+    } > .env
 fi
 
 # Подставляем данные в docker-compose
@@ -1075,6 +1199,10 @@ if [ "$MODE" == "INSTALL" ]; then
     update_env_value "WP_ADMIN_USER" "$WP_ADMIN_USER"
     update_env_value "WP_ADMIN_PASSWORD" "$WP_ADMIN_PASSWORD"
     update_env_value "WP_SITE_TITLE" "$WP_SITE_TITLE"
+    update_env_value "WP_SITE_DESCRIPTION" "$WP_SITE_DESCRIPTION"
+    update_env_value "WP_BLOG_TITLE" "$WP_BLOG_TITLE"
+    update_env_value "WP_BLOG_DESCRIPTION" "$WP_BLOG_DESCRIPTION"
+    update_env_value "WP_ABOUT_BLOG" "$WP_ABOUT_BLOG"
     update_env_value "WP_ADMIN_EMAIL" "$WP_ADMIN_EMAIL"
     update_env_value "WP_LOCALE" "$WP_LOCALE"
     update_env_value "WP_APP_PASSWORD" "$WP_APP_PASSWORD"
@@ -1084,6 +1212,8 @@ if ! activate_theme_runtime "$THEME_NAME" "$MODE"; then
     print_error "Не удалось подготовить тему и плагины"
     exit 1
 fi
+
+apply_site_profile_runtime
 
 if [ "$MODE" == "INSTALL" ]; then
     write_install_report

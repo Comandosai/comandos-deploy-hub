@@ -36,6 +36,28 @@ description: Разворачивает или обновляет CyberSEO у к
 
 Если пользователь говорит “без этого”, не спорить, оставить пустым и продолжить, если шаг возможен.
 
+## WordPress-профиль
+
+Если нужно развернуть или обновить WordPress для CyberSEO, использовать только стек из общего навыка `cyberseo-full/assets/wordpress/cyberseo-publisher-stack`.
+
+При запуске `setup.sh` передать значения из `cyberseo.project.yml`:
+
+- `site.site_title` -> `COMANDOS_WP_SITE_TITLE`;
+- `site.site_description` -> `COMANDOS_WP_SITE_DESCRIPTION`;
+- `site.blog_title` -> `COMANDOS_WP_BLOG_TITLE`;
+- `site.blog_description` -> `COMANDOS_WP_BLOG_DESCRIPTION`;
+- `site.about_blog` -> `COMANDOS_WP_ABOUT_BLOG`.
+
+После установки проверить не только обычные поля WordPress, но и настройки темы:
+
+- `blogname`;
+- `blogdescription`;
+- `get_theme_mod('blog_title')`;
+- `get_theme_mod('blog_description')`;
+- `get_theme_mod('about_blog')`.
+
+Эти поля не должны оставаться на ручную правку в кастомайзере.
+
 ## Закрытый архив
 
 Закрытые файлы скачивать только после проверки лицензии:

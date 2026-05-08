@@ -33,6 +33,16 @@ description: Общий навык CyberSEO для развёртывания Wo
 
 Если пользователь просит развернуть WordPress — поставить WordPress только из стека, который лежит внутри этого навыка: `assets/wordpress/cyberseo-publisher-stack`. Это специализированная сборка под CyberSEO, а не общий WordPress-стек. WordPress-доступы записать в `state.wordpress` внутри `cyberseo.project.yml`.
 
+При запуске WordPress-стека передать в `setup.sh` значения из `cyberseo.project.yml`:
+
+- `site.site_title` -> `COMANDOS_WP_SITE_TITLE`;
+- `site.site_description` -> `COMANDOS_WP_SITE_DESCRIPTION`;
+- `site.blog_title` -> `COMANDOS_WP_BLOG_TITLE`;
+- `site.blog_description` -> `COMANDOS_WP_BLOG_DESCRIPTION`;
+- `site.about_blog` -> `COMANDOS_WP_ABOUT_BLOG`.
+
+Установщик сам запишет стандартные опции WordPress и отдельные поля темы Comandos AI Blog: `blog_title`, `blog_description`, `about_blog`. Не оставлять эти поля на ручную правку в кастомайзере.
+
 Не ставить WordPress вручную с официального сайта, не использовать `wp-next-stack` и не использовать общий `stacks/wp` для CyberSEO. Источник WordPress-стека:
 
 ```text

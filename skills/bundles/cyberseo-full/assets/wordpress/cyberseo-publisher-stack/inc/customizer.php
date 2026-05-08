@@ -43,6 +43,11 @@ add_action('customize_register', function ($wp_customize) {
         'label' => 'Описание блога', 'section' => 'comandos_design', 'type' => 'textarea',
     ]);
 
+    $wp_customize->add_setting('about_blog', ['default' => '', 'transport' => 'refresh']);
+    $wp_customize->add_control('about_blog', [
+        'label' => 'О блоге', 'section' => 'comandos_design', 'type' => 'textarea',
+    ]);
+
     // Aspect Ratio Control
     $wp_customize->add_setting('global_img_aspect_ratio', ['default' => '3 / 2', 'transport' => 'refresh']);
     $wp_customize->add_control('global_img_aspect_ratio', [

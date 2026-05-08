@@ -99,3 +99,11 @@ state:
 `topics.country` — где искать спрос. `topics.language` — на каком языке писать статьи и подбирать ключи.
 Если `topics.language` пустой, агент выбирает язык по стране.
 Например: страна `Германия`, город `Берлин`, язык `ru` — блог для русскоязычных людей в Германии.
+
+При развёртывании WordPress поля `site.*` должны попасть не только в обычные настройки WordPress, но и в настройки темы Comandos AI Blog:
+
+- `site.site_title` -> `blogname`;
+- `site.site_description` -> `blogdescription`;
+- `site.blog_title` -> `get_theme_mod('blog_title')`;
+- `site.blog_description` -> `get_theme_mod('blog_description')`;
+- `site.about_blog` -> `get_theme_mod('about_blog')` и option `cyberseo_about_blog`.

@@ -64,12 +64,15 @@ site:
   site_description: ""
 
   # Название блога.
+  # При развёртывании WordPress попадёт в настройку темы blog_title.
   blog_title: ""
 
   # Описание блога.
+  # При развёртывании WordPress попадёт в настройку темы blog_description.
   blog_description: ""
 
   # Текст для блока "О блоге".
+  # При развёртывании WordPress попадёт в настройку темы about_blog.
   about_blog: ""
 
   # Путь к логотипу на сервере или локальной машине агента.

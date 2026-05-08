@@ -46,6 +46,18 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 - companion `mu-plugin`:
   - `cyberseo-site-policy.php`
 
+## Профиль сайта из YAML
+
+Навык CyberSEO передаёт данные сайта в установщик через переменные:
+
+- `COMANDOS_WP_SITE_TITLE` -> стандартное название WordPress;
+- `COMANDOS_WP_SITE_DESCRIPTION` -> стандартное описание WordPress;
+- `COMANDOS_WP_BLOG_TITLE` -> поле темы `blog_title`;
+- `COMANDOS_WP_BLOG_DESCRIPTION` -> поле темы `blog_description`;
+- `COMANDOS_WP_ABOUT_BLOG` -> поле темы `about_blog`.
+
+Это нужно, чтобы после установки не править вручную кастомайзер темы.
+
 ## Что делает companion policy layer
 
 - обслуживает `https://domain/<indexnow_key>.txt`

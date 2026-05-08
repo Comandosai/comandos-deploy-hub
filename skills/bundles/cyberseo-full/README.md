@@ -137,6 +137,12 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - загрузи логотип, если site.logo_path заполнен;
 - загрузи favicon, если site.favicon_path заполнен;
 - заполни название сайта, описание сайта, название блога, описание блога и блок "О блоге", если эти поля заполнены;
+- при запуске setup.sh обязательно передай site.site_title через COMANDOS_WP_SITE_TITLE;
+- передай site.site_description через COMANDOS_WP_SITE_DESCRIPTION;
+- передай site.blog_title через COMANDOS_WP_BLOG_TITLE;
+- передай site.blog_description через COMANDOS_WP_BLOG_DESCRIPTION;
+- передай site.about_blog через COMANDOS_WP_ABOUT_BLOG;
+- после установки проверь, что WordPress option blogdescription и настройки темы blog_title, blog_description, about_blog заполнены;
 - выстави язык WordPress по topics.language, а если он пустой — по topics.country;
 - запиши созданные WordPress-доступы в cyberseo.project.yml, блок state.wordpress.
 
