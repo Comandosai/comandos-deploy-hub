@@ -116,6 +116,15 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 
 Разверни WordPress на сервере из cyberseo.project.yml.
 
+WordPress разворачивай только из нашего стека:
+https://github.com/Comandosai/comandos-deploy-hub
+Путь внутри репозитория:
+stacks/wp
+
+Если навык установлен с ветки codex/cyberseo-skills, WordPress-стек бери с этой же ветки.
+После слияния ветки в main используй main.
+Не ставь WordPress вручную с официального сайта и не используй wp-next-stack.
+
 Сделай:
 - проверь SSH-доступ;
 - поставь WordPress на домен domains.wordpress;
