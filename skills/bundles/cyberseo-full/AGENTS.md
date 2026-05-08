@@ -1,6 +1,5 @@
 # Полный запуск CyberSEO
 
-Открой `SKILL.md` и следуй ему.
+Сначала открой `README.md`, потом `SKILL.md`.
 
 Главный файл клиента: `cyberseo.deploy.yml`.
-

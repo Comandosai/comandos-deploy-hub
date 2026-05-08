@@ -2,6 +2,7 @@
   "bundle_id": "cyberseo-full",
   "bundle_name": "Полный запуск CyberSEO",
   "version": "0.1.0",
+  "readme": "README.md",
   "clients": ["antigravity", "claude", "codex", "gemini", "terminal"],
   "required_inputs": [],
   "optional_inputs": [
@@ -29,4 +30,3 @@
     "config-update"
   ]
 }
-
