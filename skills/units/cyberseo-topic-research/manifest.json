@@ -1,0 +1,30 @@
+{
+  "bundle_id": "cyberseo-topic-research",
+  "bundle_name": "Поиск и импорт тем CyberSEO",
+  "version": "0.1.0",
+  "clients": ["antigravity", "claude", "codex", "gemini", "terminal"],
+  "required_inputs": [
+    "client_api_url",
+    "client_admin_token",
+    "topic_niche",
+    "country",
+    "topic_count"
+  ],
+  "optional_inputs": [
+    "license_key",
+    "city",
+    "category_hint",
+    "primary_offer_id",
+    "firecrawl_api_key",
+    "perplexity_api_key"
+  ],
+  "modules": [
+    "config-read",
+    "queue-and-published-read",
+    "topic-research",
+    "dedupe",
+    "import-rows-build",
+    "queue-batch-import"
+  ]
+}
+

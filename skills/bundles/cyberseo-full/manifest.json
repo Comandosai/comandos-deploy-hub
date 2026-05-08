@@ -1,0 +1,32 @@
+{
+  "bundle_id": "cyberseo-full",
+  "bundle_name": "Полный запуск CyberSEO",
+  "version": "0.1.0",
+  "clients": ["antigravity", "claude", "codex", "gemini", "terminal"],
+  "required_inputs": [],
+  "optional_inputs": [
+    "license_key",
+    "client_api_url",
+    "client_admin_token",
+    "ssh_host",
+    "dashboard_domain",
+    "wordpress_domain",
+    "topic_niche",
+    "country",
+    "city",
+    "topic_count",
+    "firecrawl_api_key",
+    "perplexity_api_key",
+    "writer_style_prompt",
+    "image_style_prompt",
+    "img_url"
+  ],
+  "modules": [
+    "config-read-or-create",
+    "step-selection",
+    "cyberseo-deploy",
+    "cyberseo-topic-research",
+    "config-update"
+  ]
+}
+

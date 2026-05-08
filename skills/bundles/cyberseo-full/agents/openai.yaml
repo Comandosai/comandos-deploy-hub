@@ -1,0 +1,4 @@
+display_name: Полный запуск CyberSEO
+short_description: Ведёт установку CyberSEO и подбор тем через один общий файл настроек.
+default_prompt: Запусти CyberSEO: создай или прочитай cyberseo.deploy.yml, определи нужный шаг и проведи меня через развёртывание или импорт тем.
+

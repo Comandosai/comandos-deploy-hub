@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-22",
+  "updated_at": "2026-05-08",
   "allowed_clients": [
     "codex",
     "claude",
@@ -55,6 +55,33 @@
       "type": "unit",
       "path": "skills/units/obnovlenie-cyberseo-workflow",
       "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "cyberseo-deploy",
+      "title": "Развёртывание CyberSEO",
+      "type": "unit",
+      "path": "skills/units/cyberseo-deploy",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "cyberseo-topic-research",
+      "title": "Поиск и импорт тем CyberSEO",
+      "type": "unit",
+      "path": "skills/units/cyberseo-topic-research",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "cyberseo-full",
+      "title": "Полный запуск CyberSEO",
+      "type": "bundle",
+      "path": "skills/bundles/cyberseo-full",
+      "depends_on": [
+        "cyberseo-deploy",
+        "cyberseo-topic-research"
+      ],
       "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
     },
     {
