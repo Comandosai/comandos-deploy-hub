@@ -2,4 +2,5 @@
 
 Сначала открой `README.md`, потом `SKILL.md`.
 
-Главный файл клиента: `cyberseo.deploy.yml`.
+Главный файл клиента: `cyberseo.project.yml`.
+Служебный файл агента: `.cyberseo.state.yml`.

@@ -1,11 +1,11 @@
 # Импорт настроек в CyberSEO
 
-Адреса идут от `client_api.url`.
+Адрес API и админ-токен брать из `.cyberseo.state.yml`.
 
 Заголовки:
 
 ```text
-Authorization: Bearer <client_api.admin_token>
+Authorization: Bearer <client_admin_token>
 Content-Type: application/json
 ```
 
@@ -44,7 +44,6 @@ POST /api/v1/settings
 
 Ключи:
 
-- `default_country_code`
 - `default_country`
 - `default_city`
 - `default_language_mode`
@@ -68,10 +67,8 @@ POST /api/v1/secrets
 - `wordpress_url`
 - `wordpress_username`
 - `wordpress_app_password`
-- `openrouter_api_key`
+- `kie_api_key`
 - `perplexity_api_key`
 - `telegram_bot_token`
 - `telegram_chat_id`
-- `yandex_search_api_key`
-- `yandex_folder_id`
 

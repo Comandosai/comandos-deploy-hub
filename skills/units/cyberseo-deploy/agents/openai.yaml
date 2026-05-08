@@ -1,4 +1,3 @@
 display_name: Развёртывание CyberSEO
 short_description: Ставит или обновляет CyberSEO, скачивает закрытый архив по лицензии и сохраняет настройки проекта.
-default_prompt: Разверни CyberSEO: прочитай cyberseo.deploy.yml, уточни недостающие поля, скачай закрытый архив по лицензии и проверь установку.
-
+default_prompt: Разверни CyberSEO: прочитай cyberseo.project.yml и .cyberseo.state.yml, скачай закрытый архив по лицензии, настрой связь с WordPress и проверь установку.

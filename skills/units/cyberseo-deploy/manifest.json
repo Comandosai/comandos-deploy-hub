@@ -4,20 +4,19 @@
   "version": "0.1.0",
   "clients": ["antigravity", "claude", "codex", "gemini", "terminal"],
   "required_inputs": [
-    "license_key"
+    "license_key",
+    "ssh_host",
+    "dashboard_domain"
   ],
   "optional_inputs": [
-    "ssh_host",
-    "dashboard_domain",
     "wordpress_domain",
-    "client_api_url",
-    "client_admin_token",
-    "openrouter_api_key",
+    "kie_api_key",
     "perplexity_api_key",
     "telegram_bot_token",
+    "telegram_chat_id",
     "writer_style_prompt",
     "image_style_prompt",
-    "img_url"
+    "reference_image_path"
   ],
   "modules": [
     "config-read-or-create",

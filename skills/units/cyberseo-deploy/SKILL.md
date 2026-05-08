@@ -1,6 +1,6 @@
 ---
 name: Развёртывание CyberSEO
-description: Разворачивает или обновляет CyberSEO у клиента через общий cyberseo.deploy.yml, проверяет лицензию, скачивает закрытый архив с api.comandos.ai, настраивает client-api, client-worker, client-web, WordPress, ключи, промпты и делает итоговую проверку.
+description: Разворачивает или обновляет CyberSEO у клиента через cyberseo.project.yml и .cyberseo.state.yml, проверяет лицензию, скачивает закрытый архив с api.comandos.ai, настраивает client-api, client-worker, client-web, связь с WordPress, ключи и делает итоговую проверку.
 ---
 
 # Развёртывание CyberSEO
@@ -9,32 +9,31 @@ description: Разворачивает или обновляет CyberSEO у к
 
 ## Что читать
 
-1. `cyberseo.deploy.yml`.
-2. Если файла нет, создать его по структуре из [references/config-contract.md](references/config-contract.md).
-3. [Контракт импорта настроек](references/settings-import-contract.md).
+1. `cyberseo.project.yml`.
+2. `.cyberseo.state.yml`, если WordPress уже развёрнут.
+3. Если `cyberseo.project.yml` нет, создать его по структуре из [references/config-contract.md](references/config-contract.md) и остановиться.
+4. [Контракт импорта настроек](references/settings-import-contract.md).
 
-## Что спросить, если нет
+## Что должно быть заполнено
 
 Обязательное:
 
-- `license_key`;
-- `deploy.ssh_host`, если нужно работать на сервере;
-- домен панели или подтверждение, что домен будет позже;
-- домен WordPress или подтверждение, что WordPress будет позже.
+- `license.cyberseo_key`;
+- `server.ssh_host`;
+- `domains.cyberseo_panel`.
 
 Желательное:
 
-- `client_api.url`;
-- `client_api.admin_token`;
-- WordPress URL, логин и пароль приложения;
-- OpenRouter;
-- Perplexity;
-- Telegram;
+- `domains.wordpress`;
+- WordPress-доступы в `.cyberseo.state.yml`;
+- `keys.kie_api_key`, если пользователь хочет свой баланс KIE / Krea AI;
+- `keys.perplexity_api_key`, если пользователь хочет свой баланс Perplexity;
+- Telegram bot token и chat id, если нужны уведомления;
 - промпт писателя;
 - промпт художника;
 - референс изображения.
 
-Если пользователь говорит “без этого”, не спорить, записать `skip` или пустое значение и продолжить, если шаг возможен.
+Если пользователь говорит “без этого”, не спорить, оставить пустым и продолжить, если шаг возможен.
 
 ## Закрытый архив
 
@@ -42,7 +41,7 @@ description: Разворачивает или обновляет CyberSEO у к
 
 ```text
 GET https://api.comandos.ai/skill-runtime/artifacts/cyberseo-deploy/latest
-X-License-Key: <license_key>
+X-License-Key: <license.cyberseo_key>
 ```
 
 Ответы:
@@ -56,22 +55,23 @@ X-License-Key: <license_key>
 
 ## Порядок работы
 
-1. Прочитать или создать `cyberseo.deploy.yml`.
-2. Проверить, какие поля уже заполнены.
-3. Проверить SSH-доступ, если нужен сервер.
+1. Прочитать `cyberseo.project.yml`.
+2. Прочитать `.cyberseo.state.yml`, если есть.
+3. Проверить SSH-доступ.
 4. Скачать закрытый архив.
 5. Распаковать архив во временную папку.
 6. Выполнить инструкции из архива.
 7. Проверить, что подняты `client-api`, `client-worker`, `client-web`.
 8. Проверить `/healthz` у `client-api`.
-9. Если есть админ-токен, импортировать настройки и секреты через API.
-10. Сделать короткий отчёт.
+9. Связать CyberSEO с WordPress, если WordPress уже развёрнут.
+10. Сохранить адрес API, админ-токен и статусы в `.cyberseo.state.yml`.
+11. Если API уже доступен, импортировать лицензию, настройки и секреты через API.
+12. Сделать короткий отчёт.
 
 ## Настройки и промпты
 
-Если `client_api.url` и `client_api.admin_token` есть, сохранить:
+Если адрес API и админ-токен уже есть в `.cyberseo.state.yml`, сохранить:
 
-- `default_country_code`;
 - `default_country`;
 - `default_city`;
 - `default_language_mode`;
@@ -83,6 +83,8 @@ X-License-Key: <license_key>
 
 Секреты сохранять через `/api/v1/secrets`, а не в обычные настройки.
 
+Telegram включать автоматически: если `telegram.bot_token` и `telegram.chat_id` заполнены, сохранить `telegram_notify_enabled=true`; иначе `false`.
+
 ## Проверка
 
 Минимум:
@@ -92,6 +94,7 @@ X-License-Key: <license_key>
 - настройки читаются через `GET /api/v1/settings`;
 - секреты показывают статус `configured`, но сами значения не раскрываются;
 - если WordPress указан, проверен доступ;
+- `.cyberseo.state.yml` содержит служебные адреса и токены;
 - если промпты указаны, они сохранены в настройках.
 
 ## Выход
@@ -102,5 +105,5 @@ X-License-Key: <license_key>
 - какой адрес панели;
 - какие ключи настроены по статусу;
 - какие поля остались пустыми;
-- можно ли переходить к поиску тем.
+- можно ли переходить к профилю, промптам или поиску тем.
 

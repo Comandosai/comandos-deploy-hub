@@ -1,66 +1,73 @@
-# cyberseo.deploy.yml
+# cyberseo.project.yml
 
-Если файла нет, создать его в корне проекта клиента.
+Если файла нет, создать его в корне проекта клиента и остановиться.
 
 Минимум:
 
 ```yaml
-license_key: ""
+# Файл проекта CyberSEO.
+# Заполни только то, что знаешь.
+# Если поле не нужно или пока неизвестно, оставь пустым.
+# Служебные данные агент будет хранить отдельно в .cyberseo.state.yml.
 
-client_api:
-  url: ""
-  admin_token: ""
-
-deploy:
-  enabled: true
-  mode: "auto"
+server:
+  # SSH-доступ к серверу. Можно указать IP, домен или SSH-алиас.
   ssh_host: ""
-  ssh_user: "root"
-  ssh_port: 22
-  dashboard_domain: ""
-  wordpress_domain: ""
-  wordpress_admin_url: ""
 
-wordpress:
-  url: ""
-  username: ""
-  app_password: ""
+  # SSH-порт. Обычно 22.
+  ssh_port: 22
+
+domains:
+  # Домен WordPress / блога.
+  wordpress: ""
+
+  # Домен панели управления CyberSEO.
+  cyberseo_panel: ""
+
+license:
+  # Лицензионный ключ CyberSEO.
+  cyberseo_key: ""
 
 keys:
-  openrouter_api_key: ""
-  perplexity_api_key: ""
-  firecrawl_api_key: ""
-  yandex_search_api_key: ""
-  yandex_folder_id: ""
+  # Ключ KIE / Krea AI для генерации изображений.
+  kie_api_key: ""
 
-notifications:
-  telegram_enabled: "auto"
-  telegram_bot_token: ""
-  telegram_chat_id: ""
+  # Ключ Perplexity, если пользователь хочет использовать свой баланс.
+  perplexity_api_key: ""
+
+  # Ключ Firecrawl для анализа сайтов конкурентов.
+  firecrawl_api_key: ""
+
+telegram:
+  # Если bot_token и chat_id заполнены, уведомления включатся автоматически.
+  bot_token: ""
+  chat_id: ""
+
+wordpress:
+  admin_email: ""
+  admin_username: ""
+
+site:
+  site_title: ""
+  site_description: ""
+  blog_title: ""
+  blog_description: ""
+  about_blog: ""
+  logo_path: ""
+  favicon_path: ""
+  reference_image_path: ""
+
+topics:
+  main_topic: ""
+  country: ""
+  city: ""
+  count: 50
 
 prompts:
   writer_style_prompt: ""
   image_style_prompt: ""
-  img_url: ""
-
-topics:
-  enabled: true
-  niche: ""
-  country_code: "RU"
-  country: "Россия"
-  city: ""
-  language: "auto"
-  count: 50
-  category_hint: ""
-  primary_offer_id: ""
-  import_mode: "confirm"
-
-research:
-  use_firecrawl: "auto"
-  firecrawl_max_pages: 20
-  use_perplexity_if_narrow: "auto"
-  use_wordstat: true
 ```
 
 Реальные ключи не коммитить.
+Служебные данные вроде WordPress-пароля, адреса API CyberSEO и админ-токена хранить в `.cyberseo.state.yml`.
 

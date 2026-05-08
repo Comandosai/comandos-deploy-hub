@@ -1,11 +1,11 @@
 # Контракт импорта тем
 
-Адреса идут от `client_api.url`.
+Адрес API и админ-токен брать из `.cyberseo.state.yml`.
 
 Заголовки:
 
 ```text
-Authorization: Bearer <client_api.admin_token>
+Authorization: Bearer <client_admin_token>
 Content-Type: application/json
 ```
 
@@ -34,8 +34,6 @@ POST /api/v1/queue/batch
     "parent_topic_id": "",
     "main_keyword": "имплантация зубов",
     "category_hint": "Имплантация",
-    "primary_offer_id": "free-consultation",
-    "country_code": "RU",
     "country": "Россия",
     "city": "Москва",
     "language_override": "",
@@ -59,6 +57,8 @@ POST /api/v1/queue/batch
 - `topic_role = support`
 - `parent_topic_id` указывает на главную тему
 - `cluster_id` равен `topic_id` главной темы
+
+Код страны человек не заполняет. Если API требует `country_code`, агент определяет его по `topics.country`.
 
 ## Как делать ID
 
