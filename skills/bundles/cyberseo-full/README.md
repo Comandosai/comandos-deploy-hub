@@ -58,7 +58,53 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 После создания файла остановись.
 ```
 
-## Команда 2. Развернуть WordPress
+## Команда 2. Помочь заполнить профиль сайта
+
+```text
+Запусти навык CyberSEO.
+
+Открой cyberseo.project.yml.
+Открой cyberseo-full/SKILL.md.
+
+Помоги заполнить SEO/GEO-профиль сайта до развёртывания WordPress.
+
+Ничего не разворачивай.
+Ничего не импортируй.
+
+Используй уже заполненные поля:
+- domains.wordpress;
+- topics.main_topic;
+- topics.country;
+- topics.city;
+- site.site_title;
+- site.site_description;
+- site.blog_title;
+- site.blog_description;
+- site.about_blog.
+
+Если данных мало, задай короткие вопросы:
+- что продаём или о чём сайт;
+- город или регион;
+- для кого сайт;
+- чем отличается предложение;
+- какой стиль нужен.
+
+С точки зрения SEO и ИИ-поиска заполни в cyberseo.project.yml:
+- site.site_title;
+- site.site_description;
+- site.blog_title;
+- site.blog_description;
+- site.about_blog;
+- topics.main_topic;
+- prompts.writer_style_prompt;
+- prompts.image_style_prompt.
+
+Сделай так, чтобы WordPress потом сразу развернулся с нормальным названием, описанием сайта, описанием блога и блоком "О блоге".
+
+После обновления файла остановись.
+```
+
+## Команда 3. Развернуть WordPress
 
 ```text
 Запусти навык CyberSEO.
@@ -84,7 +130,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 Ничего не выдумывай за пользователя, кроме технических паролей, которые сам создаёшь.
 ```
 
-## Команда 3. Развернуть CyberSEO
+## Команда 4. Развернуть CyberSEO
 
 ```text
 Запусти навык CyberSEO.
@@ -109,7 +155,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 Они должны жить только в .cyberseo.state.yml.
 ```
 
-## Команда 4. Собрать профиль и промпты
+## Команда 5. Доработать профиль и промпты
 
 ```text
 Запусти навык CyberSEO.
@@ -117,7 +163,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 Открой cyberseo.project.yml.
 Открой .cyberseo.state.yml, если он есть.
 
-Нужно подготовить профиль сайта и промпты.
+Нужно доработать профиль сайта и промпты после развёртывания.
 
 Проверь поля:
 - site.site_title
@@ -132,14 +178,14 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 - prompts.writer_style_prompt
 - prompts.image_style_prompt
 
-Если поле пустое, спроси у человека или предложи вариант на основе уже заполненного контекста.
+Если поле пустое или слабое, спроси у человека или предложи вариант на основе уже заполненного контекста.
 Если человек говорит "оставь пустым", не спрашивай повторно.
 
 Сохрани результат обратно в cyberseo.project.yml.
 Пока ничего не импортируй.
 ```
 
-## Команда 5. Найти темы
+## Команда 6. Найти темы
 
 ```text
 Запусти навык CyberSEO.
@@ -179,7 +225,7 @@ GET /api/v1/published
 В конце покажи список тем и спроси подтверждение на импорт.
 ```
 
-## Команда 6. Импортировать всё
+## Команда 7. Импортировать всё
 
 ```text
 Запусти навык CyberSEO.
@@ -224,4 +270,3 @@ GET /api/v1/queue
 Полные секреты не печатай.
 В конце напиши, что именно импортировано и что осталось не заполнено.
 ```
-
