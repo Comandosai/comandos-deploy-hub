@@ -25,6 +25,7 @@
   "modules": [
     "config-read-or-create",
     "step-selection",
+    "wordpress-publisher-stack-asset",
     "cyberseo-deploy",
     "cyberseo-topic-research",
     "config-update"

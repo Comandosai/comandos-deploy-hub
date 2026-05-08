@@ -30,14 +30,15 @@ description: Общий навык CyberSEO для развёртывания Wo
 
 Если пользователь просит заполнить профиль сайта до развёртывания — обновить поля `site.*`, `topics.main_topic`, `topics.language` и `prompts.*` в `cyberseo.project.yml`, ничего не разворачивать.
 
-Если пользователь просит развернуть WordPress — поставить WordPress только из нашего стека `Comandosai/comandos-deploy-hub/stacks/wp`, загрузить брендовые файлы, вставить профиль сайта из `cyberseo.project.yml` и записать доступы в `.cyberseo.state.yml`.
+Если пользователь просит развернуть WordPress — поставить WordPress только из стека, который лежит внутри этого навыка: `assets/wordpress/cyberseo-publisher-stack`. Это специализированная сборка под CyberSEO, а не общий WordPress-стек.
 
-Не ставить WordPress вручную с официального сайта и не использовать `wp-next-stack`. Источник WordPress-стека:
+Не ставить WordPress вручную с официального сайта, не использовать `wp-next-stack` и не использовать общий `stacks/wp` для CyberSEO. Источник WordPress-стека:
 
 ```text
-https://github.com/Comandosai/comandos-deploy-hub
-stacks/wp
+cyberseo-full/assets/wordpress/cyberseo-publisher-stack
 ```
+
+При установке навыка эта папка копируется вместе с `cyberseo-full`. Для развёртывания скопировать папку `assets/wordpress/cyberseo-publisher-stack` на сервер и запускать её `setup.sh`.
 
 Если пользователь просит развернуть CyberSEO — использовать `cyberseo-deploy`.
 

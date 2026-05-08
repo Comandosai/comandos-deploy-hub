@@ -1,0 +1,85 @@
+<?php
+
+declare(strict_types=1);
+
+add_action('after_setup_theme', function () {
+    add_theme_support('title-tag');
+    add_theme_support('post-thumbnails');
+    add_theme_support(
+        'html5',
+        [
+            'search-form',
+            'comment-form',
+            'comment-list',
+            'gallery',
+            'caption',
+            'style',
+            'script',
+        ]
+    );
+});
+
+// КРИТИЧЕСКИЙ CSS: Встраиваем inline для мгновенной отрисовки
+add_action('wp_head', function() {
+    $critical_css = file_get_contents(get_template_directory() . '/critical.css');
+    if ($critical_css) {
+        echo '<style id="critical-css">' . $critical_css . '</style>';
+    }
+}, 1);
+
+function comandos_asset_version(string $relative_path, string $fallback): string {
+    $absolute_path = get_template_directory() . '/' . ltrim($relative_path, '/');
+    $mtime = @filemtime($absolute_path);
+    if ($mtime === false) {
+        return $fallback;
+    }
+    return (string) $mtime;
+}
+
+// НЕКРИТИЧЕСКИЙ CSS: Загружаем асинхронно (не блокируем отрисовку)
+add_action('wp_enqueue_scripts', function () {
+    wp_enqueue_style('comandos-blog-style', get_stylesheet_uri(), [], comandos_asset_version('style.css', '1.7'));
+    wp_enqueue_style('comandos-styles', get_template_directory_uri() . '/comandos-wp.css', [], comandos_asset_version('comandos-wp.css', '1.7'));
+});
+
+// ASYNC LOADING: Модифицируем HTML напрямую для асинхронной загрузки
+add_filter('style_loader_tag', function($html, $handle, $href) {
+    if ($handle === 'comandos-blog-style' || $handle === 'comandos-styles') {
+        // Заменяем media='all' на media='print' с onload переключением
+        $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
+        // Добавляем noscript fallback
+        $html .= '<noscript><link rel="stylesheet" href="' . esc_url($href) . '"></noscript>';
+    }
+    return $html;
+}, 10, 3);
+
+add_action('after_setup_theme', function () {
+    add_editor_style('comandos-wp.css');
+});
+
+
+// РАЗРЕШЕНИЕ WEBP: Добавляем поддержку WebP, если сервер старый
+add_filter('upload_mimes', function($mimes) {
+    $mimes['webp'] = 'image/webp';
+    return $mimes;
+});
+
+// ОПТИМИЗАЦИЯ КОНТЕНТА: Очистка инлайн-стилей и защита ссылок
+add_filter('the_content', function ($content) {
+    // 1. Удаление инлайн-стилей (style="...")
+    $content = preg_replace('/ style=("|\').*?("|\')/i', '', $content);
+
+    // 2. Защита ссылок Telegram (nofollow + noindex)
+    $content = preg_replace_callback('/<a [^>]*?href=("|\')https?:\/\/t\.me\/.*?("|\')[^>]*?>(.*?)<\/a>/i', function ($matches) {
+        $link = $matches[0];
+        // Добавляем rel="nofollow noopener", если его нет
+        if (!str_contains($link, 'rel=')) {
+            $link = str_replace('<a ', '<a rel="nofollow noopener" ', $link);
+        } elseif (!str_contains($link, 'nofollow')) {
+            $link = preg_replace('/rel=("|\')(.*?)("|\')/i', 'rel=$1$2 nofollow noopener$3', $link);
+        }
+        return '<noindex>' . $link . '</noindex>';
+    }, $content);
+
+    return $content;
+}, 999);
