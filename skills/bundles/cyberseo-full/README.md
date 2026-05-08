@@ -143,6 +143,8 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - передай site.blog_description через COMANDOS_WP_BLOG_DESCRIPTION;
 - передай site.about_blog через COMANDOS_WP_ABOUT_BLOG;
 - после установки проверь, что WordPress option blogdescription и настройки темы blog_title, blog_description, about_blog заполнены;
+- поставь в Yoast SEO для администратора галочку "Не разрешайте поисковым системам отображать архивы этого автора в результатах поиска";
+- проверь, что у администратора WordPress user meta wpseo_noindex_author = on;
 - выстави язык WordPress по topics.language, а если он пустой — по topics.country;
 - запиши созданные WordPress-доступы в cyberseo.project.yml, блок state.wordpress.
 

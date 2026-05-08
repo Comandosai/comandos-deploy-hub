@@ -278,6 +278,7 @@ set_publish_ready_mode() {
     wp_cli "option update blog_public 1" >/dev/null 2>&1 || true
     wp_cli "option update cyberseo_publish_mode publish-ready" >/dev/null 2>&1 || true
     wp_cli "eval \"set_theme_mod('global_img_aspect_ratio', '3 / 2');\"" >/dev/null 2>&1 || true
+    wp_cli "user meta update '$WP_ADMIN_USER' wpseo_noindex_author on" >/dev/null 2>&1 || true
     wp_cli "rewrite structure '/%postname%/' --hard" >/dev/null 2>&1 || true
     wp_cli "rewrite flush --hard" >/dev/null 2>&1 || true
     print_success "Сайт переведен в publish-ready SEO mode"
@@ -422,6 +423,7 @@ run_install_smoke_checks() {
     local publish_mode=""
     local indexnow_key=""
     local aspect_ratio=""
+    local author_noindex=""
     local policy_json=""
 
     print_header "ПРОВЕРКА УСТАНОВКИ"
@@ -496,6 +498,14 @@ run_install_smoke_checks() {
         print_success "Пропорции изображений темы: $aspect_ratio"
     else
         print_error "Пропорции изображений темы не выставлены в 3 / 2"
+        failures=$((failures + 1))
+    fi
+
+    author_noindex=$(wp_cli "user meta get '$WP_ADMIN_USER' wpseo_noindex_author" 2>/dev/null | tail -n1 | tr -d '\r')
+    if [ "$author_noindex" == "on" ]; then
+        print_success "Yoast: архив автора закрыт от индексации"
+    else
+        print_error "Yoast: архив автора не закрыт от индексации"
         failures=$((failures + 1))
     fi
 

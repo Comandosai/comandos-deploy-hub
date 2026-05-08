@@ -107,3 +107,5 @@ state:
 - `site.blog_title` -> `get_theme_mod('blog_title')`;
 - `site.blog_description` -> `get_theme_mod('blog_description')`;
 - `site.about_blog` -> `get_theme_mod('about_blog')` и option `cyberseo_about_blog`.
+
+Для администратора WordPress обязательно поставить `user meta wpseo_noindex_author = on`. Это галочка Yoast SEO, которая запрещает показывать архив автора в результатах поиска.

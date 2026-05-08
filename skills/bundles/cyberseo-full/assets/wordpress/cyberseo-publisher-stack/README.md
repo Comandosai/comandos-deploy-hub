@@ -68,6 +68,7 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
   - `date` -> `noindex, follow`
   - `category` остаётся indexable
 - исключает `tag/author/date` из sitemap
+- ставит для администратора Yoast user meta `wpseo_noindex_author=on`, чтобы галочка закрытия архива автора была включена в профиле пользователя
 
 ## Snapshot restore
 
