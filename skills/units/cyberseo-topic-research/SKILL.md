@@ -26,12 +26,17 @@ description: Ищет темы для блога CyberSEO по cyberseo.project.
 Желательное:
 
 - `topics.city`;
+- `topics.language`;
 - `site.blog_description`;
 - `site.about_blog`;
 - `keys.firecrawl_api_key`;
 - `keys.perplexity_api_key`.
 
 Если Firecrawl или Perplexity не настроены, не падать. Продолжать тем способом, который доступен.
+
+`topics.country` означает страну, где ищем спрос. `topics.language` означает язык ключей и статей.
+Если `topics.language` пустой, выбрать язык по стране. Если заполнен, использовать его.
+Пример: `country: Германия`, `city: Берлин`, `language: ru` — искать темы для русскоязычных людей в Германии.
 
 ## Порядок работы
 
@@ -96,4 +101,3 @@ Perplexity использовать, если ключ заполнен и по�
 - сколько не подошло;
 - какие файлы созданы;
 - был ли импорт в очередь.
-

@@ -76,6 +76,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 - topics.main_topic;
 - topics.country;
 - topics.city;
+- topics.language;
 - site.site_title;
 - site.site_description;
 - site.blog_title;
@@ -96,6 +97,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 - site.blog_description;
 - site.about_blog;
 - topics.main_topic;
+- topics.language;
 - prompts.writer_style_prompt;
 - prompts.image_style_prompt.
 
@@ -124,6 +126,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 - загрузи логотип, если site.logo_path заполнен;
 - загрузи favicon, если site.favicon_path заполнен;
 - заполни название сайта, описание сайта, название блога, описание блога и блок "О блоге", если эти поля заполнены;
+- выстави язык WordPress по topics.language, а если он пустой — по topics.country;
 - создай или обнови служебный файл .cyberseo.state.yml и запиши туда созданные WordPress-доступы.
 
 Полные пароли покажи только в финальном отчёте один раз.
@@ -175,6 +178,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 - topics.main_topic
 - topics.country
 - topics.city
+- topics.language
 - prompts.writer_style_prompt
 - prompts.image_style_prompt
 
@@ -200,6 +204,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-h
 - topics.main_topic;
 - topics.country;
 - topics.city;
+- topics.language;
 - topics.count;
 - site.blog_description;
 - site.about_blog;

@@ -53,6 +53,13 @@ POST /api/v1/settings
 - `img_url`
 - `telegram_notify_enabled`
 
+Если `topics.language` заполнен, сохранить:
+
+- `default_language_mode=fixed`
+- `default_language=<topics.language>`
+
+Если `topics.language` пустой, сохранить `default_language_mode=auto`, а язык пусть выбирается по стране.
+
 ## Секреты
 
 ```text
@@ -71,4 +78,3 @@ POST /api/v1/secrets
 - `perplexity_api_key`
 - `telegram_bot_token`
 - `telegram_chat_id`
-

@@ -85,6 +85,9 @@ X-License-Key: <license.cyberseo_key>
 
 Telegram включать автоматически: если `telegram.bot_token` и `telegram.chat_id` заполнены, сохранить `telegram_notify_enabled=true`; иначе `false`.
 
+Если `topics.language` заполнен, сохранить `default_language_mode=fixed` и `default_language=<topics.language>`.
+Если `topics.language` пустой, сохранить `default_language_mode=auto`, а язык пусть выбирается по `topics.country`.
+
 ## Проверка
 
 Минимум:
@@ -106,4 +109,3 @@ Telegram включать автоматически: если `telegram.bot_tok
 - какие ключи настроены по статусу;
 - какие поля остались пустыми;
 - можно ли переходить к профилю, промптам или поиску тем.
-

@@ -10,6 +10,7 @@
   ],
   "optional_inputs": [
     "wordpress_domain",
+    "language",
     "kie_api_key",
     "perplexity_api_key",
     "telegram_bot_token",
@@ -26,4 +27,3 @@
     "post-check"
   ]
 }
-

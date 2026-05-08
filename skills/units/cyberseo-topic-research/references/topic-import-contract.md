@@ -36,7 +36,7 @@ POST /api/v1/queue/batch
     "category_hint": "Имплантация",
     "country": "Россия",
     "city": "Москва",
-    "language_override": "",
+    "language_override": "ru",
     "status": "queued",
     "notes": "Главная статья кластера. year_mode=forbidden"
   }
@@ -60,6 +60,8 @@ POST /api/v1/queue/batch
 
 Код страны человек не заполняет. Если API требует `country_code`, агент определяет его по `topics.country`.
 
+`language_override` брать из `topics.language`. Если `topics.language` пустой, оставить `language_override` пустым и дать CyberSEO выбрать язык по стране.
+
 ## Как делать ID
 
 ID должны быть стабильными. Не использовать случайные числа, если можно сделать понятный slug.
@@ -70,4 +72,3 @@ ID должны быть стабильными. Не использовать �
 - подтема: `implantatsiya-zubov-tsena`
 
 Если slug совпал, добавить короткое уточнение по городу или смыслу.
-

@@ -13,6 +13,7 @@
     "main_topic",
     "country",
     "city",
+    "language",
     "topic_count",
     "firecrawl_api_key",
     "perplexity_api_key",

@@ -11,6 +11,7 @@
   ],
   "optional_inputs": [
     "city",
+    "language",
     "blog_description",
     "about_blog",
     "firecrawl_api_key",
@@ -25,4 +26,3 @@
     "queue-batch-import"
   ]
 }
-
