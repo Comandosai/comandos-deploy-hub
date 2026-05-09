@@ -88,10 +88,13 @@ X-License-Key: <license.cyberseo_key>
 6. Проверить, что подняты `client-api`, `client-worker`, `client-web`.
 7. Проверить `/healthz` у `client-api`.
 8. Связать CyberSEO с WordPress, если WordPress уже развёрнут.
-9. Сохранить адрес API, админ-токен и статусы в `state.cyberseo`.
-10. Если API уже доступен, импортировать лицензию, настройки и секреты через API.
-11. Обновить `cyberseo.project.yml`.
-12. Сделать короткий отчёт.
+9. Через локальный `client-api` сохранить адрес Central API в `/api/v1/site`.
+10. Сразу подключить тот же ключ из `license.cyberseo_key` через `POST /api/v1/license/connect`.
+11. Если ключ не подключился, считать развёртывание незавершённым и показать понятную ошибку.
+12. Сохранить адрес API, логин панели, пароль панели, админ-токен и статусы в `state.cyberseo`.
+13. Если API уже доступен, импортировать настройки и секреты через API.
+14. Обновить `cyberseo.project.yml`.
+15. Сделать короткий отчёт.
 
 ## Доступ к панели
 
@@ -100,6 +103,26 @@ X-License-Key: <license.cyberseo_key>
 
 Если логин и пароль панели созданы при развёртывании, записать их в `cyberseo.project.yml -> state.cyberseo`.
 Показать полный пароль можно только один раз в финальном отчёте.
+
+## Лицензия при развёртывании
+
+Ключ `license.cyberseo_key` нужно не только записать в `.env`, но и подключить через локальный API панели:
+
+```text
+POST /api/v1/license/connect
+Authorization: Bearer <state.cyberseo.admin_token>
+```
+
+Тело:
+
+```json
+{
+  "license_key": "<license.cyberseo_key>"
+}
+```
+
+После успешного ответа записать `state.cyberseo.license_connected=true`.
+Если Central API вернул ошибку, не писать, что CyberSEO полностью готов.
 
 ## Настройки и промпты
 

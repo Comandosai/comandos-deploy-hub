@@ -83,6 +83,7 @@ state:
     admin_email: ""
     admin_password: ""
     admin_token: ""
+    license_connected: false
     healthz_ok: false
   import:
     wordpress_profile_imported: false

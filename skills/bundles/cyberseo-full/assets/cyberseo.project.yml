@@ -159,6 +159,9 @@ state:
     # Админ-токен CyberSEO, созданный при развёртывании.
     admin_token: ""
 
+    # Лицензия подключена через локальный API CyberSEO.
+    license_connected: false
+
     # Последняя проверка /healthz прошла успешно.
     healthz_ok: false
 

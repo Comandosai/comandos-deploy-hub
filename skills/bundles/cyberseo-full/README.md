@@ -169,12 +169,14 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - разверни client-api, client-worker, client-web;
 - свяжи CyberSEO с WordPress из cyberseo.project.yml, блок state.wordpress;
 - подключи лицензию;
+- сразу вызови локальный API CyberSEO `POST /api/v1/license/connect` с ключом из `license.cyberseo_key`;
 - сохрани ключи KIE, Perplexity, Firecrawl и Telegram в секреты CyberSEO, если они заполнены;
 - проверь client-api /healthz;
-- запиши адрес панели, адрес API, логин панели, пароль панели, админ-токен и технические статусы в cyberseo.project.yml, блок state.cyberseo.
+- запиши адрес панели, адрес API, логин панели, пароль панели, админ-токен, статус подключения лицензии и технические статусы в cyberseo.project.yml, блок state.cyberseo.
 
 Панель CyberSEO не должна открываться с заранее вписанными демо-данными.
 Логин и пароль показывай только в отчёте и сохраняй в cyberseo.project.yml.
+Если лицензия не подключилась, не пиши, что CyberSEO готов.
 
 Не создавай .cyberseo.state.yml.
 Все служебные данные должны жить в одном файле cyberseo.project.yml внутри блока state.
