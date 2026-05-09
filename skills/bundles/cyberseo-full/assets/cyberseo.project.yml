@@ -150,6 +150,12 @@ state:
     # Адрес API CyberSEO.
     api_url: ""
 
+    # Логин администратора панели CyberSEO, созданный агентом.
+    admin_email: ""
+
+    # Пароль администратора панели CyberSEO, созданный агентом.
+    admin_password: ""
+
     # Админ-токен CyberSEO, созданный при развёртывании.
     admin_token: ""
 

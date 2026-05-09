@@ -54,6 +54,8 @@ cyberseo-full/assets/wordpress/cyberseo-publisher-stack
 При установке навыка эта папка копируется вместе с `cyberseo-full`. Для развёртывания скопировать папку `assets/wordpress/cyberseo-publisher-stack` на сервер и запускать её `setup.sh`.
 
 Если пользователь просит развернуть CyberSEO — использовать `cyberseo-deploy`.
+Панель CyberSEO не должна показывать заранее вписанные логин и пароль.
+Созданные логин, пароль, адрес панели, адрес API и админ-токен записывать в `cyberseo.project.yml -> state.cyberseo`.
 
 Если пользователь просит найти темы, собрать план публикаций, сделать 20-50 тем, убрать дубли или импортировать темы — использовать `cyberseo-topic-research`.
 

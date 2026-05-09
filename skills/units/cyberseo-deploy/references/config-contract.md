@@ -80,6 +80,8 @@ state:
     installed: false
     panel_url: ""
     api_url: ""
+    admin_email: ""
+    admin_password: ""
     admin_token: ""
     healthz_ok: false
   import:

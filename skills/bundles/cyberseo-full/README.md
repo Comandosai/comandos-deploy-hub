@@ -171,7 +171,10 @@ COMANDOS_GITHUB_BRANCH=codex/cyberseo-skills
 - подключи лицензию;
 - сохрани ключи KIE, Perplexity, Firecrawl и Telegram в секреты CyberSEO, если они заполнены;
 - проверь client-api /healthz;
-- запиши адрес панели, адрес API, админ-токен и технические статусы в cyberseo.project.yml, блок state.cyberseo.
+- запиши адрес панели, адрес API, логин панели, пароль панели, админ-токен и технические статусы в cyberseo.project.yml, блок state.cyberseo.
+
+Панель CyberSEO не должна открываться с заранее вписанными демо-данными.
+Логин и пароль показывай только в отчёте и сохраняй в cyberseo.project.yml.
 
 Не создавай .cyberseo.state.yml.
 Все служебные данные должны жить в одном файле cyberseo.project.yml внутри блока state.
