@@ -18,6 +18,7 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 
 - лежат в `skills/units/`
 - `razvertyvanie-i-obnovlenie-n8n` — развёртывание и обновление n8n.
+- `razvertyvanie-comandos-hermes` — развёртывание COMANDOS Hermes с фирменной панелью на VPS.
 - `obnovlenie-cyberseo-workflow` — обновление CyberSEO workflow в существующем n8n клиента.
 - `telegram-testirovanie-bota` — живое тестирование Telegram-бота.
 - `sborka-brifa` — сборка брифа.

@@ -1,0 +1,16 @@
+[Unit]
+Description=COMANDOS Hermes Workspace panel
+After=network-online.target hermes-gateway.service
+Wants=network-online.target hermes-gateway.service
+
+[Service]
+Type=simple
+WorkingDirectory={{REMOTE_WORKSPACE_DIR}}
+EnvironmentFile={{REMOTE_WORKSPACE_DIR}}/.env
+ExecStart={{NODE_PATH}} {{REMOTE_WORKSPACE_DIR}}/server-entry.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+

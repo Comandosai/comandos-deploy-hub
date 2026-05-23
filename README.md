@@ -38,10 +38,27 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/wp/setup.sh | bash
 ```
 
+## Быстрый старт для COMANDOS Hermes
+
+Пользователь создаёт папку `Hermes`, открывает её в агенте и запускает:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/install.sh | bash
+```
+
+После этого заполняет `comandos-hermes.env` и запускает:
+
+```bash
+./deploy.sh
+```
+
+Лицензионный ключ вводится уже в веб-панели при входе.
+
 ## Структура репозитория
 
 - `stacks/` — только стеки развёртывания:
   - `stacks/n8n/`
+  - `stacks/hermes/`
   - `stacks/supabase/`
   - `stacks/wp/`
 - `skills/units/` — одиночные навыки.

@@ -1,0 +1,31 @@
+# COMANDOS Hermes version lock
+# Этот файл нужен, чтобы у всех пользователей была одна и та же версия.
+
+LOCK_VERSION=2026-05-23
+
+# COMANDOS Workspace
+# Пока публичный репозиторий/релиз не утверждён, источником считается локальный handoff.
+COMANDOS_WORKSPACE_VERSION=2.3.0-komandos.1
+COMANDOS_WORKSPACE_SOURCE_MODE=local-handoff
+COMANDOS_WORKSPACE_SOURCE_DIR=./comandos-workspace-handoff-20260522-034101
+COMANDOS_WORKSPACE_INSTALL_MODE=copy-no-git
+
+# После публикации заменить на фиксированный release/tag, не на main.
+COMANDOS_WORKSPACE_REPO=
+COMANDOS_WORKSPACE_REF=
+COMANDOS_WORKSPACE_ARCHIVE_URL=
+COMANDOS_WORKSPACE_ARCHIVE_SHA256=
+
+# Hermes Agent
+# Значение ниже фиксирует текущую известную рабочую линию с нашего VPS.
+# Перед публичным релизом это нужно перепроверить и заменить на официальный tag/commit.
+HERMES_AGENT_REF=87d9239
+HERMES_AGENT_INSTALLER_URL=https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh
+
+# Update policy
+ALLOW_WORKSPACE_SELF_UPDATE=0
+ALLOW_HERMES_AGENT_SELF_UPDATE=0
+INSTALL_GIT_METADATA=0
+START_LEGACY_HERMES_DASHBOARD=0
+ENABLE_AUTO_UPDATE_TIMERS=0
+

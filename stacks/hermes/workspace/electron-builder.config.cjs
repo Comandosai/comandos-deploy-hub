@@ -1,0 +1,57 @@
+module.exports = {
+  appId: 'com.comandosai.workspace',
+  productName: 'comandos-ai-workspace',
+  copyright: 'Copyright © 2026 COMANDOS AI',
+  icon: 'assets/icon.png',
+  directories: {
+    output: 'release',
+    buildResources: 'assets',
+  },
+  files: [
+    'dist/client/**/*',
+    'dist/server/**/*',
+    'electron/main.cjs',
+    'electron/preload.cjs',
+    'electron/prod-server.cjs',
+    'electron/server-bundle.cjs',
+    'assets/**/*',
+    'public/**/*',
+    'package.json',
+    '!**/puppeteer-extra-plugin-stealth/**/*',
+    '!**/playwright-extra/**/*',
+  ],
+  npmArgs: ['--ignore-scripts'],
+  nodeGypRebuild: false,
+  mac: {
+    category: 'public.app-category.developer-tools',
+    target: [{ target: 'dmg', arch: ['arm64', 'x64'] }],
+    darkModeSupport: true,
+    hardenedRuntime: false,
+    gatekeeperAssess: false,
+  },
+  dmg: {
+    title: 'COMANDOS AI Workspace',
+    iconSize: 80,
+    contents: [
+      { x: 130, y: 220 },
+      { x: 410, y: 220, type: 'link', path: '/Applications' },
+    ],
+  },
+  win: {
+    target: [{ target: 'nsis', arch: ['x64'] }],
+  },
+  nsis: {
+    oneClick: true,
+    perMachine: false,
+    allowToChangeInstallationDirectory: false,
+    deleteAppDataOnUninstall: false,
+  },
+  publish: {
+    provider: 'github',
+    owner: 'Comandosai',
+    repo: 'hermes_assist_macmini',
+    releaseType: 'release',
+  },
+  asar: false,
+  compression: 'maximum',
+}

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-22",
+  "updated_at": "2026-05-23",
   "allowed_clients": [
     "codex",
     "claude",
@@ -22,6 +22,14 @@
       "title": "Развертывание и обновление n8n",
       "type": "unit",
       "path": "skills/units/razvertyvanie-i-obnovlenie-n8n",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "razvertyvanie-comandos-hermes",
+      "title": "Развертывание COMANDOS Hermes",
+      "type": "unit",
+      "path": "skills/units/razvertyvanie-comandos-hermes",
       "depends_on": [],
       "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
     },

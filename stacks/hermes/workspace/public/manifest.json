@@ -1,0 +1,37 @@
+{
+  "name": "COMANDOS AI Workspace",
+  "short_name": "COMANDOS AI",
+  "description": "Командный центр клуба COMANDOS AI — чат, инструменты, файлы, память, задачи.",
+  "id": "/?app=komandos-workspace",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
+  "background_color": "#0B0B0C",
+  "theme_color": "#0B0B0C",
+  "categories": ["productivity", "utilities", "developer"],
+  "icons": [
+    {
+      "src": "/komandos/favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/komandos/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/komandos/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/komandos/logo-mark.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

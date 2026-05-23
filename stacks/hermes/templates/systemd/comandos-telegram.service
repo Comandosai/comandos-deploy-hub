@@ -1,0 +1,16 @@
+[Unit]
+Description=COMANDOS Hermes Telegram wrapper
+After=network-online.target hermes-gateway.service
+Wants=network-online.target hermes-gateway.service
+
+[Service]
+Type=simple
+WorkingDirectory={{REMOTE_BASE_DIR}}/telegram
+EnvironmentFile={{REMOTE_BASE_DIR}}/telegram/.env
+ExecStart={{NODE_PATH}} {{REMOTE_BASE_DIR}}/telegram/server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+
