@@ -38,3 +38,17 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 ## Служебные элементы
 
 - `prompt-architecture` — библиотека стандартов промптов. Обычно ставится как зависимость автоматически.
+
+## Стартеры
+
+Стартеры не являются навыками и не ставятся через `tools/skills.sh`.
+
+- `telegram-parser` — учебная заготовка Telegram-парсера.
+
+Команда:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/telegram-parser.sh | bash
+```
+
+Подробности: [STARTERS.md](STARTERS.md)

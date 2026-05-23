@@ -1,0 +1,9 @@
+.env
+sources.txt
+.venv/
+__pycache__/
+*.pyc
+sessions/
+data/
+logs/
+.DS_Store
