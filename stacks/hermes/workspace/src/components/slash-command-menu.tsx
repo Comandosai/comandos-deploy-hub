@@ -30,15 +30,18 @@ export type SlashCommandMenuHandle = {
 }
 
 export const DEFAULT_SLASH_COMMANDS: Array<SlashCommandDefinition> = [
-  { command: '/new', description: 'Start new session' },
-  { command: '/clear', description: 'Clear screen and start fresh' },
-  { command: '/model', description: 'Show or change the current model' },
-  { command: '/save', description: 'Save the current conversation' },
-  { command: '/skills', description: 'Browse and manage skills' },
-  { command: '/plugins', description: 'List installed plugins and their status' },
-  { command: '/mcp', description: 'Manage MCP servers' },
-  { command: '/skin', description: 'Change the display theme' },
-  { command: '/help', description: 'Show available commands' },
+  { command: '/new', description: 'Начать новую сессию' },
+  { command: '/clear', description: 'Очистить экран и начать заново' },
+  { command: '/model', description: 'Показать или сменить текущую модель' },
+  { command: '/save', description: 'Сохранить текущий разговор' },
+  { command: '/skills', description: 'Открыть и настроить навыки' },
+  {
+    command: '/plugins',
+    description: 'Показать установленные плагины и их статус',
+  },
+  { command: '/mcp', description: 'Управлять MCP-серверами' },
+  { command: '/skin', description: 'Сменить тему интерфейса' },
+  { command: '/help', description: 'Показать доступные команды' },
 ]
 
 const SlashCommandMenu = forwardRef(function SlashCommandMenu(
@@ -119,7 +122,7 @@ const SlashCommandMenu = forwardRef(function SlashCommandMenu(
         >
           {filteredCommands.length === 0 ? (
             <div className="px-3 py-2 text-sm text-primary-600">
-              No commands found
+              Команды не найдены
             </div>
           ) : (
             <CommandList className="max-h-60 min-h-0">

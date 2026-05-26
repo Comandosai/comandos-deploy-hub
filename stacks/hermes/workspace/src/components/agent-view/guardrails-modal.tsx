@@ -87,14 +87,14 @@ export function GuardrailsModal({ open, agentName, agentId, sessionKey, onOpenCh
       stopOnTokenLimit,
     }
     window.localStorage.setItem(`hermessuite:guardrails:${normalizedId}`, JSON.stringify(config))
-    toast(`Guardrails updated for ${agentName}`, { type: 'success' })
+    toast(`Ограничения обновлены для ${agentName}`, { type: 'success' })
     onOpenChange(false)
   }
 
   const stopRows: Array<{ checked: boolean; label: string; onToggle: () => void }> = [
-    { checked: stopOnError, label: 'Stop on error (agent encounters an unrecoverable error)', onToggle: () => setStopOnError((value) => !value) },
-    { checked: stopOnIdle, label: 'Stop on idle (no activity for 5 minutes)', onToggle: () => setStopOnIdle((value) => !value) },
-    { checked: stopOnTokenLimit, label: 'Stop on token limit reached', onToggle: () => setStopOnTokenLimit((value) => !value) },
+    { checked: stopOnError, label: 'Остановить при ошибке агента', onToggle: () => setStopOnError((value) => !value) },
+    { checked: stopOnIdle, label: 'Остановить при простое больше 5 минут', onToggle: () => setStopOnIdle((value) => !value) },
+    { checked: stopOnTokenLimit, label: 'Остановить при достижении лимита токенов', onToggle: () => setStopOnTokenLimit((value) => !value) },
   ]
 
   return (
@@ -102,12 +102,12 @@ export function GuardrailsModal({ open, agentName, agentId, sessionKey, onOpenCh
       <DialogContent className="w-[min(560px,92vw)]">
         <div className="space-y-4 p-5">
           <div className="space-y-1">
-            <DialogTitle className="text-base">Guardrails: {agentName}</DialogTitle>
-            <DialogDescription>Set constraints for this agent&apos;s behavior. Changes are saved locally.</DialogDescription>
+            <DialogTitle className="text-base">Ограничения: {agentName}</DialogTitle>
+            <DialogDescription>Задайте правила поведения агента. Изменения сохраняются локально.</DialogDescription>
           </div>
 
           <section className="space-y-2">
-            <p className="text-xs font-medium text-primary-700">Max tokens per run</p>
+            <p className="text-xs font-medium text-primary-700">Максимум токенов за запуск</p>
             <div className="inline-flex rounded-lg bg-neutral-100 dark:bg-neutral-800 p-1 gap-1">
               {TOKEN_PRESETS.map((preset) => (
                 <button
@@ -136,7 +136,7 @@ export function GuardrailsModal({ open, agentName, agentId, sessionKey, onOpenCh
 
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-medium text-primary-700">Mode</p>
+              <p className="text-xs font-medium text-primary-700">Режим</p>
               <div className="inline-flex rounded-lg bg-neutral-100 dark:bg-neutral-800 p-1 gap-1">
                 {(['allowlist', 'blocklist'] as const).map((mode) => (
                   <button
@@ -145,7 +145,7 @@ export function GuardrailsModal({ open, agentName, agentId, sessionKey, onOpenCh
                     onClick={() => setToolMode(mode)}
                     className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${toolMode === mode ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-100' : 'text-neutral-600 hover:bg-white/70 dark:text-neutral-300 dark:hover:bg-neutral-700'}`}
                   >
-                    {mode === 'allowlist' ? 'Allowlist' : 'Blocklist'}
+                    {mode === 'allowlist' ? 'Разрешённые' : 'Запрещённые'}
                   </button>
                 ))}
               </div>
@@ -157,11 +157,11 @@ export function GuardrailsModal({ open, agentName, agentId, sessionKey, onOpenCh
               placeholder={'read\nwrite\nexec\nbrowser'}
               className="w-full resize-y rounded-lg border border-primary-200 bg-primary-100/70 px-3 py-2 text-sm font-mono text-primary-900 outline-none transition-colors focus:border-accent-400"
             />
-            <p className="text-[11px] text-primary-600">Enter tool names, one per line. Leave empty to allow all.</p>
+            <p className="text-[11px] text-primary-600">Введите имена инструментов по одному в строке. Оставьте пустым, чтобы разрешить все.</p>
           </section>
 
           <section className="space-y-1">
-            <p className="text-xs font-medium text-primary-700">Auto-Stop Triggers</p>
+            <p className="text-xs font-medium text-primary-700">Автоостановка</p>
             {stopRows.map((row) => (
               <button
                 key={row.label}
@@ -176,8 +176,8 @@ export function GuardrailsModal({ open, agentName, agentId, sessionKey, onOpenCh
           </section>
 
           <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleSave} className="bg-accent-500 text-white hover:bg-accent-600">Save</Button>
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Отмена</Button>
+            <Button size="sm" onClick={handleSave} className="bg-accent-500 text-white hover:bg-accent-600">Сохранить</Button>
           </div>
         </div>
       </DialogContent>

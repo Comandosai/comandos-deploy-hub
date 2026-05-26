@@ -13,14 +13,14 @@ export type EnhancedFeature =
   | 'kanban'
 
 const FEATURE_LABELS: Record<EnhancedFeature, string> = {
-  sessions: 'Sessions',
-  skills: 'Skills',
-  memory: 'Memory',
-  config: 'Configuration',
-  jobs: 'Jobs',
-  mcp: 'MCP Servers',
-  mcpFallback: 'MCP Servers (config fallback)',
-  kanban: 'Kanban (Hermes plugin)',
+  sessions: 'Сессии',
+  skills: 'Навыки',
+  memory: 'Память',
+  config: 'Конфигурация',
+  jobs: 'Задания',
+  mcp: 'MCP-серверы',
+  mcpFallback: 'MCP-серверы из локального конфига',
+  kanban: 'Доска задач (плагин Hermes)',
 }
 
 const FEATURE_PROBES: Record<EnhancedFeature, Array<string>> = {
@@ -65,9 +65,9 @@ export function getUnavailableReason(
 ): string {
   const normalized = normalizeFeature(feature)
   const probes = normalized
-    ? FEATURE_PROBES[normalized].join(' or ')
+    ? FEATURE_PROBES[normalized].join(' или ')
     : '/api/gateway-status'
-  return `${getFeatureLabel(feature)} is not reachable through the local Hermes Workspace probes yet. Verify ${probes} before starting another gateway; if those endpoints pass, refresh or reprobe the Workspace UI.`
+  return `${getFeatureLabel(feature)} пока недоступны через проверки Workspace. Проверьте ${probes}; если эти адреса отвечают, обновите страницу панели.`
 }
 
 export function createCapabilityUnavailablePayload(

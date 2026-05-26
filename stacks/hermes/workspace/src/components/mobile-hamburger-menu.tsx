@@ -30,14 +30,14 @@ import {
 export const MOBILE_HAMBURGER_NAV_ITEMS = [
   {
     id: 'chat',
-    label: 'Chat',
+    label: 'Чат',
     icon: Chat01Icon,
     to: '/chat/main',
     match: (p: string) => p.startsWith('/chat') || p === '/new' || p === '/',
   },
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Панель',
     icon: DashboardSquare01Icon,
     to: '/dashboard',
     match: (p: string) => p.startsWith('/dashboard'),
@@ -51,35 +51,35 @@ export const MOBILE_HAMBURGER_NAV_ITEMS = [
   },
   {
     id: 'terminal',
-    label: 'Terminal',
+    label: 'Терминал',
     icon: CommandLineIcon,
     to: '/terminal',
     match: (p: string) => p.startsWith('/terminal'),
   },
   {
     id: 'jobs',
-    label: 'Jobs',
+    label: 'Задания',
     icon: Clock01Icon,
     to: '/jobs',
     match: (p: string) => p.startsWith('/jobs'),
   },
   {
     id: 'conductor',
-    label: 'Conductor',
+    label: 'Оркестратор',
     icon: Rocket01Icon,
     to: '/conductor',
     match: (p: string) => p.startsWith('/conductor'),
   },
   {
     id: 'operations',
-    label: 'Operations',
+    label: 'Операции',
     icon: UserMultipleIcon,
     to: '/operations',
     match: (p: string) => p.startsWith('/operations'),
   },
   {
     id: 'swarm',
-    label: 'Swarm',
+    label: 'Рой',
     icon: UserGroupIcon,
     to: '/swarm',
     match: (p: string) => p === '/swarm' || p.startsWith('/swarm2'),
@@ -87,14 +87,14 @@ export const MOBILE_HAMBURGER_NAV_ITEMS = [
 
   {
     id: 'memory',
-    label: 'Memory',
+    label: 'Память',
     icon: BrainIcon,
     to: '/memory',
     match: (p: string) => p.startsWith('/memory'),
   },
   {
     id: 'skills',
-    label: 'Skills',
+    label: 'Навыки',
     icon: PuzzleIcon,
     to: '/skills',
     match: (p: string) => p.startsWith('/skills'),
@@ -108,7 +108,7 @@ export const MOBILE_HAMBURGER_NAV_ITEMS = [
   },
   {
     id: 'profiles',
-    label: 'Profiles',
+    label: 'Профили',
     icon: UserGroupIcon,
     to: '/profiles',
     match: (p: string) => p.startsWith('/profiles'),
@@ -129,7 +129,7 @@ export function HamburgerTrigger({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      aria-label="Open navigation menu"
+      aria-label="Открыть меню навигации"
       onClick={openHamburgerMenu}
       className={cn(
         'flex items-center justify-center size-9 rounded-xl',
@@ -229,13 +229,13 @@ export function MobileHamburgerMenu() {
                 className="text-[11px]"
                 style={{ color: 'var(--color-muted, #888)' }}
               >
-                Workspace
+                Рабочая панель
               </span>
             </div>
           </div>
           <button
             type="button"
-            aria-label="Close menu"
+            aria-label="Закрыть меню"
             onClick={() => setOpen(false)}
             className="flex items-center justify-center size-8 rounded-full active:scale-90 transition-all"
             style={{ color: 'var(--color-muted, #888)' }}
@@ -336,33 +336,6 @@ export function MobileHamburgerMenu() {
                 size={20}
                 strokeWidth={1.5}
               />
-            </button>
-
-            {/* Theme toggle — sun/moon */}
-            <button
-              type="button"
-              onClick={() => {
-                const current = getTheme()
-                const dark = isDarkTheme(current)
-                const next = getThemeVariant(current, dark ? 'light' : 'dark')
-                setTheme(next)
-              }}
-              className="flex items-center justify-center size-9 rounded-xl active:bg-white/10 transition-colors"
-              aria-label="Toggle theme"
-              style={{ color: 'var(--color-ink-muted, #888)' }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
             </button>
           </div>
         </div>

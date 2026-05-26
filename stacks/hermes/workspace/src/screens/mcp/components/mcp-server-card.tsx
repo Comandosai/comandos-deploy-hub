@@ -53,7 +53,7 @@ export function McpServerCard({ server, onEdit }: Props) {
   // (workspace shells out to `hermes mcp test <name>`). Logs and Reauth
   // still require the live runtime /api/mcp endpoints.
   const liveOnlyTitle = fallbackMode
-    ? 'Requires hermes-agent /api/mcp runtime endpoint (not available in local fallback mode).'
+    ? 'Требуется /api/mcp endpoint в hermes-agent. В локальном режиме он недоступен.'
     : ''
   const qc = useQueryClient()
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -82,19 +82,19 @@ export function McpServerCard({ server, onEdit }: Props) {
           onCheckedChange={(checked) =>
             configure.mutate({ name: server.name, enabled: checked })
           }
-          aria-label={server.enabled ? 'Disable server' : 'Enable server'}
+          aria-label={server.enabled ? 'Отключить сервер' : 'Включить сервер'}
         />
       </header>
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-primary-500">
         <div className="flex items-center gap-1.5">
-          <dt>Tools:</dt>
+          <dt>Инструменты:</dt>
           <dd className="font-medium text-ink tabular-nums">
             {server.discoveredToolsCount}
           </dd>
         </div>
         <div className="flex items-center gap-1.5">
-          <dt>Auth:</dt>
+          <dt>Авторизация:</dt>
           <dd className="font-medium text-ink">{server.authType}</dd>
         </div>
       </dl>
@@ -116,7 +116,7 @@ export function McpServerCard({ server, onEdit }: Props) {
             qc.invalidateQueries({ queryKey: ['mcp', 'servers'] })
           }}
         >
-          {test.isPending ? 'Testing…' : 'Test'}
+          {test.isPending ? 'Проверяю…' : 'Проверить'}
         </Button>
         {server.authType === 'oauth' ? (
           <Button
@@ -128,7 +128,7 @@ export function McpServerCard({ server, onEdit }: Props) {
               void oauth.start(server)
             }}
           >
-            {oauth.isPending ? 'Reauth…' : 'Reauth'}
+            {oauth.isPending ? 'Обновляю…' : 'Обновить вход'}
           </Button>
         ) : null}
         {/* Logs button hidden until hermes-agent dashboard exposes the
@@ -136,7 +136,7 @@ export function McpServerCard({ server, onEdit }: Props) {
             endpoint is available; the McpLogsDrawer component is still
             available at ./mcp-logs-drawer. */}
         <Button variant="outline" size="sm" onClick={() => onEdit(server)}>
-          Edit
+          Изменить
         </Button>
         {confirmDelete ? (
           <>
@@ -146,14 +146,14 @@ export function McpServerCard({ server, onEdit }: Props) {
               disabled={remove.isPending}
               onClick={() => remove.mutate({ name: server.name })}
             >
-              Confirm Delete
+              Удалить
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setConfirmDelete(false)}
             >
-              Cancel
+              Отмена
             </Button>
           </>
         ) : (
@@ -163,7 +163,7 @@ export function McpServerCard({ server, onEdit }: Props) {
             className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950/40"
             onClick={() => setConfirmDelete(true)}
           >
-            Delete
+            Удалить
           </Button>
         )}
       </div>
@@ -171,8 +171,8 @@ export function McpServerCard({ server, onEdit }: Props) {
       {testResult ? (
         <p className="text-xs text-primary-500">
           {testResult.ok
-            ? `Connected (${testResult.latencyMs ?? '?'}ms, ${testResult.discoveredTools.length} tools)`
-            : `Failed: ${testResult.error || 'unknown error'}`}
+            ? `Подключено (${testResult.latencyMs ?? '?'} мс, инструментов: ${testResult.discoveredTools.length})`
+            : `Ошибка: ${testResult.error || 'неизвестная ошибка'}`}
         </p>
       ) : null}
       {testResult && !testResult.ok && testResult.error ? (

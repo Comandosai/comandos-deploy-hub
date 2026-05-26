@@ -24,6 +24,7 @@ type ProductUpdateStatus = {
   branch: string | null
   currentHead: string | null
   latestHead: string | null
+  latestVersion: string | null
   updateAvailable: boolean
   canUpdate: boolean
   state: 'current' | 'available' | 'blocked' | 'unsupported' | 'error'
@@ -71,11 +72,20 @@ const NOTES_KEY = 'hermes-update-v2-release-notes'
 const NOTES_SEEN_KEY = 'hermes-update-v2-release-notes-seen'
 
 function shortSha(value: string | null | undefined): string {
-  return value ? value.slice(0, 7) : 'unknown'
+  return value ? value.slice(0, 7) : 'неизвестно'
+}
+
+function productUpdateTitle(
+  product: ProductUpdateStatus,
+  blocked: boolean,
+): string {
+  return blocked
+    ? `Обновление ${product.label} требует проверки`
+    : `Доступно обновление ${product.label}`
 }
 
 function productDismissKey(product: ProductUpdateStatus): string {
-  return `${product.id}:${product.latestHead ?? product.version}`
+  return `${product.id}:${product.latestVersion ?? product.latestHead ?? product.version}`
 }
 
 function notesId(sections: Array<ReleaseNoteSection>): string {
@@ -193,7 +203,7 @@ export function UpdateCenterNotifier() {
         setPhases((prev) => ({ ...prev, [product.id]: 'error' }))
         setErrors((prev) => ({
           ...prev,
-          [product.id]: result.error || `${product.label} update failed`,
+          [product.id]: result.error || `Не удалось обновить ${product.label}`,
         }))
         return
       }
@@ -204,7 +214,7 @@ export function UpdateCenterNotifier() {
         : null
       if (stored) setNotes(stored)
       await queryClient.invalidateQueries({ queryKey: ['update-status-v2'] })
-      toast(`${product.label} updated. Restart may be required.`, {
+      toast(`${product.label} обновлён. Возможно, нужен перезапуск.`, {
         type: 'success',
         duration: 7000,
       })
@@ -262,8 +272,10 @@ function UpdateCard({
     phase === 'error'
       ? error
       : blocked
-        ? product.reason || 'Update requires manual review.'
-        : `${shortSha(product.currentHead)} → ${shortSha(product.latestHead)} · ${product.installKind}`
+        ? product.reason || 'Обновление требует ручной проверки.'
+        : `${product.version || shortSha(product.currentHead)} → ${
+            product.latestVersion || shortSha(product.latestHead)
+          } · ${product.updateMode}`
 
   return (
     <motion.div
@@ -330,9 +342,7 @@ function UpdateCard({
             className="text-sm font-semibold"
             style={{ color: 'var(--theme-text)' }}
           >
-            {blocked
-              ? `${product.label} update blocked`
-              : `${product.label} update available`}
+            {productUpdateTitle(product, blocked)}
           </p>
           {/* Don't truncate when blocked — the full reason is what the
               user needs to act on. See #293. */}
@@ -351,7 +361,9 @@ function UpdateCard({
               {product.repoPath}
             </p>
           ) : null}
-          {blocked && product.blockingFiles && product.blockingFiles.length > 0 ? (
+          {blocked &&
+          product.blockingFiles &&
+          product.blockingFiles.length > 0 ? (
             <ul className="mt-1 max-h-24 overflow-auto pr-1">
               {product.blockingFiles.slice(0, 8).map((file) => (
                 <li
@@ -368,7 +380,7 @@ function UpdateCard({
                   className="text-[11px] italic"
                   style={{ color: 'var(--theme-muted)' }}
                 >
-                  …and {product.blockingFiles.length - 8} more
+                  …и ещё {product.blockingFiles.length - 8}
                 </li>
               ) : null}
             </ul>
@@ -380,10 +392,13 @@ function UpdateCard({
               type="button"
               onClick={onUpdate}
               disabled={updating}
-              className="rounded-lg px-4 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ background: 'var(--theme-accent)' }}
+              className="rounded-lg px-4 py-1.5 text-xs font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+              style={{
+                background: 'var(--theme-accent)',
+                color: '#11150b',
+              }}
             >
-              {updating ? 'Updating' : 'Update'}
+              {updating ? 'Обновляю' : 'Обновить'}
             </button>
           ) : (
             <span
@@ -393,7 +408,7 @@ function UpdateCard({
                 color: 'var(--theme-muted)',
               }}
             >
-              Review required
+              Нужна проверка
             </span>
           )}
           <button
@@ -401,7 +416,7 @@ function UpdateCard({
             onClick={onDismiss}
             className="rounded-lg p-1.5 transition-opacity hover:opacity-80"
             style={{ color: 'var(--theme-muted)' }}
-            aria-label={`Dismiss ${product.label} update`}
+            aria-label={`Скрыть обновление ${product.label}`}
           >
             <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2} />
           </button>

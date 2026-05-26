@@ -11,12 +11,12 @@ export const Route = createFileRoute('/skills')({
 })
 
 function SkillsRoute() {
-  usePageTitle('Skills')
+  usePageTitle('Навыки')
   if (!useFeatureAvailable('skills')) {
     return (
       <BackendUnavailableState
-        feature="Skills"
-        description={getUnavailableReason('Skills')}
+        feature="Навыки"
+        description={getUnavailableReason('skills')}
       />
     )
   }

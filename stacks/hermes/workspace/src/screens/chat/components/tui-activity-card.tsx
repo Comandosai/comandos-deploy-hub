@@ -230,7 +230,7 @@ function ToolRow({
                     : 'var(--theme-muted)',
                 }}
               >
-                {isError ? 'Error' : 'Output'}
+                {isError ? 'Ошибка' : 'Результат'}
               </div>
               <pre
                 className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded font-mono text-[10px]"

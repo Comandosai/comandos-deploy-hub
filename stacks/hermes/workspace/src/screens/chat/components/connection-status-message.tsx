@@ -24,9 +24,9 @@ function classifyConnectionError(
 
   if (!normalizedError && !status) {
     return {
-      title: 'Not connected',
-      description: "COMANDOS AI Workspace can't reach Hermes Agent.",
-      action: 'Check that Hermes is running, then try again.',
+      title: 'Нет подключения',
+      description: 'Панель COMANDOS AI не видит Hermes Agent.',
+      action: 'Проверьте, что Hermes запущен, затем повторите попытку.',
     }
   }
 
@@ -37,9 +37,9 @@ function classifyConnectionError(
     lower.includes('unauthorized')
   ) {
     return {
-      title: 'Authentication required',
-      description: 'Hermes Agent rejected the connection token.',
-      action: 'Go to Settings -> Advanced -> Hermes Agent to update your token.',
+      title: 'Нужна авторизация',
+      description: 'Hermes Agent отклонил токен подключения.',
+      action: 'Обновите токен подключения Hermes Agent в настройках.',
     }
   }
 
@@ -49,17 +49,17 @@ function classifyConnectionError(
     lower.includes('not paired')
   ) {
     return {
-      title: 'Pairing required',
-      description: "This device isn't paired with Hermes Agent yet.",
-      action: 'Check Hermes Agent connection.',
+      title: 'Нужно привязать устройство',
+      description: 'Это устройство ещё не привязано к Hermes Agent.',
+      action: 'Проверьте подключение Hermes Agent.',
     }
   }
 
   if (lower.includes('econnrefused') && lower.includes('8642')) {
     return {
-      title: 'Hermes Agent gateway not running',
-      description: 'The Hermes Agent gateway is not running on port 8642.',
-      action: 'Run the official Hermes installer, then start the gateway with: hermes gateway run',
+      title: 'Шлюз Hermes Agent не запущен',
+      description: 'Шлюз Hermes Agent не работает на порту 8642.',
+      action: 'Запустите шлюз командой: hermes gateway run',
     }
   }
 
@@ -71,16 +71,16 @@ function classifyConnectionError(
     lower.includes('timeout')
   ) {
     return {
-      title: 'Hermes Agent unreachable',
-      description: "Can't connect to Hermes Agent at the configured URL.",
-      action: 'Make sure Hermes is running and the URL is correct.',
+      title: 'Hermes Agent недоступен',
+      description: 'Не удаётся подключиться к Hermes Agent по указанному адресу.',
+      action: 'Проверьте, что Hermes запущен и адрес указан правильно.',
     }
   }
 
   return {
-    title: 'Connection error',
-    description: normalizedError || 'Something went wrong.',
-    action: 'Try refreshing or check Settings -> Advanced -> Hermes.',
+    title: 'Ошибка подключения',
+    description: normalizedError || 'Что-то пошло не так.',
+    action: 'Обновите страницу или проверьте настройки Hermes.',
   }
 }
 
@@ -133,7 +133,7 @@ export function ConnectionStatusMessage({
         />
         <div className="flex-1 text-xs">
           <p className="font-medium">
-            {isChecking ? 'Connecting to Hermes Agent...' : errorInfo.title}
+            {isChecking ? 'Подключаюсь к Hermes Agent...' : errorInfo.title}
           </p>
           {!isChecking ? (
             <>
@@ -150,7 +150,7 @@ export function ConnectionStatusMessage({
             onClick={onRetry}
             className="shrink-0 rounded-md border border-amber-300 bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-200 dark:hover:bg-amber-900/30"
           >
-            Retry
+            Повторить
           </button>
         )}
       </div>

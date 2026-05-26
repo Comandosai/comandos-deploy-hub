@@ -82,39 +82,39 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
 
         <div className="p-5">
           <DialogTitle className="text-base font-semibold text-[var(--theme-text)] mb-1">
-            {isEdit ? 'Edit Task' : 'New Task'}
+            {isEdit ? 'Редактировать задачу' : 'Новая задача'}
           </DialogTitle>
           <DialogDescription className="text-xs text-[var(--theme-muted)] mb-4">
-            {isEdit ? 'Update the task details below.' : 'Fill in the details for your new task.'}
+            {isEdit ? 'Обновите параметры задачи.' : 'Заполните параметры новой задачи.'}
           </DialogDescription>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className={labelClass}>Title *</label>
+              <label className={labelClass}>Название *</label>
               <input
                 className={inputClass}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder="What needs to be done?"
+                placeholder="Что нужно сделать?"
                 required
                 autoFocus
               />
             </div>
 
             <div>
-              <label className={labelClass}>Description</label>
+              <label className={labelClass}>Описание</label>
               <textarea
                 className={cn(inputClass, 'resize-none')}
                 rows={3}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Optional details..."
+                placeholder="Дополнительные детали..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>Column</label>
+                <label className={labelClass}>Колонка</label>
                 <select
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
@@ -127,40 +127,40 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Priority</label>
+                <label className={labelClass}>Приоритет</label>
                 <select
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
                   value={priority}
                   onChange={e => setPriority(e.target.value as TaskPriority)}
                 >
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
+                  <option value="high">Высокий</option>
+                  <option value="medium">Средний</option>
+                  <option value="low">Низкий</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>Assignee</label>
+                <label className={labelClass}>Исполнитель</label>
                 <select
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
                   value={assignee}
                   onChange={e => setAssignee(e.target.value)}
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">Не назначен</option>
                   {assignees.map(({ id, label }) => (
                     <option key={id} value={id}>{label}</option>
                   ))}
                 </select>
                 <p className="mt-1 text-[10px] text-[var(--theme-muted)]">
-                  Assignee is separate from status. Dragging a card changes its column only.
+                  Исполнитель не равен статусу. Перетаскивание меняет только колонку.
                 </p>
               </div>
               <div>
-                <label className={labelClass}>Due Date</label>
+                <label className={labelClass}>Срок</label>
                 <input
                   type="date"
                   className={inputClass}
@@ -172,7 +172,7 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
             </div>
 
             <div>
-              <label className={labelClass}>Tags (comma-separated)</label>
+              <label className={labelClass}>Теги через запятую</label>
               <input
                 className={inputClass}
                 value={tags}
@@ -182,7 +182,7 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <p className="text-[10px] text-[var(--theme-muted)]">Press Esc to cancel</p>
+              <p className="text-[10px] text-[var(--theme-muted)]">Esc закрывает окно</p>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -191,15 +191,15 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
                   onClick={() => onOpenChange(false)}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  Отмена
                 </Button>
                 <Button
                   type="submit"
                   size="sm"
                   disabled={isSubmitting || !title.trim()}
-                  style={{ background: 'var(--theme-accent)', color: 'white' }}
+                  style={{ background: 'var(--theme-accent)', color: 'var(--theme-on-accent)' }}
                 >
-                  {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Task'}
+                  {isSubmitting ? 'Сохраняю...' : isEdit ? 'Сохранить' : 'Создать'}
                 </Button>
               </div>
             </div>

@@ -36,13 +36,13 @@ const TABS: Array<{
   label: string
   feature?: 'memory' | 'skills'
 }> = [
-  { id: 'activity', label: 'Activity' },
-  { id: 'artifacts', label: 'Artifacts' },
-  { id: 'files', label: 'Files' },
-  { id: 'memory', label: 'Memory', feature: 'memory' },
-  { id: 'skills', label: 'Skills', feature: 'skills' },
+  { id: 'activity', label: 'Активность' },
+  { id: 'artifacts', label: 'Артефакты' },
+  { id: 'files', label: 'Файлы' },
+  { id: 'memory', label: 'Память', feature: 'memory' },
+  { id: 'skills', label: 'Навыки', feature: 'skills' },
   { id: 'mcp', label: 'MCP' },
-  { id: 'logs', label: 'Logs' },
+  { id: 'logs', label: 'Логи' },
 ]
 
 // ── Shared loading / error ────────────────────────────────────────────────────
@@ -69,13 +69,13 @@ function ArtifactsTab() {
   const artifacts = events.filter((e) => e.type === 'artifact')
 
   if (artifacts.length === 0) {
-    return <EmptyState text="No agent-authored artifacts yet" />
+    return <EmptyState text="Артефактов от агента пока нет" />
   }
 
   return (
     <div className="space-y-2 p-3 overflow-auto max-h-[calc(100vh-140px)]">
       <p className="text-xs" style={{ color: 'var(--theme-muted)' }}>
-        {artifacts.length} artifacts emitted by the agent
+        Артефактов от агента: {artifacts.length}
       </p>
       {artifacts.map((artifact, index) => (
         <div
@@ -89,7 +89,9 @@ function ArtifactsTab() {
         >
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium">{artifact.text}</span>
-            <span style={{ color: 'var(--theme-accent)' }}>{artifact.time}</span>
+            <span style={{ color: 'var(--theme-accent)' }}>
+              {artifact.time}
+            </span>
           </div>
         </div>
       ))}
@@ -128,7 +130,7 @@ function ActivityTab() {
   }, [events.length])
 
   if (events.length === 0) {
-    return <EmptyState text="No activity yet — start a conversation" />
+    return <EmptyState text="Активности пока нет — начните диалог" />
   }
 
   return (
@@ -182,14 +184,14 @@ function FilesTab() {
 
   if (files.length === 0) {
     return (
-      <EmptyState text="No files touched yet — activity will appear during chat" />
+      <EmptyState text="Файлы пока не менялись — активность появится во время чата" />
     )
   }
 
   return (
     <div className="space-y-1 p-3">
       <p className="mb-2 text-xs" style={{ color: 'var(--theme-muted)' }}>
-        Files touched in session ({files.length})
+        Файлы в этой сессии ({files.length})
       </p>
       {files.map((file: string, i: number) => (
         <div
@@ -238,7 +240,7 @@ function MemoryTab() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.message || 'Failed to load memory')
+          setError(err.message || 'Не удалось загрузить память')
           setLoading(false)
         }
       })
@@ -247,15 +249,15 @@ function MemoryTab() {
     }
   }, [])
 
-  if (loading) return <LoadingState text="Loading memory…" />
-  if (error) return <ErrorState text={`Memory: ${error}`} />
+  if (loading) return <LoadingState text="Загружаю память..." />
+  if (error) return <ErrorState text={`Память: ${error}`} />
   if (!files || files.length === 0)
-    return <EmptyState text="No memory files available" />
+    return <EmptyState text="Файлов памяти пока нет" />
 
   return (
     <div className="space-y-2 p-3 overflow-auto max-h-[calc(100vh-140px)]">
       <p className="mb-1 text-xs" style={{ color: 'var(--theme-muted)' }}>
-        {files.length} memory files available
+        Файлов памяти: {files.length}
       </p>
       {files.map((file, index) => (
         <div
@@ -308,7 +310,7 @@ function SkillsTab() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err.message || 'Failed to load skills')
+          setError(err.message || 'Не удалось загрузить навыки')
           setLoading(false)
         }
       })
@@ -317,14 +319,14 @@ function SkillsTab() {
     }
   }, [])
 
-  if (loading) return <LoadingState text="Loading skills…" />
-  if (error) return <ErrorState text={`Skills: ${error}`} />
-  if (skills.length === 0) return <EmptyState text="No skills found" />
+  if (loading) return <LoadingState text="Загружаю навыки..." />
+  if (error) return <ErrorState text={`Навыки: ${error}`} />
+  if (skills.length === 0) return <EmptyState text="Навыки не найдены" />
 
   // Group by category
   const grouped: Record<string, Array<SkillItem>> = {}
   for (const skill of skills) {
-    const cat = skill.category || 'Uncategorized'
+    const cat = skill.category || 'Без категории'
     if (!grouped[cat]) grouped[cat] = []
     grouped[cat].push(skill)
   }
@@ -332,7 +334,7 @@ function SkillsTab() {
   return (
     <div className="space-y-3 p-3 overflow-auto max-h-[calc(100vh-140px)]">
       <p className="text-xs" style={{ color: 'var(--theme-muted)' }}>
-        {skills.length} skills loaded
+        Навыков загружено: {skills.length}
       </p>
       {Object.entries(grouped).map(([category, items]) => (
         <div key={category}>
@@ -420,7 +422,7 @@ function McpTab() {
       })
       .catch((err) => {
         if (cancelled) return
-        setError(err.message || 'Failed to load MCP servers')
+        setError(err.message || 'Не удалось загрузить MCP-серверы')
         setLoading(false)
       })
     return () => {
@@ -428,15 +430,15 @@ function McpTab() {
     }
   }, [])
 
-  if (loading) return <LoadingState text="Loading MCP servers…" />
+  if (loading) return <LoadingState text="Загружаю MCP-серверы..." />
   if (error) return <ErrorState text={`MCP: ${error}`} />
   if (!servers || servers.length === 0)
-    return <EmptyState text="No MCP servers configured" />
+    return <EmptyState text="MCP-серверы пока не настроены" />
 
   return (
     <div className="space-y-2 p-3 overflow-auto max-h-[calc(100vh-140px)]">
       <p className="mb-1 text-xs" style={{ color: 'var(--theme-muted)' }}>
-        {servers.length} MCP server{servers.length === 1 ? '' : 's'}
+        MCP-серверов: {servers.length}
       </p>
       {servers.map((server) => (
         <div
@@ -451,9 +453,9 @@ function McpTab() {
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium">{server.name}</span>
             <span style={{ color: 'var(--theme-accent)' }}>
-              {server.enabled ? 'on' : 'off'}
+              {server.enabled ? 'включён' : 'выключен'}
               {typeof server.discoveredToolsCount === 'number'
-                ? ` · ${server.discoveredToolsCount} tools`
+                ? ` · инструментов: ${server.discoveredToolsCount}`
                 : ''}
             </span>
           </div>
@@ -480,7 +482,7 @@ function LogsTab() {
     return (
       <div className="p-3">
         <p className="text-xs" style={{ color: 'var(--theme-muted)' }}>
-          Raw event stream — waiting for activity…
+          Сырые события — ждём активности...
         </p>
       </div>
     )
@@ -489,7 +491,7 @@ function LogsTab() {
   return (
     <div className="p-3">
       <p className="mb-2 text-xs" style={{ color: 'var(--theme-muted)' }}>
-        Raw events ({events.length})
+        Сырые события ({events.length})
       </p>
       <pre
         ref={scrollRef}
@@ -507,7 +509,9 @@ function LogsTab() {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
-export function InspectorPanel({ embedded = false }: { embedded?: boolean } = {}) {
+export function InspectorPanel({
+  embedded = false,
+}: { embedded?: boolean } = {}) {
   const isOpen = useInspectorStore((s) => s.isOpen)
   const memoryAvailable = useFeatureAvailable('memory')
   const skillsAvailable = useFeatureAvailable('skills')
@@ -553,14 +557,14 @@ export function InspectorPanel({ embedded = false }: { embedded?: boolean } = {}
               className="text-sm font-semibold"
               style={{ color: 'var(--theme-text)' }}
             >
-              Inspector
+              Инспектор
             </span>
             <button
               type="button"
               onClick={() => useInspectorStore.getState().setOpen(false)}
               className="rounded p-1 text-xs hover:opacity-70 transition-opacity"
               style={{ color: 'var(--theme-muted)' }}
-              aria-label="Close inspector"
+              aria-label="Закрыть инспектор"
             >
               ✕
             </button>
@@ -612,7 +616,7 @@ export function InspectorPanel({ embedded = false }: { embedded?: boolean } = {}
                     <span>{tab.label}</span>
                     {!available ? (
                       <span className="ml-1 rounded-full border border-amber-300 bg-amber-100 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-amber-700">
-                        Gate
+                        Нет доступа
                       </span>
                     ) : null}
                   </button>
@@ -647,7 +651,7 @@ export function InspectorToggleButton({ className }: { className?: string }) {
     <button
       type="button"
       onClick={toggle}
-      title={isOpen ? 'Close inspector' : 'Open inspector'}
+      title={isOpen ? 'Закрыть инспектор' : 'Открыть инспектор'}
       className={cn(
         'flex items-center justify-center rounded-lg px-2 py-1.5 text-xs transition-colors',
         isOpen ? 'opacity-100' : 'opacity-60 hover:opacity-90',
@@ -658,7 +662,7 @@ export function InspectorToggleButton({ className }: { className?: string }) {
         color: 'var(--theme-text)',
         border: '1px solid var(--theme-border)',
       }}
-      aria-label="Toggle inspector panel"
+      aria-label="Переключить панель инспектора"
     >
       <span className="font-mono text-[11px]">{'{ }'}</span>
     </button>

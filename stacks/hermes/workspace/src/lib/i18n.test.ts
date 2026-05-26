@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LOCALE_LABELS, t, type LocaleId } from './i18n'
+import { LOCALE_LABELS, setLocale, t, type LocaleId } from './i18n'
 
 function withLocale<T>(locale: LocaleId, fn: () => T): T {
   const originalWindow = globalThis.window
@@ -35,10 +35,10 @@ function withLocale<T>(locale: LocaleId, fn: () => T): T {
 }
 
 describe('i18n translations', () => {
-  it('uses Simplified Chinese labels for wired navigation keys', () => {
+  it('forces Russian labels when another locale was stored', () => {
     withLocale('zh', () => {
-      expect(t('nav.dashboard')).toBe('仪表板')
-      expect(t('nav.profiles')).toBe('配置文件')
+      expect(t('nav.dashboard')).toBe('Панель')
+      expect(t('nav.profiles')).toBe('Профили')
     })
   })
 
@@ -49,15 +49,16 @@ describe('i18n translations', () => {
     })
   })
 
-  it('uses Japanese labels instead of falling back to English', () => {
+  it('keeps setLocale locked to Russian for the COMANDOS build', () => {
     withLocale('ja', () => {
-      expect(t('nav.dashboard')).toBe('ダッシュボード')
-      expect(t('settings.language')).toBe('言語')
+      setLocale('en')
+      expect(t('nav.dashboard')).toBe('Панель')
+      expect(t('settings.language')).toBe('Язык')
     })
   })
 
   it('exposes readable locale labels for contributor-targeted languages', () => {
-    expect(LOCALE_LABELS.zh).toBe('中文')
+    expect(LOCALE_LABELS.zh).toBe('中文（简体）')
     expect(LOCALE_LABELS.ru).toBe('Русский')
   })
 })

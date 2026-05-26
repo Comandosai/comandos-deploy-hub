@@ -8,10 +8,7 @@ import {
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Button } from '@/components/ui/button'
-import {
-  fetchModels,
-  type GatewayModelCatalogEntry,
-} from '@/lib/gateway-api'
+import { fetchModels, type GatewayModelCatalogEntry } from '@/lib/gateway-api'
 import { cn } from '@/lib/utils'
 import type { OperationsAgent } from '../hooks/use-operations'
 
@@ -21,11 +18,15 @@ type AvailableModel = {
   name: string
 }
 
-function normalizeModel(model: GatewayModelCatalogEntry): AvailableModel | null {
+function normalizeModel(
+  model: GatewayModelCatalogEntry,
+): AvailableModel | null {
   if (typeof model === 'string') {
     return {
       id: model,
-      provider: model.includes('/') ? (model.split('/')[0] ?? 'model') : 'model',
+      provider: model.includes('/')
+        ? (model.split('/')[0] ?? 'model')
+        : 'model',
       name: model.split('/').pop() ?? model,
     }
   }
@@ -37,7 +38,11 @@ function normalizeModel(model: GatewayModelCatalogEntry): AvailableModel | null 
     id,
     provider: model.provider ?? id.split('/')[0] ?? 'model',
     name:
-      model.label ?? model.displayName ?? model.name ?? id.split('/').pop() ?? id,
+      model.label ??
+      model.displayName ??
+      model.name ??
+      id.split('/').pop() ??
+      id,
   }
 }
 
@@ -76,7 +81,9 @@ function ModelSelector({
       const valueModelId = value.slice(slashIndex + 1)
       // First try exact provider+id match
       const exactMatch = models.find(
-        (m) => m.provider === valueProvider && (m.id === value || m.id === valueModelId),
+        (m) =>
+          m.provider === valueProvider &&
+          (m.id === value || m.id === valueModelId),
       )
       if (exactMatch) return exactMatch
     }
@@ -98,7 +105,9 @@ function ModelSelector({
         className="inline-flex min-h-[3rem] w-full items-center justify-between gap-3 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 text-left text-sm text-[var(--theme-text)] shadow-[0_8px_24px_color-mix(in_srgb,var(--theme-shadow)_18%,transparent)]"
       >
         <span className="truncate">
-          {selected ? `${selected.provider} / ${selected.name}` : 'Default (auto)'}
+          {selected
+            ? `${selected.provider} / ${selected.name}`
+            : 'По умолчанию (авто)'}
         </span>
         <HugeiconsIcon
           icon={ArrowDown01Icon}
@@ -122,10 +131,12 @@ function ModelSelector({
               }}
               className={cn(
                 'flex w-full rounded-xl px-3 py-2.5 text-left text-sm',
-                !value ? 'bg-[var(--theme-accent-soft)]' : 'hover:bg-[var(--theme-bg)]',
+                !value
+                  ? 'bg-[var(--theme-accent-soft)]'
+                  : 'hover:bg-[var(--theme-bg)]',
               )}
             >
-              Default (auto)
+              По умолчанию (авто)
             </button>
             {models.map((model) => (
               <button
@@ -216,17 +227,21 @@ export function OperationsAgentDetail({
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="flex size-11 items-center justify-center rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-accent)]">
-              <HugeiconsIcon icon={Settings01Icon} size={20} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={Settings01Icon}
+                size={20}
+                strokeWidth={1.8}
+              />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--theme-muted)]">
-                Agent Settings
+                Настройки агента
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--theme-text)]">
                 {agent.name}
               </h2>
               <p className="mt-2 text-sm text-[var(--theme-muted-2)]">
-                Update this agent without leaving the roster.
+                Меняйте агента, не выходя из списка.
               </p>
             </div>
           </div>
@@ -234,7 +249,7 @@ export function OperationsAgentDetail({
             type="button"
             onClick={onClose}
             className="inline-flex size-10 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] text-lg text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
-            aria-label="Close agent settings"
+            aria-label="Закрыть настройки агента"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={1.8} />
           </button>
@@ -242,7 +257,9 @@ export function OperationsAgentDetail({
 
         <div className="mt-6 grid gap-4 md:grid-cols-[1.2fr_0.6fr]">
           <label className="space-y-2">
-            <span className="text-sm font-medium text-[var(--theme-text)]">Name</span>
+            <span className="text-sm font-medium text-[var(--theme-text)]">
+              Имя
+            </span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -251,7 +268,9 @@ export function OperationsAgentDetail({
           </label>
 
           <label className="space-y-2">
-            <span className="text-sm font-medium text-[var(--theme-text)]">Emoji</span>
+            <span className="text-sm font-medium text-[var(--theme-text)]">
+              Иконка
+            </span>
             <input
               value={emoji}
               onChange={(event) => setEmoji(event.target.value)}
@@ -261,13 +280,15 @@ export function OperationsAgentDetail({
         </div>
 
         <label className="mt-4 block space-y-2">
-          <span className="text-sm font-medium text-[var(--theme-text)]">Model</span>
+          <span className="text-sm font-medium text-[var(--theme-text)]">
+            Модель
+          </span>
           <ModelSelector value={model} onChange={setModel} models={models} />
         </label>
 
         <label className="mt-4 block space-y-2">
           <span className="text-sm font-medium text-[var(--theme-text)]">
-            System Prompt
+            Системный промпт
           </span>
           <textarea
             value={systemPrompt}
@@ -284,7 +305,7 @@ export function OperationsAgentDetail({
             disabled={isDeleting || isSaving}
           >
             <HugeiconsIcon icon={Delete02Icon} size={16} strokeWidth={1.8} />
-            {isDeleting ? 'Deleting…' : 'Delete agent'}
+            {isDeleting ? 'Удаляю...' : 'Удалить агента'}
           </Button>
           <div className="flex justify-end gap-3">
             <Button
@@ -293,7 +314,7 @@ export function OperationsAgentDetail({
               onClick={onClose}
               disabled={isDeleting}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               className="bg-[var(--theme-accent)] text-primary-950 hover:bg-[var(--theme-accent-strong)]"
@@ -308,7 +329,7 @@ export function OperationsAgentDetail({
               }
               disabled={isSaving || isDeleting}
             >
-              {isSaving ? 'Saving…' : 'Save'}
+              {isSaving ? 'Сохраняю...' : 'Сохранить'}
             </Button>
           </div>
         </div>

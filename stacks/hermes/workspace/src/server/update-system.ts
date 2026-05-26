@@ -3,6 +3,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  statSync,
   realpathSync,
   writeFileSync,
 } from 'node:fs'
@@ -12,6 +13,13 @@ import { join } from 'node:path'
 type ProductId = 'workspace' | 'agent'
 type InstallKind = 'git' | 'desktop' | 'docker' | 'unknown'
 type UpdateState = 'current' | 'available' | 'blocked' | 'unsupported' | 'error'
+type UpdateMode =
+  | 'git-ff'
+  | 'hermes-update'
+  | 'desktop-auto-updater'
+  | 'docker-manual'
+  | 'manual'
+  | 'comandos-managed'
 
 type ReleaseNoteSection = {
   product: ProductId
@@ -31,22 +39,19 @@ export type ProductUpdateStatus = {
   branch: string | null
   currentHead: string | null
   latestHead: string | null
+  latestVersion: string | null
   updateAvailable: boolean
   canUpdate: boolean
   state: UpdateState
   reason: string | null
+  manifestUrl?: string | null
   /**
    * When state is 'blocked' due to a dirty checkout, this lists up to a few
    * paths that are causing the block (modified, staged, or untracked files).
    * Surfaced in the UI so the user can see which files to deal with. See #293.
    */
   blockingFiles?: Array<string>
-  updateMode:
-    | 'git-ff'
-    | 'hermes-update'
-    | 'desktop-auto-updater'
-    | 'docker-manual'
-    | 'manual'
+  updateMode: UpdateMode
 }
 
 export type UpdateStatus = {
@@ -69,6 +74,30 @@ export type ApplyUpdateResult = {
   releaseNotes: Array<ReleaseNoteSection>
   error?: string
 }
+
+type ComandosInstalledState = {
+  workspaceVersion?: string
+  hermesAgentRef?: string
+  hermesAgentVersion?: string
+  updatedAt?: string
+}
+
+type ManifestProduct = {
+  version?: string
+  ref?: string
+  title?: string
+  notes?: Array<string>
+}
+
+type ComandosUpdateManifest = {
+  schema?: number
+  channel?: string
+  workspace?: ManifestProduct
+  agent?: ManifestProduct
+}
+
+const DEFAULT_COMANDOS_UPDATE_MANIFEST_URL =
+  'https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json'
 
 function pendingNotesPath(): string {
   return join(process.cwd(), '.runtime', 'pending-update-release-notes.json')
@@ -119,6 +148,138 @@ function exec(
     )
   } catch {
     return null
+  }
+}
+
+function installedStatePath(): string {
+  return (
+    process.env.COMANDOS_INSTALLED_STATE ||
+    join(process.cwd(), '.runtime', 'comandos-installed.json')
+  )
+}
+
+function readInstalledState(): ComandosInstalledState {
+  try {
+    return JSON.parse(readFileSync(installedStatePath(), 'utf8')) as ComandosInstalledState
+  } catch {
+    return {}
+  }
+}
+
+function comandosManifestUrl(): string | null {
+  const value = (
+    process.env.COMANDOS_UPDATE_MANIFEST_URL ||
+    DEFAULT_COMANDOS_UPDATE_MANIFEST_URL
+  ).trim()
+  return value || null
+}
+
+function readComandosManifest(): ComandosUpdateManifest | null {
+  const url = comandosManifestUrl()
+  if (!url) return null
+  try {
+    if (url.startsWith('file://')) {
+      return JSON.parse(readFileSync(url.slice('file://'.length), 'utf8')) as ComandosUpdateManifest
+    }
+    if (url.startsWith('/')) {
+      return JSON.parse(readFileSync(url, 'utf8')) as ComandosUpdateManifest
+    }
+    const raw = exec('curl', ['-fsSL', '--max-time', '6', url], {
+      timeout: 8_000,
+    })
+    return raw ? (JSON.parse(raw) as ComandosUpdateManifest) : null
+  } catch {
+    return null
+  }
+}
+
+function isExecutable(path: string | null | undefined): boolean {
+  if (!path) return false
+  try {
+    const stat = statSync(path)
+    return stat.isFile() && Boolean(stat.mode & 0o111)
+  } catch {
+    return false
+  }
+}
+
+function updateScriptPath(): string | null {
+  const value = (process.env.COMANDOS_UPDATE_SCRIPT || '').trim()
+  return value || null
+}
+
+function versionChanged(current: string | null | undefined, latest: string | null | undefined): boolean {
+  if (!latest) return false
+  return (current || 'unknown') !== latest
+}
+
+function readWorkspacePackageVersion(repoPath = process.cwd()): string {
+  return pkgVersion(repoPath)
+}
+
+function managedWorkspaceStatus(manifest: ComandosUpdateManifest): ProductUpdateStatus | null {
+  const product = manifest.workspace
+  if (!product?.version) return null
+  const state = readInstalledState()
+  const version =
+    state.workspaceVersion ||
+    process.env.COMANDOS_WORKSPACE_VERSION ||
+    readWorkspacePackageVersion()
+  const updateAvailable = versionChanged(version, product.version)
+  const script = updateScriptPath()
+  const canUpdate = updateAvailable && isExecutable(script)
+  return {
+    id: 'workspace',
+    label: 'COMANDOS AI Workspace',
+    installKind: workspaceInstallKind(),
+    version,
+    path: process.cwd(),
+    repoPath: null,
+    branch: null,
+    currentHead: null,
+    latestHead: product.ref || null,
+    latestVersion: product.version,
+    updateAvailable,
+    canUpdate,
+    state: updateAvailable ? (canUpdate ? 'available' : 'blocked') : 'current',
+    reason: updateAvailable && !canUpdate
+      ? 'COMANDOS update script is not configured or is not executable.'
+      : null,
+    manifestUrl: comandosManifestUrl(),
+    updateMode: 'comandos-managed',
+  }
+}
+
+function managedAgentStatus(
+  base: ProductUpdateStatus,
+  manifest: ComandosUpdateManifest,
+): ProductUpdateStatus | null {
+  const product = manifest.agent
+  if (!product?.version && !product?.ref) return null
+  const state = readInstalledState()
+  const currentRef =
+    state.hermesAgentRef || process.env.COMANDOS_HERMES_AGENT_REF || base.currentHead
+  const currentVersion = state.hermesAgentVersion || base.version
+  const versionIsNew = versionChanged(currentVersion, product.version)
+  const refIsNew = Boolean(product.ref && product.ref !== currentRef)
+  const updateAvailable = versionIsNew || refIsNew
+  const script = updateScriptPath()
+  const canUpdate = updateAvailable && isExecutable(script)
+  return {
+    ...base,
+    label: 'Hermes Agent',
+    version: currentVersion,
+    currentHead: currentRef || base.currentHead,
+    latestHead: product.ref || base.latestHead,
+    latestVersion: product.version || null,
+    updateAvailable,
+    canUpdate,
+    state: updateAvailable ? (canUpdate ? 'available' : 'blocked') : 'current',
+    reason: updateAvailable && !canUpdate
+      ? 'COMANDOS update script is not configured or is not executable.'
+      : null,
+    manifestUrl: comandosManifestUrl(),
+    updateMode: 'comandos-managed',
   }
 }
 
@@ -264,7 +425,7 @@ export function readWorkspaceUpdateStatus(
 ): ProductUpdateStatus {
   const installKind = workspaceInstallKind()
   const gitRepo = realGitRepoPath(repoPath)
-  const version = gitRepo ? pkgVersion(gitRepo) : 'unknown'
+  const version = pkgVersion(gitRepo ?? repoPath)
 
   if (installKind === 'desktop') {
     return {
@@ -277,6 +438,7 @@ export function readWorkspaceUpdateStatus(
       branch: null,
       currentHead: null,
       latestHead: null,
+      latestVersion: null,
       updateAvailable: false,
       canUpdate: false,
       state: 'unsupported',
@@ -297,6 +459,7 @@ export function readWorkspaceUpdateStatus(
       branch: null,
       currentHead: null,
       latestHead: null,
+      latestVersion: null,
       updateAvailable: false,
       canUpdate: false,
       state: 'unsupported',
@@ -317,6 +480,7 @@ export function readWorkspaceUpdateStatus(
       branch: null,
       currentHead: null,
       latestHead: null,
+      latestVersion: null,
       updateAvailable: false,
       canUpdate: false,
       state: 'unsupported',
@@ -360,6 +524,7 @@ export function readWorkspaceUpdateStatus(
     branch,
     currentHead,
     latestHead,
+    latestVersion: null,
     updateAvailable,
     canUpdate,
     state: !repoMatches
@@ -424,6 +589,7 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
       branch: null,
       currentHead: null,
       latestHead: null,
+      latestVersion: null,
       updateAvailable: false,
       canUpdate: false,
       state: 'unsupported',
@@ -462,6 +628,7 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
     branch,
     currentHead,
     latestHead,
+    latestVersion: null,
     updateAvailable,
     canUpdate,
     state: !repoMatches
@@ -488,8 +655,15 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
 }
 
 export function readUpdateStatus(): UpdateStatus {
-  const workspace = readWorkspaceUpdateStatus()
-  const agent = readAgentUpdateStatus()
+  const manifest = readComandosManifest()
+  const legacyWorkspace = readWorkspaceUpdateStatus()
+  const legacyAgent = readAgentUpdateStatus()
+  const workspace = manifest
+    ? managedWorkspaceStatus(manifest) || legacyWorkspace
+    : legacyWorkspace
+  const agent = manifest
+    ? managedAgentStatus(legacyAgent, manifest) || legacyAgent
+    : legacyAgent
   return {
     ok: true,
     checkedAt: Date.now(),
@@ -499,8 +673,63 @@ export function readUpdateStatus(): UpdateStatus {
   }
 }
 
+function applyManagedUpdate(product: ProductId, before: ProductUpdateStatus): ApplyUpdateResult {
+  const script = updateScriptPath()
+  if (!before.canUpdate || !script) {
+    return {
+      ok: false,
+      product,
+      output: '',
+      restartRequired: false,
+      status: before,
+      releaseNotes: [],
+      error: before.reason || 'COMANDOS managed update is not available.',
+    }
+  }
+  try {
+    const output = execOrThrow('bash', [script, product], {
+      cwd: process.cwd(),
+      timeout: 600_000,
+    })
+    const after = readUpdateStatus().products[product]
+    const releaseNotes = [
+      {
+        product,
+        label: before.label,
+        from: before.currentHead || before.version,
+        to: before.latestHead || before.latestVersion,
+        commits: [],
+      },
+    ]
+    persistPendingReleaseNotes(releaseNotes)
+    return {
+      ok: true,
+      product,
+      output,
+      restartRequired: true,
+      status: after,
+      releaseNotes,
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      product,
+      output: '',
+      restartRequired: false,
+      status: before,
+      releaseNotes: [],
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
+}
+
 export function applyWorkspaceUpdate(): ApplyUpdateResult {
   const before = readWorkspaceUpdateStatus()
+  const manifest = readComandosManifest()
+  const managed = manifest ? managedWorkspaceStatus(manifest) : null
+  if (managed?.updateMode === 'comandos-managed') {
+    return applyManagedUpdate('workspace', managed)
+  }
   if (!before.canUpdate || !before.repoPath || !before.branch) {
     return {
       ok: false,
@@ -612,6 +841,11 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
 
 export function applyAgentUpdate(): ApplyUpdateResult {
   const before = readAgentUpdateStatus()
+  const manifest = readComandosManifest()
+  const managed = manifest ? managedAgentStatus(before, manifest) : null
+  if (managed?.updateMode === 'comandos-managed') {
+    return applyManagedUpdate('agent', managed)
+  }
   if (!before.canUpdate || !before.repoPath) {
     return {
       ok: false,

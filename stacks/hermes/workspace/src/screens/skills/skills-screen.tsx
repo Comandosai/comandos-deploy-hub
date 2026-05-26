@@ -462,14 +462,14 @@ export function SkillsScreen() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1.5">
               <p className="text-xs font-medium uppercase text-primary-500 tabular-nums">
-                COMANDOS AI Workspace Marketplace
+                COMANDOS AI Workspace · Каталог навыков
               </p>
               <h1 className="text-2xl font-medium text-ink text-balance sm:text-3xl">
-                Skills Browser
+                Навыки
               </h1>
               <p className="text-sm text-primary-500 text-pretty sm:text-base">
-                Discover, install, and manage skills across your local workspace
-                and Skills Hub.
+                Поиск, установка и управление навыками в локальном workspace
+                и общем каталоге.
               </p>
             </div>
           </div>
@@ -483,8 +483,8 @@ export function SkillsScreen() {
                 onChange={(event) => handleSearchChange(event.target.value)}
                 placeholder={
                   tab === 'marketplace'
-                    ? 'Search Skills Hub, GitHub, and local fallback'
-                    : 'Search by name, tags, or description'
+                    ? 'Поиск по каталогу навыков, GitHub и локальным источникам'
+                    : 'Поиск по названию, тегам или описанию'
                 }
                 className="h-9 w-full min-w-0 flex-1 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary sm:min-w-[220px]"
               />
@@ -511,10 +511,10 @@ export function SkillsScreen() {
                   onChange={(event) => handleOriginChange(event.target.value)}
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >
-                  <option value="All">All Origins</option>
-                  <option value="builtin">Built-in</option>
-                  <option value="agent-created">Agent-created</option>
-                  <option value="marketplace">Marketplace</option>
+                  <option value="All">Все источники</option>
+                  <option value="builtin">Встроенные</option>
+                  <option value="agent-created">Созданные агентом</option>
+                  <option value="marketplace">Каталог</option>
                 </select>
               ) : null}
 
@@ -528,8 +528,8 @@ export function SkillsScreen() {
                   }
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >
-                  <option value="name">Name A-Z</option>
-                  <option value="category">Category</option>
+                  <option value="name">По имени A-Z</option>
+                  <option value="category">По категории</option>
                 </select>
               ) : null}
 
@@ -538,10 +538,10 @@ export function SkillsScreen() {
                 variant="default"
               >
                 <TabsTab value="installed" className="min-w-[110px]">
-                  Installed
+                  Установленные
                 </TabsTab>
                 <TabsTab value="marketplace" className="min-w-[120px]">
-                  Marketplace
+                  Каталог
                 </TabsTab>
               </TabsList>
             </div>
@@ -573,7 +573,7 @@ export function SkillsScreen() {
               <div className="flex items-center justify-between gap-2">
                 {hubQuery.data?.source ? (
                   <div className="text-xs text-primary-500">
-                    Source: {hubQuery.data.source}
+                    Источник: {hubQuery.data.source}
                   </div>
                 ) : (
                   <div />
@@ -584,14 +584,14 @@ export function SkillsScreen() {
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {hubQuery.error instanceof Error
                     ? hubQuery.error.message
-                    : 'Failed to load marketplace skills.'}
+                    : 'Не удалось загрузить навыки из каталога.'}
                 </div>
               ) : hubQuery.data &&
                 (hubQuery.data.source === 'installed-fallback' ||
                   hubQuery.data.source === 'error') ? (
                 <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-                  Skills Hub search unavailable — showing installed skills
-                  instead. Ensure the Hermes Agent gateway is running.
+                  Поиск в каталоге навыков недоступен — показываю установленные
+                  навыки. Проверьте, что Hermes Agent gateway запущен.
                 </div>
               ) : null}
 
@@ -602,11 +602,11 @@ export function SkillsScreen() {
                 tab="marketplace"
                 emptyState={{
                   title: searchInput.trim()
-                    ? 'No hub skills found'
-                    : 'Search the Skills Hub',
+                    ? 'Навыки в каталоге не найдены'
+                    : 'Поиск по каталогу навыков',
                   description: searchInput.trim()
-                    ? 'Try a different search term. If Skills Hub is unavailable, local installed skills are used as fallback.'
-                    : 'Start typing to search Skills Hub and other skill sources.',
+                    ? 'Попробуйте другой запрос. Если каталог недоступен, используются локальные установленные навыки.'
+                    : 'Начните вводить запрос для поиска по каталогу и другим источникам навыков.',
                 }}
                 onOpenDetails={setSelectedSkill}
                 onInstall={(skillId) => {
@@ -632,7 +632,7 @@ export function SkillsScreen() {
         {tab !== 'marketplace' ? (
           <footer className="flex items-center justify-between rounded-xl border border-primary-200 bg-primary-50/80 px-3 py-2.5 text-sm text-primary-500 tabular-nums">
             <span>
-              {(skillsQuery.data?.total || 0).toLocaleString()} total skills
+              Всего навыков: {(skillsQuery.data?.total || 0).toLocaleString()}
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -641,7 +641,7 @@ export function SkillsScreen() {
                 disabled={page <= 1 || skillsQuery.isPending}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
               >
-                Previous
+                Назад
               </Button>
               <span className="min-w-[82px] text-center">
                 {page} / {totalPages}
@@ -654,7 +654,7 @@ export function SkillsScreen() {
                   setPage((current) => Math.min(totalPages, current + 1))
                 }
               >
-                Next
+                Далее
               </Button>
             </div>
           </footer>
@@ -677,8 +677,8 @@ export function SkillsScreen() {
                   {selectedSkill.icon} {selectedSkill.name}
                 </DialogTitle>
                 <DialogDescription className="mt-1 text-pretty">
-                  by {selectedSkill.author} • {selectedSkill.category} •{' '}
-                  {selectedSkill.fileCount.toLocaleString()} files
+                  Автор: {selectedSkill.author} • {selectedSkill.category} •{' '}
+                  файлов: {selectedSkill.fileCount.toLocaleString()}
                 </DialogDescription>
                 {selectedSkill.security && (
                   <div className="mt-3 rounded-xl border border-primary-200 bg-primary-50/80 overflow-hidden">
@@ -695,7 +695,7 @@ export function SkillsScreen() {
                   <div className="space-y-3">
                     {selectedSkill.homepage ? (
                       <p className="text-sm text-primary-500 text-pretty">
-                        Homepage:{' '}
+                        Страница проекта:{' '}
                         <a
                           href={selectedSkill.homepage}
                           target="_blank"
@@ -719,7 +719,7 @@ export function SkillsScreen() {
                         ))
                       ) : (
                         <span className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
-                          No triggers listed
+                          Триггеры не указаны
                         </span>
                       )}
                     </div>
@@ -752,14 +752,14 @@ export function SkillsScreen() {
                       )}
                     >
                       {selectedSkill.origin === 'builtin'
-                        ? 'Built-in'
+                        ? 'Встроенный'
                         : selectedSkill.origin === 'agent-created'
-                          ? 'Agent-created'
-                          : 'Marketplace'}
+                          ? 'Создан агентом'
+                          : 'Каталог'}
                     </span>
                   ) : null}
                   <p className="text-sm text-primary-500 text-pretty">
-                    Source:{' '}
+                    Источник:{' '}
                     <code className="inline-code">
                       {selectedSkill.sourcePath}
                     </code>
@@ -777,7 +777,7 @@ export function SkillsScreen() {
                         })
                       }}
                     >
-                      Uninstall
+                      Удалить
                     </Button>
                   ) : (
                     <Button
@@ -787,7 +787,7 @@ export function SkillsScreen() {
                         runSkillAction('install', { skillId: selectedSkill.id })
                       }
                     >
-                      Install
+                      Установить
                     </Button>
                   )}
                   <Button
@@ -795,7 +795,7 @@ export function SkillsScreen() {
                     size="sm"
                     onClick={() => setSelectedSkill(null)}
                   >
-                    Close
+                    Закрыть
                   </Button>
                 </div>
               </div>
@@ -827,24 +827,24 @@ const SECURITY_BADGE: Record<
   { label: string; badgeClass: string; confidence: string }
 > = {
   safe: {
-    label: 'Benign',
+    label: 'Безопасно',
     badgeClass: 'bg-green-100 text-green-700 border-green-200',
-    confidence: 'HIGH CONFIDENCE',
+    confidence: 'ВЫСОКАЯ УВЕРЕННОСТЬ',
   },
   low: {
-    label: 'Benign',
+    label: 'Безопасно',
     badgeClass: 'bg-green-100 text-green-700 border-green-200',
-    confidence: 'MODERATE',
+    confidence: 'СРЕДНЯЯ',
   },
   medium: {
-    label: 'Caution',
+    label: 'Осторожно',
     badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
-    confidence: 'REVIEW RECOMMENDED',
+    confidence: 'НУЖНА ПРОВЕРКА',
   },
   high: {
-    label: 'Warning',
+    label: 'Риск',
     badgeClass: 'bg-red-100 text-red-700 border-red-200',
-    confidence: 'MANUAL REVIEW',
+    confidence: 'РУЧНАЯ ПРОВЕРКА',
   },
 }
 
@@ -903,16 +903,16 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
 
   const summaryText =
     security.flags.length === 0
-      ? 'No risky patterns detected. This skill appears safe to install.'
+      ? 'Рискованных шаблонов не найдено. Навык выглядит безопасным для установки.'
       : security.level === 'high'
-        ? `Found ${security.flags.length} potential security concern${security.flags.length !== 1 ? 's' : ''}. Review before installing.`
-        : `The skill's code was scanned for common risk patterns. ${security.flags.length} item${security.flags.length !== 1 ? 's' : ''} noted.`
+        ? `Найдено потенциальных рисков: ${security.flags.length}. Проверьте перед установкой.`
+        : `Код навыка проверен на типовые риски. Замечаний: ${security.flags.length}.`
 
   return (
     <div className="text-xs">
       <div className="px-3 pt-3 pb-2">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-400 mb-2">
-          Security Scan
+          Проверка безопасности
         </p>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
@@ -948,7 +948,7 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
             }}
             className="flex w-full items-center justify-between px-3 py-2 text-accent-500 hover:text-accent-600 transition-colors"
           >
-            <span className="text-[11px] font-medium">Details</span>
+            <span className="text-[11px] font-medium">Детали</span>
             <span className="text-[10px]">{showDetails ? '▲' : '▼'}</span>
           </button>
           {showDetails && (
@@ -968,8 +968,7 @@ function SecurityScanCard({ security }: { security: SecurityRisk }) {
       )}
       <div className="border-t border-primary-100 px-3 py-2">
         <p className="text-[10px] text-primary-400 italic">
-          Like a lobster shell, security has layers — review code before you run
-          it.
+          Перед запуском навыка проверьте код, особенно если он пришёл из внешнего источника.
         </p>
       </div>
     </div>
@@ -995,11 +994,11 @@ function SkillsGrid({
     return (
       <div className="rounded-xl border border-dashed border-primary-200 bg-primary-100/40 px-4 py-8 text-center">
         <p className="text-sm font-medium text-primary-700">
-          {emptyState?.title || 'No skills found'}
+          {emptyState?.title || 'Навыки не найдены'}
         </p>
         <p className="mt-1 text-xs text-primary-500 text-pretty max-w-sm mx-auto">
           {emptyState?.description ||
-            'Try adjusting your filters or search term'}
+            'Измените фильтры или поисковый запрос'}
         </p>
       </div>
     )
@@ -1029,7 +1028,7 @@ function SkillsGrid({
                   </div>
                   {skill.author ? (
                     <p className="line-clamp-1 text-xs text-primary-500">
-                      by {skill.author}
+                      Автор: {skill.author}
                     </p>
                   ) : null}
                 </div>
@@ -1047,10 +1046,10 @@ function SkillsGrid({
                       )}
                     >
                       {skill.origin === 'builtin'
-                        ? 'Built-in'
+                        ? 'Встроенный'
                         : skill.origin === 'agent-created'
-                          ? 'Agent-created'
-                          : 'Marketplace'}
+                          ? 'Создан агентом'
+                          : 'Каталог'}
                     </span>
                   ) : null}
                   <span
@@ -1061,7 +1060,7 @@ function SkillsGrid({
                         : 'border-primary-200 bg-primary-100/60 text-primary-500',
                     )}
                   >
-                    {skill.installed ? 'Installed' : 'Available'}
+                    {skill.installed ? 'Установлен' : 'Доступен'}
                   </span>
                 </div>
               </div>
@@ -1091,7 +1090,7 @@ function SkillsGrid({
                   size="sm"
                   onClick={() => onOpenDetails(skill)}
                 >
-                  Details
+                  Детали
                 </Button>
 
                 {tab === 'installed' ? (
@@ -1103,9 +1102,9 @@ function SkillsGrid({
                         onCheckedChange={(checked) =>
                           onToggle(skill.id, checked)
                         }
-                        aria-label={`Toggle ${skill.name}`}
+                        aria-label={`Включить или выключить ${skill.name}`}
                       />
-                      {skill.enabled ? 'Enabled' : 'Disabled'}
+                      {skill.enabled ? 'Включён' : 'Выключен'}
                     </div>
                     <Button
                       variant="outline"
@@ -1113,7 +1112,7 @@ function SkillsGrid({
                       disabled={isActing}
                       onClick={() => onUninstall(skill.id)}
                     >
-                      Uninstall
+                      Удалить
                     </Button>
                   </div>
                 ) : skill.installed ? (
@@ -1123,7 +1122,7 @@ function SkillsGrid({
                     disabled={isActing}
                     onClick={() => onUninstall(skill.id)}
                   >
-                    Uninstall
+                    Удалить
                   </Button>
                 ) : (
                   <Button
@@ -1131,7 +1130,7 @@ function SkillsGrid({
                     disabled={isActing}
                     onClick={() => onInstall(skill.id)}
                   >
-                    Install
+                    Установить
                   </Button>
                 )}
               </div>
@@ -1189,7 +1188,7 @@ function FeaturedGrid({
                 <h3 className="text-lg font-medium text-ink text-balance">
                   {skill.icon} {skill.name}
                 </h3>
-                <p className="text-sm text-primary-500">by {skill.author}</p>
+                <p className="text-sm text-primary-500">Автор: {skill.author}</p>
               </div>
 
               <span
@@ -1200,7 +1199,7 @@ function FeaturedGrid({
                     : 'border-primary-200 bg-primary-100/60 text-primary-500',
                 )}
               >
-                {skill.installed ? 'Installed' : 'Staff Pick'}
+                {skill.installed ? 'Установлен' : 'Рекомендовано'}
               </span>
             </div>
 
@@ -1214,7 +1213,7 @@ function FeaturedGrid({
                 size="sm"
                 onClick={() => onOpenDetails(skill)}
               >
-                Details
+                Детали
               </Button>
               {skill.installed ? (
                 <Button
@@ -1223,7 +1222,7 @@ function FeaturedGrid({
                   disabled={isActing}
                   onClick={() => onUninstall(skill.id)}
                 >
-                  Uninstall
+                  Удалить
                 </Button>
               ) : (
                 <Button
@@ -1231,7 +1230,7 @@ function FeaturedGrid({
                   disabled={isActing}
                   onClick={() => onInstall(skill.id)}
                 >
-                  Install
+                  Установить
                 </Button>
               )}
             </div>

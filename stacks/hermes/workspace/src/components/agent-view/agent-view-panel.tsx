@@ -377,7 +377,7 @@ function OrchestratorCard({
           <OrchestratorAvatar size={compact ? 40 : 88} />
           {!compact ? (
             <span className="rounded bg-accent-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-accent-700">
-              Main Agent
+              Главный агент
             </span>
           ) : null}
         </div>
@@ -884,7 +884,7 @@ export function AgentViewPanel() {
 
               {/* Center — title */}
               <h2 className="text-sm font-semibold text-primary-900">
-                Agent View
+                Панель агента
               </h2>
 
               {/* Right — inspector + close */}
@@ -896,7 +896,7 @@ export function AgentViewPanel() {
                   onClick={function handleClosePanel() {
                     setOpen(false)
                   }}
-                  aria-label="Hide Agent View"
+                  aria-label="Скрыть панель агента"
                 >
                   <HugeiconsIcon
                     icon={Cancel01Icon}
@@ -922,7 +922,7 @@ export function AgentViewPanel() {
                   {/* Centered Agents pill */}
                   <div className="mb-1 flex justify-center">
                     <span className="rounded-full bg-primary-200/30 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-500">
-                      Agents
+                      Агенты
                     </span>
                   </div>
 
@@ -1160,7 +1160,7 @@ export function AgentViewPanel() {
                             size={20}
                             strokeWidth={1.5}
                           />
-                          ⚡ Active Agents
+                          ⚡ Активные агенты
                         </CollapsibleTrigger>
                         <span className="rounded-full bg-primary-300/70 px-2 py-0.5 text-[11px] text-primary-800 tabular-nums">
                           {visibleCliAgents.length}
@@ -1170,7 +1170,7 @@ export function AgentViewPanel() {
                         <div className="space-y-0.5">
                           {cliAgentsQuery.isLoading ? (
                             <p className="px-2 py-1 text-[11px] text-primary-500 tabular-nums">
-                              Scanning...
+                              Проверяю...
                             </p>
                           ) : null}
                           {visibleCliAgents.map(function renderCliAgent(agent) {
@@ -1300,12 +1300,12 @@ export function AgentViewPanel() {
                       {activeCount}
                     </span>
                   </div>
-                  <h2 className="text-sm font-semibold text-primary-900">Agent View</h2>
+                  <h2 className="text-sm font-semibold text-primary-900">Панель агента</h2>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
                     className="rounded-lg p-1.5 text-primary-500 hover:bg-primary-200"
-                    aria-label="Close"
+                    aria-label="Закрыть"
                   >
                     <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
                       <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -1319,7 +1319,7 @@ export function AgentViewPanel() {
                   <section className="rounded-2xl bg-primary-200/15 p-1">
                     <div className="mb-1 flex justify-center">
                       <span className="rounded-full bg-primary-200/30 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-500">
-                        Agents
+                        Агенты
                       </span>
                     </div>
                     <div className="mb-1 flex items-center justify-between px-1">

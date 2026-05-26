@@ -49,8 +49,8 @@ export function McpScreen() {
 
   const totalLabel =
     tab === 'marketplace'
-      ? `${(hubQuery.data?.total ?? 0).toLocaleString()} results`
-      : `${servers.length.toLocaleString()} servers`
+      ? `${(hubQuery.data?.total ?? 0).toLocaleString()} результатов`
+      : `${servers.length.toLocaleString()} серверов`
 
   return (
     <div className="min-h-full overflow-y-auto bg-surface text-ink">
@@ -62,11 +62,10 @@ export function McpScreen() {
                 COMANDOS AI Workspace · MCP
               </p>
               <h1 className="text-2xl font-medium text-ink text-balance sm:text-3xl">
-                MCP Servers
+                MCP-серверы
               </h1>
               <p className="text-sm text-primary-500 text-pretty sm:text-base">
-                Discover, install, and manage Model Context Protocol servers
-                exposed to Hermes Agent.
+                Подключайте и управляйте MCP-серверами, которые доступны Hermes Agent.
               </p>
             </div>
             <Button
@@ -77,7 +76,7 @@ export function McpScreen() {
                 setDialogOpen(true)
               }}
             >
-              Add Server
+              Добавить сервер
             </Button>
           </div>
           {capabilityMode === 'fallback' ? (
@@ -85,8 +84,8 @@ export function McpScreen() {
               role="status"
               className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
             >
-              ⚠ Local fallback mode — using config.yaml. Test, Discover, and
-              Logs require the new hermes-agent /api/mcp endpoints.
+              Локальный режим: используется config.yaml. Проверка, поиск инструментов
+              и логи требуют новых /api/mcp endpoints в hermes-agent.
             </div>
           ) : null}
         </header>
@@ -99,10 +98,10 @@ export function McpScreen() {
                 variant="default"
               >
                 <TabsTab value="installed" className="min-w-[110px]">
-                  Installed
+                  Установленные
                 </TabsTab>
                 <TabsTab value="marketplace" className="min-w-[120px]">
-                  Marketplace
+                  Каталог
                 </TabsTab>
               </TabsList>
 
@@ -111,8 +110,8 @@ export function McpScreen() {
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={
                   tab === 'marketplace'
-                    ? 'Search MCP catalog…'
-                    : 'Search servers by name'
+                    ? 'Поиск по каталогу MCP…'
+                    : 'Поиск серверов по имени'
                 }
                 className={`${TOOLBAR_FIELD} flex-1`}
               />
@@ -125,7 +124,7 @@ export function McpScreen() {
                 >
                   {categories.map((c) => (
                     <option key={c} value={c}>
-                      {c}
+                      {c === 'All' ? 'Все' : c}
                     </option>
                   ))}
                 </select>
@@ -145,7 +144,7 @@ export function McpScreen() {
               <div className="flex items-center justify-between gap-2">
                 {hubQuery.data?.source ? (
                   <div className="text-xs text-primary-500">
-                    Source: {hubQuery.data.source}
+                    Источник: {hubQuery.data.source}
                   </div>
                 ) : (
                   <div />
@@ -156,14 +155,14 @@ export function McpScreen() {
                   className="h-7 px-2 text-xs"
                   onClick={() => setSourcesOpen(true)}
                 >
-                  Sources
+                  Источники
                 </Button>
               </div>
 
               {hubQuery.data?.warnings && hubQuery.data.warnings.length > 0 ? (
                 hubQuery.data.results && hubQuery.data.results.length > 0 ? (
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    ⚠ One or more sources unavailable; showing local results.
+                    Один или несколько источников недоступны; показываю локальные результаты.
                     <span className="ml-1 text-[11px] text-primary-500">
                       ({hubQuery.data.warnings[0]})
                     </span>
@@ -179,7 +178,7 @@ export function McpScreen() {
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">
                   {hubQuery.error instanceof Error
                     ? hubQuery.error.message
-                    : 'Failed to load marketplace.'}
+                    : 'Не удалось загрузить каталог.'}
                 </div>
               ) : null}
 
@@ -200,8 +199,8 @@ export function McpScreen() {
                     onClick={() => hubQuery.fetchNextPage()}
                   >
                     {hubQuery.isFetchingNextPage
-                      ? 'Loading…'
-                      : `Load more (${(hubQuery.data?.results.length ?? 0).toLocaleString()} of ${(hubQuery.data?.total ?? 0).toLocaleString()})`}
+                      ? 'Загружаю…'
+                      : `Показать ещё (${(hubQuery.data?.results.length ?? 0).toLocaleString()} из ${(hubQuery.data?.total ?? 0).toLocaleString()})`}
                   </Button>
                 </div>
               ) : null}
@@ -212,7 +211,7 @@ export function McpScreen() {
         <footer className="flex items-center justify-between rounded-xl border border-primary-200 bg-primary-50/80 px-3 py-2.5 text-sm text-primary-500 tabular-nums">
           <span>{totalLabel}</span>
           <span className="text-xs">
-            mode: {capabilityMode === 'fallback' ? 'config fallback' : 'native'}
+            режим: {capabilityMode === 'fallback' ? 'config.yaml' : 'полный'}
           </span>
         </footer>
       </div>
@@ -250,15 +249,15 @@ function ServerList({ query, onEdit }: ServerListProps) {
   if (query.isLoading) {
     return (
       <EmptyCard
-        title="Loading servers…"
-        description="Fetching MCP servers from Hermes Agent."
+        title="Загружаю серверы…"
+        description="Получаю список MCP-серверов из Hermes Agent."
       />
     )
   }
   if (query.isError) {
     return (
       <EmptyCard
-        title="Failed to load servers"
+        title="Не удалось загрузить серверы"
         description={query.error.message}
         tone="danger"
       />
@@ -267,8 +266,8 @@ function ServerList({ query, onEdit }: ServerListProps) {
   if (servers.length === 0) {
     return (
       <EmptyCard
-        title="No MCP servers configured"
-        description="Add a server from the My Presets tab or click Add Server above."
+        title="MCP-серверы не настроены"
+        description="Добавьте сервер через кнопку выше."
       />
     )
   }
@@ -310,17 +309,17 @@ function EmptyCard({ title, description, tone = 'neutral' }: EmptyCardProps) {
 
 const TRUST_PILL: Record<string, { label: string; className: string }> = {
   official: {
-    label: 'Official',
+    label: 'Официальный',
     className:
       'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300',
   },
   community: {
-    label: 'Community',
+    label: 'Сообщество',
     className:
       'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
   },
   unverified: {
-    label: 'Unverified',
+    label: 'Не проверен',
     className:
       'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300',
   },
@@ -328,7 +327,7 @@ const TRUST_PILL: Record<string, { label: string; className: string }> = {
 
 const SOURCE_LABEL: Record<string, string> = {
   'mcp-get': 'mcp.run',
-  local: 'Local',
+  local: 'Локальный',
 }
 
 interface MarketplaceGridProps {
@@ -363,8 +362,8 @@ function MarketplaceGrid({
   if (entries.length === 0) {
     return (
       <EmptyCard
-        title="No results"
-        description="Try a different search term. The registry may be unavailable — local presets are used as fallback."
+        title="Ничего не найдено"
+        description="Попробуйте другой запрос. Если каталог недоступен, будут использоваться локальные варианты."
       />
     )
   }
@@ -393,14 +392,14 @@ function MarketplaceGrid({
                     {entry.installed ? (
                       <span
                         className="shrink-0 rounded-md border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-primary"
-                        aria-label="Installed"
+                        aria-label="Установлен"
                       >
-                        Installed
+                        Установлен
                       </span>
                     ) : null}
                   </div>
                   <p className="line-clamp-2 text-xs text-primary-500 text-pretty">
-                    {entry.description || 'No description.'}
+                    {entry.description || 'Нет описания.'}
                   </p>
                 </div>
               </div>
@@ -427,7 +426,7 @@ function MarketplaceGrid({
               <div className="mt-auto flex items-center justify-end gap-2 pt-2">
                 {entry.installed ? (
                   <span className="text-xs text-primary-500">
-                    Already installed
+                    Уже установлен
                   </span>
                 ) : (
                   <Button
@@ -435,7 +434,7 @@ function MarketplaceGrid({
                     size="sm"
                     onClick={() => onInstall(entry)}
                   >
-                    Install
+                    Установить
                   </Button>
                 )}
               </div>

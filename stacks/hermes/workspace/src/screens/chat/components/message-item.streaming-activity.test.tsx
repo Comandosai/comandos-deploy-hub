@@ -74,9 +74,9 @@ describe('streaming activity ui helpers', () => {
   it('returns an idle summary when no tools are active', () => {
     expect(buildHermesActivitySummary([])).toMatchObject({
       countLabel: '0 calls',
-      statusLabel: 'idle',
-      visibleLabel: 'No active tools',
-      collapsedLabel: 'No active tools',
+      statusLabel: 'ожидание',
+      visibleLabel: 'Активных инструментов нет',
+      collapsedLabel: 'Активных инструментов нет',
     })
   })
 

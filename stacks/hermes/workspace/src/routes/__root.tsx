@@ -20,6 +20,7 @@ import { KeyboardShortcutsModal } from '@/components/keyboard-shortcuts-modal'
 import { UpdateCenterNotifier } from '@/components/update-center-notifier'
 import { initializeSettingsAppearance, useSettings } from '@/hooks/use-settings'
 import { useApplyChatWidth } from '@/hooks/use-chat-settings'
+import { useRussianUiPatcher } from '@/hooks/use-russian-ui-patcher'
 import {
   ClaudeOnboarding,
   ONBOARDING_COMPLETE_EVENT,
@@ -53,7 +54,7 @@ const APP_CSP = [
 const THEME_STORAGE_KEY = 'komandos-theme'
 const LEGACY_THEME_STORAGE_KEY = 'claude-theme'
 const DEFAULT_THEME = 'komandos-dark'
-const VALID_THEMES = ['komandos-dark', 'komandos-light']
+const VALID_THEMES = ['komandos-dark']
 
 const themeScript = `
 (() => {
@@ -71,9 +72,7 @@ const themeScript = `
     }
     let storedTheme = localStorage.getItem('${THEME_STORAGE_KEY}')
     const legacyTheme = localStorage.getItem('${LEGACY_THEME_STORAGE_KEY}')
-    const mappedLegacyTheme = legacyTheme
-      ? (validThemes.includes(legacyTheme) ? legacyTheme : (String(legacyTheme).endsWith('-light') ? 'komandos-light' : 'komandos-dark'))
-      : null
+    const mappedLegacyTheme = legacyTheme ? 'komandos-dark' : null
     if (!validThemes.includes(storedTheme) && mappedLegacyTheme) {
       storedTheme = mappedLegacyTheme
       localStorage.setItem('${THEME_STORAGE_KEY}', mappedLegacyTheme)
@@ -81,9 +80,9 @@ const themeScript = `
     } else if (legacyTheme) {
       localStorage.removeItem('${LEGACY_THEME_STORAGE_KEY}')
     }
-    const theme = validThemes.includes(storedTheme) ? storedTheme : '${DEFAULT_THEME}'
-    const lightThemes = ['komandos-light']
-    const isDark = !lightThemes.includes(theme)
+    const theme = '${DEFAULT_THEME}'
+    localStorage.setItem('${THEME_STORAGE_KEY}', theme)
+    const isDark = true
     root.classList.remove('light', 'dark', 'system')
     root.classList.add(isDark ? 'dark' : 'light')
     root.setAttribute('data-theme', theme)
@@ -106,10 +105,9 @@ const themeColorScript = `
     const theme = root.getAttribute('data-theme') || '${DEFAULT_THEME}'
     const colors = {
       'komandos-dark': '#0B0B0C',
-      'komandos-light': '#F4EFE3',
     }
     const nextColor = colors[theme] || colors['${DEFAULT_THEME}']
-    const isDark = !['komandos-light'].includes(String(theme))
+    const isDark = true
 
     let meta = document.querySelector('meta[name="theme-color"]')
     if (!meta) {
@@ -208,7 +206,7 @@ export const Route = createRootRoute({
         </pre>
         <button
           onClick={() => (window.location.href = '/')}
-          className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+          className="px-4 py-2 bg-accent-500 text-[var(--theme-on-accent)] rounded-lg hover:bg-accent-600 transition-colors"
         >
           Return Home
         </button>
@@ -230,7 +228,10 @@ export function wrapInlineScript(source: string): string {
 }
 
 type ServiceWorkerLike = {
-  register: (scriptURL: string, options?: RegistrationOptions) => Promise<unknown>
+  register: (
+    scriptURL: string,
+    options?: RegistrationOptions,
+  ) => Promise<unknown>
 }
 
 type CachesLike = {
@@ -261,19 +262,25 @@ export async function registerAppServiceWorker({
 
 function RootLayout() {
   const { settings } = useSettings()
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const isHermesWorldLandingRoute =
     pathname === '/hermes-world' ||
     pathname.startsWith('/hermes-world/') ||
     pathname === '/world' ||
     pathname.startsWith('/world/')
-  const isGameSurfaceRoute = isHermesWorldLandingRoute || pathname === '/playground' || pathname.startsWith('/playground/')
+  const isGameSurfaceRoute =
+    isHermesWorldLandingRoute ||
+    pathname === '/playground' ||
+    pathname.startsWith('/playground/')
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(
     null,
   )
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null)
   const [mounted, setMounted] = useState(false)
   useApplyChatWidth()
+  useRussianUiPatcher()
 
   useEffect(() => {
     setMounted(true)
@@ -383,10 +390,13 @@ function RootLayout() {
           </WorkspaceShell>
           {!isHermesWorldLandingRoute ? <SearchModal /> : null}
           {/* Keep UsageMeter mounted so search-modal OPEN_USAGE still works even when the pill is hidden by default. */}
-          {!isGameSurfaceRoute ? <UsageMeter visible={settings.showUsageMeter} /> : null}
+          {!isGameSurfaceRoute ? (
+            <UsageMeter visible={settings.showUsageMeter} />
+          ) : null}
           {!isHermesWorldLandingRoute ? <KeyboardShortcutsModal /> : null}
           {!isHermesWorldLandingRoute ? <UpdateCenterNotifier /> : null}
-          {rootSurfaceState.showPostOnboardingOverlays && !isGameSurfaceRoute ? (
+          {rootSurfaceState.showPostOnboardingOverlays &&
+          !isGameSurfaceRoute ? (
             <>
               <MobilePromptTrigger />
               <OnboardingTour />
@@ -436,16 +446,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             if (location.pathname === '/hermes-world' || location.pathname.indexOf('/hermes-world/') === 0 || location.pathname === '/world' || location.pathname.indexOf('/world/') === 0) return;
             var bg = '#0B0B0C', txt = '#F5F5F4', muted = '#A1A1A1', accent = '#D9FC67';
             try {
-              var theme = localStorage.getItem('${THEME_STORAGE_KEY}') || '${DEFAULT_THEME}';
-              if (theme === 'komandos-light') {
-                bg = '#F4EFE3';
-                txt = '#1F1B16';
-                muted = '#5A4F44';
-                accent = '#1F1B16';
-              }
+              var theme = '${DEFAULT_THEME}';
+              localStorage.setItem('${THEME_STORAGE_KEY}', theme);
             } catch(e){}
 
-            var isDark = theme !== 'komandos-light';
+            var isDark = true;
             var quips = ["Собираем командный центр...","Проверяем связь с агентами...","Готовим рабочую панель...","Подключаем память и инструменты...","Запускаем COMANDOS AI Workspace..."];
             var quip = quips[Math.floor(Math.random() * quips.length)];
 

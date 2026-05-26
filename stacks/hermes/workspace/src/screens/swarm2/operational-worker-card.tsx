@@ -58,7 +58,7 @@ function roleFromId(id: string): string {
       return 'Builder'
     case '6':
     case '11':
-      return 'Reviewer'
+      return 'Проверяющий'
     case '7':
       return 'Docs'
     case '8':
@@ -68,7 +68,7 @@ function roleFromId(id: string): string {
     case '12':
       return 'PR / Issues'
     default:
-      return 'Worker'
+      return 'Агент'
   }
 }
 
@@ -88,30 +88,30 @@ function deriveWorkerState(member: CrewMember, currentTask: string | null): Work
 
 function statusStyles(state: WorkerState) {
   if (state === 'error') {
-    return { dot: 'bg-red-500', ring: 'text-red-500', label: 'Error', progress: 'failed' as const, avatar: 'failed' as const }
+    return { dot: 'bg-red-500', ring: 'text-red-500', label: 'Ошибка', progress: 'failed' as const, avatar: 'failed' as const }
   }
   if (state === 'offline') {
-    return { dot: 'bg-primary-300', ring: 'text-primary-300', label: 'Offline', progress: 'queued' as const, avatar: 'idle' as const }
+    return { dot: 'bg-primary-300', ring: 'text-primary-300', label: 'Не в сети', progress: 'queued' as const, avatar: 'idle' as const }
   }
   if (state === 'idle') {
-    return { dot: 'bg-primary-300', ring: 'text-primary-300', label: 'Idle', progress: 'queued' as const, avatar: 'idle' as const }
+    return { dot: 'bg-primary-300', ring: 'text-primary-300', label: 'Ожидает', progress: 'queued' as const, avatar: 'idle' as const }
   }
   if (state === 'waiting') {
-    return { dot: 'bg-amber-500', ring: 'text-amber-500', label: 'Waiting', progress: 'queued' as const, avatar: 'idle' as const }
+    return { dot: 'bg-amber-500', ring: 'text-amber-500', label: 'Ждёт', progress: 'queued' as const, avatar: 'idle' as const }
   }
   if (state === 'thinking') {
-    return { dot: 'bg-emerald-500', ring: 'text-emerald-500', label: 'Thinking', progress: 'thinking' as const, avatar: 'thinking' as const }
+    return { dot: 'bg-emerald-500', ring: 'text-emerald-500', label: 'Думает', progress: 'thinking' as const, avatar: 'thinking' as const }
   }
-  return { dot: 'bg-emerald-500', ring: 'text-emerald-500', label: 'Active', progress: 'running' as const, avatar: 'running' as const }
+  return { dot: 'bg-emerald-500', ring: 'text-emerald-500', label: 'Активен', progress: 'running' as const, avatar: 'running' as const }
 }
 
 function relativeOutputTime(ts: number | null | undefined): string {
-  if (!ts) return 'no runtime output yet'
+  if (!ts) return 'вывода пока нет'
   const diff = Date.now() - ts
-  if (diff < 60_000) return 'output just now'
-  if (diff < 3_600_000) return `output ${Math.floor(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `output ${Math.floor(diff / 3_600_000)}h ago`
-  return `output ${Math.floor(diff / 86_400_000)}d ago`
+  if (diff < 60_000) return 'вывод только что'
+  if (diff < 3_600_000) return `вывод ${Math.floor(diff / 60_000)} мин назад`
+  if (diff < 86_400_000) return `вывод ${Math.floor(diff / 3_600_000)} ч назад`
+  return `вывод ${Math.floor(diff / 86_400_000)} дн назад`
 }
 
 function isLivePulse(ts: number | null | undefined): boolean {
@@ -150,7 +150,7 @@ function formatAssignedModel(model?: string | null, provider?: string | null): s
   if (value.includes('gpt-5.3')) return 'GPT-5.3'
   if (model && model !== 'unknown') return model
   if (provider && provider !== 'unknown') return provider.replace(/^custom:/, '').replace(/[-_]/g, ' ')
-  return 'Worker'
+  return 'Агент'
 }
 
 type WorkerCardSettings = {
@@ -264,23 +264,23 @@ export function OperationalWorkerCard({
     }> = [
       {
         key: 'tasks',
-        label: 'Tasks',
-        meta: `${activeCount} active lanes`,
-        helper: 'Tracked work for this agent lives here.',
+        label: 'Задачи',
+        meta: `активных потоков: ${activeCount}`,
+        helper: 'Здесь видно работу, закреплённую за этим агентом.',
       },
       {
         key: 'output',
-        label: 'Output',
-        meta: `${artifacts.length} artifacts · ${previews.length} previews`,
-        helper: 'Published runtime artifacts, previews, and reports.',
+        label: 'Результаты',
+        meta: `артефактов: ${artifacts.length} · превью: ${previews.length}`,
+        helper: 'Файлы, превью и отчёты, которые опубликовал агент.',
       },
     ]
     if (cardChangedFiles.length > 0) {
       panels.push({
         key: 'files',
-        label: 'Files',
-        meta: `${cardChangedFiles.length} changed`,
-        helper: 'Git-inferred file changes until runtime artifacts replace them.',
+        label: 'Файлы',
+        meta: `изменено: ${cardChangedFiles.length}`,
+        helper: 'Изменения в файлах до появления полноценных артефактов.',
       })
     }
     return panels
@@ -395,8 +395,8 @@ export function OperationalWorkerCard({
           </span>
           <button
             type="button"
-            aria-label={`Settings for ${displayName}`}
-            title={`Settings for ${displayName}`}
+            aria-label={`Настройки агента ${displayName}`}
+            title={`Настройки агента ${displayName}`}
             onClick={(event) => {
               event.stopPropagation()
               setSettingsOpen(true)
@@ -433,7 +433,7 @@ export function OperationalWorkerCard({
 
       {!member.profileFound ? (
         <div className="mb-2 rounded-xl border border-amber-400/35 bg-amber-500/10 px-3 py-2 text-center text-[11px] text-amber-200">
-          Roster-only agent, not provisioned yet. Configure now, bootstrap profile later.
+          Агент есть в списке, но профиль ещё не создан. Настройте его сейчас, профиль можно подготовить позже.
         </div>
       ) : null}
 
@@ -478,8 +478,8 @@ export function OperationalWorkerCard({
               {focusPanel === 'tasks' ? (
                 <button
                   type="button"
-                  aria-label={taskComposerOpen ? 'Close add task' : 'Add task'}
-                  title={taskComposerOpen ? 'Close add task' : 'Add task'}
+                  aria-label={taskComposerOpen ? 'Закрыть добавление задачи' : 'Добавить задачу'}
+                  title={taskComposerOpen ? 'Закрыть добавление задачи' : 'Добавить задачу'}
                   onClick={() => setTaskComposerOpen((value) => !value)}
                   className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
                 >
@@ -499,7 +499,7 @@ export function OperationalWorkerCard({
           </div>
 
           <p className="mb-2 mx-auto max-w-2xl text-center text-[11px] leading-relaxed text-[var(--theme-muted)]">
-            {activeFocusPanel?.helper ?? 'Worker details'}
+            {activeFocusPanel?.helper ?? 'Данные агента'}
           </p>
 
           {focusPanel === 'tasks' ? (
@@ -551,11 +551,11 @@ export function OperationalWorkerCard({
         <button
           type="button"
           onClick={onOpenTasks}
-          title={`Route work to ${member.displayName || member.id}`}
+          title={`Направить задачу агенту ${member.displayName || member.id}`}
           className="inline-flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
         >
           <HugeiconsIcon icon={CheckListIcon} size={11} />
-          Route to agent
+          Направить задачу
         </button>
         <button
           type="button"
@@ -563,7 +563,7 @@ export function OperationalWorkerCard({
           className="inline-flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
         >
           <HugeiconsIcon icon={ComputerTerminal01Icon} size={11} />
-          Open terminal
+          Открыть терминал
         </button>
       </div>
       </>
@@ -582,8 +582,8 @@ export function OperationalWorkerCard({
           >
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-[var(--theme-text)]">Agent settings</h4>
-                <p className="text-[11px] text-[var(--theme-muted)]">Local card overrides for now, native worker settings next.</p>
+                <h4 className="text-sm font-semibold text-[var(--theme-text)]">Настройки агента</h4>
+                <p className="text-[11px] text-[var(--theme-muted)]">Пока меняются локальные подписи карточки.</p>
               </div>
               <button
                 type="button"
@@ -595,7 +595,7 @@ export function OperationalWorkerCard({
             </div>
             <div className="space-y-3 text-[12px]">
               <label className="block">
-                <span className="mb-1 block text-[var(--theme-muted)]">Name</span>
+                <span className="mb-1 block text-[var(--theme-muted)]">Имя</span>
                 <input
                   value={draftName}
                   onChange={(event) => setDraftName(event.target.value)}
@@ -604,13 +604,13 @@ export function OperationalWorkerCard({
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-[var(--theme-muted)]">Avatar glyph</span>
+                <span className="mb-1 block text-[var(--theme-muted)]">Значок аватара</span>
                 <select
                   value={draftAvatar}
                   onChange={(event) => setDraftAvatar(event.target.value)}
                   className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none"
                 >
-                  <option value="">None</option>
+                  <option value="">Не выбрано</option>
                   {AVATAR_OPTIONS.filter(Boolean).map((option) => (
                     <option key={option} value={option}>
                       {option}
@@ -619,7 +619,7 @@ export function OperationalWorkerCard({
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-[var(--theme-muted)]">Role</span>
+                <span className="mb-1 block text-[var(--theme-muted)]">Роль</span>
                 <select
                   value={draftRole}
                   onChange={(event) => setDraftRole(event.target.value)}
@@ -633,7 +633,7 @@ export function OperationalWorkerCard({
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-[var(--theme-muted)]">Model label</span>
+                <span className="mb-1 block text-[var(--theme-muted)]">Подпись модели</span>
                 <select
                   value={draftModel}
                   onChange={(event) => setDraftModel(event.target.value)}
@@ -662,7 +662,7 @@ export function OperationalWorkerCard({
                   setSettingsOpen(false)
                 }}
               >
-                Reset
+                Сбросить
               </button>
               <div className="flex items-center gap-2">
                 <button
@@ -670,7 +670,7 @@ export function OperationalWorkerCard({
                   className="rounded-xl border border-[var(--theme-border)] px-3 py-2 text-[11px] text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]"
                   onClick={() => setSettingsOpen(false)}
                 >
-                  Cancel
+                  Отмена
                 </button>
                 <button
                   type="button"
@@ -691,7 +691,7 @@ export function OperationalWorkerCard({
                     setSettingsOpen(false)
                   }}
                 >
-                  Save
+                  Сохранить
                 </button>
               </div>
             </div>

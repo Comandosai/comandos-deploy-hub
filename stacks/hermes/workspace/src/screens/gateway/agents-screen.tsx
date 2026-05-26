@@ -97,7 +97,10 @@ type AgentConfigDraft = {
   modelOverride: string
   tools: Record<string, boolean>
   skills: Record<string, boolean>
-  channels: Record<string, { enabled: boolean | null; config: Record<string, unknown> }>
+  channels: Record<
+    string,
+    { enabled: boolean | null; config: Record<string, unknown> }
+  >
 }
 
 type AgentConfigPatchPayload = {
@@ -362,7 +365,7 @@ async function patchAgentConfig(
   }
 
   if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || 'Failed to save agent config')
+    throw new Error(payload.error || 'Не удалось сохранить настройки агента')
   }
 }
 
@@ -454,7 +457,9 @@ function toAgentDefinition(
   }
 }
 
-function parseAgentDefinitions(data: AgentsData | undefined): Array<AgentDefinition> | null {
+function parseAgentDefinitions(
+  data: AgentsData | undefined,
+): Array<AgentDefinition> | null {
   if (!data || typeof data !== 'object') return null
 
   const directAgents = Array.isArray(data.agents) ? data.agents : null
@@ -478,19 +483,21 @@ function parseAgentDefinitions(data: AgentsData | undefined): Array<AgentDefinit
 
   const profiles = record.profiles
   if (profiles && typeof profiles === 'object' && !Array.isArray(profiles)) {
-    const entries = Object.entries(profiles).map(([profileId, profileValue]) => {
-      const profileRecord =
-        profileValue &&
-        typeof profileValue === 'object' &&
-        !Array.isArray(profileValue)
-          ? (profileValue as Record<string, unknown>)
-          : {}
-      return {
-        ...profileRecord,
-        id: profileId,
-        name: readString(profileRecord.name) || profileId,
-      }
-    })
+    const entries = Object.entries(profiles).map(
+      ([profileId, profileValue]) => {
+        const profileRecord =
+          profileValue &&
+          typeof profileValue === 'object' &&
+          !Array.isArray(profileValue)
+            ? (profileValue as Record<string, unknown>)
+            : {}
+        return {
+          ...profileRecord,
+          id: profileId,
+          name: readString(profileRecord.name) || profileId,
+        }
+      },
+    )
 
     return entries
       .map((entry, index) => toAgentDefinition(entry, index))
@@ -532,11 +539,14 @@ function getSessionTitle(session: SessionEntry): string {
     readString(session.derivedTitle) ||
     getSessionFriendlyId(session) ||
     readString(session.key) ||
-    'Session'
+    'Сессия'
   )
 }
 
-function scoreSessionMatch(agent: AgentDefinition, session: SessionEntry): number {
+function scoreSessionMatch(
+  agent: AgentDefinition,
+  session: SessionEntry,
+): number {
   const sessionKey = normalizeToken(readString(session.key))
   const friendlyId = normalizeToken(readString(session.friendlyId))
   const blob = getSessionSearchBlob(session)
@@ -603,20 +613,20 @@ function deriveAgentStatus(
 
 function formatRelativeTime(value: unknown): string {
   const timestamp = readTimestamp(value)
-  if (!timestamp) return 'No activity timestamp'
+  if (!timestamp) return 'Нет времени активности'
 
   const diffMs = Math.max(0, Date.now() - timestamp)
   const seconds = Math.floor(diffMs / 1000)
-  if (seconds < 60) return `${seconds}s ago`
+  if (seconds < 60) return `${seconds} сек назад`
 
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return `${minutes} мин назад`
 
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return `${hours} ч назад`
 
   const days = Math.floor(hours / 24)
-  return `${days}d ago`
+  return `${days} дн назад`
 }
 
 function getSessionTokenCount(session: SessionEntry): number {
@@ -662,7 +672,9 @@ async function readResponseError(response: Response): Promise<string> {
   return response.statusText || `HTTP ${response.status}`
 }
 
-export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps) {
+export function AgentsScreen({
+  variant = 'mission-control',
+}: AgentsScreenProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const missionControlEnabled = variant === 'mission-control'
@@ -677,13 +689,14 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
   const [historyAgentId, setHistoryAgentId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [detailTab, setDetailTab] = useState('overview')
-  const [agentConfigDraft, setAgentConfigDraft] = useState<AgentConfigDraft | null>(
-    null,
-  )
+  const [agentConfigDraft, setAgentConfigDraft] =
+    useState<AgentConfigDraft | null>(null)
 
   // Mobile detection for pull-to-refresh
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+  const [isMobile, setIsMobile] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 767px)').matches,
   )
   useEffect(() => {
     const media = window.matchMedia('(max-width: 767px)')
@@ -696,7 +709,9 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
   // Pull-to-refresh: attach to the scrollable <main> in workspace-shell
   const scrollContainerRef = useRef<HTMLElement | null>(null)
   useEffect(() => {
-    const el = document.querySelector('main[data-tour="chat-area"]') as HTMLElement | null
+    const el = document.querySelector(
+      'main[data-tour="chat-area"]',
+    ) as HTMLElement | null
     scrollContainerRef.current = el
   }, [])
 
@@ -708,7 +723,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
       const res = await fetch('/api/gateway/agents')
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
-      if (!json.ok) throw new Error(json.error || 'Gateway error')
+      if (!json.ok) throw new Error(json.error || 'Ошибка gateway')
       return json.data as AgentsData
     },
     refetchInterval: 15_000,
@@ -739,11 +754,11 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
     void sessionsQuery.refetch()
   }, [agentsQuery, sessionsQuery])
 
-  const { isPulling: agentHubPulling, pullDistance: agentHubPullDistance, threshold: agentHubThreshold } = usePullToRefresh(
-    isMobile,
-    handlePullRefresh,
-    scrollContainerRef,
-  )
+  const {
+    isPulling: agentHubPulling,
+    pullDistance: agentHubPullDistance,
+    threshold: agentHubThreshold,
+  } = usePullToRefresh(isMobile, handlePullRefresh, scrollContainerRef)
 
   useEffect(() => {
     if (!sessionsQuery.isSuccess) return
@@ -772,7 +787,6 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
     FALLBACK_AGENT_REGISTRY.forEach((definition) => {
       merged.set(definition.id, definition)
     })
-
     ;(parsedDefinitions ?? []).forEach((definition) => {
       const existing = merged.get(definition.id)
       if (!existing) {
@@ -870,7 +884,10 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
         if (!sessionKey.includes('subagent:')) return false
         return readTimestamp(session.updatedAt) >= cutoff
       })
-      .sort((left, right) => readTimestamp(right.updatedAt) - readTimestamp(left.updatedAt))
+      .sort(
+        (left, right) =>
+          readTimestamp(right.updatedAt) - readTimestamp(left.updatedAt),
+      )
   }, [runtimeAgents, sessionsQuery.data])
 
   const groupedSections = useMemo(() => {
@@ -890,12 +907,15 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
     ]
 
     return orderedCategories.map((category) => {
-      const agentsInCategory = (grouped.get(category) ?? []).sort((left, right) => {
-        const leftPriority = STATUS_SORT_ORDER[left.status] ?? 9
-        const rightPriority = STATUS_SORT_ORDER[right.status] ?? 9
-        if (leftPriority !== rightPriority) return leftPriority - rightPriority
-        return left.name.localeCompare(right.name)
-      })
+      const agentsInCategory = (grouped.get(category) ?? []).sort(
+        (left, right) => {
+          const leftPriority = STATUS_SORT_ORDER[left.status] ?? 9
+          const rightPriority = STATUS_SORT_ORDER[right.status] ?? 9
+          if (leftPriority !== rightPriority)
+            return leftPriority - rightPriority
+          return left.name.localeCompare(right.name)
+        },
+      )
 
       return {
         category,
@@ -915,7 +935,8 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
   )
 
   const selectedDefinition = useMemo(
-    () => registryDefinitions.find((agent) => agent.id === selectedAgentId) ?? null,
+    () =>
+      registryDefinitions.find((agent) => agent.id === selectedAgentId) ?? null,
     [registryDefinitions, selectedAgentId],
   )
 
@@ -948,7 +969,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
       config: AgentConfigPatchPayload
     }) => patchAgentConfig(agentId, config),
     onSuccess: async (_, variables) => {
-      toast('Agent config saved', { type: 'success' })
+      toast('Настройки агента сохранены', { type: 'success' })
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['gateway', 'agents', 'config', variables.agentId],
@@ -957,9 +978,14 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
       ])
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to save agent config', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить настройки агента',
+        {
+          type: 'error',
+        },
+      )
     },
   })
 
@@ -994,7 +1020,11 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
     ]).filter((value) => value.length > 0)
 
     return values
-  }, [agentConfigDraft?.modelOverride, selectedAgentConfig, selectedConfigAgent])
+  }, [
+    agentConfigDraft?.modelOverride,
+    selectedAgentConfig,
+    selectedConfigAgent,
+  ])
 
   async function spawnSessionForAgent(
     agent: AgentRegistryCardData,
@@ -1030,16 +1060,18 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
         readString(payload.friendlyId) || deriveFriendlyIdFromKey(sessionKey)
 
       if (!sessionKey || !resolvedFriendlyId) {
-        throw new Error('Failed to create a session for this agent')
+        throw new Error('Не удалось создать сессию для этого агента')
       }
 
-      toast(`${agent.name} session started`, { type: 'success' })
+      toast(`Сессия агента ${agent.name} запущена`, { type: 'success' })
       void sessionsQuery.refetch()
 
       return { sessionKey, friendlyId: resolvedFriendlyId }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to spawn agent session'
+        error instanceof Error
+          ? error.message
+          : 'Не удалось запустить сессию агента'
       toast(message, { type: 'error' })
       return null
     } finally {
@@ -1053,7 +1085,8 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
 
   async function handleChat(agent: AgentRegistryCardData) {
     const existingFriendlyId =
-      readString(agent.friendlyId) || deriveFriendlyIdFromKey(readString(agent.sessionKey))
+      readString(agent.friendlyId) ||
+      deriveFriendlyIdFromKey(readString(agent.sessionKey))
 
     if (existingFriendlyId) {
       void navigate({
@@ -1086,7 +1119,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
   ) {
     const controlKey = readString(agent.controlKey)
     if (!controlKey) {
-      toast('No control key available for this agent', { type: 'warning' })
+      toast('Для этого агента нет ключа управления', { type: 'warning' })
       return
     }
 
@@ -1124,9 +1157,12 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
         [controlKey]: paused,
       }))
 
-      toast(`${agent.name} ${paused ? 'paused' : 'resumed'}`, {
-        type: 'success',
-      })
+      toast(
+        `${agent.name}: ${paused ? 'пауза включена' : 'работа возобновлена'}`,
+        {
+          type: 'success',
+        },
+      )
       void sessionsQuery.refetch()
     } catch (error) {
       setOptimisticPausedByAgentId((previous) => {
@@ -1151,7 +1187,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
       const message =
         error instanceof Error
           ? error.message
-          : `Failed to ${nextPaused ? 'pause' : 'resume'} agent`
+          : `Не удалось ${nextPaused ? 'поставить агента на паузу' : 'возобновить работу агента'}`
       toast(message, { type: 'error' })
     }
   }
@@ -1244,7 +1280,10 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
     : null
 
   const agentHubPullIndicatorStyle = agentHubPulling
-    ? { transform: `translateY(${Math.min(agentHubPullDistance - 8, 48)}px)`, opacity: Math.min(agentHubPullDistance / agentHubThreshold, 1) }
+    ? {
+        transform: `translateY(${Math.min(agentHubPullDistance - 8, 48)}px)`,
+        opacity: Math.min(agentHubPullDistance / agentHubThreshold, 1),
+      }
     : undefined
 
   if (missionControlEnabled) {
@@ -1261,11 +1300,15 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
               <span
                 className={[
                   'size-3 rounded-full border-2 border-accent-500',
-                  agentHubPullDistance >= agentHubThreshold ? 'border-t-transparent animate-spin' : 'opacity-50',
+                  agentHubPullDistance >= agentHubThreshold
+                    ? 'border-t-transparent animate-spin'
+                    : 'opacity-50',
                 ].join(' ')}
               />
               <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
-                {agentHubPullDistance >= agentHubThreshold ? 'Release to refresh' : 'Pull to refresh'}
+                {agentHubPullDistance >= agentHubThreshold
+                  ? 'Release to refresh'
+                  : 'Pull to refresh'}
               </span>
             </div>
           </div>
@@ -1302,7 +1345,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
             ) : null}
             {lastUpdated ? (
               <span className="text-[10px] text-primary-500">
-                Updated {lastUpdated}
+                Обновлено {lastUpdated}
               </span>
             ) : null}
             <span
@@ -1313,7 +1356,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
 
         {usingFallbackRegistry ? (
           <div className="mb-4 rounded-xl border border-amber-300/50 bg-amber-50/70 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-500/40 dark:bg-amber-900/20 dark:text-amber-200">
-            Gateway registry unavailable. Showing fallback definitions.
+            Реестр gateway недоступен. Показываю запасные определения.
           </div>
         ) : null}
 
@@ -1322,18 +1365,18 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
             <div className="flex h-32 items-center justify-center">
               <div className="flex items-center gap-2 text-primary-500">
                 <div className="size-4 animate-spin rounded-full border-2 border-primary-300 border-t-primary-600" />
-                <span className="text-sm">Loading registry...</span>
+                <span className="text-sm">Загружаю реестр...</span>
               </div>
             </div>
           ) : registryDefinitions.length === 0 ? (
             <div className="rounded-2xl border border-white/30 bg-white/60 p-5 shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/50">
               <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                Add your first agent
+                Добавьте первого агента
               </h2>
               <ul className="mt-3 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
-                <li>Create an agent profile</li>
-                <li>Connect a gateway</li>
-                <li>Spawn your first session</li>
+                <li>Создайте профиль агента</li>
+                <li>Подключите gateway</li>
+                <li>Запустите первую сессию</li>
               </ul>
               <button
                 type="button"
@@ -1342,7 +1385,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                 }}
                 className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 sm:px-4 sm:py-2 sm:text-sm"
               >
-                Open Settings
+                Открыть настройки
               </button>
             </div>
           ) : (
@@ -1380,7 +1423,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                 <section className="space-y-2">
                   <div className="flex items-center justify-between px-1">
                     <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary-400">
-                      Active Sessions
+                      Активные сессии
                     </h2>
                     <span className="text-[11px] font-medium text-primary-400">
                       {unmatchedSessions.length}
@@ -1390,7 +1433,8 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {unmatchedSessions.map((session, index) => {
                       const sessionKey = readString(session.key)
-                      const sessionTarget = getSessionFriendlyId(session) || sessionKey
+                      const sessionTarget =
+                        getSessionFriendlyId(session) || sessionKey
                       const sessionModel = getSessionModelName(session)
 
                       return (
@@ -1410,7 +1454,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                             <span
                               className={`inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${getSessionStatusBadgeClasses(session)}`}
                             >
-                              {readString(session.status) || 'active'}
+                              {readString(session.status) || 'активна'}
                             </span>
                           </div>
 
@@ -1422,7 +1466,10 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                             ) : (
                               <span />
                             )}
-                            <span>{formatTokenCount(getSessionTokenCount(session))} tokens</span>
+                            <span>
+                              {formatTokenCount(getSessionTokenCount(session))}{' '}
+                              токенов
+                            </span>
                             <span>{formatRelativeTime(session.updatedAt)}</span>
                           </div>
 
@@ -1431,7 +1478,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                               href={`/chat/${encodeURIComponent(sessionTarget)}`}
                               className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-primary-700 px-3 py-1.5 text-xs font-semibold text-accent-300 transition-colors hover:border-accent-500 hover:text-accent-300 sm:px-4 sm:py-2 sm:text-sm"
                             >
-                              Open Chat
+                              Открыть чат
                             </a>
                           ) : null}
                         </div>
@@ -1449,7 +1496,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
         <div className="fixed inset-0 z-[95]">
           <button
             type="button"
-            aria-label="Close agent config"
+            aria-label="Закрыть настройки агента"
             className="absolute inset-0 bg-primary-950/25 backdrop-blur-sm"
             onClick={handleCloseAgentConfig}
           />
@@ -1459,13 +1506,14 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-500">
-                    Agent Config
+                    Настройки агента
                   </p>
                   <h2 className="mt-1 truncate text-xl font-semibold text-primary-900">
                     {selectedConfigAgent.name}
                   </h2>
                   <p className="mt-1 text-sm text-primary-600">
-                    {selectedAgentConfig?.name && selectedAgentConfig.name !== selectedConfigAgent.name
+                    {selectedAgentConfig?.name &&
+                    selectedAgentConfig.name !== selectedConfigAgent.name
                       ? `${selectedConfigAgent.role} · ${selectedAgentConfig.name}`
                       : selectedConfigAgent.role}
                   </p>
@@ -1483,7 +1531,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                     onClick={handleReloadAgentConfig}
                     disabled={agentConfigQuery.isFetching}
                   >
-                    Reload
+                    Обновить
                   </Button>
                   <Button
                     size="sm"
@@ -1497,10 +1545,16 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                       saveAgentConfigMutation.isPending
                     }
                   >
-                    {saveAgentConfigMutation.isPending ? 'Saving...' : 'Save'}
+                    {saveAgentConfigMutation.isPending
+                      ? 'Сохраняю...'
+                      : 'Сохранить'}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleCloseAgentConfig}>
-                    Close
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCloseAgentConfig}
+                  >
+                    Закрыть
                   </Button>
                 </div>
               </div>
@@ -1511,32 +1565,40 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                 <div className="flex h-40 items-center justify-center">
                   <div className="flex items-center gap-2 text-primary-500">
                     <div className="size-4 animate-spin rounded-full border-2 border-primary-300 border-t-primary-600" />
-                    <span className="text-sm">Loading agent config...</span>
+                    <span className="text-sm">
+                      Загружаю настройки агента...
+                    </span>
                   </div>
                 </div>
               ) : agentConfigQuery.isError && !selectedAgentConfig ? (
                 <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {agentConfigQuery.error instanceof Error
                     ? agentConfigQuery.error.message
-                    : 'Failed to load agent config'}
+                    : 'Не удалось загрузить настройки агента'}
                 </div>
               ) : (
                 <Tabs value={detailTab} onValueChange={setDetailTab}>
                   <TabsList className="mb-5 flex w-full flex-wrap gap-2 rounded-2xl border border-primary-200 bg-white p-1 text-primary-500 shadow-sm">
-                    <TabsTrigger value="overview" className="min-w-[110px] flex-1">
-                      Overview
+                    <TabsTrigger
+                      value="overview"
+                      className="min-w-[110px] flex-1"
+                    >
+                      Обзор
                     </TabsTrigger>
                     <TabsTrigger value="tools" className="min-w-[92px] flex-1">
-                      Tools
+                      Инструменты
                     </TabsTrigger>
                     <TabsTrigger value="skills" className="min-w-[92px] flex-1">
-                      Skills
+                      Навыки
                     </TabsTrigger>
-                    <TabsTrigger value="channels" className="min-w-[102px] flex-1">
-                      Channels
+                    <TabsTrigger
+                      value="channels"
+                      className="min-w-[102px] flex-1"
+                    >
+                      Каналы
                     </TabsTrigger>
                     <TabsTrigger value="cron" className="min-w-[102px] flex-1">
-                      Cron Jobs
+                      Задания
                     </TabsTrigger>
                   </TabsList>
 
@@ -1544,7 +1606,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                     <div className="grid gap-3 md:grid-cols-3">
                       <div className="rounded-2xl border border-primary-200 bg-white p-4 shadow-sm">
                         <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-                          Agent ID
+                          ID агента
                         </p>
                         <p className="mt-2 text-sm font-medium text-primary-900">
                           {selectedConfigAgent.id}
@@ -1552,18 +1614,19 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                       </div>
                       <div className="rounded-2xl border border-primary-200 bg-white p-4 shadow-sm">
                         <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-                          Name
+                          Имя
                         </p>
                         <p className="mt-2 text-sm font-medium text-primary-900">
-                          {selectedAgentConfig?.name || selectedConfigAgent.name}
+                          {selectedAgentConfig?.name ||
+                            selectedConfigAgent.name}
                         </p>
                       </div>
                       <div className="rounded-2xl border border-primary-200 bg-white p-4 shadow-sm">
                         <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-                          Workspace Path
+                          Папка workspace
                         </p>
                         <p className="mt-2 break-all text-sm font-medium text-primary-900">
-                          {selectedAgentConfig?.workspacePath || 'Unavailable'}
+                          {selectedAgentConfig?.workspacePath || 'Недоступно'}
                         </p>
                       </div>
                     </div>
@@ -1572,31 +1635,38 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-                            Primary Model
+                            Основная модель
                           </p>
                           <p className="mt-2 text-sm font-medium text-primary-900">
                             {selectedAgentConfig?.primaryModel
-                              ? formatModelName(selectedAgentConfig.primaryModel)
-                              : 'Unavailable'}
+                              ? formatModelName(
+                                  selectedAgentConfig.primaryModel,
+                                )
+                              : 'Недоступно'}
                           </p>
                         </div>
 
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-                            Fallbacks
+                            Запасные модели
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2">
-                            {(selectedAgentConfig?.fallbackModels ?? []).length > 0 ? (
-                              selectedAgentConfig?.fallbackModels.map((fallback) => (
-                                <span
-                                  key={fallback}
-                                  className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700"
-                                >
-                                  {formatModelName(fallback)}
-                                </span>
-                              ))
+                            {(selectedAgentConfig?.fallbackModels ?? [])
+                              .length > 0 ? (
+                              selectedAgentConfig?.fallbackModels.map(
+                                (fallback) => (
+                                  <span
+                                    key={fallback}
+                                    className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700"
+                                  >
+                                    {formatModelName(fallback)}
+                                  </span>
+                                ),
+                              )
                             ) : (
-                              <span className="text-sm text-primary-500">No fallback models</span>
+                              <span className="text-sm text-primary-500">
+                                Запасных моделей нет
+                              </span>
                             )}
                           </div>
                         </div>
@@ -1605,7 +1675,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                       <div className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                         <label className="block">
                           <span className="text-xs font-semibold uppercase tracking-wide text-primary-500">
-                            Model Override
+                            Переопределить модель
                           </span>
                           <select
                             value={agentConfigDraft?.modelOverride ?? ''}
@@ -1627,7 +1697,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                             }}
                             className="mt-2 h-10 w-full rounded-xl border border-primary-200 bg-primary-50 px-3 text-sm text-primary-900 outline-none transition focus:border-primary-300"
                           >
-                            <option value="">Use agent default</option>
+                            <option value="">Использовать модель агента</option>
                             {modelOverrideOptions.map((option) => (
                               <option key={option} value={option}>
                                 {formatModelName(option)}
@@ -1638,10 +1708,10 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
 
                         <div className="rounded-xl border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-600">
                           {selectedAgentConfig?.sourceMethod
-                            ? `Loaded via ${selectedAgentConfig.sourceMethod}`
+                            ? `Загружено через ${selectedAgentConfig.sourceMethod}`
                             : selectedAgentConfig?.readOnly
-                              ? 'Read-only fallback display'
-                              : 'Config ready'}
+                              ? 'Запасной просмотр без редактирования'
+                              : 'Настройки готовы'}
                         </div>
                       </div>
                     </div>
@@ -1650,7 +1720,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                   <TabsContent value="tools" className="space-y-3">
                     {(selectedAgentConfig?.tools ?? []).length === 0 ? (
                       <div className="rounded-2xl border border-primary-200 bg-white px-4 py-6 text-sm text-primary-500 shadow-sm">
-                        No tool policy was exposed for this agent.
+                        Для этого агента не переданы правила инструментов.
                       </div>
                     ) : (
                       selectedAgentConfig?.tools.map((tool) => (
@@ -1664,16 +1734,18 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                             </p>
                             <p className="text-xs text-primary-500">
                               {tool.source === 'allowed'
-                                ? 'Allowed by policy'
+                                ? 'Разрешено правилом'
                                 : tool.source === 'denied'
-                                  ? 'Denied by policy'
+                                  ? 'Запрещено правилом'
                                   : tool.source === 'explicit'
-                                    ? 'Explicit per-agent rule'
-                                    : 'Policy source unknown'}
+                                    ? 'Отдельное правило агента'
+                                    : 'Источник правила неизвестен'}
                             </p>
                           </div>
                           <Switch
-                            checked={agentConfigDraft?.tools[tool.id] ?? tool.enabled}
+                            checked={
+                              agentConfigDraft?.tools[tool.id] ?? tool.enabled
+                            }
                             disabled={
                               selectedAgentConfig.readOnly ||
                               !selectedAgentConfig.supportsPatch
@@ -1690,7 +1762,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                   <TabsContent value="skills" className="space-y-3">
                     {(selectedAgentConfig?.skills ?? []).length === 0 ? (
                       <div className="rounded-2xl border border-primary-200 bg-white px-4 py-6 text-sm text-primary-500 shadow-sm">
-                        No active skills were exposed for this agent.
+                        Для этого агента нет активных навыков.
                       </div>
                     ) : (
                       selectedAgentConfig?.skills.map((skill) => (
@@ -1702,10 +1774,15 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                             <p className="text-sm font-medium text-primary-900">
                               {prettyLabel(skill.id)}
                             </p>
-                            <p className="text-xs text-primary-500">{skill.id}</p>
+                            <p className="text-xs text-primary-500">
+                              {skill.id}
+                            </p>
                           </div>
                           <Switch
-                            checked={agentConfigDraft?.skills[skill.id] ?? skill.enabled}
+                            checked={
+                              agentConfigDraft?.skills[skill.id] ??
+                              skill.enabled
+                            }
                             disabled={
                               selectedAgentConfig.readOnly ||
                               !selectedAgentConfig.supportsPatch
@@ -1722,12 +1799,14 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                   <TabsContent value="channels" className="space-y-3">
                     {(selectedAgentConfig?.channels ?? []).length === 0 ? (
                       <div className="rounded-2xl border border-primary-200 bg-white px-4 py-6 text-sm text-primary-500 shadow-sm">
-                        No per-channel config was exposed for this agent.
+                        Для этого агента нет настроек каналов.
                       </div>
                     ) : (
                       selectedAgentConfig?.channels.map((channel) => {
-                        const draftChannel = agentConfigDraft?.channels[channel.id]
-                        const channelConfig = draftChannel?.config ?? channel.config
+                        const draftChannel =
+                          agentConfigDraft?.channels[channel.id]
+                        const channelConfig =
+                          draftChannel?.config ?? channel.config
                         const channelJson = safeStringify(channelConfig)
                         return (
                           <div
@@ -1740,23 +1819,28 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                                   {prettyLabel(channel.id)}
                                 </p>
                                 <p className="text-xs text-primary-500">
-                                  Responds on {channel.id}
+                                  Отвечает в канале {channel.id}
                                 </p>
                               </div>
                               {channel.enabled !== null ? (
                                 <Switch
-                                  checked={draftChannel?.enabled ?? channel.enabled}
+                                  checked={
+                                    draftChannel?.enabled ?? channel.enabled
+                                  }
                                   disabled={
                                     selectedAgentConfig.readOnly ||
                                     !selectedAgentConfig.supportsPatch
                                   }
                                   onCheckedChange={(checked) =>
-                                    handleChannelToggle(channel.id, Boolean(checked))
+                                    handleChannelToggle(
+                                      channel.id,
+                                      Boolean(checked),
+                                    )
                                   }
                                 />
                               ) : (
                                 <span className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-600">
-                                  Display only
+                                  Только просмотр
                                 </span>
                               )}
                             </div>
@@ -1768,7 +1852,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                                 </pre>
                               ) : (
                                 <p className="text-xs text-primary-500">
-                                  No extra channel config provided.
+                                  Дополнительных настроек канала нет.
                                 </p>
                               )}
                             </div>
@@ -1782,10 +1866,11 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                     <div className="flex items-center justify-between rounded-2xl border border-primary-200 bg-white px-4 py-3 shadow-sm">
                       <div>
                         <p className="text-sm font-medium text-primary-900">
-                          Assigned cron jobs
+                          Назначенные задания
                         </p>
                         <p className="text-xs text-primary-500">
-                          Matched against agent id, name, aliases, payload, and delivery config.
+                          Подбираются по ID агента, имени, алиасам, тексту
+                          задания и настройкам доставки.
                         </p>
                       </div>
                       <Button
@@ -1793,23 +1878,23 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                         size="sm"
                         onClick={() => void navigate({ to: '/jobs' })}
                       >
-                        Open Cron Screen
+                        Открыть задания
                       </Button>
                     </div>
 
                     {cronJobsQuery.isLoading ? (
                       <div className="rounded-2xl border border-primary-200 bg-white px-4 py-6 text-sm text-primary-500 shadow-sm">
-                        Loading cron jobs...
+                        Загружаю задания...
                       </div>
                     ) : cronJobsQuery.isError ? (
                       <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700 shadow-sm">
                         {cronJobsQuery.error instanceof Error
                           ? cronJobsQuery.error.message
-                          : 'Failed to load cron jobs'}
+                          : 'Не удалось загрузить задания'}
                       </div>
                     ) : selectedCronJobs.length === 0 ? (
                       <div className="rounded-2xl border border-primary-200 bg-white px-4 py-6 text-sm text-primary-500 shadow-sm">
-                        No cron jobs matched this agent.
+                        Для этого агента нет заданий.
                       </div>
                     ) : (
                       selectedCronJobs.map((job) => (
@@ -1827,31 +1912,35 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
                               </p>
                             </div>
                             <span className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-[11px] font-medium text-primary-700">
-                              {job.enabled ? 'Enabled' : 'Disabled'}
+                              {job.enabled ? 'Включено' : 'Выключено'}
                             </span>
                           </div>
 
                           <div className="mt-3 grid gap-3 text-sm text-primary-700 md:grid-cols-3">
                             <div>
                               <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-500">
-                                Schedule
+                                Расписание
                               </p>
                               <p className="mt-1">{job.schedule}</p>
                             </div>
                             <div>
                               <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-500">
-                                Status
+                                Статус
                               </p>
-                              <p className="mt-1">{job.status || 'Unknown'}</p>
+                              <p className="mt-1">
+                                {job.status || 'Неизвестно'}
+                              </p>
                             </div>
                             <div>
                               <p className="text-[11px] font-semibold uppercase tracking-wide text-primary-500">
-                                Last Run
+                                Последний запуск
                               </p>
                               <p className="mt-1">
                                 {job.lastRun?.startedAt
-                                  ? new Date(job.lastRun.startedAt).toLocaleString()
-                                  : 'Never'}
+                                  ? new Date(
+                                      job.lastRun.startedAt,
+                                    ).toLocaleString()
+                                  : 'Никогда'}
                               </p>
                             </div>
                           </div>
@@ -1870,7 +1959,7 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
         <div className="fixed inset-0 z-[90] md:hidden">
           <button
             type="button"
-            aria-label="Close history"
+            aria-label="Закрыть историю"
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setHistoryAgentId(null)}
           />
@@ -1878,65 +1967,67 @@ export function AgentsScreen({ variant = 'mission-control' }: AgentsScreenProps)
           <div className="absolute inset-x-4 top-[12vh] rounded-2xl border border-white/30 bg-white/90 p-4 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/90">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="truncate pr-2 text-base font-bold text-neutral-900 dark:text-neutral-100">
-                {selectedHistoryAgent.name} history
+                История: {selectedHistoryAgent.name}
               </h3>
               <button
                 type="button"
                 className="min-h-11 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 sm:px-4 sm:py-2 sm:text-sm"
                 onClick={() => setHistoryAgentId(null)}
               >
-                Close
+                Закрыть
               </button>
             </div>
 
             {selectedHistoryAgent.matchedSessions.length === 0 ? (
               <p className="text-xs text-neutral-600 dark:text-neutral-300">
-                No recent sessions for this agent yet.
+                У этого агента пока нет недавних сессий.
               </p>
             ) : (
               <div className="max-h-[48vh] space-y-2 overflow-auto">
-                {selectedHistoryAgent.matchedSessions.slice(0, 8).map((session, index) => {
-                  const friendlyId = getSessionFriendlyId(session)
-                  const sessionModel = getSessionModelName(session)
-                  return (
-                    <div
-                      key={`${readString(session.key)}-${readString(session.friendlyId)}-${index}`}
-                      className="rounded-xl border border-white/30 bg-white/60 p-2.5 dark:border-white/10 dark:bg-neutral-900/40"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-xs font-medium text-neutral-900 dark:text-neutral-100">
-                          {getSessionTitle(session)}
-                        </p>
-                        <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
-                          {formatRelativeTime(session.updatedAt)}
-                        </span>
-                      </div>
+                {selectedHistoryAgent.matchedSessions
+                  .slice(0, 8)
+                  .map((session, index) => {
+                    const friendlyId = getSessionFriendlyId(session)
+                    const sessionModel = getSessionModelName(session)
+                    return (
+                      <div
+                        key={`${readString(session.key)}-${readString(session.friendlyId)}-${index}`}
+                        className="rounded-xl border border-white/30 bg-white/60 p-2.5 dark:border-white/10 dark:bg-neutral-900/40"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-xs font-medium text-neutral-900 dark:text-neutral-100">
+                            {getSessionTitle(session)}
+                          </p>
+                          <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                            {formatRelativeTime(session.updatedAt)}
+                          </span>
+                        </div>
 
-                      <div className="mt-1 flex items-center justify-between">
-                        <span className="text-[10px] font-medium text-neutral-600 dark:text-neutral-300">
-                          {sessionModel
-                            ? `${readString(session.status) || 'unknown'} · ${formatModelName(sessionModel)}`
-                            : readString(session.status) || 'unknown'}
-                        </span>
-                        {friendlyId ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setHistoryAgentId(null)
-                              void navigate({
-                                to: '/chat/$sessionKey',
-                                params: { sessionKey: friendlyId },
-                              })
-                            }}
-                            className="min-h-11 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-accent-700 transition-colors hover:bg-accent-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-accent-300 dark:hover:bg-accent-950/30 sm:px-4 sm:py-2 sm:text-sm"
-                          >
-                            Open Chat
-                          </button>
-                        ) : null}
+                        <div className="mt-1 flex items-center justify-between">
+                          <span className="text-[10px] font-medium text-neutral-600 dark:text-neutral-300">
+                            {sessionModel
+                              ? `${readString(session.status) || 'неизвестно'} · ${formatModelName(sessionModel)}`
+                              : readString(session.status) || 'неизвестно'}
+                          </span>
+                          {friendlyId ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setHistoryAgentId(null)
+                                void navigate({
+                                  to: '/chat/$sessionKey',
+                                  params: { sessionKey: friendlyId },
+                                })
+                              }}
+                              className="min-h-11 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-accent-700 transition-colors hover:bg-accent-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-accent-300 dark:hover:bg-accent-950/30 sm:px-4 sm:py-2 sm:text-sm"
+                            >
+                              Открыть чат
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
               </div>
             )}
           </div>

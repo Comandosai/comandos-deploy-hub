@@ -37,9 +37,11 @@ export function OperationsAgentChat({
     <section className="rounded-3xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-5 shadow-[0_20px_70px_color-mix(in_srgb,var(--theme-shadow)_14%,transparent)]">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-[var(--theme-text)]">Chat</h3>
+          <h3 className="text-lg font-semibold text-[var(--theme-text)]">
+            Чат
+          </h3>
           <p className="mt-1 text-sm text-[var(--theme-muted-2)]">
-            Persistent session with {agentName}
+            Постоянная сессия с {agentName}
           </p>
         </div>
         <Button
@@ -53,7 +55,7 @@ export function OperationsAgentChat({
             strokeWidth={1.8}
             className={cn(isRefreshing && 'animate-spin')}
           />
-          Refresh
+          Обновить
         </Button>
       </div>
 
@@ -73,7 +75,9 @@ export function OperationsAgentChat({
               )}
             >
               <div className="mb-2 flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]">
-                <span>{message.role}</span>
+                <span>
+                  {message.role === 'user' ? 'Пользователь' : 'Агент'}
+                </span>
                 {message.timestamp ? (
                   <span>{formatRelativeTime(message.timestamp)}</span>
                 ) : null}
@@ -81,32 +85,36 @@ export function OperationsAgentChat({
               {message.role === 'assistant' ? (
                 <Markdown>{message.content}</Markdown>
               ) : (
-                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {message.content}
+                </p>
               )}
             </div>
           ))
         ) : (
           <p className="text-sm text-[var(--theme-muted)]">
-            No messages yet. Start the conversation with this agent.
+            Сообщений пока нет. Начните разговор с этим агентом.
           </p>
         )}
       </div>
 
-      {error ? (
-        <p className="mt-3 text-sm text-red-600">{error}</p>
-      ) : null}
+      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
       <div className="mt-4 flex items-end gap-3">
         <textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+            if (
+              event.key === 'Enter' &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing
+            ) {
               event.preventDefault()
               void handleSend()
             }
           }}
-          placeholder="Type a message..."
+          placeholder="Напишите сообщение..."
           className="min-h-[112px] flex-1 resize-y rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 text-sm text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)] focus:border-[var(--theme-accent)]"
         />
         <Button
@@ -115,7 +123,7 @@ export function OperationsAgentChat({
           disabled={!draft.trim() || isSending}
         >
           <HugeiconsIcon icon={ArrowUp01Icon} size={16} strokeWidth={1.8} />
-          {isSending ? 'Sending…' : 'Send'}
+          {isSending ? 'Отправляю...' : 'Отправить'}
         </Button>
       </div>
     </section>

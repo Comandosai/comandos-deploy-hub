@@ -828,7 +828,7 @@ function ControlPlaneStage({
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 min-[1680px]:grid-cols-3">
               {members.length === 0 ? (
                 <div className="col-span-full rounded-[1.5rem] border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] p-8 text-sm text-[var(--theme-muted)]">
-                  No swarm workers discovered from crew status yet.
+                  Агенты роя пока не найдены.
                 </div>
               ) : (
                 members.map((member) => {
@@ -860,8 +860,8 @@ function ControlPlaneStage({
           <div className={cn('relative z-10 flex flex-col gap-3', viewMode === 'runtime' ? 'block' : 'hidden')}>
             {!tmuxAvailable ? (
               <div className="rounded-xl border border-amber-300/40 bg-amber-300/10 px-4 py-2.5 text-xs text-amber-100">
-                <div className="font-semibold text-amber-50">tmux not installed on this host</div>
-                <div className="mt-1 text-amber-100/80">Spawning a Hermes swarm worker requires tmux. Without it, the worker can start but cannot dispatch tasks (you'll see &lsquo;can't find pane: swarm-&lt;id&gt;&rsquo; errors). Install tmux:</div>
+                <div className="font-semibold text-amber-50">На сервере не установлен tmux</div>
+                <div className="mt-1 text-amber-100/80">Для запуска рабочего агента роя нужен tmux. Без него агент может стартовать, но не сможет получать задачи. Установите tmux:</div>
                 <code className="mt-1 inline-block rounded bg-black/30 px-2 py-0.5 text-[10px] text-amber-100">brew install tmux</code>{' '}
                 <span className="text-amber-100/60">(macOS) or</span>{' '}
                 <code className="inline-block rounded bg-black/30 px-2 py-0.5 text-[10px] text-amber-100">apt install tmux</code>{' '}
@@ -871,7 +871,7 @@ function ControlPlaneStage({
             {focusedRuntimeWorkerId ? (
               <div className="flex items-center justify-between rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] px-4 py-2 text-xs text-[var(--theme-muted)]">
                 <span>
-                  Focus mode on{' '}
+                  Фокус на агенте{' '}
                   <span className="font-semibold text-[var(--theme-text)]">
                     {members.find((member) => member.id === focusedRuntimeWorkerId)?.displayName || focusedRuntimeWorkerId}
                   </span>
@@ -881,14 +881,14 @@ function ControlPlaneStage({
                   onClick={onClearFocusedRuntimeWorker}
                   className="rounded-full border border-[var(--theme-border)] px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
                 >
-                  Exit focus
+                  Выйти из фокуса
                 </button>
               </div>
             ) : null}
             <div className={cn('grid grid-cols-1 gap-3', focusedRuntimeWorkerId ? '' : '2xl:grid-cols-2')}>
               {terminalTargets.length === 0 ? (
                 <div className="rounded-[1.5rem] border border-dashed border-[var(--theme-border)] bg-[var(--theme-card)] p-8 text-sm text-[var(--theme-muted)]">
-                  No active workers detected. Select a worker or wire it into the room to mount its terminal.
+                  Активные агенты не найдены. Выберите агента или добавьте его в комнату, чтобы открыть терминал.
                 </div>
               ) : (
                 terminalTargets.map((member) => {
@@ -1053,12 +1053,12 @@ export function Swarm2Screen() {
             toast({
               title: 'tmux not installed',
               description:
-                `Swarm worker ${workerId} couldn't start because tmux is not installed on this host. Install tmux (‘brew install tmux’ or ‘apt install tmux’) and try again. See #244.`,
+                `Агент ${workerId} не запустился: на сервере не установлен tmux. Установите tmux и повторите запуск.`,
               variant: 'destructive',
             })
           } else {
             toast({
-              title: `Failed to start ${workerId}`,
+              title: `Не удалось запустить ${workerId}`,
               description: msg,
               variant: 'destructive',
             })
@@ -1068,7 +1068,7 @@ export function Swarm2Screen() {
         }
       } catch (err) {
         toast({
-          title: `Failed to start ${workerId}`,
+          title: `Не удалось запустить ${workerId}`,
           description: err instanceof Error ? err.message : String(err),
           variant: 'destructive',
         })
@@ -1269,7 +1269,7 @@ export function Swarm2Screen() {
     const firstTask = assignments.find((assignment) => assignment.task?.trim())?.task ?? ''
     return {
       id: mission.id,
-      title: cleanSwarmLabel(genericTitle ? firstTask : mission.title, 'Swarm mission', 72),
+      title: cleanSwarmLabel(genericTitle ? firstTask : mission.title, 'Миссия роя', 72),
       state: mission.state,
       assignmentCount: assignments.length,
       checkpointedCount: assignments.filter((assignment) => ['checkpointed', 'done'].includes(assignment.state)).length,
@@ -1339,7 +1339,7 @@ export function Swarm2Screen() {
       key: Date.now(),
       mode: 'manual',
       prompt: [
-        `Review ${item.workerId}'s Swarm control-plane output for mission ${item.missionId ?? 'unknown mission'}. Do not broaden scope. Return the required checkpoint format.`,
+        `Проверь результат агента ${item.workerId} по миссии ${item.missionId ?? 'неизвестная миссия'}. Не расширяй задачу. Верни короткий вывод и проблемные места.`,
         '',
         `Task: ${item.title}`,
         `Summary: ${item.summary}`,
@@ -1357,7 +1357,7 @@ export function Swarm2Screen() {
       ...inboxLanes.needs_review.map((item) => ({
         id: `review-${item.id}`,
         workerId: item.workerId,
-        title: `${item.workerName} · Needs review`,
+        title: `${item.workerName} · нужна проверка`,
         body: item.summary,
         age: relativeTime(item.updatedAt),
         actionable: true,
@@ -1365,7 +1365,7 @@ export function Swarm2Screen() {
       ...inboxLanes.blocked.map((item) => ({
         id: `blocked-${item.id}`,
         workerId: item.workerId,
-        title: `${item.workerName} · Needs input`,
+        title: `${item.workerName} · нужен ввод`,
         body: item.blocker ?? item.summary,
         age: relativeTime(item.updatedAt),
         actionable: true,
@@ -1373,7 +1373,7 @@ export function Swarm2Screen() {
       ...inboxLanes.ready.map((item) => ({
         id: `ready-${item.id}`,
         workerId: item.workerId,
-        title: `${item.workerName} · Ready`,
+        title: `${item.workerName} · готово`,
         body: item.summary,
         age: relativeTime(item.updatedAt),
         actionable: true,
@@ -1383,8 +1383,8 @@ export function Swarm2Screen() {
       laneItems.unshift({
         id: `mission-${latestMission.id}`,
         workerId: '',
-        title: `Mission ${latestMission.state}`,
-        body: `${latestMission.checkpointedCount}/${latestMission.assignmentCount} checkpointed · ${latestMission.title}`,
+        title: `Миссия: ${latestMission.state}`,
+        body: `${latestMission.checkpointedCount}/${latestMission.assignmentCount} проверено · ${latestMission.title}`,
         age: latestMission.id,
         actionable: latestMission.checkpointedCount < latestMission.assignmentCount,
       })
@@ -1398,7 +1398,7 @@ export function Swarm2Screen() {
       .map((member) => {
         const runtime = runtimeByWorker.get(member.id)
         const ts = runtime?.lastOutputAt ?? runtime?.lastSessionStartedAt ?? member.lastSessionAt ?? null
-        const rawText = runtime?.lastRealSummary ?? runtime?.lastRealResult ?? runtime?.lastSummary ?? runtime?.lastResult ?? runtime?.blockedReason ?? runtime?.currentTask ?? member.lastSessionTitle ?? `Ready in ${member.role || 'worker'} lane`
+        const rawText = runtime?.lastRealSummary ?? runtime?.lastRealResult ?? runtime?.lastSummary ?? runtime?.lastResult ?? runtime?.blockedReason ?? runtime?.currentTask ?? member.lastSessionTitle ?? `Готов в роли ${member.role || 'агент'}`
         const state = (runtime?.phase || runtime?.currentTask || '').toLowerCase()
         const tone: 'idle' | 'active' | 'warning' = runtime?.blockedReason
           ? 'warning'
@@ -1455,7 +1455,7 @@ export function Swarm2Screen() {
           role: newWorkerRole.trim(),
           specialty: newWorkerSpecialty.trim() || preset?.specialty || '',
           model: newWorkerModel.trim(),
-          mission: newWorkerMission.trim() || preset?.mission || 'Awaiting orchestrator dispatch.',
+          mission: newWorkerMission.trim() || preset?.mission || 'Ожидает задачу от оркестратора.',
           systemPrompt: preset?.systemPrompt ?? null,
           skills: preset?.skills ?? [],
         }),
@@ -1467,7 +1467,7 @@ export function Swarm2Screen() {
       await rosterQuery.refetch()
       setAddSwarmOpen(false)
     } catch (error) {
-      setAddSwarmError(error instanceof Error ? error.message : 'Failed to save swarm agent')
+      setAddSwarmError(error instanceof Error ? error.message : 'Не удалось сохранить агента')
     } finally {
       setAddSwarmSaving(false)
     }
@@ -1490,12 +1490,12 @@ export function Swarm2Screen() {
               </div>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-semibold text-primary-900">
-                  Swarm
+                  Рой
                 </h1>
                 <p className="truncate text-xs text-[var(--theme-muted-2)]">
                   {members.length > 0
-                    ? `Detected ${members.length} worker${members.length === 1 ? '' : 's'} for planning, routing, reports, and reviewer-gated execution.`
-                    : 'Detected Hermes profiles and roster workers for planning, routing, reports, and reviewer-gated execution.'}
+                    ? `Найдено агентов: ${members.length}. Можно планировать, раздавать задачи и смотреть отчёты.`
+                    : 'Найдены профили Hermes и список агентов для планирования, раздачи задач и отчётов.'}
                 </p>
               </div>
             </div>
@@ -1503,28 +1503,28 @@ export function Swarm2Screen() {
             <div className="relative flex shrink-0 items-center gap-2 text-sm text-[var(--theme-muted)]">
               <WorkflowHelpModal
                 compact
-                eyebrow="Swarm"
-                title="How Swarm works"
+                eyebrow="Рой"
+                title="Как работает рой"
                 sections={[
                   {
-                    title: 'What this surface does',
+                    title: 'Что делает этот экран',
                     bullets: [
-                      'Swarm turns a group of workers into one coordinated execution surface.',
-                      'Use it to route tasks, monitor state, and keep parallel work moving without losing context.',
+                      'Рой собирает несколько агентов в одну рабочую группу.',
+                      'Здесь можно раздавать задачи, смотреть состояние и не терять контекст параллельной работы.',
                     ],
                   },
                   {
-                    title: 'Typical flow',
+                    title: 'Обычный порядок',
                     bullets: [
-                      'Review worker state, then dispatch or reroute work from the orchestration controls.',
-                      'Use reports, inbox, and runtime signals to spot blockers and pull workers back on track.',
+                      'Сначала смотрите состояние агентов, потом отправляйте или перенаправляйте работу.',
+                      'Отчёты и входящие помогают быстро найти проблемы и вернуть агентов в нормальный ход.',
                     ],
                   },
                   {
-                    title: 'FAQ',
+                    title: 'Частые вопросы',
                     bullets: [
-                      'If a worker is missing setup or model config, fix that in Operations first.',
-                      'Swarm2 is the operational coordination layer, not the first-time setup screen.',
+                      'Если у агента нет модели или профиля, сначала исправьте это в разделе «Операции».',
+                      'Рой управляет работой агентов, но не настраивает Hermes с нуля.',
                     ],
                   },
                 ]}
@@ -1533,8 +1533,8 @@ export function Swarm2Screen() {
                 type="button"
                 onClick={() => setNotificationsOpen((open) => !open)}
                 className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-base shadow-sm hover:bg-[var(--theme-card2)]"
-                aria-label="Swarm notifications"
-                title="Swarm notifications"
+                aria-label="Уведомления роя"
+                title="Уведомления роя"
               >
                 <HugeiconsIcon icon={AlarmClockIcon} size={17} strokeWidth={1.8} />
                 {actionableNotificationCount > 0 ? (
@@ -1547,10 +1547,10 @@ export function Swarm2Screen() {
                 <div className="absolute right-0 top-12 z-40 w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-3 text-left shadow-[0_24px_80px_var(--theme-shadow)]">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--theme-muted)]">Swarm updates</div>
-                      <div className="text-xs text-[var(--theme-muted-2)]">Actionable state from canonical mission checkpoints and durable report lanes.</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--theme-muted)]">Обновления роя</div>
+                      <div className="text-xs text-[var(--theme-muted-2)]">Важные события по миссиям, отчётам и агентам.</div>
                     </div>
-                    <button type="button" onClick={() => setNotificationsOpen(false)} className="rounded-lg px-2 py-1 text-xs hover:bg-[var(--theme-card2)]">Close</button>
+                    <button type="button" onClick={() => setNotificationsOpen(false)} className="rounded-lg px-2 py-1 text-xs hover:bg-[var(--theme-card2)]">Закрыть</button>
                   </div>
                   <div className="max-h-80 space-y-2 overflow-y-auto">
                     {swarmNotifications.length ? swarmNotifications.map((item) => (
@@ -1574,7 +1574,7 @@ export function Swarm2Screen() {
                         <div className="mt-1 truncate text-xs text-[var(--theme-muted-2)]">{item.body}</div>
                       </button>
                     )) : (
-                      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">No active swarm updates.</div>
+                      <div className="rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">Активных обновлений пока нет.</div>
                     )}
                   </div>
                 </div>
@@ -1585,7 +1585,7 @@ export function Swarm2Screen() {
                 className="inline-flex items-center gap-2 rounded-lg bg-[var(--theme-accent)] px-4 py-2 text-sm font-medium text-primary-950 shadow-sm hover:bg-[var(--theme-accent-strong)]"
               >
                 <HugeiconsIcon icon={MessageMultiple01Icon} size={13} />
-                Add Swarm
+                Добавить агента
               </button>
             </div>
           </div>
@@ -1659,20 +1659,20 @@ export function Swarm2Screen() {
           <div className="w-full max-w-2xl rounded-3xl border border-[var(--theme-border2)] bg-[var(--theme-card)] p-6 shadow-[0_30px_100px_var(--theme-shadow)]">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-semibold text-[var(--theme-text)]">Add Swarm Agent</h2>
-                <p className="mt-1 text-sm text-[var(--theme-muted-2)]">Create a new swarm roster entry and configure its identity.</p>
+                <h2 className="text-xl font-semibold text-[var(--theme-text)]">Добавить агента в рой</h2>
+                <p className="mt-1 text-sm text-[var(--theme-muted-2)]">Создайте запись агента и задайте его роль.</p>
               </div>
               <button
                 type="button"
                 onClick={() => setAddSwarmOpen(false)}
                 className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card2)] px-3 py-1.5 text-[var(--theme-muted)] hover:text-[var(--theme-text)]"
               >
-                Close
+                Закрыть
               </button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block text-sm md:col-span-2">
-                <span className="mb-1 block text-[var(--theme-muted)]">Role preset</span>
+                <span className="mb-1 block text-[var(--theme-muted)]">Роль</span>
                 <select
                   value={newWorkerRole}
                   onChange={(e) => {
@@ -1692,27 +1692,27 @@ export function Swarm2Screen() {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-[var(--theme-muted-2)]">
-                  Presets auto-fill specialty, mission, system prompt, and skill stack. Pick “Custom” for a blank slate.
+                  Роль заполняет специализацию, миссию, системный промпт и навыки. Выберите Custom, если нужен пустой агент.
                 </p>
               </label>
               <label className="block text-sm">
-                <span className="mb-1 block text-[var(--theme-muted)]">Worker ID</span>
+                <span className="mb-1 block text-[var(--theme-muted)]">ID агента</span>
                 <input value={newWorkerId} onChange={(e) => setNewWorkerId(e.target.value)} className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder="swarmN" />
               </label>
               <label className="block text-sm">
-                <span className="mb-1 block text-[var(--theme-muted)]">Display name</span>
-                <input value={newWorkerName} onChange={(e) => setNewWorkerName(e.target.value)} className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder="e.g. Mirror, Builder" />
+                <span className="mb-1 block text-[var(--theme-muted)]">Название</span>
+                <input value={newWorkerName} onChange={(e) => setNewWorkerName(e.target.value)} className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder="например: Проверяющий, Сборщик" />
               </label>
               <label className="block text-sm md:col-span-2">
                 <span className="mb-1 flex items-center justify-between text-[var(--theme-muted)]">
-                  <span>Model</span>
-                  <span className="text-[10px] text-[var(--theme-muted-2)]">{availableModels.length > 0 ? `${availableModels.length} available` : modelsQuery.isLoading ? 'loading…' : '0 found'}</span>
+                  <span>Модель</span>
+                  <span className="text-[10px] text-[var(--theme-muted-2)]">{availableModels.length > 0 ? `доступно: ${availableModels.length}` : modelsQuery.isLoading ? 'загружаю…' : 'не найдено'}</span>
                 </span>
                 <input
                   value={newWorkerModel}
                   onChange={(e) => setNewWorkerModel(e.target.value)}
                   list="swarm-add-models"
-                  placeholder={availableModels.length ? 'Search or pick a detected model…' : modelsQuery.isLoading ? 'Loading detected models…' : 'No models detected'}
+                  placeholder={availableModels.length ? 'Найдите или выберите модель…' : modelsQuery.isLoading ? 'Загружаю модели…' : 'Модели не найдены'}
                   className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none"
                 />
                 <datalist id="swarm-add-models">
@@ -1721,30 +1721,30 @@ export function Swarm2Screen() {
                   ))}
                 </datalist>
                 <p className="mt-1 text-xs text-[var(--theme-muted-2)]">
-                  Searchable picker backed by /api/models, the same source as chat. {modelsQuery.isError ? 'Model discovery errored, so this is empty until refresh.' : 'Start typing to see every detected model from the user’s Hermes config and local providers.'}
+                  Список берётся из /api/models, как и в чате. {modelsQuery.isError ? 'Модели не загрузились, обновите страницу.' : 'Начните вводить название, чтобы увидеть найденные модели.'}
                 </p>
               </label>
               <label className="block text-sm md:col-span-2">
-                <span className="mb-1 block text-[var(--theme-muted)]">Specialty</span>
-                <input value={newWorkerSpecialty} onChange={(e) => setNewWorkerSpecialty(e.target.value)} className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder={ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.specialty || 'short focus area'} />
+                <span className="mb-1 block text-[var(--theme-muted)]">Специализация</span>
+                <input value={newWorkerSpecialty} onChange={(e) => setNewWorkerSpecialty(e.target.value)} className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder={ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.specialty || 'короткая зона ответственности'} />
               </label>
               <label className="block text-sm md:col-span-2">
-                <span className="mb-1 block text-[var(--theme-muted)]">Mission</span>
-                <textarea value={newWorkerMission} onChange={(e) => setNewWorkerMission(e.target.value)} rows={3} className="w-full resize-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder={ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.mission || 'standing mission for this worker'} />
+                <span className="mb-1 block text-[var(--theme-muted)]">Миссия</span>
+                <textarea value={newWorkerMission} onChange={(e) => setNewWorkerMission(e.target.value)} rows={3} className="w-full resize-none rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none" placeholder={ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.mission || 'постоянная задача этого агента'} />
               </label>
               {ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.systemPrompt ? (
                 <div className="md:col-span-2 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] px-3 py-2 text-xs text-[var(--theme-muted-2)]">
-                  <div className="mb-1 font-semibold text-[var(--theme-muted)]">System prompt (embedded with role)</div>
+                  <div className="mb-1 font-semibold text-[var(--theme-muted)]">Системный промпт роли</div>
                   <div className="whitespace-pre-wrap leading-relaxed">{ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.systemPrompt}</div>
-                  <div className="mt-2 font-semibold text-[var(--theme-muted)]">Skills loaded</div>
+                  <div className="mt-2 font-semibold text-[var(--theme-muted)]">Подключённые навыки</div>
                   <div className="font-mono">{(ROLE_PRESETS.find((p) => p.role === newWorkerRole)?.skills ?? []).join(', ') || '—'}</div>
                 </div>
               ) : null}
             </div>
             {addSwarmError ? <div className="mt-3 rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{addSwarmError}</div> : null}
             <div className="mt-4 flex items-center justify-end gap-3">
-              <button type="button" onClick={() => setAddSwarmOpen(false)} className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-4 py-2 text-sm text-[var(--theme-muted)] hover:text-[var(--theme-text)]">Cancel</button>
-              <button type="button" disabled={addSwarmSaving || !newWorkerId.trim() || !newWorkerName.trim()} onClick={() => void saveAddSwarm()} className="rounded-lg bg-[var(--theme-accent)] px-4 py-2 text-sm font-medium text-primary-950 disabled:opacity-50">{addSwarmSaving ? 'Saving…' : 'Save swarm agent'}</button>
+              <button type="button" onClick={() => setAddSwarmOpen(false)} className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-4 py-2 text-sm text-[var(--theme-muted)] hover:text-[var(--theme-text)]">Отмена</button>
+              <button type="button" disabled={addSwarmSaving || !newWorkerId.trim() || !newWorkerName.trim()} onClick={() => void saveAddSwarm()} className="rounded-lg bg-[var(--theme-accent)] px-4 py-2 text-sm font-medium text-primary-950 disabled:opacity-50">{addSwarmSaving ? 'Сохраняю…' : 'Сохранить агента'}</button>
             </div>
           </div>
         </div>

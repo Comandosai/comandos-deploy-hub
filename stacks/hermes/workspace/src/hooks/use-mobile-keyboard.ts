@@ -67,14 +67,16 @@ export function useMobileKeyboard() {
       frameId = window.requestAnimationFrame(() => {
         frameId = null
         const layoutHeight = Math.round(window.innerHeight)
+        const mobileViewport =
+          window.matchMedia('(max-width: 767px)').matches ||
+          window.matchMedia('(pointer: coarse)').matches
         const visualHeight = Math.round(vv?.height ?? layoutHeight)
         const visualTop = Math.round(vv?.offsetTop ?? 0)
-        const keyboardInset = Math.max(
-          0,
-          layoutHeight - (visualHeight + visualTop),
-        )
+        const keyboardInset = mobileViewport
+          ? Math.max(0, layoutHeight - (visualHeight + visualTop))
+          : 0
 
-        applyVvh(visualHeight)
+        applyVvh(mobileViewport ? visualHeight : layoutHeight)
         applyKeyboardInset(keyboardInset)
 
         const wasOpen = lastKeyboardOpenRef.current ?? false

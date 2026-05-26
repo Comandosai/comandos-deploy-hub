@@ -22,9 +22,9 @@ export function SearchResults({
     return (
       <EmptyState
         icon={Search01Icon as any}
-        title="No results found"
+        title="Ничего не найдено"
         description={
-          query ? `Try a different search term` : 'Start typing to search'
+          query ? 'Попробуйте другой запрос' : 'Начните вводить запрос'
         }
       />
     )

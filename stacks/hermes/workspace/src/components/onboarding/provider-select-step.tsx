@@ -347,7 +347,7 @@ export function ProviderSelectStep({
                 size={14}
                 strokeWidth={2}
               />
-              <span>API key is valid!</span>
+              <span>API-ключ проверен.</span>
             </div>
           )}
           {error && (
@@ -363,7 +363,7 @@ export function ProviderSelectStep({
       <div className="flex gap-3">
         {onSkip && (
           <Button variant="secondary" onClick={onSkip} className="flex-1">
-            Skip for Now
+            Пропустить сейчас
           </Button>
         )}
         <Button
@@ -375,7 +375,7 @@ export function ProviderSelectStep({
             validated === true && 'bg-green-600 hover:bg-green-700',
           )}
         >
-          {validated === true ? 'Continue ✓' : 'Continue'}
+          {validated === true ? 'Продолжить ✓' : 'Продолжить'}
         </Button>
       </div>
     </div>

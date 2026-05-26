@@ -12,7 +12,7 @@ export function WorkflowHelpModal({
   title,
   eyebrow,
   sections,
-  triggerLabel = 'How it works',
+  triggerLabel = 'Как это работает',
   compact = false,
 }: {
   title: string
@@ -53,7 +53,7 @@ export function WorkflowHelpModal({
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-lg p-2 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
-                aria-label={`Close ${title}`}
+                aria-label={`Закрыть ${title}`}
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={1.8} />
               </button>

@@ -21,13 +21,13 @@ function toTitleCase(value: string): string {
 
 function formatMobileSessionTitle(rawTitle: string): string {
   const title = rawTitle.trim()
-  if (!title) return 'New Chat'
+  if (!title) return 'Новый чат'
 
   const normalized = title.toLowerCase()
 
   // Agent session patterns
   if (normalized === 'agent:main:main' || normalized === 'agent:main') {
-    return 'Main Chat'
+    return 'Главный чат'
   }
   const parts = title
     .split(':')
@@ -39,14 +39,14 @@ function formatMobileSessionTitle(rawTitle: string): string {
     parts[1].length > 0
   ) {
     const candidate = parts[parts.length - 1]
-    if (candidate.toLowerCase() === 'main') return 'Main Chat'
-    return `${toTitleCase(candidate)} Chat`
+    if (candidate.toLowerCase() === 'main') return 'Главный чат'
+    return `${toTitleCase(candidate)} чат`
   }
 
   // Common system prompts → friendly names
-  if (normalized.startsWith('read heartbeat')) return 'Main Chat'
-  if (normalized.startsWith('generate daily')) return 'Daily Brief'
-  if (normalized.startsWith('morning check')) return 'Morning Check-in'
+  if (normalized.startsWith('read heartbeat')) return 'Главный чат'
+  if (normalized.startsWith('generate daily')) return 'Дневная сводка'
+  if (normalized.startsWith('morning check')) return 'Утренняя проверка'
 
   // If it looks like a command/prompt (starts with a verb + long), summarize it
   const MAX_LEN = 20
@@ -253,7 +253,7 @@ function ChatHeaderComponent({
             type="button"
             onClick={openHamburgerMenu}
             className="shrink-0 flex items-center justify-center w-11 h-11 -ml-1 rounded-xl active:bg-white/10 transition-colors z-10"
-            aria-label="Open navigation menu"
+            aria-label="Открыть меню навигации"
           >
             <svg
               width="20"
@@ -276,10 +276,10 @@ function ChatHeaderComponent({
             type="button"
             onClick={onOpenSessions}
             className="flex items-center gap-1 min-w-0 max-w-[55vw] px-3 py-1.5 rounded-full bg-primary-100/70 hover:bg-primary-200/80 dark:bg-neutral-700/80 dark:hover:bg-neutral-600/80 transition-colors"
-            aria-label="Switch session"
+            aria-label="Сменить сессию"
           >
             <span className="truncate text-[13px] font-medium text-primary-600 dark:text-primary-300">
-              {mobileTitle === 'new' ? 'New Chat' : mobileTitle}
+              {mobileTitle === 'new' ? 'Новый чат' : mobileTitle}
             </span>
             <svg
               width="8"
@@ -408,7 +408,7 @@ function ChatHeaderComponent({
                       <input
                         autoFocus
                         type="text"
-                        placeholder="Search sessions..."
+                        placeholder="Поиск сессий..."
                         value={sessionSearch}
                         onChange={(e) => setSessionSearch(e.target.value)}
                         className="flex-1 bg-transparent text-sm outline-none"
@@ -442,7 +442,7 @@ function ChatHeaderComponent({
                           s.derivedTitle ||
                           s.title ||
                           s.friendlyId?.slice(0, 8) ||
-                          'Session'
+                          'Сессия'
                         const isActive =
                           Boolean(activeFriendlyId) &&
                           (s.friendlyId === activeFriendlyId ||
@@ -476,7 +476,7 @@ function ChatHeaderComponent({
                       })}
                     {sessions.length === 0 && (
                       <p className="px-3 py-4 text-sm text-neutral-400">
-                        No sessions
+                        Сессий нет
                       </p>
                     )}
                   </div>
@@ -488,7 +488,7 @@ function ChatHeaderComponent({
         {renamingTitle ? (
           <span
             className="mr-1 inline-flex size-3 animate-spin rounded-full border border-primary-300 border-t-primary-700"
-            aria-label="Saving session name"
+            aria-label="Сохраняю название сессии"
           />
         ) : null}
         {showThinkingIndicator ? (

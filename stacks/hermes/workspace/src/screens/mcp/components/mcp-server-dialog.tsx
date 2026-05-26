@@ -104,7 +104,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
 
   const fallbackMode = capabilityMode === 'fallback'
   const discoverDisabledReason = fallbackMode
-    ? 'Discover requires hermes-agent /api/mcp runtime endpoint (not available in local fallback mode).'
+    ? 'Поиск инструментов требует /api/mcp endpoint в hermes-agent. В локальном режиме он недоступен.'
     : ''
 
   return (
@@ -118,23 +118,23 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
         <div className="flex max-h-[85vh] flex-col">
           <div className="border-b border-primary-200 px-5 py-4">
             <DialogTitle className="text-balance">
-              🔌 {draft.name || (initial ? 'Edit MCP Server' : 'Add MCP Server')}
+              🔌 {draft.name || (initial ? 'Редактировать MCP-сервер' : 'Добавить MCP-сервер')}
             </DialogTitle>
             <DialogDescription className="mt-1 text-pretty">
-              {initial ? 'Edit MCP Server' : 'Add MCP Server'} •{' '}
+              {initial ? 'Редактирование MCP-сервера' : 'Новый MCP-сервер'} •{' '}
               {draft.transportType.toUpperCase()} transport •{' '}
-              {draft.authType || 'none'} auth
+              авторизация: {draft.authType || 'нет'}
             </DialogDescription>
             <div className="mt-3 flex flex-wrap gap-1.5">
               <span className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
                 {draft.transportType}
               </span>
               <span className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
-                auth: {draft.authType || 'none'}
+                авторизация: {draft.authType || 'нет'}
               </span>
               {fallbackMode ? (
                 <span className="rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-                  config-only mode
+                  только config.yaml
                 </span>
               ) : null}
             </div>
@@ -144,7 +144,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
             <ScrollAreaViewport className="px-5 py-4">
               <div className="space-y-3">
                 <label className={LABEL}>
-                  <span>Name</span>
+                  <span>Имя</span>
                   <input
                     className={FIELD}
                     value={draft.name}
@@ -153,7 +153,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                   />
                 </label>
                 <label className={LABEL}>
-                  <span>Transport</span>
+                  <span>Транспорт</span>
                   <select
                     className={FIELD}
                     value={draft.transportType}
@@ -180,7 +180,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                 ) : (
                   <>
                     <label className={LABEL}>
-                      <span>Command</span>
+                      <span>Команда</span>
                       <input
                         className={FIELD}
                         value={draft.command || ''}
@@ -189,7 +189,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                       />
                     </label>
                     <label className={LABEL}>
-                      <span>Args (one per line)</span>
+                      <span>Аргументы (по одному на строку)</span>
                       <textarea
                         className={`${FIELD} h-auto py-2 font-mono text-xs`}
                         rows={3}
@@ -207,7 +207,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                   </>
                 )}
                 <label className={LABEL}>
-                  <span>Auth</span>
+                  <span>Авторизация</span>
                   <select
                     className={FIELD}
                     value={draft.authType || 'none'}
@@ -224,7 +224,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                 </label>
                 {draft.authType === 'bearer' ? (
                   <label className={LABEL}>
-                    <span>Bearer token</span>
+                    <span>Bearer-токен</span>
                     <input
                       type="password"
                       className={FIELD}
@@ -233,18 +233,17 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                       autoComplete="off"
                       placeholder={
                         initialHasBearer
-                          ? '••••••• (currently set — leave blank to keep, type to replace)'
-                          : 'Enter bearer token'
+                          ? '••••••• (уже задан — оставьте пустым, чтобы не менять)'
+                          : 'Введите bearer-токен'
                       }
                     />
                     {authEnvRef ? (
                       <span className="text-[11px] text-amber-700 dark:text-amber-300">
-                        Token resolved from env var <code className="font-mono">{authEnvRef}</code> — leave blank to keep current, or type to override.
+                        Токен берётся из переменной <code className="font-mono">{authEnvRef}</code>. Оставьте поле пустым, чтобы не менять его.
                       </span>
                     ) : initialHasBearer ? (
                       <span className="text-[11px] text-emerald-700 dark:text-emerald-300">
-                        Token currently set on server. Leave blank to keep
-                        existing; type a new value to replace.
+                        Токен уже задан на сервере. Оставьте поле пустым, чтобы сохранить текущий токен.
                       </span>
                     ) : null}
                   </label>
@@ -252,14 +251,13 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
 
                 {fallbackMode ? (
                   <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-                    ⚠ Local fallback mode — config-only CRUD. Live tool
-                    Discover and connectivity Test require the hermes-agent
-                    /api/mcp runtime endpoint.
+                    Локальный режим: меняется только config.yaml. Поиск инструментов
+                    и живая проверка требуют /api/mcp endpoint в hermes-agent.
                   </p>
                 ) : null}
                 {discover.data ? (
                   <p className="text-xs text-primary-500">
-                    Discovered {discover.data.tools.length} tools.
+                    Найдено инструментов: {discover.data.tools.length}.
                   </p>
                 ) : null}
                 {discover.error ? (
@@ -281,7 +279,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary-200 px-5 py-3">
             <p className="min-w-0 flex-1 truncate text-sm text-primary-500 text-pretty">
-              Target:{' '}
+              Цель:{' '}
               <code className="inline-code">
                 {draft.transportType === 'http'
                   ? draft.url || '—'
@@ -295,7 +293,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
               onClick={onClose}
               disabled={upsert.isPending}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               variant="outline"
@@ -304,7 +302,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
               title={discoverDisabledReason}
               onClick={() => discover.mutate(draft)}
             >
-              {discover.isPending ? 'Discovering…' : 'Discover'}
+              {discover.isPending ? 'Ищу…' : 'Найти инструменты'}
             </Button>
             <Button
               size="sm"
@@ -323,7 +321,7 @@ export function McpServerDialog({ open, initial, onClose }: Props) {
                 }
               }}
             >
-              {upsert.isPending ? 'Saving…' : 'Save'}
+              {upsert.isPending ? 'Сохраняю…' : 'Сохранить'}
             </Button>
             </div>
           </div>

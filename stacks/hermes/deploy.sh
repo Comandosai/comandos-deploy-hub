@@ -45,8 +45,10 @@ tar -czf "$payload" \
   --exclude 'workspace/node_modules' \
   --exclude 'workspace/dist' \
   --exclude 'workspace/logs' \
+  --exclude 'workspace/.runtime' \
   --exclude 'workspace/.git' \
-  workspace templates scripts comandos-hermes.lock
+  --exclude '__pycache__' \
+  workspace templates scripts comandos-hermes.lock update-manifest.json
 
 resolved_config="$tmp_dir/comandos-hermes.env"
 grep -vE '^(HERMES_PASSWORD|PUBLIC_URL|PUBLIC_HOST)=' "$CONFIG_PATH" >"$resolved_config"
@@ -117,6 +119,12 @@ DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-openai}"
 DEFAULT_MODEL="${DEFAULT_MODEL:-gpt-5.4-mini}"
 PUBLIC_HOST="${PUBLIC_HOST:-${DOMAIN:-${VPS_IP}.nip.io}}"
 PUBLIC_URL="${PUBLIC_URL:-https://$PUBLIC_HOST}"
+COMANDOS_STACK_REPO_URL="${COMANDOS_STACK_REPO_URL:-https://github.com/Comandosai/comandos-deploy-hub.git}"
+COMANDOS_STACK_REF="${COMANDOS_STACK_REF:-main}"
+COMANDOS_STACK_PATH="${COMANDOS_STACK_PATH:-stacks/hermes}"
+COMANDOS_UPDATE_MANIFEST_URL="${COMANDOS_UPDATE_MANIFEST_URL:-https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json}"
+COMANDOS_UPDATE_SCRIPT="${COMANDOS_UPDATE_SCRIPT:-$REMOTE_BASE_DIR/install/comandos-update.sh}"
+COMANDOS_INSTALLED_STATE="${COMANDOS_INSTALLED_STATE:-$REMOTE_WORKSPACE_DIR/.runtime/comandos-installed.json}"
 
 if ! id "$APP_USER" >/dev/null 2>&1; then
   [[ "$(id -u)" -eq 0 ]] || die "пользователь $APP_USER не найден, а текущий пользователь не root"
@@ -127,7 +135,7 @@ install_apt() {
   if command -v apt-get >/dev/null 2>&1; then
     $SUDO apt-get update -qq
     DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq \
-      ca-certificates curl git jq python3 rsync tar gzip build-essential lsof >/dev/null
+      ca-certificates curl git jq python3 python3-pip rsync tar gzip build-essential lsof ffmpeg >/dev/null
   fi
 }
 
@@ -174,13 +182,56 @@ as_app_user() {
   fi
 }
 
+is_commitish_ref() {
+  [[ "${1:-}" =~ ^[0-9a-fA-F]{7,40}$ ]]
+}
+
+hermes_agent_installer_args() {
+  local args=(--skip-setup)
+  if [[ -n "${HERMES_AGENT_REF:-}" ]] && ! is_commitish_ref "$HERMES_AGENT_REF"; then
+    args+=(--branch "$HERMES_AGENT_REF")
+  fi
+  printf '%q ' "${args[@]}"
+}
+
+pin_hermes_agent_ref() {
+  if [[ -z "${HERMES_AGENT_REF:-}" || "$HERMES_AGENT_REF" == "main" ]]; then
+    return
+  fi
+  local agent_dir ref_q
+  agent_dir="$REMOTE_HERMES_HOME/hermes-agent"
+  printf -v ref_q '%q' "$HERMES_AGENT_REF"
+  if ! as_app_user "[[ -d '$agent_dir/.git' ]]"; then
+    log "Hermes Agent git-копия не найдена, ref $HERMES_AGENT_REF не закреплён."
+    return
+  fi
+  if as_app_user "cd '$agent_dir' && git fetch origin --tags --prune >/dev/null 2>&1 && git checkout $ref_q >/dev/null 2>&1"; then
+    log "Hermes Agent закреплён на ref: $HERMES_AGENT_REF"
+  else
+    log "Не удалось закрепить Hermes Agent на ref: $HERMES_AGENT_REF"
+  fi
+}
+
 install_hermes_agent() {
   local existing
   existing="$(as_app_user 'command -v hermes || true')"
   if [[ -z "$existing" ]]; then
     log "Ставлю Hermes Agent официальным установщиком..."
-    as_app_user "curl -fsSL '$HERMES_AGENT_INSTALLER_URL' | bash -s -- --skip-setup"
+    local installer_args
+    installer_args="$(hermes_agent_installer_args)"
+    as_app_user "curl -fsSL '$HERMES_AGENT_INSTALLER_URL' | bash -s -- $installer_args"
   fi
+  pin_hermes_agent_ref
+}
+
+ensure_python_router_deps() {
+  if as_app_user "python3 - <<'PY' >/dev/null 2>&1
+import faster_whisper
+PY"; then
+    return
+  fi
+  log "Ставлю faster-whisper для голосовых сообщений..."
+  as_app_user "python3 -m pip install --user -q faster-whisper || python3 -m pip install --user --break-system-packages -q faster-whisper"
 }
 
 find_hermes_cli() {
@@ -215,7 +266,7 @@ install_systemd_user_services() {
   uid="$(id -u "$APP_USER")"
   systemd_dir="$(getent passwd "$APP_USER" | cut -d: -f6)/.config/systemd/user"
   $SUDO mkdir -p "$systemd_dir"
-  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_GATEWAY_PORT HERMES_CLI_PATH NODE_PATH
+  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_GATEWAY_PORT HERMES_CLI_PATH NODE_PATH PYTHON_PATH
   render_template "$REMOTE_TMP/payload/templates/systemd/hermes-gateway.service" "$REMOTE_TMP/hermes-gateway.service"
   render_template "$REMOTE_TMP/payload/templates/systemd/comandos-workspace.service" "$REMOTE_TMP/comandos-workspace.service"
   render_template "$REMOTE_TMP/payload/templates/systemd/comandos-telegram.service" "$REMOTE_TMP/comandos-telegram.service"
@@ -271,6 +322,9 @@ HOST=127.0.0.1
 PORT=$WORKSPACE_PORT
 COOKIE_SECURE=1
 COMANDOS_SINGLE_PANEL=1
+REMOTE_BASE_DIR=$REMOTE_BASE_DIR
+REMOTE_WORKSPACE_DIR=$REMOTE_WORKSPACE_DIR
+REMOTE_HERMES_HOME=$REMOTE_HERMES_HOME
 HERMES_API_URL=http://127.0.0.1:$HERMES_GATEWAY_PORT
 HERMES_CLI_PATH=$HERMES_CLI_PATH
 HERMES_HOME=$REMOTE_HERMES_HOME
@@ -278,6 +332,15 @@ HERMES_PASSWORD=$HERMES_PASSWORD
 COMANDOS_LICENSE_REQUIRED=1
 COMANDOS_LICENSE_SERVER_URL=$COMANDOS_LICENSE_SERVER_URL
 COMANDOS_LICENSE_SESSION_DAYS=$COMANDOS_LICENSE_SESSION_DAYS
+COMANDOS_WORKSPACE_VERSION=$COMANDOS_WORKSPACE_VERSION
+COMANDOS_HERMES_AGENT_REF=$HERMES_AGENT_REF
+COMANDOS_UPDATE_MANIFEST_URL=$COMANDOS_UPDATE_MANIFEST_URL
+COMANDOS_UPDATE_SCRIPT=$COMANDOS_UPDATE_SCRIPT
+COMANDOS_INSTALLED_STATE=$COMANDOS_INSTALLED_STATE
+COMANDOS_STACK_REPO_URL=$COMANDOS_STACK_REPO_URL
+COMANDOS_STACK_REF=$COMANDOS_STACK_REF
+COMANDOS_STACK_PATH=$COMANDOS_STACK_PATH
+HERMES_AGENT_INSTALLER_URL=$HERMES_AGENT_INSTALLER_URL
 OPENAI_API_KEY=${OPENAI_API_KEY:-}
 DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
 QWEN_API_KEY=${QWEN_API_KEY:-}
@@ -289,17 +352,132 @@ EOF
   $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_WORKSPACE_DIR/.env"
 }
 
+write_hermes_env() {
+  $SUDO mkdir -p "$REMOTE_HERMES_HOME"
+  cat >"$REMOTE_HERMES_HOME/.env" <<EOF
+OPENAI_API_KEY=${OPENAI_API_KEY:-}
+DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+QWEN_API_KEY=${QWEN_API_KEY:-}
+MINIMAX_API_KEY=${MINIMAX_API_KEY:-}
+DEFAULT_PROVIDER=$DEFAULT_PROVIDER
+DEFAULT_MODEL=$DEFAULT_MODEL
+EOF
+  chmod 600 "$REMOTE_HERMES_HOME/.env"
+  $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
+}
+
 write_telegram_env() {
   $SUDO mkdir -p "$REMOTE_BASE_DIR/telegram"
-  $SUDO cp "$REMOTE_TMP/payload/templates/telegram/server.js" "$REMOTE_BASE_DIR/telegram/server.js"
+  $SUDO cp "$REMOTE_TMP/payload/templates/telegram/router.py" "$REMOTE_BASE_DIR/telegram/router.py"
   cat >"$REMOTE_BASE_DIR/telegram/.env" <<EOF
 TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
 TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-}
-HERMES_API_URL=http://127.0.0.1:$HERMES_GATEWAY_PORT
+TELEGRAM_BOT_TOKEN_SECOND=${TELEGRAM_BOT_TOKEN_SECOND:-}
+TELEGRAM_BOT_USERNAME_SECOND=${TELEGRAM_BOT_USERNAME_SECOND:-}
+TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:-}
 COMANDOS_WORKSPACE_URL=$PUBLIC_URL
 EOF
   chmod 600 "$REMOTE_BASE_DIR/telegram/.env"
+
+  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_WORKDIR TELEGRAM_USER_ID HERMES_TIMEOUT_SECONDS HERMES_POLL_TIMEOUT_SECONDS HERMES_STT_MODEL HERMES_STT_LANGUAGE HERMES_STT_ENABLED HERMES_SHOW_PROFILE_IN_RESPONSE
+  python3 - "$REMOTE_BASE_DIR/telegram/config.json" <<'PY'
+import json
+import os
+import sys
+
+out = sys.argv[1]
+base = os.environ["REMOTE_BASE_DIR"]
+home = os.environ["REMOTE_HERMES_HOME"]
+workdir = os.environ.get("HERMES_WORKDIR") or os.environ.get("REMOTE_WORKSPACE_DIR") or "/home/clawd"
+telegram_user_id = os.environ["TELEGRAM_USER_ID"].strip()
+
+cfg = {
+    "telegram_env_files": [f"{base}/telegram/.env"],
+    "profile_env_files": {
+        "default": [f"{home}/.env", f"{base}/telegram/.env"]
+    },
+    "default_profile": "default",
+    "restore_profile": "default",
+    "bots": [
+        {
+            "name": "main",
+            "token_env": "TELEGRAM_BOT_TOKEN",
+            "telegram_env_files": [f"{base}/telegram/.env"],
+            "default_profile": "default",
+            "routes": {
+                telegram_user_id: "default"
+            }
+        }
+    ],
+    "workdir": workdir,
+    "timeout_seconds": int(os.environ.get("HERMES_TIMEOUT_SECONDS", "240")),
+    "poll_timeout_seconds": int(os.environ.get("HERMES_POLL_TIMEOUT_SECONDS", "10")),
+    "show_profile_in_response": os.environ.get("HERMES_SHOW_PROFILE_IN_RESPONSE", "false").lower() == "true",
+    "stt_enabled": os.environ.get("HERMES_STT_ENABLED", "true").lower() == "true",
+    "stt_model": os.environ.get("HERMES_STT_MODEL", "base"),
+    "stt_language": os.environ.get("HERMES_STT_LANGUAGE", "ru"),
+    "voice_prompt_prefix": "Голосовое сообщение пользователя. Расшифровка:",
+    "button_protocol_enabled": True,
+    "public_telegram_guard_enabled": True,
+    "state_ttl_seconds": 86400,
+    "demo_menu_enabled": False
+}
+
+if os.environ.get("TELEGRAM_BOT_TOKEN_SECOND"):
+    cfg["bots"].append({
+        "name": "second",
+        "token_env": "TELEGRAM_BOT_TOKEN_SECOND",
+        "telegram_env_files": [f"{base}/telegram/.env"],
+        "default_profile": "default",
+        "routes": {
+            telegram_user_id: "default"
+        }
+    })
+
+with open(out, "w", encoding="utf-8") as f:
+    json.dump(cfg, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+  chmod 600 "$REMOTE_BASE_DIR/telegram/config.json"
   $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/telegram"
+}
+
+install_update_script() {
+  $SUDO mkdir -p "$REMOTE_BASE_DIR/install"
+  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_AGENT_INSTALLER_URL
+  export COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
+  render_template "$REMOTE_TMP/payload/templates/update/comandos-update.sh" "$REMOTE_BASE_DIR/install/comandos-update.sh"
+  chmod 700 "$REMOTE_BASE_DIR/install/comandos-update.sh"
+  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/install/comandos-update.sh"
+}
+
+write_installed_state() {
+  $SUDO mkdir -p "$REMOTE_WORKSPACE_DIR/.runtime"
+  local agent_version=""
+  agent_version="$(as_app_user "command -v hermes >/dev/null 2>&1 && hermes --version 2>/dev/null | head -1 || true")"
+  export COMANDOS_WORKSPACE_VERSION HERMES_AGENT_REF agent_version COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
+  python3 - "$COMANDOS_INSTALLED_STATE" <<'PY'
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+out = sys.argv[1]
+state = {
+    "workspaceVersion": os.environ.get("COMANDOS_WORKSPACE_VERSION", ""),
+    "hermesAgentRef": os.environ.get("HERMES_AGENT_REF", ""),
+    "hermesAgentVersion": os.environ.get("agent_version", ""),
+    "stackRepoUrl": os.environ.get("COMANDOS_STACK_REPO_URL", ""),
+    "stackRef": os.environ.get("COMANDOS_STACK_REF", ""),
+    "stackPath": os.environ.get("COMANDOS_STACK_PATH", ""),
+    "updatedAt": datetime.now(timezone.utc).isoformat(),
+}
+with open(out, "w", encoding="utf-8") as f:
+    json.dump(state, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+  chmod 600 "$COMANDOS_INSTALLED_STATE"
+  $SUDO chown "$APP_USER:$APP_USER" "$COMANDOS_INSTALLED_STATE"
 }
 
 preflight() {
@@ -308,9 +486,11 @@ preflight() {
   ensure_node
   ensure_caddy
   install_hermes_agent
+  ensure_python_router_deps
   HERMES_CLI_PATH="$(find_hermes_cli)"
   NODE_PATH="$(command -v node)"
-  export HERMES_CLI_PATH NODE_PATH
+  PYTHON_PATH="$(command -v python3)"
+  export HERMES_CLI_PATH NODE_PATH PYTHON_PATH
 }
 
 install_workspace() {
@@ -325,10 +505,13 @@ install_workspace() {
   $SUDO rsync -a --delete "$REMOTE_TMP/payload/workspace/" "$REMOTE_WORKSPACE_DIR/"
   $SUDO rm -rf "$REMOTE_WORKSPACE_DIR/.git" "$REMOTE_WORKSPACE_DIR/node_modules" "$REMOTE_WORKSPACE_DIR/dist" "$REMOTE_WORKSPACE_DIR/logs"
   $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR"
+  write_hermes_env
   write_workspace_env
   write_telegram_env
+  install_update_script
   log "Собираю панель..."
   as_app_user "cd '$REMOTE_WORKSPACE_DIR' && corepack enable >/dev/null 2>&1 || true; cd '$REMOTE_WORKSPACE_DIR' && ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile && pnpm build"
+  write_installed_state
 }
 
 checks() {
@@ -339,6 +522,7 @@ checks() {
   XDG_RUNTIME_DIR="/run/user/$uid" as_app_user "systemctl --user is-active comandos-workspace.service"
   XDG_RUNTIME_DIR="/run/user/$uid" as_app_user "systemctl --user is-active comandos-telegram.service"
   $SUDO systemctl is-active caddy
+  curl -fsS "http://127.0.0.1:$HERMES_GATEWAY_PORT/health" >/dev/null
   curl -fsS "http://127.0.0.1:$WORKSPACE_PORT" >/dev/null
   curl -k -fsSI "$PUBLIC_URL" >/dev/null
 }
@@ -364,6 +548,7 @@ Workspace service: active
 Telegram bot: active
 Версии зафиксированы: да
 Автообновление: выключено
+Уведомления об обновлениях: включены
 EOF
 REMOTE
 

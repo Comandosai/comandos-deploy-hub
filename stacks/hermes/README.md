@@ -11,10 +11,12 @@
 - COMANDOS Workspace как единственную панель Hermes;
 - Hermes Agent gateway;
 - Telegram-обвязку;
+- Telegram-роутер с голосовыми, inline-кнопками и маршрутизацией по Telegram ID;
 - проверку лицензии COMANDOS;
 - HTTPS через домен или `IP.nip.io`;
 - пароль панели, сгенерированный системой;
-- закреплённые версии без автообновления.
+- закреплённые версии без тихого автообновления;
+- уведомления о новых версиях панели и Hermes Agent через COMANDOS manifest.
 
 ## Сценарий для видео
 
@@ -40,6 +42,9 @@
 - `docs/UPDATE_POLICY.md` - как фиксируем версии и почему не даём автообновление.
 - `scripts/check-config.sh` - локальная проверка заполненного env.
 - `scripts/generate-panel-password.sh` - генератор 24-символьного пароля.
+- `update-manifest.json` - источник правды для уведомлений об обновлениях.
+- `templates/update/comandos-update.sh` - управляемое обновление панели и Hermes Agent.
+- `templates/telegram/router.py` - Telegram-роутер Hermes.
 
 ## Быстрая проверка
 

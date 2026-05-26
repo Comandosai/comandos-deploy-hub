@@ -22,7 +22,7 @@ export const Route = createFileRoute('/memory')({
     const [tab, setTab] = useState<'memory' | 'knowledge'>('memory')
     const memoryAvailable = useFeatureAvailable('memory')
 
-    usePageTitle('Memory')
+    usePageTitle('Память')
 
     return (
       <div className="flex h-full min-h-0 flex-col">
@@ -36,8 +36,8 @@ export const Route = createFileRoute('/memory')({
               variant="underline"
               className="w-full justify-start gap-1"
             >
-              <TabsTab value="memory">Memory</TabsTab>
-              <TabsTab value="knowledge">Knowledge</TabsTab>
+              <TabsTab value="memory">Память</TabsTab>
+              <TabsTab value="knowledge">База знаний</TabsTab>
             </TabsList>
           </div>
 
@@ -45,15 +45,15 @@ export const Route = createFileRoute('/memory')({
             {tab === 'memory' ? (
               <Suspense
                 fallback={
-                  <RouteLoadingState label="Loading memory browser..." />
+                  <RouteLoadingState label="Загружаю память..." />
                 }
               >
                 {memoryAvailable ? (
                   <MemoryBrowserScreen />
                 ) : (
                   <BackendUnavailableState
-                    feature="Memory"
-                    description={getUnavailableReason('Memory')}
+                    feature="Память"
+                    description={getUnavailableReason('memory')}
                   />
                 )}
               </Suspense>
@@ -64,7 +64,7 @@ export const Route = createFileRoute('/memory')({
             {tab === 'knowledge' ? (
               <Suspense
                 fallback={
-                  <RouteLoadingState label="Loading knowledge browser..." />
+                  <RouteLoadingState label="Загружаю базу знаний..." />
                 }
               >
                 <KnowledgeBrowserScreen />

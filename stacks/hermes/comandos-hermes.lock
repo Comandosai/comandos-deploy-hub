@@ -23,9 +23,10 @@ HERMES_AGENT_REF=87d9239
 HERMES_AGENT_INSTALLER_URL=https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh
 
 # Update policy
-ALLOW_WORKSPACE_SELF_UPDATE=0
-ALLOW_HERMES_AGENT_SELF_UPDATE=0
+# Разрешаем только управляемое обновление через COMANDOS manifest + comandos-update.sh.
+# Тихие auto-update timers остаются выключенными.
+ALLOW_WORKSPACE_SELF_UPDATE=1
+ALLOW_HERMES_AGENT_SELF_UPDATE=1
 INSTALL_GIT_METADATA=0
 START_LEGACY_HERMES_DASHBOARD=0
 ENABLE_AUTO_UPDATE_TIMERS=0
-

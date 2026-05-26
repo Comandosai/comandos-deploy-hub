@@ -106,8 +106,8 @@ function MemoryFileList({
         </div>
         <p className="text-xs text-primary-600 text-pretty">
           {isDemo
-            ? 'Demo mode enabled because memory API data is unavailable.'
-            : 'Browse MEMORY.md and daily notes in memory/ or memories/.'}
+            ? 'Демо-режим включён, потому что данные API памяти недоступны.'
+            : 'Просмотр MEMORY.md и заметок в memory/ или memories/.'}
         </p>
       </div>
 
@@ -115,7 +115,7 @@ function MemoryFileList({
         <ScrollAreaViewport className="px-2 py-2">
           {loading ? (
             <div className="rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-xs text-primary-600 text-pretty">
-              Loading memory files...
+              Загружаю файлы памяти...
             </div>
           ) : null}
           {error ? (
@@ -144,7 +144,7 @@ function MemoryFileList({
                 </div>
                 {groups.length === 0 ? (
                   <div className="px-2 py-1.5 text-xs text-primary-500 text-pretty">
-                    No daily memory files found.
+                    Ежедневные файлы памяти не найдены.
                   </div>
                 ) : (
                   groups.map(function renderGroup(group) {

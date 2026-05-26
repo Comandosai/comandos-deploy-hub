@@ -33,12 +33,12 @@ export function KillConfirmDialog({
     setPending(true)
     try {
       await killAgentSession(normalizedSessionKey)
-      toast(`${agentName} terminated`, { type: 'success' })
+      toast(`${agentName}: сессия остановлена`, { type: 'success' })
       onOpenChange(false)
       onKilled?.()
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to terminate agent'
+        error instanceof Error ? error.message : 'Не удалось остановить агента'
       toast(message, { type: 'error' })
     } finally {
       setPending(false)
@@ -56,9 +56,9 @@ export function KillConfirmDialog({
       <DialogContent className="w-[min(420px,92vw)]">
         <div className="space-y-4 p-5">
           <div className="space-y-1">
-            <DialogTitle className="text-base">Kill {agentName}?</DialogTitle>
+            <DialogTitle className="text-base">Остановить {agentName}?</DialogTitle>
             <DialogDescription>
-              This will terminate the agent session immediately.
+              Сессия агента будет остановлена сразу.
             </DialogDescription>
           </div>
 
@@ -71,7 +71,7 @@ export function KillConfirmDialog({
                 onOpenChange(false)
               }}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               variant="destructive"
@@ -81,7 +81,7 @@ export function KillConfirmDialog({
                 void handleConfirmKill()
               }}
             >
-              {pending ? 'Terminating...' : 'Kill'}
+              {pending ? 'Останавливаю...' : 'Остановить'}
             </Button>
           </div>
         </div>

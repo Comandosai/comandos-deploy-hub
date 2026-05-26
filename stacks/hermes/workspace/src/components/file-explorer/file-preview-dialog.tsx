@@ -67,7 +67,7 @@ export default function FilePreviewDialog({
       const res = await fetch(
         `/api/files?action=read&path=${encodeURIComponent(path)}`,
       )
-      if (!res.ok) throw new Error('Failed to read file')
+      if (!res.ok) throw new Error('Не удалось прочитать файл')
       const data = (await res.json()) as {
         type: 'text' | 'image'
         content: string
@@ -116,21 +116,21 @@ export default function FilePreviewDialog({
       <DialogContent className="w-[min(900px,96vw)]">
         <div className="p-5 border-b border-primary-200 flex items-center justify-between">
           <DialogTitle className="text-base font-semibold">
-            {path || 'File'}
+            {path || 'Файл'}
           </DialogTitle>
           <div className="flex gap-2">
             {isTextFile(path || '') ? (
               <Button onClick={handleSave} disabled={!dirty || loading}>
-                Save
+                Сохранить
               </Button>
             ) : null}
-            <DialogClose render={<Button variant="outline">Close</Button>} />
+            <DialogClose render={<Button variant="outline">Закрыть</Button>} />
           </div>
         </div>
 
         <div className="p-4">
           {loading ? (
-            <div className="text-sm text-primary-500">Loading…</div>
+            <div className="text-sm text-primary-500">Загружаю…</div>
           ) : error ? (
             <div className="text-sm text-red-600">{error}</div>
           ) : path && isImageFile(path) ? (

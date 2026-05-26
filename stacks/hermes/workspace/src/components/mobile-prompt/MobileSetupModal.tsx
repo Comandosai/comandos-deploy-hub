@@ -69,9 +69,9 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
           href="https://tailscale.com/download"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-400"
+          className="inline-flex items-center justify-center rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-[var(--theme-on-accent)] transition-colors hover:bg-accent-400"
         >
-          Открыть Tailscale Downloads
+          Скачать Tailscale
         </a>
       ),
     },
@@ -81,8 +81,8 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
       showTailscaleIcon: false,
       action: (
         <div className="rounded-lg border border-primary-700 bg-primary-950 px-4 py-3 text-sm text-primary-200">
-          Enhanced Hermes Agent gateway APIs are optional. If core chat already works
-          on desktop, mobile access mainly depends on network reachability.
+          Расширенные API Hermes Agent необязательны. Если чат уже работает на
+          компьютере, для телефона главное, чтобы страница была доступна по сети.
         </div>
       ),
     },
@@ -98,7 +98,7 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center rounded-lg border border-primary-700 bg-primary-950 px-3 py-2 text-xs font-medium text-primary-100 transition-colors hover:bg-primary-800"
           >
-            iOS App
+            iOS
           </a>
           <a
             href="https://play.google.com/store/apps/details?id=com.tailscale.ipn"
@@ -106,7 +106,7 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center rounded-lg border border-primary-700 bg-primary-950 px-3 py-2 text-xs font-medium text-primary-100 transition-colors hover:bg-primary-800"
           >
-            Android App
+            Android
           </a>
         </div>
       ),
@@ -214,7 +214,7 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
           type="button"
           onClick={onClose}
           className="absolute top-4 right-4 rounded-lg p-1.5 text-primary-400 transition-colors hover:bg-primary-900 hover:text-primary-200"
-          aria-label="Close mobile setup"
+          aria-label="Закрыть настройку мобильного доступа"
         >
           <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={2} />
         </button>
@@ -270,7 +270,7 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
             disabled={step === 0}
             className="rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:text-primary-200 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Back
+            Назад
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -278,14 +278,14 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
               onClick={onClose}
               className="rounded-lg px-3 py-2 text-sm text-primary-400 transition-colors hover:text-primary-200"
             >
-              Close
+              Закрыть
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-lg bg-accent-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-400"
+              className="rounded-lg bg-accent-500 px-3 py-2 text-sm font-medium text-[var(--theme-on-accent)] transition-colors hover:bg-accent-400"
             >
-              {isLastStep ? 'Finish' : 'Next'}
+              {isLastStep ? 'Готово' : 'Далее'}
             </button>
           </div>
         </div>

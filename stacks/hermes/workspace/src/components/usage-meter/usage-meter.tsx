@@ -29,10 +29,17 @@ const THRESHOLDS = [50, 75, 90]
 type StatsView = 'session' | 'provider' | 'cost' | 'agents'
 
 const STATS_VIEW_LABELS: Record<StatsView, string> = {
-  session: 'Session Stats',
-  provider: 'Provider Usage',
-  cost: 'Cost Breakdown',
-  agents: 'Agent Activity',
+  session: 'Статистика сессии',
+  provider: 'Расход провайдеров',
+  cost: 'Разбор стоимости',
+  agents: 'Работа агентов',
+}
+
+const STATS_VIEW_SHORT_LABELS: Record<StatsView, string> = {
+  session: 'Сессия',
+  provider: 'Провайдер',
+  cost: 'Расход',
+  agents: 'Агенты',
 }
 
 const PREFERRED_PROVIDER_KEY = 'clawsuite-preferred-provider'
@@ -441,7 +448,9 @@ type AgentActivity = {
 }
 
 export function UsageMeter({ visible = true }: { visible?: boolean }) {
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const statusSessionKey = useMemo(
     () => resolveUsageMeterSessionKey(pathname),
     [pathname],
@@ -484,7 +493,7 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         throw new Error(
-          data?.error || data?.message || res.statusText || 'Request failed',
+          data?.error || data?.message || res.statusText || 'Запрос не прошёл',
         )
       }
       const data = (await res.json()) as SessionStatusResponse
@@ -495,7 +504,7 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
       setError(errorMessage)
-      toast('Failed to fetch usage data', { type: 'error' })
+      toast('Не удалось получить расход токенов', { type: 'error' })
     }
   }, [statusSessionKey])
 
@@ -510,7 +519,7 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
       } | null
 
       if (!res.ok || data?.ok === false) {
-        throw new Error(data?.error || res.statusText || 'Request failed')
+        throw new Error(data?.error || res.statusText || 'Запрос не прошёл')
       }
 
       setProviderUsage(data?.providers ?? [])
@@ -723,25 +732,25 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
           <>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                In
+                Вход
               </span>
               <span>{formatTokens(usage.inputTokens)}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                Out
+                Выход
               </span>
               <span>{formatTokens(usage.outputTokens)}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                Ctx
+                Контекст
               </span>
               <span>{Math.round(usage.contextPercent)}%</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                Cost
+                Расход
               </span>
               <span>{formatCurrency(usage.dailyCost)}</span>
             </div>
@@ -802,7 +811,9 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
           )
         }
         return (
-          <span className="text-[10px] text-primary-500">No provider data</span>
+          <span className="text-[10px] text-primary-500">
+            Нет данных провайдера
+          </span>
         )
       }
 
@@ -835,7 +846,7 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
         return (
           <div className="flex items-center gap-1">
             <span className="text-[10px] uppercase tracking-wide text-primary-600">
-              Total
+              Итого
             </span>
             <span>{formatCurrency(usage.dailyCost)}</span>
           </div>
@@ -847,19 +858,19 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
           <>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                Active
+                Активно
               </span>
               <span>{agentActivity.activeAgents}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                Spawned
+                Создано
               </span>
               <span>{agentActivity.totalSpawned}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                Cost
+                Расход
               </span>
               <span>{formatCurrency(agentActivity.totalAgentCost)}</span>
             </div>
@@ -877,7 +888,7 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
         <MenuRoot>
           <MenuTrigger
             className={cn(
-              "absolute bottom-2 right-2",
+              'absolute bottom-2 right-2',
               'ml-auto rounded-full border px-3 py-1 text-xs font-medium',
               'flex items-center gap-3 transition hover:bg-primary-100 cursor-pointer',
               alertTone,
@@ -885,26 +896,30 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
             data-tour="usage-meter"
           >
             <span className="text-[9px] uppercase tracking-widest text-primary-500 opacity-75">
-              {STATS_VIEW_LABELS[statsView].split(' ')[0]}
+              {STATS_VIEW_SHORT_LABELS[statsView]}
             </span>
             <span className="text-primary-300">|</span>
             {renderPillContent()}
           </MenuTrigger>
           <MenuContent align="end" className="min-w-[180px]">
-            {(['session', 'provider', 'cost', 'agents'] as const).map((view) => (
-              <MenuItem
-                key={view}
-                onClick={() => handleStatsViewChange(view)}
-                className={cn(
-                  statsView === view && 'bg-amber-100 text-amber-800',
-                )}
-              >
-                <span className="flex-1">{STATS_VIEW_LABELS[view]}</span>
-                {statsView === view && <span className="text-amber-600">✓</span>}
-              </MenuItem>
-            ))}
+            {(['session', 'provider', 'cost', 'agents'] as const).map(
+              (view) => (
+                <MenuItem
+                  key={view}
+                  onClick={() => handleStatsViewChange(view)}
+                  className={cn(
+                    statsView === view && 'bg-amber-100 text-amber-800',
+                  )}
+                >
+                  <span className="flex-1">{STATS_VIEW_LABELS[view]}</span>
+                  {statsView === view && (
+                    <span className="text-amber-600">✓</span>
+                  )}
+                </MenuItem>
+              ),
+            )}
             <div className="my-1 h-px bg-primary-100" />
-            <MenuItem onClick={() => setOpen(true)}>View Details…</MenuItem>
+            <MenuItem onClick={() => setOpen(true)}>Открыть детали...</MenuItem>
           </MenuContent>
         </MenuRoot>
       ) : null}

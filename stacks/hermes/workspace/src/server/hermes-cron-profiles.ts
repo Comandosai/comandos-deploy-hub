@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { getHermesRoot, getProfilesDir } from './claude-paths'
@@ -52,13 +52,18 @@ function readBoolean(value: unknown, fallback: boolean): boolean {
 }
 
 function normalizeDeliver(value: unknown): Array<string> {
-  if (Array.isArray(value)) {
-    return value.filter(
-      (entry): entry is string =>
-        typeof entry === 'string' && entry.trim().length > 0,
-    )
+  const values = Array.isArray(value) ? value : [value]
+  const normalized: Array<string> = []
+
+  for (const entry of values) {
+    if (typeof entry !== 'string') continue
+    for (const part of entry.split(',')) {
+      const target = part.trim()
+      if (target.length > 0) normalized.push(target)
+    }
   }
-  if (typeof value === 'string' && value.trim()) return [value.trim()]
+
+  if (normalized.length > 0) return [...new Set(normalized)]
   return []
 }
 
@@ -88,6 +93,28 @@ function profileHome(profile: string): string {
 
 function outputDir(profile: string, jobId: string): string {
   return join(profileHome(profile), 'cron', 'output', jobId)
+}
+
+function hermesCliPath(): string {
+  return process.env.HERMES_CLI_PATH || 'hermes'
+}
+
+export function kickCronTick(profile?: string | null): void {
+  const args =
+    profile && profile !== 'default'
+      ? ['--profile', profile, 'cron', 'tick']
+      : ['cron', 'tick']
+
+  try {
+    const child = spawn(hermesCliPath(), args, {
+      detached: true,
+      stdio: 'ignore',
+    })
+    child.unref()
+  } catch {
+    // The normal gateway ticker still runs once a minute; a failed kick should
+    // not make the UI action fail.
+  }
 }
 
 function readJobsFile(path: string): Array<RawCronJob> {
@@ -195,11 +222,7 @@ function normalizeCreateArgs(
   const args = ['--profile', profile, 'cron', 'create']
   const name = readString(input.name)
   if (name) args.push('--name', name)
-  const deliver = Array.isArray(input.deliver)
-    ? input.deliver
-        .map((value) => (typeof value === 'string' ? value.trim() : ''))
-        .filter((value) => value.length > 0)
-    : []
+  const deliver = normalizeDeliver(input.deliver)
   if (deliver.length > 0) args.push('--deliver', deliver.join(','))
   const skills = Array.isArray(input.skills)
     ? input.skills
@@ -224,7 +247,7 @@ export function createProfileCronJob(
   profile: string,
   input: Record<string, unknown>,
 ): Record<string, unknown> {
-  const output = execFileSync('hermes', normalizeCreateArgs(profile, input), {
+  const output = execFileSync(hermesCliPath(), normalizeCreateArgs(profile, input), {
     encoding: 'utf8',
     timeout: 30_000,
   })
@@ -250,7 +273,7 @@ export function runProfileCronAction(
   validateProfileAndMaybeJob(profile, jobId)
   const cliAction = action === 'remove' ? 'remove' : action
   const output = execFileSync(
-    'hermes',
+    hermesCliPath(),
     ['--profile', profile, 'cron', cliAction, jobId],
     {
       encoding: 'utf8',
@@ -261,6 +284,7 @@ export function runProfileCronAction(
     listProfileCronJobs().find(
       (entry) => entry.profile === profile && entry.jobId === jobId,
     ) ?? null
+  if (action === 'run') kickCronTick(profile)
   return { ok: true, output, job }
 }
 
@@ -274,11 +298,7 @@ export function updateProfileCronJob(
   const name = readString(updates.name)
   const schedule = readString(updates.schedule)
   const prompt = readString(updates.prompt, updates.input)
-  const deliver = Array.isArray(updates.deliver)
-    ? updates.deliver
-        .map((value) => (typeof value === 'string' ? value.trim() : ''))
-        .filter((value) => value.length > 0)
-    : []
+  const deliver = normalizeDeliver(updates.deliver)
   if (name) args.push('--name', name)
   if (schedule) args.push('--schedule', schedule)
   if (prompt !== null) args.push('--prompt', prompt)
@@ -288,7 +308,7 @@ export function updateProfileCronJob(
       ? String(updates.repeat)
       : null
   if (repeat) args.push('--repeat', repeat)
-  const output = execFileSync('hermes', args, {
+  const output = execFileSync(hermesCliPath(), args, {
     encoding: 'utf8',
     timeout: 30_000,
   })

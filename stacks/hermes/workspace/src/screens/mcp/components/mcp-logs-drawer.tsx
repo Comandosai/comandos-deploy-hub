@@ -101,11 +101,11 @@ export function McpLogsDrawer({ server, open, onClose }: Props) {
     <div
       className="fixed inset-0 z-40 flex justify-end"
       role="dialog"
-      aria-label={`Logs for ${server.name}`}
+      aria-label={`Логи ${server.name}`}
     >
       <button
         type="button"
-        aria-label="Close logs"
+        aria-label="Закрыть логи"
         className="absolute inset-0 bg-black/30"
         onClick={onClose}
       />
@@ -113,10 +113,10 @@ export function McpLogsDrawer({ server, open, onClose }: Props) {
         <header className="flex items-center justify-between border-b border-primary-200 px-4 py-3">
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold text-primary-900">
-              {server.name} logs
+              Логи {server.name}
             </h3>
             <p className="text-xs text-primary-500">
-              {status === 'open' ? 'streaming' : status} · {lines.length}/{MAX_LINES}
+              {status === 'open' ? 'идёт поток' : status === 'closed' ? 'закрыто' : status} · {lines.length}/{MAX_LINES}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -126,14 +126,14 @@ export function McpLogsDrawer({ server, open, onClose }: Props) {
                 checked={autoScroll}
                 onChange={(e) => setAutoScroll(e.target.checked)}
               />
-              auto-scroll
+              автопрокрутка
             </label>
             <button
               type="button"
               className="rounded border border-primary-300 px-2 py-1 text-xs text-primary-700 hover:bg-primary-50"
               onClick={onClose}
             >
-              Close
+              Закрыть
             </button>
           </div>
         </header>
@@ -142,7 +142,7 @@ export function McpLogsDrawer({ server, open, onClose }: Props) {
           className="flex-1 overflow-y-auto bg-primary-950/95 px-3 py-2 font-mono text-xs text-primary-100"
         >
           {lines.length === 0 ? (
-            <p className="text-primary-300">Waiting for logs…</p>
+            <p className="text-primary-300">Жду логи…</p>
           ) : (
             <ul className="space-y-0.5">
               {lines.map((line) => (

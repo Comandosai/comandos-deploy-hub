@@ -106,9 +106,9 @@ const PROVIDERS = [
   },
   {
     id: 'custom',
-    name: 'Custom (OpenAI-compat)',
+    name: 'Свой OpenAI-совместимый',
     logo: '/providers/openai.png',
-    desc: 'Any OpenAI-compatible endpoint',
+    desc: 'Любой OpenAI-совместимый адрес',
     authType: 'custom',
   },
 ]
@@ -118,10 +118,10 @@ function getEnhancedFeatureNames(
 ): Array<string> {
   if (!capabilities) return []
   const features: Array<{ enabled?: boolean; label: string }> = [
-    { enabled: capabilities.sessions, label: 'Sessions' },
-    { enabled: capabilities.skills, label: 'Skills' },
-    { enabled: capabilities.memory, label: 'Memory' },
-    { enabled: capabilities.config, label: 'In-app config' },
+    { enabled: capabilities.sessions, label: 'Сессии' },
+    { enabled: capabilities.skills, label: 'Навыки' },
+    { enabled: capabilities.memory, label: 'Память' },
+    { enabled: capabilities.config, label: 'Настройки в панели' },
     { enabled: capabilities.jobs, label: 'Jobs' },
   ]
 
@@ -152,7 +152,9 @@ export function ClaudeOnboarding() {
   >('idle')
   const [testMessage, setTestMessage] = useState('')
   const [configuredModel, setConfiguredModel] = useState('')
-  const [discoveredProviders, setDiscoveredProviders] = useState<Array<{ id: string; name?: string; configured?: boolean }>>([])
+  const [discoveredProviders, setDiscoveredProviders] = useState<
+    Array<{ id: string; name?: string; configured?: boolean }>
+  >([])
 
   const [oauthStep, setOauthStep] = useState<
     'idle' | 'loading' | 'waiting' | 'success' | 'error'
@@ -240,8 +242,8 @@ export function ClaudeOnboarding() {
         setBackendStatus('ready')
         setBackendMessage(
           data.capabilities.sessions
-            ? 'Backend connected. Core chat works, and Hermes Agent gateway enhancements are available.'
-            : 'Backend connected. Core chat is ready.',
+            ? 'Серверная часть подключена. Чат работает, расширенные функции шлюза Hermes Agent доступны.'
+            : 'Серверная часть подключена. Чат готов к работе.',
         )
         return
       }
@@ -249,13 +251,13 @@ export function ClaudeOnboarding() {
       if (data.capabilities?.health) {
         setBackendStatus('error')
         setBackendMessage(
-          'Backend is reachable, but /v1/chat/completions is not available yet.',
+          'Серверная часть отвечает, но /v1/chat/completions пока недоступен.',
         )
         return
       }
 
       setBackendStatus('error')
-      setBackendMessage('No compatible backend detected yet.')
+      setBackendMessage('Совместимая серверная часть пока не найдена.')
     } catch (err) {
       setBackendInfo(null)
       setBackendStatus('error')
@@ -350,7 +352,7 @@ export function ClaudeOnboarding() {
           sessionKey: 'new',
           friendlyId: 'new',
           message:
-            'Reply with one short sentence confirming the backend connection works.',
+            'Ответь одной короткой фразой, что подключение к серверной части работает.',
         }),
       })
 
@@ -528,22 +530,27 @@ export function ClaudeOnboarding() {
                   filter: 'drop-shadow(0 8px 24px rgba(217,252,103,0.28))',
                 }}
               />
-              <h2 className="text-xl font-bold">Добро пожаловать в COMANDOS AI Workspace</h2>
+              <h2 className="text-xl font-bold">
+                Добро пожаловать в COMANDOS AI Workspace
+              </h2>
               <p className="text-sm" style={mutedStyle}>
-                Работает с OpenAI-compatible backend. Hermes Agent APIs
-                открывают сессии, память, skills и расширенные панели.
+                Работает с OpenAI-совместимой серверной частью. API Hermes Agent
+                открывают сессии, память, навыки и расширенные панели.
               </p>
               <button
                 onClick={() => {
                   setStep('connect')
                   void checkBackend()
                 }}
-                className="w-full rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
+                className="button-primary w-full px-4 py-3 text-sm"
               >
-                Connect Backend
+                Подключить серверную часть
               </button>
-              <button onClick={complete} className="text-xs" style={mutedStyle}>
-                Skip setup
+              <button
+                onClick={complete}
+                className="button-ghost px-3 py-2 text-xs"
+              >
+                Пропустить настройку
               </button>
             </div>
           )}
@@ -551,10 +558,10 @@ export function ClaudeOnboarding() {
           {step === 'connect' && (
             <div className="space-y-4 text-center">
               <div className="text-4xl">🔌</div>
-              <h2 className="text-lg font-bold">Connect Your Backend</h2>
+              <h2 className="text-lg font-bold">Подключите серверную часть</h2>
               <p className="text-sm" style={mutedStyle}>
-                Start by verifying that COMANDOS AI Workspace can reach your
-                OpenAI-compatible backend.
+                Сначала проверим, что COMANDOS AI Workspace видит ваш
+                OpenAI-совместимый сервер.
               </p>
 
               {backendStatus === 'checking' && (
@@ -563,7 +570,7 @@ export function ClaudeOnboarding() {
                   style={mutedStyle}
                 >
                   <span className="size-2 animate-pulse rounded-full bg-accent-500" />
-                  Checking backend capabilities...
+                  Проверяем возможности серверной части...
                 </div>
               )}
 
@@ -577,9 +584,9 @@ export function ClaudeOnboarding() {
                     className="rounded-xl p-3 text-left text-xs"
                     style={cardStyle}
                   >
-                    <p style={mutedStyle}>Backend URL</p>
+                    <p style={mutedStyle}>Адрес серверной части</p>
                     <p className="mt-1 font-mono">
-                      {backendInfo?.claudeUrl || 'Configured automatically'}
+                      {backendInfo?.claudeUrl || 'Настроено автоматически'}
                     </p>
                   </div>
                 </div>
@@ -595,14 +602,11 @@ export function ClaudeOnboarding() {
                     className="rounded-xl p-3 text-left text-xs"
                     style={{ ...cardStyle, borderColor: 'var(--theme-border)' }}
                   >
-                    <p className="font-medium text-white">
-                      Compatible backends
-                    </p>
+                    <p className="font-medium">Совместимые серверы</p>
                     <p className="mt-2" style={mutedStyle}>
-                      Use any backend that exposes{' '}
-                      <code>/v1/chat/completions</code>. If you point Hermes Agent
-                      Workspace at a Hermes Agent gateway, enhanced features unlock
-                      automatically.
+                      Подойдёт любой сервер с <code>/v1/chat/completions</code>.
+                      Если подключить Hermes Agent Gateway, расширенные функции
+                      включатся автоматически.
                     </p>
                     <div
                       className="mt-3 rounded-lg px-3 py-2 font-mono text-[11px]"
@@ -623,10 +627,10 @@ export function ClaudeOnboarding() {
               <div className="flex gap-2">
                 <button
                   onClick={() => void checkBackend()}
-                  className="flex-1 rounded-xl border py-3 text-sm font-semibold transition-colors"
+                  className="button-secondary flex-1 py-3 text-sm"
                   style={{ borderColor: 'var(--theme-border)' }}
                 >
-                  Retry
+                  Повторить
                 </button>
                 <button
                   onClick={() => {
@@ -634,9 +638,9 @@ export function ClaudeOnboarding() {
                     void loadModels()
                   }}
                   disabled={backendStatus !== 'ready'}
-                  className="flex-1 rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
+                  className="button-primary flex-1 py-3 text-sm disabled:opacity-50"
                 >
-                  Continue
+                  Продолжить
                 </button>
               </div>
             </div>
@@ -645,24 +649,24 @@ export function ClaudeOnboarding() {
           {step === 'provider' && (
             <div className="space-y-4">
               <h2 className="text-center text-lg font-bold">
-                Choose Provider and Model
+                Выберите провайдера и модель
               </h2>
               <p className="text-center text-xs" style={mutedStyle}>
                 {canEditConfig
-                  ? 'Save provider settings here, then choose a model before testing chat.'
-                  : 'This backend manages provider settings outside COMANDOS AI Workspace. Confirm the model you expect to use, then test chat.'}
+                  ? 'Сохраните настройки провайдера, затем выберите модель и проверьте чат.'
+                  : 'Эта серверная часть управляет провайдерами вне COMANDOS AI Workspace. Проверьте модель и запустите тест чата.'}
               </p>
 
               <div className="rounded-xl p-3 text-xs" style={cardStyle}>
-                <p style={mutedStyle}>Backend mode</p>
+                <p style={mutedStyle}>Режим серверной части</p>
                 <p className="mt-1">
                   {backendInfo?.capabilities?.sessions
-                    ? 'Hermes Agent gateway detected'
-                    : 'Portable OpenAI-compatible backend'}
+                    ? 'Шлюз Hermes Agent найден'
+                    : 'Переносимый OpenAI-совместимый сервер'}
                 </p>
                 {configuredModel ? (
                   <p className="mt-2" style={mutedStyle}>
-                    Current model:{' '}
+                    Текущая модель:{' '}
                     <span className="font-mono text-accent-400">
                       {configuredModel}
                     </span>
@@ -681,7 +685,9 @@ export function ClaudeOnboarding() {
                         id: p.id,
                         name: p.name || p.id,
                         logo: '/providers/openai.png',
-                        desc: p.configured ? 'Configured provider' : 'Custom provider',
+                        desc: p.configured
+                          ? 'Провайдер настроен'
+                          : 'Пользовательский провайдер',
                         authType: 'custom' as const,
                       })),
                   ]
@@ -696,7 +702,9 @@ export function ClaudeOnboarding() {
                       }}
                       className={cn(
                         'flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all',
-                        selectedProvider === p.id ? 'ring-2 ring-accent-500' : '',
+                        selectedProvider === p.id
+                          ? 'ring-2 ring-accent-500'
+                          : '',
                       )}
                       style={cardStyle}
                     >
@@ -751,7 +759,7 @@ export function ClaudeOnboarding() {
                           style={mutedStyle}
                         >
                           <span className="size-2 animate-pulse rounded-full bg-yellow-400" />
-                          Waiting for approval...
+                          Ожидаем подтверждение...
                         </div>
                         {oauthUserCode ? (
                           <div className="space-y-1 text-center">
@@ -791,7 +799,7 @@ export function ClaudeOnboarding() {
                           onClick={startNousOAuth}
                           className="w-full rounded-lg bg-accent-500 py-2 text-xs font-medium text-white"
                         >
-                          Retry
+                          Повторить
                         </button>
                       </div>
                     )}
@@ -914,16 +922,16 @@ export function ClaudeOnboarding() {
                 )}
                 <p className="mt-2 text-xs" style={mutedStyle}>
                   {canFetchModels
-                    ? 'Models were fetched from the backend when available.'
-                    : 'If your backend does not expose /v1/models, enter the model name manually.'}
+                    ? 'Модели загружаются с сервера, если он отдаёт список.'
+                    : 'Если сервер не отдаёт /v1/models, введите имя модели вручную.'}
                 </p>
               </div>
 
               {!canEditConfig ? (
                 <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-200">
-                  In-app provider editing is unavailable on this backend. That
-                  is optional. If the backend is already configured, continue to
-                  the chat test.
+                  Редактирование провайдера внутри панели недоступно для этой
+                  серверной части. Это не обязательно: если сервер уже настроен,
+                  переходите к тесту чата.
                 </div>
               ) : null}
 
@@ -942,7 +950,7 @@ export function ClaudeOnboarding() {
                     }
                     className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
                   >
-                    {saving ? 'Saving...' : 'Save Settings'}
+                    {saving ? 'Сохраняю...' : 'Сохранить настройки'}
                   </button>
                 ) : null}
                 <button
@@ -967,7 +975,7 @@ export function ClaudeOnboarding() {
                   disabled={!backendSupportsChat}
                   className="flex-1 rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
                 >
-                  Continue →
+                  Продолжить →
                 </button>
               </div>
             </div>
@@ -976,23 +984,24 @@ export function ClaudeOnboarding() {
           {step === 'test' && (
             <div className="space-y-4 text-center">
               <div className="text-4xl">🧪</div>
-              <h2 className="text-lg font-bold">Test Chat</h2>
+              <h2 className="text-lg font-bold">Проверка чата</h2>
               <p className="text-sm" style={mutedStyle}>
-                Verify that core chat works first. Enhanced Hermes Agent features are
-                optional and appear automatically when supported.
+                Сначала проверим, что обычный чат работает. Расширенные функции
+                Hermes Agent появятся автоматически, если сервер их
+                поддерживает.
               </p>
 
               <div
                 className="rounded-xl p-3 text-left text-xs"
                 style={cardStyle}
               >
-                <p style={mutedStyle}>Backend</p>
+                <p style={mutedStyle}>Серверная часть</p>
                 <p className="mt-1 font-mono">
-                  {backendInfo?.claudeUrl || 'Configured automatically'}
+                  {backendInfo?.claudeUrl || 'Настроено автоматически'}
                 </p>
                 {selectedModel || configuredModel ? (
                   <p className="mt-2" style={mutedStyle}>
-                    Model:{' '}
+                    Модель:{' '}
                     <span className="font-mono text-accent-400">
                       {stripProviderPrefix(selectedModel || configuredModel)}
                     </span>
@@ -1005,7 +1014,7 @@ export function ClaudeOnboarding() {
                   onClick={testConnection}
                   className="w-full rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                 >
-                  Send Test Message
+                  Отправить тестовое сообщение
                 </button>
               ) : null}
 
@@ -1015,7 +1024,7 @@ export function ClaudeOnboarding() {
                   style={mutedStyle}
                 >
                   <span className="size-2 animate-pulse rounded-full bg-accent-500" />
-                  Waiting for the backend response...
+                  Ждём ответ серверной части...
                 </div>
               ) : null}
 
@@ -1034,7 +1043,7 @@ export function ClaudeOnboarding() {
                     onClick={() => setStep('done')}
                     className="w-full rounded-xl bg-green-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-700"
                   >
-                    Continue
+                    Продолжить
                   </button>
                 </div>
               ) : null}
@@ -1043,7 +1052,7 @@ export function ClaudeOnboarding() {
                 <div className="space-y-3">
                   <div className="rounded-xl border border-red-500/30 bg-red-900/20 p-3 text-left text-sm">
                     <p className="mb-1 font-medium text-red-400">
-                      Chat test failed
+                      Проверка чата не прошла
                     </p>
                     <p className="text-xs" style={mutedStyle}>
                       {testMessage}
@@ -1051,15 +1060,15 @@ export function ClaudeOnboarding() {
                     {testMessage.includes('401') ||
                     testMessage.toLowerCase().includes('key') ? (
                       <p className="mt-2 text-xs text-yellow-400">
-                        Check your provider credentials and account access.
+                        Проверьте ключи провайдера и доступ к аккаунту.
                       </p>
                     ) : testMessage.toLowerCase().includes('model') ? (
                       <p className="mt-2 text-xs text-yellow-400">
-                        Confirm the selected model exists on this backend.
+                        Проверьте, что выбранная модель есть на сервере.
                       </p>
                     ) : (
                       <p className="mt-2 text-xs text-yellow-400">
-                        Confirm the backend is running and still reachable from
+                        Проверьте, что серверная часть запущена и доступна из
                         COMANDOS AI Workspace.
                       </p>
                     )}
@@ -1069,14 +1078,14 @@ export function ClaudeOnboarding() {
                       onClick={testConnection}
                       className="flex-1 rounded-lg bg-accent-500 py-2 text-xs font-medium text-white"
                     >
-                      Retry
+                      Повторить
                     </button>
                     <button
                       onClick={() => setStep('provider')}
                       className="flex-1 rounded-lg border py-2 text-xs font-medium"
                       style={{ borderColor: 'var(--theme-border)' }}
                     >
-                      ← Back
+                      ← Назад
                     </button>
                   </div>
                   <button
@@ -1084,7 +1093,7 @@ export function ClaudeOnboarding() {
                     className="mx-auto block text-xs"
                     style={mutedStyle}
                   >
-                    Skip for now
+                    Пропустить сейчас
                   </button>
                 </div>
               ) : null}
@@ -1094,12 +1103,12 @@ export function ClaudeOnboarding() {
           {step === 'done' && (
             <div className="space-y-4 text-center">
               <div className="text-5xl">🎉</div>
-              <h2 className="text-xl font-bold">Workspace Ready</h2>
+              <h2 className="text-xl font-bold">Пространство готово</h2>
               <p className="text-sm" style={mutedStyle}>
-                Core chat is set up.{' '}
+                Основной чат настроен.{' '}
                 {enhancedFeatures.length > 0
-                  ? 'This backend also exposes Hermes Agent gateway enhancements.'
-                  : 'If you later connect a Hermes Agent gateway, enhanced features unlock automatically.'}
+                  ? 'Эта серверная часть также открывает расширенные функции шлюза Hermes Agent.'
+                  : 'Если позже подключить шлюз Hermes Agent, расширенные функции включатся автоматически.'}
               </p>
               <div
                 className="grid grid-cols-3 gap-2 text-xs"

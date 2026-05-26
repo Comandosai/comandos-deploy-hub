@@ -25,7 +25,8 @@
 - `SSH_AUTH_METHOD`;
 - SSH-доступ через ключ или root/password;
 - хотя бы один ключ модели;
-- `TELEGRAM_BOT_TOKEN`.
+- `TELEGRAM_BOT_TOKEN`;
+- `TELEGRAM_USER_ID`.
 
 Лицензионный ключ не является входным параметром развёртывания. Пользователь вводит его в веб-панели, а панель проверяет доступ через сервер лицензий COMANDOS.
 
@@ -88,6 +89,18 @@ Workspace остаётся локальным:
 127.0.0.1:3030
 ```
 
+Telegram-роутер работает как user systemd service `comandos-telegram.service`.
+Он не открывает дополнительный публичный порт, а ходит в Telegram через long polling.
+
+Встроенные возможности роутера:
+
+- маршрутизация `Telegram ID -> Hermes profile`;
+- поддержка нескольких Telegram-ботов на одном Hermes;
+- голосовые сообщения через локальный `faster-whisper`;
+- inline-кнопки через блок `[[telegram_buttons]]`;
+- Telegram HTML-форматирование вместо сырых `**звёздочек**`;
+- публичный guard, чтобы бот не показывал пользователю пути, токены и внутренние профили без явного режима настройки.
+
 ## Как ставить Workspace
 
 Для публичной версии нельзя ставить из плавающей ветки.
@@ -100,7 +113,7 @@ Workspace остаётся локальным:
 4. собрать `pnpm build`;
 5. запускать `server-entry.js` через systemd.
 
-Так пользователь не сможет случайно обновить Workspace из интерфейса.
+Так пользователь не сможет случайно обновить Workspace из upstream. Рабочая кнопка обновления допустима только через `COMANDOS_UPDATE_MANIFEST_URL` и установленный `comandos-update.sh`.
 
 ## Как ставить Hermes Agent
 
@@ -111,7 +124,7 @@ Workspace остаётся локальным:
 3. не запускать `hermes update`;
 4. не создавать автообновляющие timer/cron.
 
-Перед публичным релизом нужен жёсткий способ установки по tag/commit.
+Обновление Hermes Agent должно идти только через проверенный ref из `update-manifest.json` и lock-файла.
 
 ## Env Workspace
 
@@ -130,7 +143,29 @@ HERMES_PASSWORD=<generated-24-symbol-password>
 COMANDOS_LICENSE_REQUIRED=1
 COMANDOS_LICENSE_SERVER_URL=https://api.comandos.ai/v1/license/products
 COMANDOS_LICENSE_SESSION_DAYS=14
+COMANDOS_WORKSPACE_VERSION=2.3.0-komandos.1
+COMANDOS_HERMES_AGENT_REF=87d9239
+COMANDOS_UPDATE_MANIFEST_URL=https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json
+COMANDOS_UPDATE_SCRIPT=/opt/comandos/hermes/install/comandos-update.sh
+COMANDOS_INSTALLED_STATE=/opt/comandos/hermes/workspace/.runtime/comandos-installed.json
+COMANDOS_STACK_REPO_URL=https://github.com/Comandosai/comandos-deploy-hub.git
+COMANDOS_STACK_REF=main
+COMANDOS_STACK_PATH=stacks/hermes
 ```
+
+## Env Telegram
+
+На VPS в env Telegram-роутера должны быть:
+
+```env
+TELEGRAM_BOT_TOKEN=<bot-token>
+TELEGRAM_BOT_TOKEN_SECOND=
+TELEGRAM_ALLOWED_USERS=
+COMANDOS_WORKSPACE_URL=https://PUBLIC_HOST
+```
+
+Роуты профилей хранятся в `/opt/comandos/hermes/telegram/config.json`.
+На первом уроке установщик создаёт только один маршрут: `TELEGRAM_USER_ID -> default`.
 
 ## Проверки после установки
 
@@ -160,4 +195,5 @@ Hermes gateway: active
 Workspace: active
 Лицензия: проверяется при входе в панель
 Автообновление: выключено
+Уведомления об обновлениях: включены
 ```

@@ -16,37 +16,37 @@ export function AgentsScreen() {
               <HugeiconsIcon icon={BotIcon} size={24} strokeWidth={1.6} />
             </div>
             <div>
-              <h1 className="text-base font-semibold text-primary-900">Agents</h1>
+              <h1 className="text-base font-semibold text-primary-900">Агенты</h1>
               <p className="mt-1 text-sm text-primary-600">
-                Workspace agent management was removed during cleanup.
+                Управление агентами перенесено в раздел операций.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <WorkflowHelpModal
               compact
-              eyebrow="Operations"
-              title="How Operations works"
+              eyebrow="Операции"
+              title="Как работают операции"
               sections={[
                 {
                   title: 'What this screen does',
                   bullets: [
-                    'Operations is the setup and readiness layer for your agents.',
-                    'Use it to confirm which profiles are configured and which ones still need setup.',
+                    'Операции показывают готовность агентов и их профилей.',
+                    'Здесь видно, какие профили настроены, а какие ещё требуют проверки.',
                   ],
                 },
                 {
                   title: 'Typical flow',
                   bullets: [
-                    'Repair or configure agents here first.',
-                    'Then use Conductor for mission-style dispatch and Swarm for coordinated multi-worker runs.',
+                    'Сначала настройте или исправьте агентов здесь.',
+                    'Потом запускайте задачи через Оркестратор или Рой.',
                   ],
                 },
                 {
                   title: 'FAQ',
                   bullets: [
-                    'Needs setup usually means missing model or related runtime configuration.',
-                    'If an agent is broken in Operations, other dispatch surfaces will usually be unreliable too.',
+                    'Если агент требует настройки, обычно не хватает модели или параметров запуска.',
+                    'Если агент сломан здесь, в Оркестраторе и Рое он тоже будет ненадёжен.',
                   ],
                 },
               ]}
@@ -56,16 +56,16 @@ export function AgentsScreen() {
               onClick={() => void navigate({ to: '/conductor' })}
             >
               <HugeiconsIcon icon={Rocket01Icon} size={16} strokeWidth={1.8} />
-              Open Conductor
+              Открыть оркестратор
             </Button>
           </div>
         </header>
 
         <section className="rounded-xl border border-primary-200 bg-[var(--theme-card)] p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-primary-900">Screen simplified</h2>
+          <h2 className="text-lg font-semibold text-primary-900">Экран упрощён</h2>
           <p className="mt-2 max-w-2xl text-sm text-primary-600">
-            The deleted workspace daemon and project stack backed the previous agent directory.
-            Use Conductor for mission launch and the Gateway Conductor for live session visibility.
+            Старый каталог агентов был убран. Для запуска миссий используйте Оркестратор,
+            а готовность агентов проверяйте в Операциях.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Button
@@ -73,13 +73,13 @@ export function AgentsScreen() {
               className="border border-primary-200 bg-[var(--theme-card)] text-primary-700 hover:bg-primary-50"
               onClick={() => void navigate({ to: '/conductor' })}
             >
-              Open Conductor
+              Открыть оркестратор
             </Button>
             <Button
               className="bg-accent-500 text-primary-950 hover:bg-accent-400"
               onClick={() => void navigate({ to: '/conductor' })}
             >
-              Start Mission
+              Запустить миссию
             </Button>
           </div>
         </section>

@@ -199,7 +199,7 @@ const RU: LocaleTranslations = {
   'profiles.monitoring': 'Мониторинг',
   'tasks.title': 'Задачи',
   'tasks.newTask': 'Новая задача',
-  'tasks.backlog': 'Бэклог',
+  'tasks.backlog': 'Разобрать',
   'tasks.todo': 'К выполнению',
   'tasks.inProgress': 'В работе',
   'tasks.review': 'Проверка',
@@ -325,19 +325,19 @@ export const LOCALE_LABELS: Record<LocaleId, string> = {
 const STORAGE_KEY = 'hermes-workspace-locale'
 
 export function getLocale(): LocaleId {
-  if (typeof window === 'undefined') return 'en'
+  if (typeof window === 'undefined') return 'ru'
   const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored && stored in LOCALES) return stored as LocaleId
-  const full = navigator.language
-  if (full in LOCALES) return full as LocaleId
-  const lang = full.split('-')[0]
-  if (lang in LOCALES) return lang as LocaleId
-  return 'en'
+  if (stored !== 'ru') {
+    localStorage.setItem(STORAGE_KEY, 'ru')
+  }
+  return 'ru'
 }
 
-export function setLocale(id: LocaleId): void {
-  localStorage.setItem(STORAGE_KEY, id)
-  window.dispatchEvent(new CustomEvent('locale-change', { detail: id }))
+export function setLocale(_id: LocaleId): void {
+  localStorage.setItem(STORAGE_KEY, 'ru')
+  if (typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new CustomEvent('locale-change', { detail: 'ru' satisfies LocaleId }))
+  }
 }
 
 export function t(key: TranslationKey): string {

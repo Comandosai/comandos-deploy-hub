@@ -174,14 +174,13 @@ export function MobilePromptTrigger() {
                     className="text-sm font-semibold"
                     style={{ color: 'var(--theme-text)' }}
                   >
-                    Set up mobile access
+                    Подключить мобильный доступ
                   </p>
                   <p
                     className="text-xs"
                     style={{ color: 'var(--theme-muted)' }}
                   >
-                    Connect your phone to this COMANDOS AI Workspace instance in a
-                    few steps.
+                    Откройте эту панель с телефона через защищённую ссылку.
                   </p>
                 </div>
 
@@ -189,17 +188,17 @@ export function MobilePromptTrigger() {
                   <button
                     type="button"
                     onClick={openSetup}
-                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
-                    style={{ background: 'var(--theme-accent)' }}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
+                    style={{ background: 'var(--theme-accent)', color: 'var(--theme-on-accent)' }}
                   >
-                    Set up
+                    Настроить
                   </button>
                   <button
                     type="button"
                     onClick={dismissPrompt}
                     className="rounded-lg p-1.5 transition-colors hover:opacity-80"
                     style={{ color: 'var(--theme-muted)' }}
-                    aria-label="Dismiss mobile setup prompt"
+                    aria-label="Закрыть подсказку мобильного доступа"
                   >
                     <HugeiconsIcon
                       icon={Cancel01Icon}

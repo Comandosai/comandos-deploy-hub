@@ -10,7 +10,7 @@ export const Route = createFileRoute('/profiles')({
 })
 
 function ProfilesRoute() {
-  usePageTitle('Profiles')
+  usePageTitle('Профили')
   const [tab, setTab] = useState<'profiles' | 'monitoring'>('profiles')
 
   return (
@@ -25,7 +25,7 @@ function ProfilesRoute() {
                 : 'text-primary-500 hover:text-ink'
             }`}
           >
-            Profiles
+            Профили
           </button>
           <button
             onClick={() => setTab('monitoring')}
@@ -35,7 +35,7 @@ function ProfilesRoute() {
                 : 'text-primary-500 hover:text-ink'
             }`}
           >
-            Monitoring
+            Мониторинг
           </button>
         </div>
         {tab === 'profiles' ? <ProfilesScreen /> : <CrewScreen />}

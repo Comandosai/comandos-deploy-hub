@@ -11,13 +11,13 @@ export const Route = createFileRoute('/mcp')({
 })
 
 function McpRoute() {
-  usePageTitle('MCP Servers')
+  usePageTitle('MCP-серверы')
   const native = useFeatureAvailable('mcp')
   const fallback = useFeatureAvailable('mcpFallback')
   if (!native && !fallback) {
     return (
       <BackendUnavailableState
-        feature="MCP Servers"
+        feature="MCP-серверы"
         description={getUnavailableReason('mcp')}
       />
     )

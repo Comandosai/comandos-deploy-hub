@@ -40,12 +40,12 @@ export function SteerModal({
     setPending(true)
     try {
       await steerAgent(normalizedSessionKey, trimmedMessage)
-      toast(`Directive sent to ${agentName}`, { type: 'success' })
+      toast(`Указание отправлено агенту ${agentName}`, { type: 'success' })
       setMessage('')
       onOpenChange(false)
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to send directive'
+        error instanceof Error ? error.message : 'Не удалось отправить указание'
       toast(message, { type: 'error' })
     } finally {
       setPending(false)
@@ -57,16 +57,16 @@ export function SteerModal({
       <DialogContent className="w-[min(560px,92vw)]">
         <div className="space-y-4 p-5">
           <div className="space-y-1">
-            <DialogTitle className="text-base">Steer: {agentName}</DialogTitle>
+            <DialogTitle className="text-base">Направить агента: {agentName}</DialogTitle>
             <DialogDescription>
-              Send a directive to influence this agent&apos;s next steps.
+              Отправьте короткое указание, чтобы скорректировать следующие шаги агента.
             </DialogDescription>
           </div>
 
           <textarea
             value={message}
             rows={5}
-            placeholder="Send a directive to this agent..."
+            placeholder="Напишите указание для агента..."
             disabled={pending}
             onChange={function onChangeMessage(event) {
               setMessage(event.target.value)
@@ -83,7 +83,7 @@ export function SteerModal({
                 onOpenChange(false)
               }}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               size="sm"
@@ -93,7 +93,7 @@ export function SteerModal({
               }}
               className="bg-accent-500 text-white hover:bg-accent-600"
             >
-              {pending ? 'Sending...' : 'Send'}
+              {pending ? 'Отправляю...' : 'Отправить'}
             </Button>
           </div>
         </div>

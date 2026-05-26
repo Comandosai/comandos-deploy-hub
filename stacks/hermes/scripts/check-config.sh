@@ -29,6 +29,7 @@ need VPS_IP
 need SSH_PORT
 need SSH_AUTH_METHOD
 need TELEGRAM_BOT_TOKEN
+need TELEGRAM_USER_ID
 
 case "${SSH_AUTH_METHOD:-}" in
   key)
@@ -89,4 +90,6 @@ echo " - Public URL: https://${public_host}"
 echo " - Workspace port: ${WORKSPACE_PORT:-3030}"
 echo " - Hermes gateway port: ${HERMES_GATEWAY_PORT:-8642}"
 echo " - Telegram: configured"
+echo " - Telegram user ID: ${TELEGRAM_USER_ID}"
 echo " - License server: ${COMANDOS_LICENSE_SERVER_URL:-not set}"
+echo " - Update manifest: ${COMANDOS_UPDATE_MANIFEST_URL:-default COMANDOS manifest}"

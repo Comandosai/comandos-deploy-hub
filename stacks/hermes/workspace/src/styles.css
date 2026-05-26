@@ -1295,6 +1295,23 @@ code {
   color: #fff !important;
 }
 
+/* COMANDOS primary buttons use a lime accent. White text on lime is unreadable,
+   so force accent-backed controls to use the theme foreground token. */
+[data-theme^='komandos'] .bg-accent-500.text-white,
+[data-theme^='komandos'] .bg-accent-500 .text-white,
+[data-theme^='komandos'] [class*='bg-[var(--theme-accent)]'].text-white,
+[data-theme^='komandos'] [class*='bg-[var(--theme-accent)]'] .text-white,
+[data-theme^='komandos'] button[style*='--theme-accent'],
+[data-theme^='komandos'] a[style*='--theme-accent'],
+[data-theme^='komandos'] [role='button'][style*='--theme-accent'] {
+  color: var(--theme-on-accent) !important;
+}
+
+[data-theme^='komandos'] .bg-accent-500.text-primary-50,
+[data-theme^='komandos'] .bg-accent-500 .text-primary-50 {
+  color: var(--theme-on-accent) !important;
+}
+
 /* Composer focus ring for all themes */
 [data-theme] .composer-input:focus-within {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-accent) 65%, transparent);

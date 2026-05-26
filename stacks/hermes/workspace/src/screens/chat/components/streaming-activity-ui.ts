@@ -69,9 +69,9 @@ export function buildHermesActivitySummary(
   if (sections.length === 0) {
     return {
       countLabel: '0 calls',
-      statusLabel: 'idle',
-      visibleLabel: 'No active tools',
-      collapsedLabel: 'No active tools',
+      statusLabel: 'ожидание',
+      visibleLabel: 'Активных инструментов нет',
+      collapsedLabel: 'Активных инструментов нет',
       runningCount: 0,
       errorCount: 0,
       doneCount: 0,

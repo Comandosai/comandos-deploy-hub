@@ -1,5 +1,5 @@
 [Unit]
-Description=COMANDOS Hermes Telegram wrapper
+Description=COMANDOS Hermes Telegram router
 After=network-online.target hermes-gateway.service
 Wants=network-online.target hermes-gateway.service
 
@@ -7,10 +7,12 @@ Wants=network-online.target hermes-gateway.service
 Type=simple
 WorkingDirectory={{REMOTE_BASE_DIR}}/telegram
 EnvironmentFile={{REMOTE_BASE_DIR}}/telegram/.env
-ExecStart={{NODE_PATH}} {{REMOTE_BASE_DIR}}/telegram/server.js
+Environment=COMANDOS_ROUTER_CONFIG={{REMOTE_BASE_DIR}}/telegram/config.json
+Environment=COMANDOS_ROUTER_STATE={{REMOTE_BASE_DIR}}/telegram/state.json
+Environment=COMANDOS_ROUTER_LOCK={{REMOTE_BASE_DIR}}/telegram/hermes.lock
+ExecStart={{PYTHON_PATH}} {{REMOTE_BASE_DIR}}/telegram/router.py
 Restart=always
 RestartSec=3
 
 [Install]
 WantedBy=default.target
-

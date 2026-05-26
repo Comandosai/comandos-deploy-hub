@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Add01Icon,
@@ -19,6 +20,8 @@ import { DialogContent, DialogRoot, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils'
+import { createOptimisticMessage } from '@/screens/chat/chat-screen-utils'
+import { stashPendingSend } from '@/screens/chat/pending-send'
 
 type ProfileSummary = {
   name: string
@@ -45,6 +48,23 @@ type ProfileDetail = {
   sessionsDir?: string
   skillsDir?: string
 }
+
+const CLAWBOT_IMPORT_PROMPT = `Помоги перенести настройки из старого ClawBot/OpenClaw/CloudBot в текущий Hermes.
+
+Работай как инженер-мигратор и сначала только найди кандидаты. Ничего не копируй, не перемещай, не перезаписывай и не меняй без моего отдельного подтверждения.
+
+Что надо сделать:
+1. Найди на сервере старые установки или проекты ClawBot, OpenClaw, CloudBot. Начни с домашней папки текущего пользователя и типовых путей: ~/.openclaw, ~/.clawbot, ~/OpenClaw, ~/ClawBot, ~/workspace, ~/projects.
+2. Для каждого найденного кандидата коротко покажи путь и что там есть: память, навыки/skills, конфиги, env-файлы, Telegram-настройки, OpenAI/DeepSeek/Qwen-провайдеры.
+3. Секреты не выводи. Если видишь ключ или токен, показывай только имя переменной, например OPENAI_API_KEY или TELEGRAM_BOT_TOKEN, без значения.
+4. Не читай и не печатай содержимое .env целиком. Можно определить только список имён переменных.
+5. После поиска задай один вопрос: что именно переносить и в какой профиль Hermes.
+
+Формат ответа:
+- Найденные кандидаты
+- Что можно перенести
+- Риски
+- Один вопрос пользователю`
 
 async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url)
@@ -104,6 +124,7 @@ function ProfileStat({
 
 export function ProfilesScreen() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [createOpen, setCreateOpen] = useState(false)
   const [detailsName, setDetailsName] = useState<string | null>(null)
   const [renameTarget, setRenameTarget] = useState<ProfileSummary | null>(null)
@@ -160,6 +181,22 @@ export function ProfilesScreen() {
     return payload
   }
 
+  function handleLegacyAgentImport() {
+    const { optimisticMessage } = createOptimisticMessage(CLAWBOT_IMPORT_PROMPT)
+    stashPendingSend({
+      sessionKey: 'main',
+      friendlyId: 'main',
+      message: CLAWBOT_IMPORT_PROMPT,
+      attachments: [],
+      optimisticMessage,
+    })
+    toast('Открываю чат и запускаю импорт.', { type: 'success' })
+    navigate({
+      to: '/chat/$sessionKey',
+      params: { sessionKey: 'main' },
+    })
+  }
+
   const fetchAllModels = useCallback(async () => {
     setLoadingModels(true)
     try {
@@ -209,13 +246,13 @@ export function ProfilesScreen() {
         ...(wizardModel ? { model: wizardModel } : {}),
         ...(wizardProvider ? { provider: wizardProvider } : {}),
       })
-      toast(`Created profile ${newProfileName.trim()}`, { type: 'success' })
+      toast(`Профиль ${newProfileName.trim()} создан`, { type: 'success' })
       setCreateOpen(false)
       resetWizard()
       await refreshProfiles()
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : 'Failed to create profile',
+        error instanceof Error ? error.message : 'Не удалось создать профиль',
         { type: 'error' },
       )
     } finally {
@@ -227,11 +264,11 @@ export function ProfilesScreen() {
     setBusyName(name)
     try {
       await postJson('/api/profiles/activate', { name })
-      toast(`Activated profile ${name}`, { type: 'success' })
+      toast(`Профиль ${name} активирован`, { type: 'success' })
       await refreshProfiles()
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : 'Failed to activate profile',
+        error instanceof Error ? error.message : 'Не удалось активировать профиль',
         { type: 'error' },
       )
     } finally {
@@ -242,17 +279,17 @@ export function ProfilesScreen() {
   async function handleDelete(name: string) {
     if (
       typeof window !== 'undefined' &&
-      !window.confirm(`Delete profile ${name}?`)
+      !window.confirm(`Удалить профиль ${name}?`)
     )
       return
     setBusyName(name)
     try {
       await postJson('/api/profiles/delete', { name })
-      toast(`Deleted profile ${name}`, { type: 'success' })
+      toast(`Профиль ${name} удалён`, { type: 'success' })
       await refreshProfiles()
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : 'Failed to delete profile',
+        error instanceof Error ? error.message : 'Не удалось удалить профиль',
         { type: 'error' },
       )
     } finally {
@@ -268,7 +305,7 @@ export function ProfilesScreen() {
         oldName: renameTarget.name,
         newName: renameValue.trim(),
       })
-      toast(`Renamed ${renameTarget.name} → ${renameValue.trim()}`, {
+      toast(`Профиль переименован: ${renameTarget.name} → ${renameValue.trim()}`, {
         type: 'success',
       })
       setRenameTarget(null)
@@ -276,7 +313,7 @@ export function ProfilesScreen() {
       await refreshProfiles()
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : 'Failed to rename profile',
+        error instanceof Error ? error.message : 'Не удалось переименовать профиль',
         { type: 'error' },
       )
     } finally {
@@ -292,7 +329,7 @@ export function ProfilesScreen() {
         name: detailsName,
         patch: { description: descriptionDraft.trim() || null },
       })
-      toast(`Saved description for ${detailsName}`, { type: 'success' })
+      toast(`Описание профиля ${detailsName} сохранено`, { type: 'success' })
       await Promise.all([
         refreshProfiles(),
         queryClient.invalidateQueries({ queryKey: ['profiles', 'read', detailsName] }),
@@ -300,7 +337,7 @@ export function ProfilesScreen() {
       await detailQuery.refetch()
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : 'Failed to save description',
+        error instanceof Error ? error.message : 'Не удалось сохранить описание',
         { type: 'error' },
       )
     } finally {
@@ -314,17 +351,27 @@ export function ProfilesScreen() {
         <div>
           <div className="flex items-center gap-2">
             <HugeiconsIcon icon={UserGroupIcon} size={22} strokeWidth={1.7} />
-            <h1 className="text-lg font-semibold text-primary-900">Profiles</h1>
+            <h1 className="text-lg font-semibold text-primary-900">Профили</h1>
           </div>
           <p className="mt-1 text-sm text-primary-600">
-            Browse and manage Hermes profiles stored under{' '}
+            Просмотр и управление профилями Hermes, которые лежат в{' '}
             <span className="font-mono">~/.hermes/profiles</span>.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2">
-          <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={1.8} />
-          Create profile
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => void handleLegacyAgentImport()}
+            className="gap-2 bg-primary-50"
+          >
+            <HugeiconsIcon icon={Copy01Icon} size={16} strokeWidth={1.8} />
+            Импорт из ClawBot
+          </Button>
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={1.8} />
+            Создать профиль
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -335,7 +382,7 @@ export function ProfilesScreen() {
               key={profile.name}
               className="group relative overflow-hidden rounded-2xl border border-primary-200 bg-primary-50/80 shadow-sm dark:border-neutral-800 dark:bg-neutral-950"
             >
-              {/* Active glow accent */}
+              {/* Подсветка активного профиля */}
               {profile.active && (
                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-400 via-accent-500 to-emerald-400" />
               )}
@@ -376,7 +423,7 @@ export function ProfilesScreen() {
                         className="text-white"
                       />
                       <span className="text-[9px] font-bold uppercase tracking-wider text-white">
-                        Active
+                        Активен
                       </span>
                     </div>
                   )}
@@ -387,19 +434,19 @@ export function ProfilesScreen() {
                   {profile.name}
                 </h2>
                 <span className="mt-1 inline-block rounded-full bg-primary-100 px-2.5 py-0.5 text-[11px] font-medium text-primary-600 dark:bg-neutral-800 dark:text-neutral-400">
-                  {profile.provider || 'no provider'}
+                  {profile.provider || 'провайдер не задан'}
                 </span>
                 <p className="mt-3 line-clamp-2 min-h-[2.5rem] px-6 text-center text-xs text-primary-500 dark:text-neutral-400">
-                  {profile.description?.trim() || 'No description yet'}
+                  {profile.description?.trim() || 'Описание пока не задано'}
                 </p>
               </div>
 
               {/* Stats ring */}
               <div className="mx-4 mt-4 grid grid-cols-4 divide-x divide-primary-200 rounded-xl border border-primary-200 bg-primary-100/50 dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900/50">
-                <ProfileStat label="Skills" value={profile.skillCount} />
-                <ProfileStat label="Sessions" value={profile.sessionCount} />
+                <ProfileStat label="Навыки" value={profile.skillCount} />
+                <ProfileStat label="Сессии" value={profile.sessionCount} />
                 <ProfileStat
-                  label="Model"
+                  label="Модель"
                   value={profile.model || '\u2014'}
                   truncate
                 />
@@ -433,7 +480,7 @@ export function ProfilesScreen() {
                     size={13}
                     strokeWidth={1.8}
                   />{' '}
-                  Activate
+                  Активировать
                 </button>
                 <button
                   type="button"
@@ -445,7 +492,7 @@ export function ProfilesScreen() {
                     size={13}
                     strokeWidth={1.8}
                   />{' '}
-                  Details
+                  Детали
                 </button>
                 <button
                   type="button"
@@ -460,7 +507,7 @@ export function ProfilesScreen() {
                     size={13}
                     strokeWidth={1.8}
                   />{' '}
-                  Rename
+                  Переименовать
                 </button>
                 <button
                   type="button"
@@ -478,7 +525,7 @@ export function ProfilesScreen() {
                     size={13}
                     strokeWidth={1.8}
                   />{' '}
-                  Delete
+                  Удалить
                 </button>
               </div>
             </article>
@@ -488,7 +535,7 @@ export function ProfilesScreen() {
 
       {sorted.length === 0 && !profilesQuery.isLoading ? (
         <div className="rounded-2xl border border-dashed border-primary-200 bg-primary-50/70 p-8 text-center text-sm text-primary-600">
-          No named profiles found yet. The active profile is{' '}
+          Именованных профилей пока нет. Активный профиль:{' '}
           <span className="font-semibold">{activeProfile}</span>.
         </div>
       ) : null}
@@ -509,14 +556,14 @@ export function ProfilesScreen() {
               </div>
               <div>
                 <DialogTitle className="text-base font-semibold">
-                  Create profile
+                  Создать профиль
                 </DialogTitle>
                 <p className="mt-0.5 text-xs text-primary-500 dark:text-neutral-400">
                   {wizardStep === 1
-                    ? 'Name & template'
+                    ? 'Имя и шаблон'
                     : wizardStep === 2
-                      ? 'Choose model'
-                      : 'Review & create'}
+                      ? 'Выбор модели'
+                      : 'Проверка и создание'}
                 </p>
               </div>
             </div>
@@ -531,7 +578,7 @@ export function ProfilesScreen() {
                       wizardStep > step
                         ? 'bg-emerald-500 text-white'
                         : wizardStep === step
-                          ? 'bg-accent-500 text-white'
+                          ? 'bg-accent-500 text-[var(--theme-on-accent)]'
                           : 'border border-primary-200 bg-primary-100 text-primary-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-500',
                     )}
                   >
@@ -566,25 +613,25 @@ export function ProfilesScreen() {
               <div className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-neutral-400">
-                    Profile name
+                    Имя профиля
                   </label>
                   <Input
                     value={newProfileName}
                     onChange={(e) => setNewProfileName(e.target.value)}
-                    placeholder="e.g. builder, researcher, ops"
+                    placeholder="например: builder, researcher, ops"
                     className="h-11 text-sm"
                     autoFocus
                   />
                   {newProfileName.trim() && !nameValid ? (
                     <p className="text-xs text-red-500">
-                      Use letters, numbers, underscores, or hyphens. Cannot be
-                      &quot;default&quot;.
+                      Используйте латинские буквы, цифры, подчёркивание или дефис.
+                      Имя &quot;default&quot; использовать нельзя.
                     </p>
                   ) : newProfileName.trim() && nameValid ? (
-                    <p className="text-xs text-emerald-600">✓ Valid name</p>
+                    <p className="text-xs text-emerald-600">✓ Имя подходит</p>
                   ) : (
                     <p className="text-xs text-primary-400 dark:text-neutral-500">
-                      Choose a short, memorable identifier
+                      Выберите короткое понятное имя
                     </p>
                   )}
                 </div>
@@ -597,7 +644,7 @@ export function ProfilesScreen() {
                         size={13}
                         strokeWidth={1.8}
                       />
-                      Clone from existing
+                      Скопировать из существующего
                     </span>
                   </label>
                   <select
@@ -605,27 +652,26 @@ export function ProfilesScreen() {
                     onChange={(e) => setCloneFrom(e.target.value)}
                     className="h-11 w-full rounded-xl border border-primary-200 bg-primary-50 px-3 text-sm text-primary-900 outline-none transition-colors focus:border-accent-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                   >
-                    <option value="">Start fresh — empty config</option>
+                    <option value="">Начать с нуля — пустой конфиг</option>
                     {profiles.map((p) => (
                       <option key={p.name} value={p.name}>
                         {p.name} {p.model ? `(${p.model})` : ''}{' '}
-                        {p.active ? '• active' : ''}
+                        {p.active ? '• активен' : ''}
                       </option>
                     ))}
                   </select>
                   <p className="text-xs text-primary-400 dark:text-neutral-500">
-                    Copies config, skills path, and env from the selected
-                    profile
+                    Скопирует конфиг, путь к навыкам и env из выбранного профиля
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-primary-200 bg-primary-50/60 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
                   <p className="text-xs text-primary-500 dark:text-neutral-400">
-                    Profiles are stored under{' '}
+                    Профили хранятся в{' '}
                     <code className="rounded bg-primary-100 px-1 py-0.5 font-mono text-[11px] dark:bg-neutral-800">
                       ~/.hermes/profiles/&lt;name&gt;/
                     </code>{' '}
-                    with their own config, skills, sessions, and env.
+                    со своим конфигом, навыками, сессиями и env.
                   </p>
                 </div>
               </div>
@@ -635,16 +681,16 @@ export function ProfilesScreen() {
               <div className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-neutral-400">
-                    Default model
+                    Модель по умолчанию
                   </label>
                   {loadingModels ? (
                     <div className="flex h-11 items-center rounded-xl border border-primary-200 bg-primary-50 px-3 text-sm text-primary-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-500">
-                      Loading configured models…
+                      Загружаю настроенные модели...
                     </div>
                   ) : allModels.length === 0 ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
-                      No models found. Make sure Hermes Agent is running and
-                      has models configured.
+                      Модели не найдены. Проверьте, что Hermes Agent запущен и
+                      модели настроены.
                     </div>
                   ) : (
                     <select
@@ -657,7 +703,7 @@ export function ProfilesScreen() {
                       }}
                       className="h-11 w-full rounded-xl border border-primary-200 bg-primary-50 px-3 text-sm text-primary-900 outline-none transition-colors focus:border-accent-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     >
-                      <option value="">Skip — configure later</option>
+                      <option value="">Пропустить — настроить позже</option>
                       {allModels.map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.name || m.id}
@@ -669,7 +715,7 @@ export function ProfilesScreen() {
                   {wizardModel && (
                     <p className="text-xs text-emerald-600 dark:text-emerald-400">
                       ✓ {wizardModel}
-                      {wizardProvider ? ` via ${wizardProvider}` : ''}
+                      {wizardProvider ? ` через ${wizardProvider}` : ''}
                     </p>
                   )}
                 </div>
@@ -677,8 +723,8 @@ export function ProfilesScreen() {
                 {!wizardModel && !loadingModels && allModels.length > 0 && (
                   <div className="rounded-xl border border-primary-200 bg-primary-50/60 p-3 dark:border-neutral-800 dark:bg-neutral-900/40">
                     <p className="text-xs text-primary-500 dark:text-neutral-400">
-                      Select a model or skip to configure later from profile
-                      details or config.yaml.
+                      Выберите модель или пропустите этот шаг, чтобы настроить её
+                      позже в карточке профиля или config.yaml.
                     </p>
                   </div>
                 )}
@@ -689,20 +735,20 @@ export function ProfilesScreen() {
               <div className="space-y-4">
                 <div className="rounded-2xl border border-primary-200 bg-primary-50/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
                   <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary-500 dark:text-neutral-400">
-                    Profile summary
+                    Сводка профиля
                   </h3>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <SummaryField label="Name" value={newProfileName.trim()} />
+                    <SummaryField label="Имя" value={newProfileName.trim()} />
                     <SummaryField
-                      label="Template"
-                      value={cloneFrom || 'Fresh start'}
+                      label="Шаблон"
+                      value={cloneFrom || 'С нуля'}
                     />
                     <SummaryField
-                      label="Model"
+                      label="Модель"
                       value={
                         wizardModel
                           ? `${wizardModel}${wizardProvider ? ` (${wizardProvider})` : ''}`
-                          : 'Not set'
+                          : 'Не задана'
                       }
                       muted={!wizardModel}
                     />
@@ -711,13 +757,13 @@ export function ProfilesScreen() {
 
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                   <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                    This will create{' '}
+                    Будет создана папка{' '}
                     <code className="rounded bg-emerald-100 px-1 py-0.5 font-mono text-[11px] dark:bg-emerald-900/40">
                       ~/.hermes/profiles/{newProfileName.trim()}/
                     </code>{' '}
-                    with config.yaml
-                    {cloneFrom ? ` cloned from ${cloneFrom}` : ''}, skills/, and
-                    sessions/ directories.
+                    с config.yaml
+                    {cloneFrom ? ` на основе ${cloneFrom}` : ''}, skills/ и
+                    sessions/.
                   </p>
                 </div>
               </div>
@@ -733,7 +779,7 @@ export function ProfilesScreen() {
                   size="sm"
                   onClick={() => setWizardStep((s) => (s - 1) as 1 | 2 | 3)}
                 >
-                  Back
+                  Назад
                 </Button>
               )}
             </div>
@@ -746,7 +792,7 @@ export function ProfilesScreen() {
                   resetWizard()
                 }}
               >
-                Cancel
+                Отмена
               </Button>
               {wizardStep < 3 ? (
                 <Button
@@ -755,7 +801,7 @@ export function ProfilesScreen() {
                   disabled={wizardStep === 1 && !nameValid}
                   className="gap-1.5"
                 >
-                  Next
+                  Далее
                   <HugeiconsIcon
                     icon={ArrowRight01Icon}
                     size={14}
@@ -774,7 +820,7 @@ export function ProfilesScreen() {
                     size={14}
                     strokeWidth={1.8}
                   />
-                  Create Profile
+                  Создать профиль
                 </Button>
               )}
             </div>
@@ -799,10 +845,10 @@ export function ProfilesScreen() {
               </div>
               <div>
                 <DialogTitle className="text-base font-semibold">
-                  Rename profile
+                  Переименовать профиль
                 </DialogTitle>
                 <p className="mt-0.5 text-xs text-primary-500 dark:text-neutral-400">
-                  Renaming{' '}
+                  Сейчас переименовываем:{' '}
                   <span className="font-semibold text-primary-700 dark:text-neutral-200">
                     {renameTarget?.name}
                   </span>
@@ -813,7 +859,7 @@ export function ProfilesScreen() {
           <div className="px-6 py-5 space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-neutral-400">
-                New name
+                Новое имя
               </label>
               <Input
                 value={renameValue}
@@ -825,7 +871,7 @@ export function ProfilesScreen() {
               {renameValue.trim() &&
                 !/^[A-Za-z0-9_-]+$/.test(renameValue.trim()) && (
                   <p className="text-xs text-red-500">
-                    Use letters, numbers, underscores, or hyphens.
+                    Используйте латинские буквы, цифры, подчёркивание или дефис.
                   </p>
                 )}
             </div>
@@ -839,7 +885,7 @@ export function ProfilesScreen() {
                 setRenameValue('')
               }}
             >
-              Cancel
+              Отмена
             </Button>
             <Button
               size="sm"
@@ -850,7 +896,7 @@ export function ProfilesScreen() {
                 !/^[A-Za-z0-9_-]+$/.test(renameValue.trim())
               }
             >
-              Rename
+              Переименовать
             </Button>
           </div>
         </DialogContent>
@@ -875,7 +921,7 @@ export function ProfilesScreen() {
                     {detailsName}
                   </DialogTitle>
                   <p className="mt-0.5 text-xs text-primary-500 dark:text-neutral-400">
-                    Profile details &amp; configuration
+                    Детали профиля и конфигурация
                   </p>
                 </div>
               </div>
@@ -885,7 +931,7 @@ export function ProfilesScreen() {
                 onClick={() => void detailQuery.refetch()}
                 disabled={detailQuery.isFetching}
               >
-                {detailQuery.isFetching ? 'Refreshing…' : 'Refresh'}
+                {detailQuery.isFetching ? 'Обновляю...' : 'Обновить'}
               </Button>
             </div>
           </div>
@@ -896,36 +942,36 @@ export function ProfilesScreen() {
               <div className="space-y-4 text-sm">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <DetailField
-                    label="Name"
+                    label="Имя"
                     value={detailQuery.data.profile.name}
                   />
                   <DetailField
-                    label="Active"
-                    value={detailQuery.data.profile.active ? 'Yes' : 'No'}
+                    label="Активен"
+                    value={detailQuery.data.profile.active ? 'Да' : 'Нет'}
                     accent={detailQuery.data.profile.active}
                   />
                 </div>
                 <DetailField
-                  label="Path"
+                  label="Путь"
                   value={detailQuery.data.profile.path}
                   mono
                 />
                 <div className="grid gap-3 sm:grid-cols-3">
                   <DetailField
-                    label="Env file"
-                    value={detailQuery.data.profile.envPath || 'Not set'}
+                    label="Env-файл"
+                    value={detailQuery.data.profile.envPath || 'Не задан'}
                     mono
                     muted={!detailQuery.data.profile.envPath}
                   />
                   <DetailField
-                    label="Sessions"
-                    value={detailQuery.data.profile.sessionsDir || 'Not set'}
+                    label="Сессии"
+                    value={detailQuery.data.profile.sessionsDir || 'Не задано'}
                     mono
                     muted={!detailQuery.data.profile.sessionsDir}
                   />
                   <DetailField
-                    label="Skills"
-                    value={detailQuery.data.profile.skillsDir || 'Not set'}
+                    label="Навыки"
+                    value={detailQuery.data.profile.skillsDir || 'Не задано'}
                     mono
                     muted={!detailQuery.data.profile.skillsDir}
                   />
@@ -933,24 +979,24 @@ export function ProfilesScreen() {
                 <div className="rounded-xl border border-primary-200 bg-primary-50/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div className="text-xs font-semibold uppercase tracking-wider text-primary-500 dark:text-neutral-400">
-                      Description
+                      Описание
                     </div>
                     <Button
                       size="sm"
                       onClick={() => void handleSaveDescription()}
                       disabled={savingDescription}
                     >
-                      {savingDescription ? 'Saving…' : 'Save'}
+                      {savingDescription ? 'Сохраняю...' : 'Сохранить'}
                     </Button>
                   </div>
                   <textarea
                     value={descriptionDraft}
                     onChange={(event) => setDescriptionDraft(event.target.value)}
-                    placeholder="What this profile is for, how it should behave, or what makes it different"
+                    placeholder="Для чего этот профиль, как он должен работать и чем отличается"
                     className="min-h-[96px] w-full rounded-lg border border-primary-200 bg-primary-100/70 p-3 text-sm text-primary-900 outline-none transition-colors focus:border-accent-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                   />
                   <p className="mt-2 text-xs text-primary-400 dark:text-neutral-500">
-                    Saved into the profile config, so manual file edits show up here after refresh.
+                    Сохраняется в конфиг профиля. Ручные правки файла появятся здесь после обновления.
                   </p>
                 </div>
                 <div className="rounded-xl border border-primary-200 bg-primary-50/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
@@ -960,7 +1006,7 @@ export function ProfilesScreen() {
                       size={14}
                       strokeWidth={1.8}
                     />{' '}
-                    Config
+                    Конфиг
                   </div>
                   <pre className="max-h-48 overflow-auto rounded-lg border border-primary-200 bg-primary-100/70 p-3 text-xs leading-relaxed text-primary-800 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
                     {JSON.stringify(detailQuery.data.profile.config, null, 2)}
@@ -969,11 +1015,11 @@ export function ProfilesScreen() {
               </div>
             ) : detailQuery.isLoading ? (
               <div className="flex min-h-[120px] items-center justify-center text-sm text-primary-500 dark:text-neutral-400">
-                Loading profile\u2026
+                Загружаю профиль...
               </div>
             ) : (
               <div className="flex min-h-[120px] items-center justify-center text-sm text-red-500">
-                Failed to load profile.
+                Не удалось загрузить профиль.
               </div>
             )}
           </div>
@@ -985,7 +1031,7 @@ export function ProfilesScreen() {
               size="sm"
               onClick={() => setDetailsName(null)}
             >
-              Close
+              Закрыть
             </Button>
           </div>
         </DialogContent>

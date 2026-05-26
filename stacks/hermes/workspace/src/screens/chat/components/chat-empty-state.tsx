@@ -19,18 +19,18 @@ const SUGGESTIONS: Array<SuggestionChip> = [
   {
     label: 'Аудит workspace',
     prompt:
-      'Analyze this workspace structure and give me 3 engineering risks. Use tools and keep it concise.',
+      'Проанализируй текущую папку workspace и дай 3 инженерных риска. Используй инструменты и отвечай кратко.',
     icon: CodeIcon,
   },
   {
-    label: 'Сохранить правило',
+    label: 'Записать правило в память',
     prompt:
-      'Save this to memory exactly: "For demos, respond in 3 bullets max and put risk first." Then confirm saved.',
+      'Запиши в память рабочее правило ровно таким текстом: "Для демо отвечать максимум 3 пунктами и сначала писать риск." Затем коротко подтверди, что правило записано.',
     icon: BrainIcon,
   },
   {
     label: 'Создать файл',
-    prompt: 'Create demo-checklist.md with 5 launch checks for this app.',
+    prompt: 'Создай файл demo-checklist.md с 5 проверками перед запуском этой панели.',
     icon: PuzzleIcon,
   },
 ]
@@ -140,7 +140,7 @@ export function ChatEmptyState({
                 strokeWidth={1.5}
                 style={{ color: 'var(--theme-accent)' }}
               />
-              {suggestion.label}
+              <span>{suggestion.label}</span>
             </button>
           ))}
         </div>

@@ -115,11 +115,10 @@ export function Swarm2ActivityFeed({
       <section className="rounded-3xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-5 shadow-[0_18px_60px_color-mix(in_srgb,var(--theme-shadow)_12%,transparent)]">
         <div className="flex items-center gap-2 text-sm font-semibold text-[var(--theme-text)]">
           <HugeiconsIcon icon={Activity01Icon} size={14} />
-          Recent swarm activity
+          Последняя активность роя
         </div>
         <p className="mt-3 text-sm text-[var(--theme-muted)]">
-          No worker output captured yet. Once swarm TUIs emit logs they will show
-          up here, ordered by latest event.
+          Пока нет вывода от агентов. Когда появятся логи, они будут показаны здесь.
         </p>
       </section>
     )
@@ -134,15 +133,15 @@ export function Swarm2ActivityFeed({
           </span>
           <div>
             <h2 className="text-sm font-semibold text-[var(--theme-text)]">
-              Recent swarm activity
+              Последняя активность роя
             </h2>
             <p className="text-[11px] text-[var(--theme-muted-2)]">
-              Latest signals across all wired workers
+              Последние события по подключённым агентам
             </p>
           </div>
         </div>
         <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--theme-muted)]">
-          {rows.length} entries
+          записей: {rows.length}
         </div>
       </header>
 

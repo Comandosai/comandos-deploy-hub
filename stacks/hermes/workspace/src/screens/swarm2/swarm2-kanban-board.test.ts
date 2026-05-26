@@ -4,9 +4,9 @@ import { getKanbanBackendPresentation } from './swarm2-kanban-board'
 describe('Swarm2 Kanban backend presentation', () => {
   it('keeps the initial backend state quiet and non-committal while auto-detecting', () => {
     expect(getKanbanBackendPresentation(null)).toMatchObject({
-      badgeLabel: 'Detecting board',
+      badgeLabel: 'Ищу доску',
       badgeTone: 'unknown',
-      toastTitle: 'Detecting Swarm Board backend',
+      toastTitle: 'Проверяю хранилище доски',
     })
   })
 
@@ -19,10 +19,10 @@ describe('Swarm2 Kanban backend presentation', () => {
       details: 'Canonical storage detected',
       path: '/tmp/kanban.db',
     })).toMatchObject({
-      badgeLabel: 'Shared board',
+      badgeLabel: 'Общая доска',
       badgeTone: 'claude',
-      toastTitle: 'Board connected',
-      toastBody: 'Cards and status changes are using the canonical Kanban store.',
+      toastTitle: 'Доска подключена',
+      toastBody: 'Карточки и статусы используют основное хранилище Kanban.',
       title: 'Canonical storage detected',
     })
   })
@@ -36,9 +36,9 @@ describe('Swarm2 Kanban backend presentation', () => {
       details: 'Using local Swarm board JSON store.',
       path: '/tmp/swarm2-kanban.json',
     })).toMatchObject({
-      badgeLabel: 'Local fallback',
+      badgeLabel: 'Локальный режим',
       badgeTone: 'local',
-      toastTitle: 'Using local Swarm Board',
+      toastTitle: 'Используется локальная доска',
       toastBody: 'Using local Swarm board JSON store.',
     })
   })
@@ -52,7 +52,7 @@ describe('Swarm2 Kanban backend presentation', () => {
       details: 'Synced through Workspace proxy',
       path: 'http://127.0.0.1:9119',
     })).toMatchObject({
-      badgeLabel: 'Synced • Hermes',
+      badgeLabel: 'Синхронизировано • Hermes',
       badgeTone: 'hermes-proxy',
       dashboardUrl: undefined,
     })
@@ -67,7 +67,7 @@ describe('Swarm2 Kanban backend presentation', () => {
       details: 'Synced through Workspace proxy',
       path: 'http://100.113.68.47:9119',
     })).toMatchObject({
-      badgeLabel: 'Synced • Hermes',
+      badgeLabel: 'Синхронизировано • Hermes',
       badgeTone: 'hermes-proxy',
       dashboardUrl: 'http://100.113.68.47:9119/kanban',
     })

@@ -767,7 +767,7 @@ function ChatSidebarComponent({
   const searchItem: NavItemDef = {
     kind: 'button',
     icon: Search01Icon,
-    label: 'Search',
+    label: 'Поиск',
     active: isSearchModalOpen,
     onClick: openSearchModal,
   }
@@ -815,28 +815,28 @@ function ChatSidebarComponent({
       kind: 'link',
       to: '/tasks',
       icon: CheckListIcon,
-      label: 'Tasks',
+      label: 'Задачи',
       active: isTasksActive,
     },
     {
       kind: 'link',
       to: '/conductor',
       icon: Rocket01Icon,
-      label: 'Conductor',
+      label: 'Оркестратор',
       active: isConductorActive,
     },
     {
       kind: 'link',
       to: '/operations',
       icon: UserMultipleIcon,
-      label: 'Operations',
+      label: 'Операции',
       active: isOperationsActive,
     },
     {
       kind: 'link',
       to: '/swarm',
       icon: UserGroupIcon,
-      label: 'Swarm',
+      label: 'Рой',
       active: isSwarmActive,
     },
 
@@ -954,7 +954,7 @@ function ChatSidebarComponent({
                   size="icon-sm"
                   variant="ghost"
                   aria-label={
-                    isVisuallyCollapsed ? 'Open Sidebar' : 'Close Sidebar'
+                    isVisuallyCollapsed ? 'Открыть меню' : 'Свернуть меню'
                   }
                   className="absolute right-2 top-1/2 shrink-0 -translate-y-1/2 opacity-80 hover:opacity-100"
                   data-tour="sidebar-collapse-toggle"
@@ -976,7 +976,7 @@ function ChatSidebarComponent({
               }
             />
             <TooltipContent side="right">
-              {isVisuallyCollapsed ? 'Open Sidebar' : 'Close Sidebar'}
+              {isVisuallyCollapsed ? 'Открыть меню' : 'Свернуть меню'}
             </TooltipContent>
           </TooltipRoot>
         </TooltipProvider>
@@ -1021,7 +1021,7 @@ function ChatSidebarComponent({
               strokeWidth={1.5}
               className="size-5 shrink-0"
             />
-            <span>New Session</span>
+            <span>Новая сессия</span>
           </Link>
         </div>
       )}
@@ -1060,7 +1060,7 @@ function ChatSidebarComponent({
                 letterSpacing: '0.08em',
               }}
             >
-              NEW
+              НОВОЕ
             </span>
           </Link>
         </div>
@@ -1071,7 +1071,7 @@ function ChatSidebarComponent({
         {/* Navigation sections */}
         <div className={cn('shrink-0 space-y-0.5 px-2', isMobile && 'order-2')}>
           <SectionLabel
-            label="Main"
+            label="Основное"
             isCollapsed={isVisuallyCollapsed}
             transition={transition}
             collapsible
@@ -1088,7 +1088,7 @@ function ChatSidebarComponent({
           />
 
           <SectionLabel
-            label="Knowledge"
+            label="Знания"
             isCollapsed={isVisuallyCollapsed}
             transition={transition}
             collapsible
@@ -1199,20 +1199,20 @@ function ChatSidebarComponent({
                     size={20}
                     strokeWidth={1.5}
                   />
-                  Settings
+                  Настройки
                 </span>
               </MenuItem>
             </MenuContent>
           </MenuRoot>
 
-          {/* Settings + Theme toggle */}
+          {/* Settings. Theme switching is intentionally hidden for the COMANDOS build. */}
           {!isVisuallyCollapsed && (
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => handleOpenSettings('claude')}
                 className="shrink-0 rounded-lg p-1.5 text-primary-400 hover:bg-primary-200 dark:hover:bg-neutral-800 hover:text-primary-600 dark:hover:text-neutral-300 transition-colors"
-                aria-label="Settings"
+                aria-label="Настройки"
               >
                 <HugeiconsIcon
                   icon={Settings01Icon}
@@ -1220,7 +1220,6 @@ function ChatSidebarComponent({
                   strokeWidth={1.5}
                 />
               </button>
-              <ThemeToggleMini />
             </div>
           )}
         </div>

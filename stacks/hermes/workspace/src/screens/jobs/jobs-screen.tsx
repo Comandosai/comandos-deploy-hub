@@ -42,18 +42,18 @@ function formatNextRun(nextRun?: string | null): string {
     const d = new Date(nextRun)
     const now = new Date()
     const diffMs = d.getTime() - now.getTime()
-    if (diffMs < 0) return 'overdue'
-    if (diffMs < 60_000) return 'in < 1m'
-    if (diffMs < 3_600_000) return `in ${Math.round(diffMs / 60_000)}m`
-    if (diffMs < 86_400_000) return `in ${Math.round(diffMs / 3_600_000)}h`
-    return d.toLocaleDateString()
+    if (diffMs < 0) return 'ожидает запуска'
+    if (diffMs < 60_000) return 'меньше 1 мин'
+    if (diffMs < 3_600_000) return `через ${Math.round(diffMs / 60_000)} мин`
+    if (diffMs < 86_400_000) return `через ${Math.round(diffMs / 3_600_000)} ч`
+    return d.toLocaleDateString('ru-RU')
   } catch {
     return nextRun
   }
 }
 
 function formatRunTimestamp(value?: string | null): string {
-  if (!value) return 'Never run'
+  if (!value) return 'Не запускалось'
   try {
     return new Date(value).toLocaleString()
   } catch {
@@ -73,24 +73,24 @@ function getLastRunStatus(job: ClaudeJob): {
 } {
   if (!job.last_run_at) {
     return {
-      label: 'Never run',
+      label: 'Ещё не запускалось',
       color: 'var(--theme-muted)',
     }
   }
   if (job.last_run_success === true) {
     return {
-      label: 'Last run succeeded',
+      label: 'Последний запуск успешен',
       color: 'var(--theme-success)',
     }
   }
   if (job.last_run_success === false) {
     return {
-      label: 'Last run failed',
+      label: 'Последний запуск с ошибкой',
       color: 'var(--theme-danger)',
     }
   }
   return {
-    label: 'Last run unknown',
+    label: 'Статус последнего запуска неизвестен',
     color: 'var(--theme-muted)',
   }
 }
@@ -147,7 +147,7 @@ function JobCard({
               }}
             />
             <h3 className="truncate text-sm font-medium text-[var(--theme-text)]">
-              {job.name || '(unnamed)'}
+              {job.name || '(без названия)'}
             </h3>
           </div>
           <p className="mb-2 line-clamp-2 text-xs text-[var(--theme-muted)]">
@@ -162,16 +162,16 @@ function JobCard({
                 <span>·</span>
               </>
             )}
-            <span>{job.schedule_display || 'custom'}</span>
+            <span>{job.schedule_display || 'своё расписание'}</span>
             <span>·</span>
-            <span>Next: {formatNextRun(job.next_run_at)}</span>
+            <span>Следующий запуск: {formatNextRun(job.next_run_at)}</span>
             <span>·</span>
-            <span>Last: {formatRunTimestamp(job.last_run_at)}</span>
+            <span>Последний: {formatRunTimestamp(job.last_run_at)}</span>
             {job.skills && job.skills.length > 0 && (
               <>
                 <span>·</span>
                 <span>
-                  {job.skills.length} skill{job.skills.length !== 1 ? 's' : ''}
+                  {job.skills.length} навык(ов)
                 </span>
               </>
             )}
@@ -188,7 +188,7 @@ function JobCard({
           <button
             onClick={() => onTrigger(job.id)}
             className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
-            title="Run now"
+            title="Запустить сейчас"
           >
             <HugeiconsIcon
               icon={PlayIcon}
@@ -199,7 +199,7 @@ function JobCard({
           <button
             onClick={() => (isPaused ? onResume(job.id) : onPause(job.id))}
             className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
-            title={isPaused ? 'Resume' : 'Pause'}
+            title={isPaused ? 'Возобновить' : 'Пауза'}
           >
             <HugeiconsIcon
               icon={isPaused ? PlayIcon : PauseIcon}
@@ -210,7 +210,7 @@ function JobCard({
           <button
             onClick={() => onEdit(job)}
             className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
-            title="Edit"
+            title="Редактировать"
           >
             <HugeiconsIcon
               icon={PencilEdit02Icon}
@@ -221,7 +221,7 @@ function JobCard({
           <button
             onClick={() => setExpanded((current) => !current)}
             className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
-            title={expanded ? 'Hide run history' : 'Show run history'}
+            title={expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'}
           >
             <HugeiconsIcon
               icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
@@ -232,7 +232,7 @@ function JobCard({
           <button
             onClick={() => onDelete(job.id)}
             className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
-            title="Delete"
+            title="Удалить"
           >
             <HugeiconsIcon
               icon={Delete01Icon}
@@ -255,19 +255,19 @@ function JobCard({
             <div className="mt-3 border-t border-[var(--theme-border)] pt-3">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-medium text-[var(--theme-text)]">
-                  Run history
+                  История запусков
                 </p>
                 <p className="text-[10px] text-[var(--theme-muted)]">
-                  Showing recent outputs
+                  Последние результаты
                 </p>
               </div>
               {outputQuery.isLoading ? (
                 <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                  Loading outputs...
+                  Загружаю результаты...
                 </div>
               ) : outputQuery.isError ? (
                 <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                  Failed to load outputs.
+                  Не удалось загрузить результаты.
                 </div>
               ) : outputQuery.data && outputQuery.data.length > 0 ? (
                 <div className="space-y-2">
@@ -282,14 +282,14 @@ function JobCard({
                       </div>
                       <p className="text-xs leading-5 text-[var(--theme-text)]">
                         {getOutputPreview(output.content) ||
-                          'No output content'}
+                          'Нет содержимого'}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-3 text-xs text-[var(--theme-muted)]">
-                  No run outputs yet.
+                  Результатов запусков пока нет.
                 </div>
               )}
             </div>
@@ -328,39 +328,45 @@ export function JobsScreen() {
     mutationFn: pauseJob,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast('Job paused')
+      toast('Задание остановлено')
     },
   })
   const resumeMutation = useMutation({
     mutationFn: resumeJob,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast('Job resumed')
+      toast('Задание возобновлено')
     },
   })
   const triggerMutation = useMutation({
     mutationFn: triggerJob,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast('Job triggered')
+      window.setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      }, 3_000)
+      window.setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+      }, 12_000)
+      toast('Запуск начат. Статус обновится через несколько секунд')
     },
   })
   const deleteMutation = useMutation({
     mutationFn: deleteJob,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast('Job deleted')
+      toast('Задание удалено')
     },
   })
   const createMutation = useMutation({
     mutationFn: createJob,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast('Job created')
+      toast('Задание создано')
       setShowCreate(false)
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to create job', {
+      toast(error instanceof Error ? error.message : 'Не удалось создать задание', {
         type: 'error',
       })
     },
@@ -380,11 +386,11 @@ export function JobsScreen() {
     }) => updateJob(payload.jobId, payload.updates),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-      toast('Job updated')
+      toast('Задание обновлено')
       setEditingJob(null)
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to update job', {
+      toast(error instanceof Error ? error.message : 'Не удалось обновить задание', {
         type: 'error',
       })
     },
@@ -502,7 +508,7 @@ export function JobsScreen() {
               Не удалось загрузить задания:{' '}
               {jobsQuery.error instanceof Error
                 ? jobsQuery.error.message
-                : 'Unknown error'}
+                : 'неизвестная ошибка'}
             </div>
           ) : filteredJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-[var(--theme-muted)]">

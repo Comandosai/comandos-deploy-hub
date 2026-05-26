@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "channel": "stable",
+  "workspace": {
+    "title": "COMANDOS AI Workspace",
+    "version": "2.3.0-komandos.1",
+    "ref": "main",
+    "notes": [
+      "Текущая стабильная версия COMANDOS Workspace."
+    ]
+  },
+  "agent": {
+    "title": "Hermes Agent",
+    "version": "Hermes Agent v0.14.0 (2026.5.16)",
+    "ref": "87d9239",
+    "notes": [
+      "Текущая проверенная версия Hermes Agent для COMANDOS Hermes."
+    ]
+  }
+}

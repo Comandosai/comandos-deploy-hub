@@ -69,14 +69,13 @@ function ContextAlertModalComponent({
             <div>
               <h3 className="text-sm font-semibold text-primary-900">
                 {isCritical
-                  ? 'Context Window Almost Full'
+                  ? 'Контекст почти заполнен'
                   : isDanger
-                    ? 'Context Window Getting Full'
-                    : 'Auto-Compaction Warning'}
+                    ? 'Контекст быстро заполняется'
+                    : 'Скоро будет сжатие контекста'}
               </h3>
               <p className="text-xs text-primary-500 mt-0.5">
-                {Math.round(contextPercent)}% of your model's context window is
-                in use
+                Используется {Math.round(contextPercent)}% контекста модели
               </p>
             </div>
           </div>
@@ -95,42 +94,40 @@ function ContextAlertModalComponent({
           {/* What this means */}
           <div className="bg-primary-50 rounded-lg p-3 mb-4">
             <p className="text-xs font-medium text-primary-800 mb-2">
-              What does this mean?
+              Что это значит?
             </p>
             <p className="text-xs text-primary-600 leading-relaxed">
               {isCritical
-                ? "Your conversation history is nearly at the model's limit. Responses may become less accurate as the model loses access to earlier context. You should start a new chat soon."
+                ? 'История чата почти дошла до лимита модели. Ответы могут стать хуже, потому что модель начнёт терять ранний контекст. Лучше скоро начать новый чат.'
                 : isDanger
-                  ? 'Your conversation is getting long. The model may start forgetting earlier messages. Consider starting a new chat for best results.'
-                  : "The gateway will auto-compact your context soon (it triggers at ~40% usage). Older messages will be summarized. Consider writing a handoff or starting a new chat to preserve full context."}
+                  ? 'Чат стал длинным. Модель может начать забывать ранние сообщения. Для лучшего результата лучше начать новый чат.'
+                  : 'Скоро сработает автоматическое сжатие контекста. Старые сообщения будут пересказаны кратко. Если важны детали, лучше сделать короткий handoff или начать новый чат.'}
             </p>
           </div>
 
           {/* Recommendations */}
           <div className="space-y-2 mb-5">
-            <p className="text-xs font-medium text-primary-800">
-              Recommendations
-            </p>
+            <p className="text-xs font-medium text-primary-800">Что сделать</p>
             <div className="space-y-1.5">
               {isCritical && (
                 <Recommendation
                   icon="🆕"
-                  text="Start a new chat to reset context"
+                  text="Начните новый чат, чтобы очистить контекст"
                   emphasis
                 />
               )}
               <Recommendation
                 icon="🗜️"
-                text="Enable auto-compaction in Settings → Config to automatically manage context"
+                text="Оставьте автосжатие включённым, чтобы система сама управляла длинными чатами"
               />
               <Recommendation
                 icon="📋"
-                text="Summarize important details before starting a new chat"
+                text="Перед новым чатом кратко сохраните важные детали"
               />
               {!isCritical && (
                 <Recommendation
                   icon="💡"
-                  text="Keep messages concise to use context efficiently"
+                  text="Пишите короче, чтобы контекст расходовался медленнее"
                 />
               )}
             </div>
@@ -142,14 +139,14 @@ function ContextAlertModalComponent({
               onClick={onClose}
               className="rounded-lg border border-primary-200 bg-surface px-4 py-2 text-xs font-medium text-primary-700 hover:bg-primary-50 transition-colors"
             >
-              Got it
+              Понятно
             </button>
             {isDanger && (
               <a
                 href="/new"
                 className="rounded-lg bg-primary-900 px-4 py-2 text-xs font-medium text-white hover:bg-primary-800 transition-colors"
               >
-                New Chat
+                Новый чат
               </a>
             )}
           </div>

@@ -731,7 +731,7 @@ export function useOperations() {
   function saveSettings(nextSettings: OperationsSettings) {
     setSettings(nextSettings)
     persistSettings(nextSettings)
-    toast('Operations settings saved', { type: 'success' })
+    toast('Настройки операций сохранены', { type: 'success' })
   }
 
   return {

@@ -24,9 +24,9 @@ function getSetupSteps(
 ): Array<{ title: string; command: string; note?: string }> {
   return [
     {
-      title: 'Подключите OpenAI-compatible backend',
+      title: 'Подключите OpenAI-совместимый сервер',
       command: 'Set HERMES_API_URL to your backend base URL',
-      note: 'Portable chat работает с любым backend, где есть /v1/chat/completions: Ollama, LiteLLM, vLLM и другие.',
+      note: 'Переносимый чат работает с любым сервером, где есть /v1/chat/completions: Ollama, LiteLLM, vLLM и другие.',
     },
     {
       title: 'Опционально установите Hermes Agent локально',
@@ -113,7 +113,7 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
           setServerLog([
             String(
               data.message ||
-                'Auto-started Hermes Agent gateway — reconnecting…',
+                'Hermes Agent gateway запущен автоматически — переподключаюсь…',
             ),
           ])
         }
@@ -176,8 +176,8 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
       })
       const contentType = res.headers.get('content-type') || ''
       if (!contentType.includes('application/json')) {
-        const msg = `Unexpected response (${res.status})`
-        setServerLog([`Error: ${msg}`])
+        const msg = `Неожиданный ответ (${res.status})`
+        setServerLog([`Ошибка: ${msg}`])
         setServerError(msg)
         setServerStarting(false)
         return
@@ -192,17 +192,17 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
         return
       }
 
-      const msg = String(data.error || 'Could not find hermes-agent')
+      const msg = String(data.error || 'hermes-agent не найден')
       const hint = data.hint ? String(data.hint) : ''
-      setServerLog([`Error: ${msg}`])
-      if (hint) setServerLog((prev) => [...prev, `Hint: ${hint}`])
+      setServerLog([`Ошибка: ${msg}`])
+      if (hint) setServerLog((prev) => [...prev, `Подсказка: ${hint}`])
       setServerError(msg)
       setServerStarting(false)
-      // Show manual steps when auto-start fails
+      // Показываем ручные шаги, если автостарт не сработал.
       setShowManual(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      setServerLog([`Failed: ${msg}`])
+      setServerLog([`Не удалось: ${msg}`])
       setServerError(msg)
       setServerStarting(false)
       setShowManual(true)
@@ -240,7 +240,7 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
           aria-hidden={showFailureState}
         >
           <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[color:var(--theme-border)] border-t-[color:var(--theme-accent)]" />
-          <span style={{ color: 'var(--theme-muted)' }}>Подключаю backend...</span>
+          <span style={{ color: 'var(--theme-muted)' }}>Подключаю сервер...</span>
         </div>
 
         {/* Failure state — setup guide */}
@@ -257,7 +257,7 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
               Добро пожаловать в COMANDOS AI Workspace
             </p>
             <p className="mt-2 text-sm leading-6" style={{ color: 'var(--theme-muted)' }}>
-              Workspace работает с любым OpenAI-совместимым бэкендом. Шлюз Hermes
+              Workspace работает с любым OpenAI-совместимым сервером. Шлюз Hermes
               Agent даёт расширенные возможности автоматически, когда он доступен.
             </p>
 
@@ -364,7 +364,7 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
                   <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-white/70">
                     HERMES_API_URL
                   </code>{' '}
-                  на любой OpenAI-compatible backend:
+                  на любой OpenAI-совместимый сервер:
                 </p>
                 <pre className="mt-2 overflow-x-auto font-mono text-xs" style={{ color: 'var(--theme-muted)' }}>
                   HERMES_API_URL=http://your-server:8642 pnpm dev
@@ -376,7 +376,7 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
 
         {!showFailureState ? (
           <p className="mt-6 text-xs" style={{ color: 'var(--theme-muted)' }}>
-            Экран обновится автоматически, когда совместимый backend ответит
+            Экран обновится автоматически, когда совместимый сервер ответит
           </p>
         ) : null}
       </div>

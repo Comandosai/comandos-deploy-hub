@@ -14,12 +14,6 @@ export const THEMES: Array<{
     description: 'Угольный фон, лайм-плитки. Спокойная уверенность.',
     icon: '◆',
   },
-  {
-    id: 'komandos-light',
-    label: 'Командос · Светлая',
-    description: 'Молочный благородный. Ink-плитка с лаймом, фиолет в полутенях.',
-    icon: '◇',
-  },
 ]
 
 const STORAGE_KEY = 'komandos-theme'
@@ -45,8 +39,8 @@ const LIGHT_THEMES = new Set<ThemeId>([
 
 function mapLegacyTheme(value: string | null | undefined): ThemeId | null {
   if (!value) return null
-  if (isValidTheme(value)) return value
-  return value.endsWith('-light') ? 'komandos-light' : 'komandos-dark'
+  if (isValidTheme(value) && value !== 'komandos-light') return value
+  return 'komandos-dark'
 }
 
 export function isValidTheme(
@@ -77,6 +71,10 @@ export function getThemeVariant(
 export function getTheme(): ThemeId {
   if (typeof window === 'undefined') return DEFAULT_THEME
   const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored === 'komandos-light') {
+    localStorage.setItem(STORAGE_KEY, DEFAULT_THEME)
+    return DEFAULT_THEME
+  }
   if (isValidTheme(stored)) return stored
 
   const legacy = localStorage.getItem(LEGACY_STORAGE_KEY)

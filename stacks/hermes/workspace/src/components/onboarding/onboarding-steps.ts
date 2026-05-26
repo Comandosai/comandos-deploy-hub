@@ -41,7 +41,7 @@ export const ONBOARDING_STEPS: Array<OnboardingStep> = [
   {
     id: 'connection-check',
     title: 'Проверка связи',
-    description: 'Проверим, что backend Hermes Agent доступен.',
+    description: 'Проверим, что серверная часть Hermes Agent доступна.',
     icon: Plug01Icon,
     iconBg: 'bg-emerald-500',
     component: ConnectionCheckStep,
@@ -49,20 +49,20 @@ export const ONBOARDING_STEPS: Array<OnboardingStep> = [
   },
   {
     id: 'model-configuration',
-    title: 'Model Configuration',
-    description: 'Review your current provider and model setup.',
+    title: 'Настройка модели',
+    description: 'Проверьте текущего провайдера и модель.',
     icon: Settings01Icon,
     iconBg: 'bg-cyan-500',
     component: ModelConfigurationStep,
   },
   {
     id: 'ready',
-    title: 'You are all set!',
+    title: 'Готово',
     description:
-      'Start chatting with your agent. Try asking it to help with code, research, or anything else.',
+      'Начните чат с агентом. Можно попросить его помочь с кодом, исследованием или рабочей задачей.',
     icon: CheckmarkCircle02Icon,
     iconBg: 'bg-emerald-500',
-    completeLabel: 'Start Chatting',
+    completeLabel: 'Открыть чат',
   },
 ]
 

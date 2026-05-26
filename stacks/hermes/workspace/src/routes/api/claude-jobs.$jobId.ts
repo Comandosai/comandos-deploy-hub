@@ -13,6 +13,7 @@ import {
 } from '../../server/gateway-capabilities'
 import {
   createProfileCronJob,
+  kickCronTick,
   parseProfileJobId,
   readProfileCronOutputs,
   runProfileCronAction,
@@ -150,6 +151,9 @@ export const Route = createFileRoute('/api/claude-jobs/$jobId')({
             headers: body ? { 'Content-Type': 'application/json' } : undefined,
             body: body || undefined,
           })
+          if (res.ok && dashboardAction === 'trigger') {
+            kickCronTick()
+          }
           return new Response(await res.text(), {
             status: res.status,
             headers: { 'Content-Type': 'application/json' },

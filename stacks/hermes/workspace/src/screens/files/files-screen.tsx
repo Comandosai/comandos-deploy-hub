@@ -1,4 +1,12 @@
-import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Fragment,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { cn } from '@/lib/utils'
 import { usePageTitle } from '@/hooks/use-page-title'
 import {
@@ -37,9 +45,9 @@ type FilesListResponse = {
   entries: Array<FileEntry>
 }
 
-export const FILE_BROWSER_MODE_LABEL = 'Server workspace'
+export const FILE_BROWSER_MODE_LABEL = 'Рабочая папка сервера'
 export const FILE_BROWSER_REMOTE_HELP =
-  'Files are loaded from the Workspace server via /api/files, so remote deployments show files created by the agent.'
+  'Файлы загружаются с сервера Workspace через /api/files, поэтому здесь видны материалы, созданные агентом.'
 
 type FileReadResponse = {
   type: 'text' | 'image'
@@ -140,7 +148,7 @@ function formatBytes(bytes: number): string {
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString('ru-RU', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -286,7 +294,10 @@ type HighlightToken = {
   kind: HighlightKind
 }
 
-const HIGHLIGHT_CLASS_BY_KIND: Record<Exclude<HighlightKind, 'plain'>, string> = {
+const HIGHLIGHT_CLASS_BY_KIND: Record<
+  Exclude<HighlightKind, 'plain'>,
+  string
+> = {
   comment: 'hl-comment',
   jsonKey: 'hl-key',
   keyword: 'hl-kw',
@@ -295,14 +306,19 @@ const HIGHLIGHT_CLASS_BY_KIND: Record<Exclude<HighlightKind, 'plain'>, string> =
   type: 'hl-type',
 }
 
-function pushHighlightToken(tokens: Array<HighlightToken>, text: string, kind: HighlightKind = 'plain') {
+function pushHighlightToken(
+  tokens: Array<HighlightToken>,
+  text: string,
+  kind: HighlightKind = 'plain',
+) {
   if (!text) return
   tokens.push({ text, kind })
 }
 
 function tokenizeJson(code: string): Array<HighlightToken> {
   const tokens: Array<HighlightToken> = []
-  const pattern = /("(?:[^"\\]|\\.)*")(\s*:)?|-?\d+\.?\d*|\b(?:true|false|null)\b/g
+  const pattern =
+    /("(?:[^"\\]|\\.)*")(\s*:)?|-?\d+\.?\d*|\b(?:true|false|null)\b/g
   let lastIndex = 0
 
   for (const match of code.matchAll(pattern)) {
@@ -339,7 +355,11 @@ function tokenizeCode(code: string): Array<HighlightToken> {
 
     if (value.startsWith('//') || value.startsWith('/*')) {
       pushHighlightToken(tokens, value, 'comment')
-    } else if (value.startsWith('"') || value.startsWith("'") || value.startsWith('`')) {
+    } else if (
+      value.startsWith('"') ||
+      value.startsWith("'") ||
+      value.startsWith('`')
+    ) {
       pushHighlightToken(tokens, value, 'string')
     } else if (/^-?\d+\.?\d*$/.test(value)) {
       pushHighlightToken(tokens, value, 'number')
@@ -428,24 +448,24 @@ function DiffModal({
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-primary-200 dark:border-neutral-800 px-5 py-3">
             <div className="min-w-0">
               <DialogTitle className="text-sm font-semibold text-primary-900 dark:text-neutral-100 truncate">
-                Review changes — {fileName}
+                Проверка изменений — {fileName}
               </DialogTitle>
               <DialogDescription className="mt-0.5 text-xs text-primary-500 dark:text-neutral-400">
                 <span className="text-emerald-600 font-medium">
-                  +{addedCount} added
+                  +{addedCount} добавлено
                 </span>
                 {' · '}
                 <span className="text-red-600 font-medium">
-                  −{removedCount} removed
+                  −{removedCount} удалено
                 </span>
               </DialogDescription>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Button variant="outline" size="sm" onClick={onCancel}>
-                Cancel
+                Отмена
               </Button>
               <Button size="sm" onClick={onSave}>
-                Save anyway
+                Всё равно сохранить
               </Button>
             </div>
           </div>
@@ -455,7 +475,7 @@ function DiffModal({
             {/* Left — original */}
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
               <div className="shrink-0 px-3 py-1.5 text-[11px] font-semibold text-primary-500 dark:text-neutral-400 bg-primary-100/60 dark:bg-neutral-900/60 border-b border-primary-200 dark:border-neutral-800 uppercase tracking-wide">
-                Original
+                Было
               </div>
               <div className="flex-1 overflow-auto">
                 <div className="font-mono text-[11px] leading-relaxed">
@@ -501,7 +521,7 @@ function DiffModal({
             {/* Right — new */}
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
               <div className="shrink-0 px-3 py-1.5 text-[11px] font-semibold text-primary-500 dark:text-neutral-400 bg-primary-100/60 dark:bg-neutral-900/60 border-b border-primary-200 dark:border-neutral-800 uppercase tracking-wide">
-                New
+                Стало
               </div>
               <div className="flex-1 overflow-auto">
                 <div className="font-mono text-[11px] leading-relaxed">
@@ -700,7 +720,8 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
   const isEditable = isEditableFile(fileName)
 
   const highlighted = useMemo<Array<ReactNode>>(
-    () => (isCode && !isMd && content ? highlightCodeContent(content, ext) : []),
+    () =>
+      isCode && !isMd && content ? highlightCodeContent(content, ext) : [],
     [isCode, isMd, content, ext],
   )
 
@@ -794,7 +815,7 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
         <div className="flex h-full items-center justify-center text-center text-primary-400 dark:text-neutral-600">
           <div>
             <div className="text-5xl mb-3 opacity-40">📂</div>
-            <p className="text-sm">Select a file to preview or edit</p>
+            <p className="text-sm">Выберите файл для просмотра или правки</p>
           </div>
         </div>
       </>
@@ -810,7 +831,7 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
             <div className="text-5xl mb-3 opacity-40">📁</div>
             <p className="text-sm font-medium">{selectedEntry.name}</p>
             <p className="text-xs mt-1 opacity-70">
-              Select a file inside to preview
+              Выберите файл внутри папки
             </p>
           </div>
         </div>
@@ -835,7 +856,13 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
             variant="outline"
             onClick={() => setRawMode((v) => !v)}
           >
-            {rawMode ? (isHtml ? 'Preview HTML' : 'Preview') : (isHtml ? 'Raw HTML' : 'Raw')}
+            {rawMode
+              ? isHtml
+                ? 'Предпросмотр HTML'
+                : 'Предпросмотр'
+              : isHtml
+                ? 'Код HTML'
+                : 'Исходный текст'}
           </Button>
         )}
         {isEditable && (
@@ -845,7 +872,7 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
             disabled={!dirty || saving}
             onClick={handleSave}
           >
-            {saving ? 'Saving…' : savedOk ? '✓ Saved' : 'Save'}
+            {saving ? 'Сохраняю…' : savedOk ? '✓ Сохранено' : 'Сохранить'}
           </Button>
         )}
       </div>
@@ -858,10 +885,12 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
         <span>{formatBytes(selectedEntry.size)}</span>
       )}
       {selectedEntry.modifiedAt && (
-        <span>Modified {formatDate(selectedEntry.modifiedAt)}</span>
+        <span>Изменён {formatDate(selectedEntry.modifiedAt)}</span>
       )}
       {dirty && (
-        <span className="text-accent-500 font-medium">Unsaved changes</span>
+        <span className="text-accent-500 font-medium">
+          Есть несохранённые изменения
+        </span>
       )}
     </div>
   )
@@ -875,7 +904,7 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
         <div className="flex h-full flex-col">
           {header}
           <div className="flex flex-1 items-center justify-center text-sm text-primary-400 dark:text-neutral-500">
-            Loading…
+            Загружаю…
           </div>
           {footer}
         </div>
@@ -914,7 +943,9 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
                 className="max-h-full max-w-full rounded-lg border border-primary-200 dark:border-neutral-800 shadow-sm object-contain"
               />
             ) : (
-              <div className="text-sm text-primary-400">No preview</div>
+              <div className="text-sm text-primary-400">
+                Предпросмотр недоступен
+              </div>
             )}
           </div>
           {footer}
@@ -973,7 +1004,9 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
   // ── Code viewer (syntax highlighted) — also raw mode for md ───────────────
 
   if (isCode) {
-    const displayContent = isMd ? highlightCodeContent(content, 'md') : highlighted
+    const displayContent = isMd
+      ? highlightCodeContent(content, 'md')
+      : highlighted
     return (
       <>
         {diffModal}
@@ -1033,7 +1066,7 @@ function FilePanel({ selectedEntry }: FilePanelProps) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function FilesScreen() {
-  usePageTitle('Files')
+  usePageTitle('Файлы')
 
   const [entries, setEntries] = useState<Array<FileEntry>>([])
   const [treeLoading, setTreeLoading] = useState(false)
@@ -1058,14 +1091,14 @@ export function FilesScreen() {
       })
       if (!res.ok)
         throw new Error(
-          `HTTP ${res.status} — check that HERMES_WORKSPACE_DIR is set`,
+          `HTTP ${res.status} — проверьте настройку HERMES_WORKSPACE_DIR`,
         )
       const data = (await res.json()) as FilesListResponse
       setEntries(Array.isArray(data.entries) ? data.entries : [])
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         setTreeError(
-          'Could not load files — request timed out. Check that HERMES_WORKSPACE_DIR is set.',
+          'Не удалось загрузить файлы — запрос превысил время ожидания. Проверьте настройку HERMES_WORKSPACE_DIR.',
         )
       } else {
         setTreeError(err instanceof Error ? err.message : String(err))
@@ -1216,7 +1249,7 @@ export function FilesScreen() {
             <button
               type="button"
               onClick={openNewFolderPrompt}
-              title="New folder"
+              title="Новая папка"
               className="rounded p-1 text-sm text-primary-400 hover:bg-primary-200 dark:hover:bg-neutral-800 hover:text-primary-600 dark:hover:text-neutral-300 transition-colors leading-none"
             >
               📁+
@@ -1224,7 +1257,7 @@ export function FilesScreen() {
             <button
               type="button"
               onClick={() => void loadTree()}
-              title="Refresh"
+              title="Обновить"
               className="rounded p-1 text-lg text-primary-400 hover:bg-primary-200 dark:hover:bg-neutral-800 hover:text-primary-600 dark:hover:text-neutral-300 transition-colors leading-none"
             >
               ↺
@@ -1243,18 +1276,20 @@ export function FilesScreen() {
             </div>
             {treeLoading ? (
               <div className="px-3 py-2 text-xs text-primary-400 dark:text-neutral-500">
-                Loading server workspace…
+                Загружаю рабочую папку сервера…
               </div>
             ) : treeError ? (
               <div className="space-y-1 px-3 py-2 text-xs text-red-500">
                 <div>{treeError}</div>
                 <div className="text-primary-400 dark:text-neutral-500">
-                  Check the server workspace catalog or HERMES_WORKSPACE_DIR; this browser no longer needs local folder access.
+                  Проверьте каталог рабочей папки на сервере или
+                  HERMES_WORKSPACE_DIR. Локальный доступ к папке здесь не нужен.
                 </div>
               </div>
             ) : entries.length === 0 ? (
               <div className="px-3 py-2 text-xs text-primary-400 dark:text-neutral-500">
-                Server workspace is empty. Agent-created files will appear here after they are written to the configured workspace path.
+                Рабочая папка сервера пустая. Файлы агента появятся здесь после
+                записи в настроенный путь.
               </div>
             ) : (
               entries
@@ -1306,7 +1341,7 @@ export function FilesScreen() {
               setContextMenu(null)
             }}
           >
-            ✏️ Rename
+            ✏️ Переименовать
           </button>
           {contextMenu.entry.type === 'folder' ? (
             <button
@@ -1320,7 +1355,7 @@ export function FilesScreen() {
                 setContextMenu(null)
               }}
             >
-              📁 New folder inside
+              📁 Новая папка внутри
             </button>
           ) : (
             <button
@@ -1330,7 +1365,7 @@ export function FilesScreen() {
                 setContextMenu(null)
               }}
             >
-              ⬇️ Download
+              ⬇️ Скачать
             </button>
           )}
           <button
@@ -1340,7 +1375,7 @@ export function FilesScreen() {
               setContextMenu(null)
             }}
           >
-            🗑️ Delete
+            🗑️ Удалить
           </button>
         </div>
       ) : null}
@@ -1355,25 +1390,28 @@ export function FilesScreen() {
         <DialogContent>
           <div className="p-5 space-y-3">
             <DialogTitle>
-              {promptState?.mode === 'rename' ? 'Rename' : 'New Folder'}
+              {promptState?.mode === 'rename' ? 'Переименовать' : 'Новая папка'}
             </DialogTitle>
             <DialogDescription>
               {promptState?.mode === 'rename'
-                ? 'Enter a new name.'
-                : 'Enter a folder name to create.'}
+                ? 'Введите новое имя.'
+                : 'Введите имя новой папки.'}
             </DialogDescription>
             <input
               value={promptValue}
               onChange={(e) => setPromptValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.nativeEvent.isComposing) void handlePromptSubmit()
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing)
+                  void handlePromptSubmit()
               }}
               className="w-full rounded-md border border-primary-200 dark:border-neutral-700 bg-primary-50 dark:bg-neutral-900 px-3 py-2 text-sm text-primary-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-300"
               autoFocus
             />
             <div className="flex justify-end gap-2 pt-2">
-              <DialogClose render={<Button variant="outline">Cancel</Button>} />
-              <Button onClick={() => void handlePromptSubmit()}>Save</Button>
+              <DialogClose render={<Button variant="outline">Отмена</Button>} />
+              <Button onClick={() => void handlePromptSubmit()}>
+                Сохранить
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -1389,22 +1427,21 @@ export function FilesScreen() {
         <DialogContent>
           <div className="p-5 space-y-3">
             <DialogTitle>
-              Delete {deleteConfirm?.type === 'folder' ? 'Folder' : 'File'}
+              Удалить {deleteConfirm?.type === 'folder' ? 'папку' : 'файл'}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{' '}
-              <strong>{deleteConfirm?.name}</strong>?
+              Точно удалить <strong>{deleteConfirm?.name}</strong>?
               {deleteConfirm?.type === 'folder' &&
-                ' This will delete all contents inside.'}{' '}
-              This action cannot be undone.
+                ' Вместе с папкой удалится всё содержимое.'}{' '}
+              Это действие нельзя отменить.
             </DialogDescription>
             <div className="flex justify-end gap-2 pt-2">
-              <DialogClose render={<Button variant="outline">Cancel</Button>} />
+              <DialogClose render={<Button variant="outline">Отмена</Button>} />
               <Button
                 variant="destructive"
                 onClick={() => void handleDeleteConfirmed()}
               >
-                Delete
+                Удалить
               </Button>
             </div>
           </div>

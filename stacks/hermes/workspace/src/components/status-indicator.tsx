@@ -23,7 +23,7 @@ async function fetchConnectionStatus(): Promise<ConnectionStatus> {
     return {
       status: 'disconnected',
       label: 'Disconnected',
-      detail: 'No compatible backend detected.',
+      detail: 'Совместимый сервер не найден.',
       health: false,
       chatReady: false,
       modelConfigured: false,
@@ -44,30 +44,30 @@ function statusToColors(
     return {
       dot: 'bg-yellow-400',
       pulse: 'bg-yellow-400/40',
-      label: 'Checking...',
+      label: 'Проверяю...',
     }
   }
   switch (status) {
     case 'enhanced':
-      return { dot: 'bg-cyan-400', pulse: 'bg-cyan-400/40', label: 'Enhanced' }
+      return { dot: 'bg-cyan-400', pulse: 'bg-cyan-400/40', label: 'Расширенный режим' }
     case 'connected':
       return {
         dot: 'bg-emerald-400',
         pulse: 'bg-emerald-400/40',
-        label: 'Connected',
+        label: 'Подключено',
       }
     case 'partial':
       return {
         dot: 'bg-yellow-400',
         pulse: 'bg-yellow-400/40',
-        label: 'Partial',
+        label: 'Частично',
       }
     case 'disconnected':
     default:
       return {
         dot: 'bg-red-400',
         pulse: 'bg-red-400/40',
-        label: 'Disconnected',
+        label: 'Отключено',
       }
   }
 }
@@ -76,17 +76,17 @@ function buildTooltip(
   data: ConnectionStatus | undefined,
   label: string,
 ): string {
-  if (!data) return `Backend: ${label}`
-  const parts: Array<string> = [`Backend: ${label}`]
+  if (!data) return `Сервер: ${label}`
+  const parts: Array<string> = [`Сервер: ${label}`]
   if (data.detail) parts.push(data.detail)
   if (data.status === 'partial') {
-    if (!data.chatReady) parts.push('Missing /v1/chat/completions')
-    if (!data.modelConfigured) parts.push('No model selected')
+    if (!data.chatReady) parts.push('Нет /v1/chat/completions')
+    if (!data.modelConfigured) parts.push('Модель не выбрана')
   }
   if (data.status === 'enhanced') {
-    parts.push('Hermes Agent gateway enhancements detected')
+    parts.push('Найден расширенный шлюз Hermes Agent')
   }
-  if (data.activeModel) parts.push(`Model: ${data.activeModel}`)
+  if (data.activeModel) parts.push(`Модель: ${data.activeModel}`)
   return parts.join(' · ')
 }
 

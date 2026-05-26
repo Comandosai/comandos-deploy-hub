@@ -139,16 +139,16 @@ export function Swarm2Artifacts({
         <div className="mb-1.5 flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]">
           <span className="inline-flex items-center gap-1">
             <HugeiconsIcon icon={Files01Icon} size={11} />
-            {showingChangedFiles ? 'Changed files' : 'Output'}
+            {showingChangedFiles ? 'Изменённые файлы' : 'Результаты'}
           </span>
           <span className="font-medium normal-case tracking-normal">
             {showingChangedFiles
-              ? `${allArtifacts.length} changed`
+              ? `изменено: ${allArtifacts.length}`
               : declaredArtifacts.length > 0
-                ? `${allArtifacts.length} artifacts`
-                : '0 artifacts'}
+                ? `артефактов: ${allArtifacts.length}`
+                : '0 артефактов'}
             {' · '}
-            {allPreviews.length} previews
+            превью: {allPreviews.length}
           </span>
         </div>
       ) : null}
@@ -156,10 +156,10 @@ export function Swarm2Artifacts({
       <div className={cn('space-y-2', centered && 'text-center')}>
         <p className={cn('text-[11px] leading-relaxed text-[var(--theme-muted)]', centered && 'mx-auto max-w-2xl')}>
           {isEmpty
-            ? `No artifacts yet for ${workerId}. Will surface as the agent writes files, diffs, or build outputs.`
+            ? `У агента ${workerId} пока нет артефактов. Они появятся, когда агент запишет файлы, diff или результат сборки.`
             : showingChangedFiles
-              ? 'Inferred from git changes in the worker project. Real artifacts will replace this when the worker publishes them.'
-              : 'Published by the worker runtime. Files, diffs, reports, and previews share the same card slot.'}
+              ? 'Определено по git-изменениям в проекте агента. Реальные артефакты заменят это после публикации агентом.'
+              : 'Опубликовано агентом во время работы. Файлы, diff, отчёты и превью собраны здесь.'}
         </p>
 
         {visibleArtifacts.length > 0 ? (

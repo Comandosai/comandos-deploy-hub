@@ -160,11 +160,11 @@ export function OnboardingTour() {
       callback={handleJoyrideCallback}
       styles={styles}
       locale={{
-        back: 'Back',
-        close: 'Close',
-        last: 'Done',
-        next: 'Next',
-        skip: 'Skip tour',
+        back: 'Назад',
+        close: 'Закрыть',
+        last: 'Готово',
+        next: 'Дальше',
+        skip: 'Пропустить',
       }}
       floaterProps={{
         disableAnimation: false,

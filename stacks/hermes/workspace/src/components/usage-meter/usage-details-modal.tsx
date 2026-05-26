@@ -92,11 +92,11 @@ function formatResetTime(iso?: string): string {
   const date = new Date(iso)
   const now = new Date()
   const diffMs = date.getTime() - now.getTime()
-  if (diffMs <= 0) return 'resetting soon'
+  if (diffMs <= 0) return 'скоро сбросится'
   const hours = Math.floor(diffMs / 3_600_000)
   const mins = Math.floor((diffMs % 3_600_000) / 60_000)
-  if (hours > 0) return `resets in ${hours}h ${mins}m`
-  return `resets in ${mins}m`
+  if (hours > 0) return `сброс через ${hours} ч ${mins} мин`
+  return `сброс через ${mins} мин`
 }
 
 function progressColor(used: number, limit: number): string {
@@ -186,23 +186,23 @@ function getActionableMessage(
   if (status === 'auth_expired') {
     if (provider === 'claude' || provider === 'codex') {
       const cliCmd = provider === 'claude' ? 'claude' : 'codex'
-      return `Run \`${cliCmd}\` in terminal to re-authenticate your session.`
+      return `Запустите \`${cliCmd}\` в терминале и войдите заново.`
     }
     if (provider === 'openai') {
-      return 'Run `chatgpt` in terminal to refresh your ChatGPT session, or update your API key in Settings → Providers.'
+      return 'Запустите `chatgpt` в терминале, чтобы обновить вход, или укажите новый API-ключ в настройках провайдеров.'
     }
-    return 'Re-authenticate your provider session or update your API key in Settings → Providers.'
+    return 'Войдите в провайдера заново или обновите API-ключ в настройках провайдеров.'
   }
 
   if (status === 'missing_credentials') {
-    return "Add your API key in Settings → Providers, or run the provider's CLI to authenticate."
+    return 'Добавьте API-ключ в настройках провайдеров или войдите через терминальную команду провайдера.'
   }
 
   if (status === 'error') {
-    return "Check your network connection and try refreshing. If the issue persists, check the provider's status page."
+    return 'Проверьте сеть и обновите данные. Если ошибка повторяется, проверьте состояние сервиса провайдера.'
   }
 
-  return originalMessage || 'Provider data unavailable.'
+  return originalMessage || 'Данные провайдера недоступны.'
 }
 
 function statusBadge(status: ProviderUsage['status']) {
@@ -210,25 +210,25 @@ function statusBadge(status: ProviderUsage['status']) {
     case 'ok':
       return (
         <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
-          Connected
+          Подключён
         </span>
       )
     case 'auth_expired':
       return (
         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-          Auth Expired
+          Нужен вход
         </span>
       )
     case 'missing_credentials':
       return (
         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600">
-          Not Configured
+          Не настроен
         </span>
       )
     case 'error':
       return (
         <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">
-          Error
+          Ошибка
         </span>
       )
     default:
@@ -238,24 +238,24 @@ function statusBadge(status: ProviderUsage['status']) {
 
 function buildCsv(usage: UsageSummary): string {
   const rows: Array<string> = []
-  rows.push('Usage Summary')
-  rows.push('Metric,Value')
-  rows.push(`Input Tokens,${usage.inputTokens}`)
-  rows.push(`Output Tokens,${usage.outputTokens}`)
-  rows.push(`Context %,${usage.contextPercent}`)
-  rows.push(`Daily Cost,${usage.dailyCost}`)
+  rows.push('Сводка расхода')
+  rows.push('Показатель,Значение')
+  rows.push(`Входные токены,${usage.inputTokens}`)
+  rows.push(`Выходные токены,${usage.outputTokens}`)
+  rows.push(`Контекст %,${usage.contextPercent}`)
+  rows.push(`Расход за день,${usage.dailyCost}`)
   rows.push('')
-  rows.push('Cost Per Model')
-  rows.push('Model,Input Tokens,Output Tokens,Cost (USD)')
+  rows.push('Расход по моделям')
+  rows.push('Модель,Входные токены,Выходные токены,Расход (USD)')
   usage.models.forEach((model) => {
     rows.push(
       `${model.model},${model.inputTokens},${model.outputTokens},${model.costUsd.toFixed(4)}`,
     )
   })
   rows.push('')
-  rows.push('Session History')
+  rows.push('История сессий')
   rows.push(
-    'Session,Model,Input Tokens,Output Tokens,Cost (USD),Start,Last Updated',
+    'Сессия,Модель,Входные токены,Выходные токены,Расход (USD),Старт,Обновлено',
   )
   usage.sessions.forEach((session) => {
     rows.push(
@@ -319,12 +319,12 @@ export function UsageDetailsModal({
     <div className="flex max-h-[80vh] flex-col gap-4 overflow-hidden p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <DialogTitle>Usage Overview</DialogTitle>
+          <DialogTitle>Расход токенов</DialogTitle>
           <DialogDescription>
-            Live usage from your gateway session and connected providers.
+            Живые данные по текущей сессии и подключённым провайдерам.
           </DialogDescription>
         </div>
-        <DialogClose className="text-primary-700">Close</DialogClose>
+        <DialogClose className="text-primary-700">Закрыть</DialogClose>
       </div>
 
       <div className="flex w-fit items-center gap-1 rounded-full border border-primary-100 bg-primary-50 p-1 text-xs">
@@ -339,7 +339,7 @@ export function UsageDetailsModal({
                 : 'text-primary-600 hover:text-primary-800'
             }`}
           >
-            {tab === 'session' ? 'Session' : 'Providers'}
+            {tab === 'session' ? 'Сессия' : 'Провайдеры'}
           </button>
         ))}
       </div>
@@ -356,7 +356,7 @@ export function UsageDetailsModal({
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl border border-primary-200 bg-primary-50/60 p-3">
                 <div className="text-xs uppercase tracking-wide text-primary-500">
-                  Input Tokens
+                  Входные токены
                 </div>
                 <div className="text-xl font-semibold text-primary-900">
                   {formatTokens(usage.inputTokens)}
@@ -364,7 +364,7 @@ export function UsageDetailsModal({
               </div>
               <div className="rounded-2xl border border-primary-200 bg-primary-50/60 p-3">
                 <div className="text-xs uppercase tracking-wide text-primary-500">
-                  Output Tokens
+                  Выходные токены
                 </div>
                 <div className="text-xl font-semibold text-primary-900">
                   {formatTokens(usage.outputTokens)}
@@ -372,7 +372,7 @@ export function UsageDetailsModal({
               </div>
               <div className="rounded-2xl border border-primary-200 bg-primary-50/60 p-3">
                 <div className="text-xs uppercase tracking-wide text-primary-500">
-                  Daily Cost
+                  Расход за день
                 </div>
                 <div className="text-xl font-semibold text-primary-900">
                   {formatCurrency(usage.dailyCost)}
@@ -382,12 +382,13 @@ export function UsageDetailsModal({
 
             <div className="rounded-2xl border border-primary-200 bg-primary-50/70 p-4">
               <div className="mb-3 text-sm font-semibold text-primary-900">
-                Cost per model
+                Расход по моделям
               </div>
               <div className="grid gap-2">
                 {usage.models.length === 0 ? (
                   <div className="text-sm text-primary-500">
-                    No model usage reported yet. Send a message to start tracking usage here.
+                    Расход по моделям пока не появился. Отправьте сообщение,
+                    чтобы начать сбор статистики.
                   </div>
                 ) : (
                   usage.models.map((model) => (
@@ -399,8 +400,8 @@ export function UsageDetailsModal({
                         {formatModelName(model.model)}
                       </div>
                       <div className="text-primary-600">
-                        {formatTokens(model.inputTokens)} in ·{' '}
-                        {formatTokens(model.outputTokens)} out
+                        {formatTokens(model.inputTokens)} вход ·{' '}
+                        {formatTokens(model.outputTokens)} выход
                       </div>
                       <div className="font-semibold text-primary-900">
                         {formatCurrency(model.costUsd)}
@@ -413,12 +414,12 @@ export function UsageDetailsModal({
 
             <div className="rounded-2xl border border-primary-200 bg-primary-50/70 p-4">
               <div className="mb-3 text-sm font-semibold text-primary-900">
-                Session history
+                История сессий
               </div>
               <div className="grid gap-2">
                 {usage.sessions.length === 0 ? (
                   <div className="text-sm text-primary-500">
-                    No sessions reported yet. Start a chat to see session history here.
+                    Сессий пока нет. Начните чат, и история появится здесь.
                   </div>
                 ) : (
                   usage.sessions.map((session) => (
@@ -435,8 +436,8 @@ export function UsageDetailsModal({
                         </div>
                       </div>
                       <div className="text-primary-600">
-                        {formatTokens(session.inputTokens)} in ·{' '}
-                        {formatTokens(session.outputTokens)} out
+                        {formatTokens(session.inputTokens)} вход ·{' '}
+                        {formatTokens(session.outputTokens)} выход
                       </div>
                       <div className="text-xs text-primary-500">
                         {formatTimestamp(session.startedAt)} →{' '}
@@ -453,10 +454,10 @@ export function UsageDetailsModal({
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-xs text-primary-500">
-                Context usage: {Math.round(usage.contextPercent)}%
+                Занято контекста: {Math.round(usage.contextPercent)}%
               </div>
               <Button size="sm" variant="outline" onClick={handleExport}>
-                Export CSV
+                Скачать CSV
               </Button>
             </div>
           </div>
@@ -470,7 +471,7 @@ export function UsageDetailsModal({
 
             <div className="flex items-center justify-between gap-3">
               <div className="text-xs text-primary-500">
-                Auto-polls every 30s · Last updated{' '}
+                Проверка каждые 30 секунд · обновлено{' '}
                 {formatTimestamp(providerUpdatedAt ?? undefined)}
               </div>
               <Button
@@ -479,7 +480,7 @@ export function UsageDetailsModal({
                 onClick={handleRefreshProvider}
                 disabled={isRefreshing}
               >
-                {isRefreshing ? 'Refreshing...' : '🔄 Refresh'}
+                {isRefreshing ? 'Обновляю...' : '🔄 Обновить'}
               </Button>
             </div>
 
@@ -487,10 +488,12 @@ export function UsageDetailsModal({
               {providerUsage.length === 0 ? (
                 <div className="rounded-2xl border border-primary-200 bg-primary-50/70 p-6 text-center">
                   <div className="text-sm font-medium text-primary-700">
-                    No providers connected. Add a provider in Settings to start chatting.
+                    Провайдеры не подключены. Добавьте провайдера в настройках,
+                    чтобы начать работу.
                   </div>
                   <div className="mt-1 text-xs text-primary-500">
-                    Open Settings -{'>'} Providers to connect Claude CLI or add an API key.
+                    Откройте настройки провайдеров и подключите CLI или
+                    API-ключ.
                   </div>
                 </div>
               ) : (
@@ -518,7 +521,7 @@ export function UsageDetailsModal({
                           ) : null}
                           {isDefault ? (
                             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
-                              ⭐ Default
+                              ⭐ Основной
                             </span>
                           ) : null}
                         </div>
@@ -547,7 +550,7 @@ export function UsageDetailsModal({
                               provider.message,
                             ) ? (
                             <div className="text-[10px] text-primary-500">
-                              Details: {provider.message}
+                              Детали: {provider.message}
                             </div>
                           ) : null}
                         </div>
@@ -563,7 +566,7 @@ export function UsageDetailsModal({
                                 }
                                 className="rounded-lg border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 transition hover:bg-primary-100"
                               >
-                                Set as Default
+                                Сделать основным
                               </button>
                             ) : null}
                           </div>

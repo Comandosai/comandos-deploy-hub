@@ -12,7 +12,7 @@ export type LoaderStyle =
   | 'braille-wave'
   | 'lobster'
   | 'logo'
-export const DEFAULT_CHAT_DISPLAY_NAME = 'User'
+export const DEFAULT_CHAT_DISPLAY_NAME = 'Пользователь'
 
 export type EnterBehavior = 'send' | 'newline'
 export type ChatWidth = 'comfortable' | 'wide' | 'full'
@@ -123,6 +123,7 @@ export const useChatSettingsStore = create<ChatSettingsState>()(
 
 export function getChatProfileDisplayName(displayName: string): string {
   const trimmed = displayName.trim()
+  if (trimmed === 'User') return DEFAULT_CHAT_DISPLAY_NAME
   return trimmed.length > 0 ? trimmed : DEFAULT_CHAT_DISPLAY_NAME
 }
 

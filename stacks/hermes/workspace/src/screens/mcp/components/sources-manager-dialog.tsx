@@ -102,7 +102,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className={LABEL}>
-        <span>Source ID <span className="text-red-500">*</span></span>
+        <span>ID источника <span className="text-red-500">*</span></span>
         <input
           className={FIELD}
           value={form.id}
@@ -112,11 +112,11 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
           autoFocus
         />
         {idErr ? <p className={ERROR_TEXT}>{idErr}</p> : null}
-        <p className="text-[11px] text-primary-400">Lowercase, alphanumeric + _ -. Cannot be changed after creation.</p>
+        <p className="text-[11px] text-primary-400">Только строчные буквы, цифры, _ и -. После создания изменить нельзя.</p>
       </div>
 
       <div className={LABEL}>
-        <span>Name <span className="text-red-500">*</span></span>
+        <span>Название <span className="text-red-500">*</span></span>
         <input
           className={FIELD}
           value={form.name}
@@ -138,7 +138,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
           type="url"
         />
         {urlErr ? <p className={ERROR_TEXT}>{urlErr}</p> : null}
-        <p className="text-[11px] text-primary-400">HTTPS only. Must return JSON.</p>
+        <p className="text-[11px] text-primary-400">Только HTTPS. Ответ должен быть в JSON.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -193,10 +193,10 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
 
       <div className="flex items-center justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={saving}>
-          Cancel
+          Отмена
         </Button>
         <Button type="submit" size="sm" disabled={saving}>
-          {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Source'}
+          {saving ? 'Сохраняю…' : isEdit ? 'Сохранить' : 'Добавить источник'}
         </Button>
       </div>
     </form>
@@ -232,7 +232,7 @@ function SourceRow({ source, onEdit, onDelete, deleting }: SourceRowProps) {
           ) : null}
           {!source.enabled ? (
             <span className="rounded border border-primary-200 bg-primary-100/50 px-1.5 py-0.5 text-[10px] text-primary-400">
-              disabled
+              отключён
             </span>
           ) : null}
         </div>
@@ -248,7 +248,7 @@ function SourceRow({ source, onEdit, onDelete, deleting }: SourceRowProps) {
             disabled={deleting}
             className="h-7 px-2 text-xs"
           >
-            Edit
+            Изменить
           </Button>
           <Button
             variant="ghost"
@@ -257,7 +257,7 @@ function SourceRow({ source, onEdit, onDelete, deleting }: SourceRowProps) {
             disabled={deleting}
             className="h-7 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
           >
-            {deleting ? '…' : 'Remove'}
+            {deleting ? '…' : 'Удалить'}
           </Button>
         </div>
       ) : null}
@@ -298,13 +298,13 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
     deleteMutation.mutate(id, {
       onSuccess: () => {
         setDeletingId(null)
-        toast('Source removed', { type: 'success' })
+        toast('Источник удалён', { type: 'success' })
       },
       onError: (err) => {
         setDeletingId(null)
         const errors = (err as { errors?: MutationError[] }).errors ?? []
         setServerErrors(errors)
-        toast('Failed to remove source', { type: 'error' })
+        toast('Не удалось удалить источник', { type: 'error' })
       },
     })
   }
@@ -314,7 +314,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
     addMutation.mutate(data, {
       onSuccess: () => {
         setMode('list')
-        toast('Source added', { type: 'success' })
+        toast('Источник добавлен', { type: 'success' })
       },
       onError: (err) => {
         const errors = (err as { errors?: MutationError[] }).errors ?? []
@@ -332,7 +332,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
         onSuccess: () => {
           setMode('list')
           setEditingSource(null)
-          toast('Source updated', { type: 'success' })
+          toast('Источник обновлён', { type: 'success' })
         },
         onError: (err) => {
           const errors = (err as { errors?: MutationError[] }).errors ?? []
@@ -342,7 +342,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
     )
   }
 
-  const title = mode === 'add' ? 'Add Source' : mode === 'edit' ? 'Edit Source' : 'Marketplace Sources'
+  const title = mode === 'add' ? 'Добавить источник' : mode === 'edit' ? 'Изменить источник' : 'Источники каталога'
   const saving = addMutation.isPending || updateMutation.isPending
 
   return (
@@ -355,7 +355,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
                 onClick={() => { setMode('list'); setEditingSource(null); setServerErrors([]) }}
                 className="text-sm text-primary-500 hover:text-ink transition-colors"
               >
-                ← Back
+                ← Назад
               </button>
             ) : null}
             <DialogTitle className="text-base font-semibold text-ink flex-1">
@@ -364,10 +364,10 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
           </div>
           <DialogDescription className="mt-0.5 text-xs text-primary-400">
             {mode === 'list'
-              ? 'Built-in sources are read-only. User-defined sources can be added, edited, or removed.'
+              ? 'Встроенные источники доступны только для чтения. Пользовательские источники можно добавлять, менять и удалять.'
               : mode === 'add'
-                ? 'Add a new HTTPS catalog source that returns JSON.'
-                : `Editing "${editingSource?.name ?? ''}"`}
+                ? 'Добавьте HTTPS-источник каталога, который возвращает JSON.'
+                : `Редактируется «${editingSource?.name ?? ''}»`}
           </DialogDescription>
         </div>
 
@@ -375,9 +375,9 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
           {mode === 'list' ? (
             <div className="flex flex-col gap-3">
               {query.isLoading ? (
-                <p className="text-sm text-primary-400">Loading sources…</p>
+                <p className="text-sm text-primary-400">Загружаю источники…</p>
               ) : query.error ? (
-                <p className="text-sm text-red-600">Failed to load sources.</p>
+                <p className="text-sm text-red-600">Не удалось загрузить источники.</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {sources.map((source) => (
@@ -390,7 +390,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
                     />
                   ))}
                   {sources.length === 0 ? (
-                    <p className="text-sm text-primary-400">No sources found.</p>
+                    <p className="text-sm text-primary-400">Источники не найдены.</p>
                   ) : null}
                 </div>
               )}
@@ -406,10 +406,10 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
                   size="sm"
                   onClick={() => { setServerErrors([]); setMode('add') }}
                 >
-                  Add Source
+                  Добавить источник
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleClose}>
-                  Done
+                  Готово
                 </Button>
               </div>
             </div>

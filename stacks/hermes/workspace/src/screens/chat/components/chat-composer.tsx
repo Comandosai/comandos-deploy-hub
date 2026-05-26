@@ -763,16 +763,16 @@ async function fetchWorkspaceContext(): Promise<WorkspaceDetectionResponse> {
 }
 
 function shortPathLabel(pathValue: string): string {
-  if (!pathValue) return 'Workspace'
+  if (!pathValue) return 'Рабочая папка'
   const parts = pathValue.replace(/\\/g, '/').split('/').filter(Boolean)
   return parts.at(-1) || pathValue
 }
 
 function thinkingLabel(level: ThinkingLevel): string {
-  if (level === 'off') return 'None'
-  if (level === 'low') return 'Low'
-  if (level === 'medium') return 'Medium'
-  return 'High'
+  if (level === 'off') return 'Нет'
+  if (level === 'low') return 'Низкое'
+  if (level === 'medium') return 'Среднее'
+  return 'Высокое'
 }
 
 function profileMeta(profile: ProfileSummary): string {
@@ -986,11 +986,11 @@ function ChatComposerComponent({
         }),
       ])
       setIsProfileMenuOpen(false)
-      toast(`Activated profile ${profileName}`)
+      toast(`Профиль ${profileName} активирован`)
     },
     onError: (error) => {
       toast(
-        error instanceof Error ? error.message : 'Failed to activate profile',
+        error instanceof Error ? error.message : 'Не удалось активировать профиль',
       )
     },
   })
@@ -1106,7 +1106,7 @@ function ChatComposerComponent({
     activeWorkspace?.name ||
     workspaceContextQuery.data?.folderName ||
     shortPathLabel(detectedWorkspacePath) ||
-    'Workspace'
+    'Рабочая папка'
 
   const currentModel = currentModelQuery.data ?? ''
 
@@ -1259,6 +1259,7 @@ function ChatComposerComponent({
     if (
       !isModelMenuOpen &&
       !isProfileMenuOpen &&
+      !isWorkspaceMenuOpen &&
       !isThinkingMenuOpen &&
       !isControlsMenuOpen
     )
@@ -1268,11 +1269,13 @@ function ChatComposerComponent({
       if (controlsMenuRef.current?.contains(target)) return
       if (modelSelectorRef.current?.contains(target)) return
       if (profileMenuRef.current?.contains(target)) return
+      if (workspaceMenuRef.current?.contains(target)) return
       if (thinkingMenuRef.current?.contains(target)) return
       setIsControlsMenuOpen(false)
       setIsModelMenuOpen(false)
       setIsProviderSwitcherExpanded(false)
       setIsProfileMenuOpen(false)
+      setIsWorkspaceMenuOpen(false)
       setIsThinkingMenuOpen(false)
     }
 
@@ -1283,6 +1286,7 @@ function ChatComposerComponent({
   }, [
     isModelMenuOpen,
     isProfileMenuOpen,
+    isWorkspaceMenuOpen,
     isThinkingMenuOpen,
     isControlsMenuOpen,
   ])
@@ -1626,8 +1630,8 @@ function ChatComposerComponent({
 
   const hasDraft = value.trim().length > 0 || attachments.length > 0
   const promptPlaceholder = isMobileViewport
-    ? 'Message...'
-    : 'Ask anything... (↵ to send · ⇧↵ new line · ⌘⇧M switch model)'
+    ? 'Сообщение...'
+    : 'Напишите задачу... (↵ отправить · ⇧↵ новая строка · ⌘⇧M сменить модель)'
   const slashCommandQuery = useMemo(() => readSlashCommandQuery(value), [value])
   const isSlashMenuOpen =
     slashCommandQuery !== null && !disabled && !isSlashMenuDismissed
@@ -2202,7 +2206,7 @@ function ChatComposerComponent({
                   <button
                     type="button"
                     onClick={handleAbort}
-                    aria-label="Stop generation"
+                    aria-label="Остановить генерацию"
                     className="size-9 rounded-full bg-red-500 flex items-center justify-center text-white transition-all duration-150"
                   >
                     <HugeiconsIcon icon={StopIcon} size={18} strokeWidth={2} />
@@ -2214,7 +2218,7 @@ function ChatComposerComponent({
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitDisabled}
-                    aria-label="Send message"
+                    aria-label="Отправить сообщение"
                     className="size-9 rounded-full bg-accent-500 flex items-center justify-center text-white transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                   >
                     <HugeiconsIcon
@@ -2240,10 +2244,10 @@ function ChatComposerComponent({
                     onPointerLeave={handleMicPointerUp}
                     aria-label={
                       voiceRecorder.isRecording
-                        ? 'Recording voice note'
+                        ? 'Запись голосового сообщения'
                         : voiceInput.isListening
-                          ? 'Stop listening'
-                          : 'Voice input'
+                          ? 'Остановить распознавание'
+                          : 'Голосовой ввод'
                     }
                     disabled={disabled}
                     className={cn(
@@ -2272,7 +2276,7 @@ function ChatComposerComponent({
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitDisabled}
-                    aria-label="Send message"
+                    aria-label="Отправить сообщение"
                     className="size-9 rounded-full bg-accent-500 flex items-center justify-center text-white transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <HugeiconsIcon
@@ -2290,7 +2294,7 @@ function ChatComposerComponent({
                   <>
                     <button
                       type="button"
-                      aria-label="Close actions"
+                      aria-label="Закрыть действия"
                       className="fixed inset-0 z-[199] bg-black/30"
                       onClick={() => {
                         setIsMobileActionsMenuOpen(false)
@@ -2394,7 +2398,7 @@ function ChatComposerComponent({
                               />
                             </span>
                             <span className="text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                              New Session
+                              Новая сессия
                             </span>
                           </button>
                         ) : null}
@@ -2411,19 +2415,19 @@ function ChatComposerComponent({
                   <>
                     <button
                       type="button"
-                      aria-label="Close model picker"
+                      aria-label="Закрыть выбор модели"
                       className="fixed inset-0 z-[209] bg-black/30"
                       onClick={() => setIsModelMenuOpen(false)}
                     />
                     <div
                       className="fixed bottom-0 left-0 right-0 z-[210] rounded-t-2xl bg-white shadow-2xl pb-safe dark:bg-neutral-900 animate-in slide-in-from-bottom-10 duration-200"
                       role="dialog"
-                      aria-label="Select model"
+                      aria-label="Выбор модели"
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="mx-auto mt-3 mb-4 h-1 w-10 rounded-full bg-neutral-300 dark:bg-neutral-600" />
                       <div className="px-4 pb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
-                        Model
+                        Модель
                       </div>
                       <div className="pb-4 max-h-[60dvh] overflow-y-auto overflow-x-hidden">
                         {(() => {
@@ -2434,10 +2438,10 @@ function ChatComposerComponent({
                             return (
                               <div className="p-4 text-center text-sm text-neutral-500">
                                 <p className="font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                                  No models available
+                                  Модели не найдены
                                 </p>
                                 <p className="text-xs">
-                                  Check your Hermes provider configuration.
+                                  Проверьте настройки провайдера Hermes.
                                 </p>
                               </div>
                             )
@@ -2579,7 +2583,7 @@ function ChatComposerComponent({
                                     >
                                       <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
                                     </svg>
-                                    <span>Pinned</span>
+                                    <span>Закреплённые</span>
                                   </div>
                                   {pinnedEntries.map(renderEntry)}
                                 </div>
@@ -2631,12 +2635,12 @@ function ChatComposerComponent({
             />
             <PromptInputActions className="justify-between px-1.5 md:px-3 gap-0.5 md:gap-2">
               <div className="flex min-w-0 flex-1 items-center gap-0 md:gap-1">
-                <PromptInputAction tooltip="Add attachment">
+                <PromptInputAction tooltip="Добавить файл">
                   <Button
                     size="icon-sm"
                     variant="ghost"
                     className="rounded-lg text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-800 hover:text-primary-500"
-                    aria-label="Add attachment"
+                    aria-label="Добавить файл"
                     disabled={disabled}
                     onClick={handleOpenAttachmentPicker}
                   >
@@ -2648,12 +2652,12 @@ function ChatComposerComponent({
                   </Button>
                 </PromptInputAction>
                 {hasDraft && !isLoading && (
-                  <PromptInputAction tooltip="Clear draft">
+                  <PromptInputAction tooltip="Очистить черновик">
                     <Button
                       size="icon-sm"
                       variant="ghost"
                       className="rounded-lg text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800 hover:text-red-600"
-                      aria-label="Clear draft"
+                      aria-label="Очистить черновик"
                       onClick={handleClearDraft}
                     >
                       <HugeiconsIcon
@@ -2685,8 +2689,8 @@ function ChatComposerComponent({
                         setIsModelMenuOpen(false)
                       }}
                       className="inline-flex h-8 items-center gap-1 rounded-full bg-primary-100/70 px-2 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-200/80 dark:hover:bg-primary-800/60"
-                      title="Chat controls"
-                      aria-label="Chat controls"
+                      title="Настройки чата"
+                      aria-label="Настройки чата"
                     >
                       <svg
                         width="13"
@@ -2711,7 +2715,7 @@ function ChatComposerComponent({
                     {isControlsMenuOpen ? (
                       <div className="absolute bottom-full left-0 z-[190] mb-2 w-[min(32rem,calc(100vw-2rem))] min-w-[18rem] overflow-visible rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-neutral-700 dark:bg-neutral-900">
                         <div className="mb-2 px-2 pt-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-                          Chat controls
+                          Настройки чата
                         </div>
                         <div className="flex flex-wrap items-start gap-2">
                           <div
@@ -2743,7 +2747,7 @@ function ChatComposerComponent({
                             {isProfileMenuOpen && (
                               <div className="absolute bottom-full left-0 z-[200] mb-2 min-w-[14rem] overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-neutral-700 dark:bg-neutral-900">
                                 <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-                                  Agent profile
+                                  Профиль агента
                                 </div>
                                 {(profilesQuery.data?.profiles ?? []).map((profile) => {
                                   const selected = profile.name === activeProfileName
@@ -2767,15 +2771,89 @@ function ChatComposerComponent({
                                     >
                                       <span className="flex items-center gap-2">
                                         <span className="truncate font-medium">{profile.name}</span>
-                                        {selected ? <span className="text-[10px] text-accent-500">active</span> : null}
+                                        {selected ? <span className="text-[10px] text-accent-500">активен</span> : null}
                                       </span>
                                       {profileMeta(profile) ? <span className="mt-0.5 max-w-[12rem] truncate text-[11px] text-neutral-500">{profileMeta(profile)}</span> : null}
                                     </button>
                                   )
                                 })}
-                                {profilesQuery.isError ? <div className="px-3 py-2 text-xs text-red-500">Failed to load profiles</div> : null}
+                                {profilesQuery.isError ? <div className="px-3 py-2 text-xs text-red-500">Не удалось загрузить профили</div> : null}
                               </div>
                             )}
+                          </div>
+
+                          <div
+                            className="relative flex min-w-0 items-center"
+                            ref={workspaceMenuRef}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsWorkspaceMenuOpen((open) => !open)
+                                setIsProfileMenuOpen(false)
+                                setIsThinkingMenuOpen(false)
+                                setIsModelMenuOpen(false)
+                              }}
+                              disabled={disabled || workspaceSelectMutation.isPending}
+                              className="inline-flex h-8 max-w-[10rem] items-center gap-1.5 rounded-full bg-primary-100/70 px-2.5 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-200/80 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-primary-800/60"
+                              title={`Рабочая папка: ${workspaceButtonLabel}`}
+                              aria-label={`Рабочая папка: ${workspaceButtonLabel}`}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+                              </svg>
+                              <span className="truncate">{workspaceButtonLabel}</span>
+                              <HugeiconsIcon icon={ArrowDown01Icon} size={11} />
+                            </button>
+                            {isWorkspaceMenuOpen ? (
+                              <div className="absolute bottom-full left-0 z-[200] mb-2 min-w-[16rem] max-w-[min(28rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-neutral-700 dark:bg-neutral-900">
+                                <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+                                  Рабочая папка
+                                </div>
+                                {workspaceEntries.length > 0 ? (
+                                  workspaceEntries.map((workspace) => {
+                                    const selected = workspace.path === detectedWorkspacePath
+                                    return (
+                                      <button
+                                        key={workspace.path}
+                                        type="button"
+                                        onClick={() => {
+                                          if (selected) {
+                                            setIsWorkspaceMenuOpen(false)
+                                            return
+                                          }
+                                          workspaceSelectMutation.mutate(workspace)
+                                        }}
+                                        className={cn(
+                                          'flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                                          selected
+                                            ? 'bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-neutral-50'
+                                            : 'text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800/60',
+                                        )}
+                                      >
+                                        <span className="flex min-w-0 items-center gap-2">
+                                          <span className="truncate font-medium">{workspace.name || shortPathLabel(workspace.path)}</span>
+                                          {selected ? <span className="text-[10px] text-accent-500">активна</span> : null}
+                                        </span>
+                                        <span className="mt-0.5 max-w-[22rem] truncate text-[11px] text-neutral-500">{workspace.path}</span>
+                                      </button>
+                                    )
+                                  })
+                                ) : (
+                                  <div className="px-3 py-2 text-xs text-neutral-500">Список рабочих папок пуст</div>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={handleOpenWorkspaceManager}
+                                  className="mt-1 flex w-full items-center rounded-lg px-3 py-2 text-left text-sm font-medium text-primary-600 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800/60"
+                                >
+                                  Открыть файлы и папки
+                                </button>
+                                {workspaceSelectMutation.isError ? (
+                                  <div className="px-3 py-2 text-xs text-red-500">Не удалось сменить рабочую папку</div>
+                                ) : null}
+                              </div>
+                            ) : null}
                           </div>
 
                           <div
@@ -2793,7 +2871,7 @@ function ChatComposerComponent({
                                 'inline-flex h-8 items-center gap-1.5 rounded-full bg-primary-100/70 px-2.5 text-xs font-medium text-primary-600 transition-colors hover:bg-primary-200/80 dark:hover:bg-primary-800/60',
                                 thinkingLevel === 'off' && 'opacity-70',
                               )}
-                              title={`Reasoning effort: ${thinkingLabel(thinkingLevel)}`}
+                              title={`Усилие рассуждения: ${thinkingLabel(thinkingLevel)}`}
                             >
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                                 <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" />
@@ -2805,10 +2883,10 @@ function ChatComposerComponent({
                             {isThinkingMenuOpen && (
                               <div className="absolute bottom-full left-0 z-[200] mb-2 min-w-[10rem] overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-neutral-700 dark:bg-neutral-900">
                                 {([
-                                  ['off', 'None'],
-                                  ['low', 'Low'],
-                                  ['medium', 'Medium'],
-                                  ['high', 'High'],
+                                  ['off', 'Нет'],
+                                  ['low', 'Низкое'],
+                                  ['medium', 'Среднее'],
+                                  ['high', 'Высокое'],
                                 ] as Array<[ThinkingLevel, string]>).map(([level, label]) => (
                                   <button
                                     key={level}
@@ -2855,7 +2933,7 @@ function ChatComposerComponent({
                                       const allModels = modelsQuery.data?.models ?? []
                                       const defaultProvider = modelsQuery.data?.currentProvider ?? ''
                                       if (allModels.length === 0) {
-                                        return <div className="p-4 text-center text-sm text-neutral-500">No models available</div>
+                                        return <div className="p-4 text-center text-sm text-neutral-500">Модели не найдены</div>
                                       }
                                       const parsed = allModels.map((m) => {
                                         const mId = String(typeof m === 'string' ? m : m.id || m.model || m.name || 'unknown')
@@ -2889,7 +2967,7 @@ function ChatComposerComponent({
                                               }`}
                                             >
                                               <span className="flex-1 truncate">{entry.name}</span>
-                                              {entry.isLocal ? <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-700">local</span> : null}
+                                              {entry.isLocal ? <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-700">локальная</span> : null}
                                               {isActive ? <span className="h-1.5 w-1.5 rounded-full bg-accent-500" /> : null}
                                             </button>
                                             <button
@@ -2903,7 +2981,7 @@ function ChatComposerComponent({
                                                   ? 'text-accent-500 opacity-80 hover:opacity-100'
                                                   : 'text-neutral-400 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-accent-500'
                                               }`}
-                                              aria-label={isPinned(entry.id) ? `Unpin ${entry.name}` : `Pin ${entry.name}`}
+                                              aria-label={isPinned(entry.id) ? `Открепить ${entry.name}` : `Закрепить ${entry.name}`}
                                             >
                                               <svg width="12" height="12" viewBox="0 0 24 24" fill={isPinned(entry.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                                                 <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
@@ -2920,7 +2998,7 @@ function ChatComposerComponent({
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" className="text-accent-500">
                                                   <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
                                                 </svg>
-                                                <span>Pinned</span>
+                                                <span>Закреплённые</span>
                                               </div>
                                               {pinnedEntries.map(renderEntry)}
                                             </div>
@@ -2951,10 +3029,10 @@ function ChatComposerComponent({
                   <PromptInputAction
                     tooltip={
                       voiceRecorder.isRecording
-                        ? `Recording… ${Math.round(voiceRecorder.durationMs / 1000)}s`
+                        ? `Запись… ${Math.round(voiceRecorder.durationMs / 1000)}с`
                         : voiceInput.isListening
-                          ? 'Listening — tap to stop'
-                          : 'Tap: dictate · Hold: voice note'
+                          ? 'Слушаю — нажмите, чтобы остановить'
+                          : 'Нажать: диктовка · удерживать: голосовое'
                     }
                   >
                     <Button
@@ -2982,10 +3060,10 @@ function ChatComposerComponent({
                       )}
                       aria-label={
                         voiceRecorder.isRecording
-                          ? 'Recording voice note'
+                          ? 'Запись голосового'
                           : voiceInput.isListening
-                            ? 'Stop listening'
-                            : 'Voice input'
+                            ? 'Остановить диктовку'
+                            : 'Голосовой ввод'
                       }
                       disabled={disabled}
                     >
@@ -3004,13 +3082,13 @@ function ChatComposerComponent({
                   </PromptInputAction>
                 ) : null}
                 {isLoading ? (
-                  <PromptInputAction tooltip="Stop generation">
+                  <PromptInputAction tooltip="Остановить генерацию">
                     <Button
                       onClick={handleAbort}
                       size="icon-sm"
                       variant="destructive"
                       className="rounded-md"
-                      aria-label="Stop generation"
+                      aria-label="Остановить генерацию"
                     >
                       <HugeiconsIcon
                         icon={StopIcon}
@@ -3021,14 +3099,14 @@ function ChatComposerComponent({
                   </PromptInputAction>
                 ) : (
                   <>
-                    <PromptInputAction tooltip="Send message">
+                    <PromptInputAction tooltip="Отправить сообщение">
                       <Button
                         type="button"
                         onClick={handleSubmit}
                         disabled={submitDisabled}
                         size="icon-sm"
                         className="rounded-full"
-                        aria-label="Send message"
+                        aria-label="Отправить сообщение"
                       >
                         <HugeiconsIcon
                           icon={ArrowUp02Icon}
@@ -3052,7 +3130,7 @@ function ChatComposerComponent({
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setPreviewImage(null)}
             role="dialog"
-            aria-label="Image preview"
+            aria-label="Предпросмотр изображения"
           >
             <button
               type="button"
@@ -3061,7 +3139,7 @@ function ChatComposerComponent({
                 e.stopPropagation()
                 setPreviewImage(null)
               }}
-              aria-label="Close preview"
+              aria-label="Закрыть предпросмотр"
             >
               <HugeiconsIcon icon={Cancel01Icon} size={24} strokeWidth={2} />
             </button>

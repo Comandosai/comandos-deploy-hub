@@ -57,7 +57,7 @@ type PromptState = {
   defaultValue?: string
 }
 
-const ROOT_LABEL = 'Workspace'
+const ROOT_LABEL = 'Рабочая папка'
 
 function isImageFile(fileName: string) {
   const ext = fileName.split('.').pop()?.toLowerCase() || ''
@@ -83,12 +83,12 @@ function getParentPath(pathValue: string) {
 
 function buildReference(pathValue: string) {
   const normalized = normalizePath(pathValue)
-  return `See file: workspace/${normalized}`
+  return `Смотри файл: workspace/${normalized}`
 }
 
 async function fetchFileTree(): Promise<Array<FileEntry>> {
   const res = await fetch('/api/files?action=list')
-  if (!res.ok) throw new Error('Failed to load files')
+  if (!res.ok) throw new Error('Не удалось загрузить файлы')
   const data = (await res.json()) as { entries?: Array<FileEntry> }
   return Array.isArray(data.entries) ? data.entries : []
 }
@@ -214,7 +214,7 @@ export function FileExplorerSidebar({
 
   const handleDelete = useCallback(
     async (entry: FileEntry) => {
-      if (!window.confirm(`Move ${entry.name} to trash?`)) return
+      if (!window.confirm(`Переместить ${entry.name} в корзину?`)) return
       await fetch('/api/files', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -387,7 +387,7 @@ export function FileExplorerSidebar({
             size="icon-sm"
             variant="ghost"
             onClick={refresh}
-            title="Refresh"
+            title="Обновить"
           >
             <HugeiconsIcon icon={RefreshIcon} size={18} />
           </Button>
@@ -395,7 +395,7 @@ export function FileExplorerSidebar({
             size="icon-sm"
             variant="ghost"
             onClick={() => handleUploadClick('')}
-            title="Upload"
+            title="Загрузить"
           >
             <HugeiconsIcon icon={Upload01Icon} size={18} />
           </Button>
@@ -403,7 +403,7 @@ export function FileExplorerSidebar({
             size="icon-sm"
             variant="ghost"
             onClick={() => openPrompt({ mode: 'new-file', targetPath: '' })}
-            title="New file"
+            title="Новый файл"
           >
             <HugeiconsIcon icon={PlusSignIcon} size={18} />
           </Button>
@@ -414,7 +414,7 @@ export function FileExplorerSidebar({
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search files"
+          placeholder="Поиск файлов"
           className="w-full rounded-md border border-primary-200 bg-primary-50 px-2 py-1 text-sm text-primary-900 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
         />
       </div>
@@ -422,7 +422,7 @@ export function FileExplorerSidebar({
       <ScrollAreaRoot className="flex-1 min-h-0">
         <ScrollAreaViewport className="px-1">
           {loading ? (
-            <div className="px-3 py-2 text-xs text-primary-500">Loading…</div>
+            <div className="px-3 py-2 text-xs text-primary-500">Загружаю…</div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center gap-3 px-4 py-8 text-center">
               <div className="flex size-10 items-center justify-center rounded-xl border border-primary-200 bg-primary-100/60">
@@ -435,10 +435,10 @@ export function FileExplorerSidebar({
               </div>
               <div>
                 <p className="text-sm font-medium text-primary-800">
-                  No workspace selected
+                  Папка не выбрана
                 </p>
                 <p className="mt-1 text-xs text-primary-500 text-pretty">
-                  Select a folder to browse and edit files.
+                  Выберите папку, чтобы смотреть и менять файлы.
                 </p>
               </div>
               <Button
@@ -448,7 +448,7 @@ export function FileExplorerSidebar({
                 className="mt-1"
               >
                 <HugeiconsIcon icon={RefreshIcon} size={16} />
-                Retry
+                Повторить
               </Button>
             </div>
           ) : entries.length === 0 ? (
@@ -463,10 +463,10 @@ export function FileExplorerSidebar({
               </div>
               <div>
                 <p className="text-sm font-medium text-primary-800">
-                  Workspace is empty
+                  Рабочая папка пустая
                 </p>
                 <p className="mt-1 text-xs text-primary-500 text-pretty">
-                  Create files or upload content to get started.
+                  Создайте файл или загрузите материалы, чтобы начать.
                 </p>
               </div>
               <div className="flex gap-2">
@@ -478,7 +478,7 @@ export function FileExplorerSidebar({
                   }
                 >
                   <HugeiconsIcon icon={PlusSignIcon} size={16} />
-                  New file
+                  Новый файл
                 </Button>
                 <Button
                   size="sm"
@@ -486,7 +486,7 @@ export function FileExplorerSidebar({
                   onClick={() => handleUploadClick('')}
                 >
                   <HugeiconsIcon icon={Upload01Icon} size={16} />
-                  Upload
+                  Загрузить
                 </Button>
               </div>
             </div>
@@ -525,7 +525,7 @@ export function FileExplorerSidebar({
               setContextMenu(null)
             }}
           >
-            <HugeiconsIcon icon={Pen01Icon} size={16} /> Rename
+            <HugeiconsIcon icon={Pen01Icon} size={16} /> Переименовать
           </button>
           {contextMenu.entry.type === 'folder' ? (
             <>
@@ -536,7 +536,7 @@ export function FileExplorerSidebar({
                   setContextMenu(null)
                 }}
               >
-                <HugeiconsIcon icon={PlusSignIcon} size={16} /> New file
+                <HugeiconsIcon icon={PlusSignIcon} size={16} /> Новый файл
               </button>
               <button
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-primary-100"
@@ -545,7 +545,7 @@ export function FileExplorerSidebar({
                   setContextMenu(null)
                 }}
               >
-                <HugeiconsIcon icon={Folder01Icon} size={16} /> New folder
+                <HugeiconsIcon icon={Folder01Icon} size={16} /> Новая папка
               </button>
               <button
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-primary-100"
@@ -554,7 +554,7 @@ export function FileExplorerSidebar({
                   setContextMenu(null)
                 }}
               >
-                <HugeiconsIcon icon={Upload01Icon} size={16} /> Upload
+                <HugeiconsIcon icon={Upload01Icon} size={16} /> Загрузить
               </button>
             </>
           ) : (
@@ -565,7 +565,7 @@ export function FileExplorerSidebar({
                 setContextMenu(null)
               }}
             >
-              <HugeiconsIcon icon={Download01Icon} size={16} /> Download
+              <HugeiconsIcon icon={Download01Icon} size={16} /> Скачать
             </button>
           )}
           <button
@@ -575,7 +575,7 @@ export function FileExplorerSidebar({
               setContextMenu(null)
             }}
           >
-            <HugeiconsIcon icon={Delete01Icon} size={16} /> Delete
+            <HugeiconsIcon icon={Delete01Icon} size={16} /> Удалить
           </button>
         </div>
       ) : null}
@@ -590,15 +590,15 @@ export function FileExplorerSidebar({
           <div className="p-5 space-y-3">
             <DialogTitle>
               {promptState?.mode === 'rename'
-                ? 'Rename'
+                ? 'Переименовать'
                 : promptState?.mode === 'new-folder'
-                  ? 'New Folder'
-                  : 'New File'}
+                  ? 'Новая папка'
+                  : 'Новый файл'}
             </DialogTitle>
             <DialogDescription>
               {promptState?.mode === 'rename'
-                ? 'Enter a new name.'
-                : 'Enter a name to create.'}
+                ? 'Введите новое имя.'
+                : 'Введите имя для создания.'}
             </DialogDescription>
             <input
               value={promptValue}
@@ -607,8 +607,8 @@ export function FileExplorerSidebar({
               autoFocus
             />
             <div className="flex justify-end gap-2 pt-2">
-              <DialogClose render={<Button variant="outline">Cancel</Button>} />
-              <Button onClick={handlePromptSubmit}>Save</Button>
+              <DialogClose render={<Button variant="outline">Отмена</Button>} />
+              <Button onClick={handlePromptSubmit}>Сохранить</Button>
             </div>
           </div>
         </DialogContent>
@@ -624,7 +624,7 @@ export function FileExplorerSidebar({
         type="button"
         onClick={onToggle}
         className="sr-only"
-        aria-label="Toggle file explorer"
+        aria-label="Показать или скрыть файловую панель"
       />
     </aside>
   )

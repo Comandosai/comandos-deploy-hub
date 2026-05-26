@@ -97,26 +97,26 @@ export function ConnectionCheckStep({
       </div>
 
       <h2 className="mb-3 text-2xl font-semibold text-primary-900">
-        Connection Check
+        Проверка подключения
       </h2>
 
       <p className="mb-6 max-w-md text-base leading-relaxed text-primary-600">
         {status === 'connected'
-          ? 'Your backend is reachable and ready for setup.'
+          ? 'Серверная часть доступна и готова к настройке.'
           : status === 'checking'
-            ? 'Checking whether an OpenAI-compatible backend is available...'
-            : 'No compatible backend is connected yet.'}
+            ? 'Проверяем, доступен ли OpenAI-совместимый сервер...'
+            : 'Совместимый сервер пока не подключён.'}
       </p>
 
       {status === 'disconnected' && (
         <div className="mb-6 w-full rounded-2xl border border-red-200 bg-red-50 p-4 text-left">
           <p className="mb-3 text-sm font-medium text-red-700">
-            Make sure the Hermes Agent HTTP API server is enabled:
+            Проверьте, что HTTP API сервер Hermes Agent включён:
           </p>
           <div className="space-y-2">
             <div>
               <p className="text-xs font-medium text-red-700 mb-1">
-                1. Enable the API server in <code>~/.hermes/.env</code>:
+                1. Включите API сервер в <code>~/.hermes/.env</code>:
               </p>
               <code className="block overflow-x-auto rounded-lg bg-red-100 px-3 py-2 text-xs text-red-900">
                 API_SERVER_ENABLED=true
@@ -124,7 +124,7 @@ export function ConnectionCheckStep({
             </div>
             <div>
               <p className="text-xs font-medium text-red-700 mb-1">
-                2. Restart the gateway:
+                2. Перезапустите шлюз:
               </p>
               <code className="block overflow-x-auto rounded-lg bg-red-100 px-3 py-2 text-xs text-red-900">
                 cd hermes-agent && hermes --gateway
@@ -132,8 +132,8 @@ export function ConnectionCheckStep({
             </div>
           </div>
           <p className="mt-3 text-xs text-red-700">
-            Or point <code>HERMES_API_URL</code> at any OpenAI-compatible
-            backend (Ollama, LiteLLM, vLLM, etc.).
+            Или укажите в <code>HERMES_API_URL</code> любой OpenAI-совместимый
+            сервер: Ollama, LiteLLM, vLLM и другие.
           </p>
           {lastError && (
             <p className="mt-3 text-xs text-red-700">{lastError}</p>
@@ -147,7 +147,7 @@ export function ConnectionCheckStep({
         className="gap-2"
       >
         <HugeiconsIcon icon={RefreshIcon} className="size-4" />
-        Check Connection
+        Проверить подключение
       </Button>
     </div>
   )
@@ -209,18 +209,18 @@ export function ModelConfigurationStep({
       </div>
 
       <h2 className="mb-3 text-2xl font-semibold text-primary-900">
-        Model Configuration
+        Настройка модели
       </h2>
 
       <p className="mb-6 max-w-md text-base leading-relaxed text-primary-600">
-        Core chat works with any OpenAI-compatible backend. Hermes Agent gateway APIs
-        make provider and model setup editable from the workspace.
+        Основной чат работает с любым OpenAI-совместимым сервером. API Hermes
+        Agent позволяют менять провайдера и модель прямо из workspace.
       </p>
 
       <div className="mb-6 w-full rounded-2xl border border-primary-200 bg-primary-100/70 p-4 text-left">
         {status === 'loading' && (
           <p className="text-sm text-primary-600">
-            Loading current provider and model information...
+            Загружаю текущего провайдера и модель...
           </p>
         )}
 
@@ -231,17 +231,17 @@ export function ModelConfigurationStep({
               className="mt-0.5 size-5 shrink-0"
             />
             <p className="text-sm">
-              Could not load editable backend configuration right now. You can
-              still continue if chat works and update settings where your
-              backend manages them.
+              Сейчас не удалось загрузить редактируемые настройки сервера. Если
+              чат работает, можно продолжить и позже обновить настройки там, где
+              они управляются.
             </p>
           </div>
         )}
 
         {status === 'ready' && hasModel && (
           <p className="text-sm font-medium text-primary-900">
-            Current model: <span className="text-accent-700">{model}</span> via{' '}
-            <span className="text-accent-700">{provider}</span>
+            Текущая модель: <span className="text-accent-700">{model}</span>{' '}
+            через <span className="text-accent-700">{provider}</span>
           </p>
         )}
 
@@ -252,9 +252,9 @@ export function ModelConfigurationStep({
               className="mt-0.5 size-5 shrink-0"
             />
             <p className="text-sm">
-              No model is reported yet. If your backend manages models
-              externally, finish setup there and use the chat test to verify the
-              connection.
+              Модель пока не определена. Если модели настраиваются во внешнем
+              сервере, завершите настройку там и проверьте подключение через
+              чат.
             </p>
           </div>
         )}
@@ -265,7 +265,7 @@ export function ModelConfigurationStep({
         className={buttonVariants({ variant: 'outline', className: 'gap-2' })}
       >
         <HugeiconsIcon icon={Settings01Icon} className="size-4" />
-        Open Provider Settings
+        Открыть настройки провайдера
       </Link>
     </div>
   )

@@ -329,8 +329,8 @@ export function Swarm2LiveChat({
     >
       {!nativeStyle ? (
         <header className="flex items-center justify-between gap-2 border-b border-[var(--theme-border)]/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--theme-muted)]/85">
-          <span>Chat</span>
-          <span className="text-[9px] normal-case tracking-normal">{source === 'state.db' ? 'live' : 'no session'}</span>
+          <span>Чат</span>
+          <span className="text-[9px] normal-case tracking-normal">{source === 'state.db' ? 'активен' : 'нет сессии'}</span>
         </header>
       ) : null}
 
@@ -343,11 +343,11 @@ export function Swarm2LiveChat({
       >
         {isLoading ? (
           <p className="text-center text-[11px] text-[var(--theme-muted)]">
-            Loading session…
+            Загружаю сессию…
           </p>
         ) : previewMessages.length === 0 ? (
           <p className="text-center text-[11px] text-[var(--theme-muted)]">
-            No messages yet for {workerId}. Send a prompt below.
+            У агента {workerId} пока нет сообщений. Напишите задачу ниже.
           </p>
         ) : (
           previewMessages.map((m) => (
@@ -399,7 +399,7 @@ export function Swarm2LiveChat({
                   }
                 }}
                 disabled={isSending}
-                placeholder={`Message ${workerId}…`}
+                placeholder={`Сообщение для ${workerId}…`}
                 className="flex-1 resize-none bg-transparent px-1.5 text-[12px] text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
               />
               <button
@@ -414,7 +414,7 @@ export function Swarm2LiveChat({
                 )}
               >
                 <HugeiconsIcon icon={SentIcon} size={11} />
-                {isSending ? '…' : 'Send'}
+                {isSending ? '…' : 'Отправить'}
               </button>
             </div>
 

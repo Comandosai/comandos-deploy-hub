@@ -7,12 +7,12 @@ import { Cancel01Icon } from '@hugeicons/core-free-icons'
 import type { ClaudeJob, JobProfileOption } from '@/lib/jobs-api'
 
 const SCHEDULE_PRESETS = [
-  { label: 'Every 15m', value: 'every 15m' },
-  { label: 'Every 30m', value: 'every 30m' },
-  { label: 'Every 1h', value: 'every 1h' },
-  { label: 'Every 6h', value: 'every 6h' },
-  { label: 'Daily', value: '0 9 * * *' },
-  { label: 'Weekly', value: '0 9 * * 1' },
+  { label: 'Каждые 15 мин', value: 'every 15m' },
+  { label: 'Каждые 30 мин', value: 'every 30m' },
+  { label: 'Каждый час', value: 'every 1h' },
+  { label: 'Каждые 6 часов', value: 'every 6h' },
+  { label: 'Ежедневно', value: '0 9 * * *' },
+  { label: 'Еженедельно', value: '0 9 * * 1' },
 ] as const
 
 const DELIVERY_OPTIONS = ['local', 'telegram', 'discord'] as const
@@ -188,12 +188,12 @@ export function EditJobDialog({
               style={{ borderColor: 'var(--theme-border)' }}
             >
               <div>
-                <h2 className="text-lg font-semibold">Edit Job</h2>
+                <h2 className="text-lg font-semibold">Редактировать задание</h2>
                 <p
                   className="mt-1 text-sm"
                   style={{ color: 'var(--theme-muted)' }}
                 >
-                  Update the schedule, prompt, and routing for this Hermes task.
+                  Измените расписание, задачу и доставку результата.
                 </p>
               </div>
               <button
@@ -201,7 +201,7 @@ export function EditJobDialog({
                 onClick={() => onOpenChange(false)}
                 className="rounded-lg p-2 transition-colors"
                 style={{ color: 'var(--theme-muted)' }}
-                aria-label="Close edit job dialog"
+                aria-label="Закрыть окно редактирования задания"
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={18} />
               </button>
@@ -209,7 +209,7 @@ export function EditJobDialog({
 
             <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
               <section className="space-y-2">
-                <label className="text-sm font-medium">Profile</label>
+                <label className="text-sm font-medium">Профиль</label>
                 <select
                   value={form.profile}
                   onChange={(event) =>
@@ -229,7 +229,7 @@ export function EditJobDialog({
                   {profiles.map((profile) => (
                     <option key={profile.name} value={profile.name}>
                       {profile.name}
-                      {profile.active ? ' (active)' : ''}
+                      {profile.active ? ' (активный)' : ''}
                     </option>
                   ))}
                 </select>
@@ -238,21 +238,21 @@ export function EditJobDialog({
                     className="text-xs"
                     style={{ color: 'var(--theme-muted)' }}
                   >
-                    Saving will recreate this cron job in {form.profile} and
-                    remove it from {job.profile}.
+                    При сохранении задание будет пересоздано в профиле {form.profile}
+                    и удалено из {job.profile}.
                   </p>
                 ) : (
                   <p
                     className="text-xs"
                     style={{ color: 'var(--theme-muted)' }}
                   >
-                    Cron jobs are stored under the selected Hermes profile.
+                    Задания сохраняются в выбранном профиле Hermes.
                   </p>
                 )}
               </section>
 
               <section className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
+                <label className="text-sm font-medium">Название</label>
                 <input
                   value={form.name}
                   onChange={(event) =>
@@ -261,7 +261,7 @@ export function EditJobDialog({
                       name: event.target.value,
                     }))
                   }
-                  placeholder="Daily research summary"
+                  placeholder="Ежедневная сводка"
                   required
                   className="w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-1"
                   style={{
@@ -275,12 +275,12 @@ export function EditJobDialog({
 
               <section className="space-y-3">
                 <div>
-                  <h3 className="text-sm font-medium">Schedule</h3>
+                  <h3 className="text-sm font-medium">Расписание</h3>
                   <p
                     className="mt-1 text-xs"
                     style={{ color: 'var(--theme-muted)' }}
                   >
-                    Choose a preset or enter a custom schedule string below.
+                    Выберите готовый вариант или укажите своё расписание ниже.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -304,7 +304,9 @@ export function EditJobDialog({
                           borderColor: isActive
                             ? 'var(--theme-accent)'
                             : 'var(--theme-border)',
-                          color: isActive ? '#fff' : 'var(--theme-text)',
+                          color: isActive
+                            ? 'var(--theme-on-accent)'
+                            : 'var(--theme-text)',
                         }}
                       >
                         {preset.label}
@@ -313,7 +315,7 @@ export function EditJobDialog({
                   })}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Custom schedule</label>
+                  <label className="text-sm font-medium">Своё расписание</label>
                   <input
                     value={form.schedule}
                     onChange={(event) =>
@@ -322,7 +324,7 @@ export function EditJobDialog({
                         schedule: event.target.value,
                       }))
                     }
-                    placeholder="every 30m or 0 9 * * *"
+                    placeholder="every 30m или 0 9 * * *"
                     required
                     className="w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-1"
                     style={{
@@ -335,7 +337,7 @@ export function EditJobDialog({
               </section>
 
               <section className="space-y-2">
-                <label className="text-sm font-medium">Prompt</label>
+                <label className="text-sm font-medium">Задача для агента</label>
                 <textarea
                   value={form.prompt}
                   onChange={(event) =>
@@ -344,7 +346,7 @@ export function EditJobDialog({
                       prompt: event.target.value,
                     }))
                   }
-                  placeholder="What should Hermes Agent do?"
+                  placeholder="Что должен сделать Hermes Agent?"
                   required
                   rows={5}
                   className="w-full resize-none rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-1"
@@ -358,17 +360,17 @@ export function EditJobDialog({
 
               <section className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium">Options</h3>
+                  <h3 className="text-sm font-medium">Параметры</h3>
                   <p
                     className="mt-1 text-xs"
                     style={{ color: 'var(--theme-muted)' }}
                   >
-                    Optional routing and repeat controls.
+                    Дополнительные настройки доставки и повторов.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Skills</label>
+                  <label className="text-sm font-medium">Навыки</label>
                   <input
                     value={form.skillsInput}
                     onChange={(event) =>
@@ -388,7 +390,7 @@ export function EditJobDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Deliver to</label>
+                  <label className="text-sm font-medium">Куда отправить результат</label>
                   <div className="flex flex-wrap gap-2">
                     {DELIVERY_OPTIONS.map((option) => {
                       const isActive = form.deliver.includes(option)
@@ -401,7 +403,7 @@ export function EditJobDialog({
                           onClick={() => toggleDelivery(option)}
                           title={
                             needsGateway
-                              ? `Requires Hermes Agent gateway with ${option} configured`
+                              ? `Нужен Hermes Agent gateway с настроенным ${option}`
                               : undefined
                           }
                           className="rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors"
@@ -413,7 +415,7 @@ export function EditJobDialog({
                               ? 'var(--theme-accent)'
                               : 'var(--theme-border)',
                             color: isActive
-                              ? '#fff'
+                              ? 'var(--theme-on-accent)'
                               : needsGateway
                                 ? 'var(--theme-muted)'
                                 : 'var(--theme-text)',
@@ -427,7 +429,7 @@ export function EditJobDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Repeat</label>
+                  <label className="text-sm font-medium">Повтор</label>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -449,11 +451,11 @@ export function EditJobDialog({
                             : 'var(--theme-border)',
                         color:
                           form.repeatMode === 'unlimited'
-                            ? '#fff'
+                            ? 'var(--theme-on-accent)'
                             : 'var(--theme-text)',
                       }}
                     >
-                      Unlimited
+                      Без ограничения
                     </button>
                     <button
                       type="button"
@@ -475,11 +477,11 @@ export function EditJobDialog({
                             : 'var(--theme-border)',
                         color:
                           form.repeatMode === 'limited'
-                            ? '#fff'
+                            ? 'var(--theme-on-accent)'
                             : 'var(--theme-text)',
                       }}
                     >
-                      Set count
+                      Указать число
                     </button>
                   </div>
                   {form.repeatMode === 'limited' ? (
@@ -519,7 +521,7 @@ export function EditJobDialog({
                   color: 'var(--theme-muted)',
                 }}
               >
-                Cancel
+                Отмена
               </button>
               <button
                 type="submit"
@@ -529,10 +531,13 @@ export function EditJobDialog({
                   !form.schedule.trim() ||
                   !form.prompt.trim()
                 }
-                className="rounded-xl px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
-                style={{ background: 'var(--theme-accent)' }}
+                className="rounded-xl px-4 py-2 text-sm font-medium transition-opacity disabled:opacity-50"
+                style={{
+                  background: 'var(--theme-accent)',
+                  color: 'var(--theme-on-accent)',
+                }}
               >
-                {isSubmitting ? 'Saving...' : 'Save changes'}
+                {isSubmitting ? 'Сохраняю...' : 'Сохранить'}
               </button>
             </div>
           </motion.form>

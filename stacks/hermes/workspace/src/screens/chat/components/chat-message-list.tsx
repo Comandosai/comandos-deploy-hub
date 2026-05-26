@@ -100,15 +100,15 @@ function getToolEmoji(name: string): string {
 }
 
 function getToolVerb(name: string): string {
-  if (name.includes('search')) return 'Searching'
-  if (name.includes('read') || name.includes('Read')) return 'Reading'
+  if (name.includes('search')) return 'Ищу'
+  if (name.includes('read') || name.includes('Read')) return 'Читаю'
   if (name.includes('write') || name.includes('Write') || name.includes('edit'))
-    return 'Writing'
-  if (name.includes('exec') || name.includes('terminal')) return 'Executing'
-  if (name.includes('memory')) return 'Remembering'
-  if (name.includes('browser')) return 'Browsing'
-  if (name.includes('skill')) return 'Loading skill'
-  return 'Working'
+    return 'Пишу'
+  if (name.includes('exec') || name.includes('terminal')) return 'Выполняю'
+  if (name.includes('memory')) return 'Запоминаю'
+  if (name.includes('browser')) return 'Открываю браузер'
+  if (name.includes('skill')) return 'Загружаю навык'
+  return 'Работаю'
 }
 
 function ToolCallCard({ name, phase }: { name: string; phase: string }) {
@@ -483,11 +483,13 @@ export function buildDisplayEntries(
     }
 
     if (message.role === 'tool' || message.role === 'toolResult') {
+      if (pendingAssistantToolMessages.length > 0) {
+        pendingAssistantToolMessages.push(message)
+        return
+      }
       const previousEntry = entries[entries.length - 1]
       if (previousEntry?.message.role === 'assistant') {
         previousEntry.attachedToolMessages.push(message)
-      } else if (pendingAssistantToolMessages.length > 0) {
-        pendingAssistantToolMessages.push(message)
       }
       return
     }
@@ -506,14 +508,51 @@ export function buildDisplayEntries(
     entries.push(entry)
   })
 
-  if (pendingAssistantToolMessages.length > 0) {
-    const previousEntry = entries[entries.length - 1]
-    if (previousEntry?.message.role === 'assistant') {
-      previousEntry.attachedToolMessages.push(...pendingAssistantToolMessages)
+  return entries
+}
+
+export function getTrailingToolOnlyTurnSummary(
+  displayMessages: Array<ChatMessage>,
+): { count: number; toolNames: Array<string>; hasFinalAssistantText: boolean } | null {
+  let finalAssistantTextIndex = -1
+  for (let index = displayMessages.length - 1; index >= 0; index -= 1) {
+    const message = displayMessages[index]
+    if (message.role === 'assistant' && textFromMessage(message).trim().length > 0) {
+      finalAssistantTextIndex = index
+      break
     }
   }
 
-  return entries
+  if (finalAssistantTextIndex < 0 || finalAssistantTextIndex === displayMessages.length - 1) {
+    return null
+  }
+
+  const toolNames = new Set<string>()
+  let count = 0
+  for (const message of displayMessages.slice(finalAssistantTextIndex + 1)) {
+    if (isAssistantToolCallOnlyMessage(message)) {
+      count += 1
+      for (const toolCall of getToolCallsFromMessage(message)) {
+        if (toolCall.name) toolNames.add(toolCall.name)
+      }
+      continue
+    }
+    if (message.role === 'tool' || message.role === 'toolResult') {
+      count += 1
+      const toolName =
+        'toolName' in message && typeof message.toolName === 'string'
+          ? message.toolName
+          : undefined
+      if (toolName) toolNames.add(toolName)
+    }
+  }
+
+  if (count === 0) return null
+  return {
+    count,
+    toolNames: Array.from(toolNames).sort(),
+    hasFinalAssistantText: true,
+  }
 }
 
 function escapeAttributeSelector(value: string): string {
@@ -1565,14 +1604,14 @@ function ChatMessageListComponent({
                 type="text"
                 value={messageSearchValue}
                 onChange={(e) => setMessageSearchValue(e.target.value)}
-                placeholder="Search messages..."
+                placeholder="Поиск по сообщениям..."
                 className="min-w-0 flex-1 rounded-md border border-primary-200 bg-primary-50 px-2.5 py-1.5 text-sm text-primary-900 outline-none placeholder:text-primary-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400"
               />
               {isMessageSearchActive && (
                 <span className="shrink-0 text-xs text-primary-500 dark:text-neutral-400">
                   {messageSearchMatches.length > 0
-                    ? `${activeSearchMatchIndex + 1} of ${messageSearchMatches.length}`
-                    : 'No matches'}
+                    ? `${activeSearchMatchIndex + 1} из ${messageSearchMatches.length}`
+                    : 'Нет совпадений'}
                 </span>
               )}
               <div className="flex shrink-0 items-center gap-0.5">
@@ -1581,7 +1620,7 @@ function ChatMessageListComponent({
                   onClick={jumpToPreviousMatch}
                   disabled={messageSearchMatches.length === 0}
                   className="rounded p-1 text-primary-500 dark:text-neutral-400 hover:bg-primary-200 dark:hover:bg-primary-800 hover:text-primary-700 dark:hover:text-neutral-200 disabled:opacity-30"
-                  aria-label="Previous match"
+                  aria-label="Предыдущее совпадение"
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                     <path
@@ -1598,7 +1637,7 @@ function ChatMessageListComponent({
                   onClick={jumpToNextMatch}
                   disabled={messageSearchMatches.length === 0}
                   className="rounded p-1 text-primary-500 dark:text-neutral-400 hover:bg-primary-200 dark:hover:bg-primary-800 hover:text-primary-700 dark:hover:text-neutral-200 disabled:opacity-30"
-                  aria-label="Next match"
+                  aria-label="Следующее совпадение"
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                     <path
@@ -1614,7 +1653,7 @@ function ChatMessageListComponent({
                   type="button"
                   onClick={closeMessageSearch}
                   className="rounded p-1 text-primary-500 dark:text-neutral-400 hover:bg-primary-200 dark:hover:bg-primary-800 hover:text-primary-700 dark:hover:text-neutral-200"
-                  aria-label="Close search"
+                  aria-label="Закрыть поиск"
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                     <path
@@ -1703,7 +1742,7 @@ function ChatMessageListComponent({
               (emptyState ?? <div aria-hidden></div>)
             ) : isMessageSearchActive && visibleEntries.length === 0 ? (
               <div className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-6 text-sm text-primary-600">
-                No messages match “{messageSearchValue.trim()}”.
+                Нет сообщений по запросу «{messageSearchValue.trim()}».
               </div>
             ) : hasGroup ? (
               <>

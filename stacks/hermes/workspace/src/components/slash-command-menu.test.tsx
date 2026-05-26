@@ -9,7 +9,9 @@ describe('DEFAULT_SLASH_COMMANDS', () => {
     )
 
     expect(plugin).toBeTruthy()
-    expect(plugin?.description).toBe('List installed plugins and their status')
+    expect(plugin?.description).toBe(
+      'Показать установленные плагины и их статус',
+    )
   })
 
   it('exposes the core slash commands users expect', () => {

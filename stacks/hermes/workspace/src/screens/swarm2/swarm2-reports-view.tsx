@@ -138,7 +138,7 @@ function clean(value: string | null | undefined, fallback = '—'): string {
 
 function compact(value: string | null | undefined, max = 180): string {
   const text = clean(value, '')
-  if (!text) return 'No report body published yet.'
+  if (!text) return 'Текст отчёта пока не опубликован.'
   return text.length > max ? `${text.slice(0, max - 1)}…` : text
 }
 
@@ -234,14 +234,14 @@ export function buildSwarm2ReportRows({
         reviewedAt: assignment.reviewedAt ?? null,
         reviewedBy: assignment.reviewedBy ?? null,
         details: [
-          { label: 'Task', value: clean(assignment.task) },
-          { label: 'Result', value: clean(checkpoint?.result) },
-          { label: 'Files changed', value: clean(checkpoint?.filesChanged) },
-          { label: 'Commands run', value: clean(checkpoint?.commandsRun) },
-          { label: 'Blocker', value: clean(checkpoint?.blocker) },
-          { label: 'Next action', value: clean(checkpoint?.nextAction) },
-          { label: 'Checkpoint', value: clean(checkpoint?.checkpointStatus ?? checkpoint?.stateLabel) },
-          { label: 'Reviewer', value: clean(assignment.reviewedBy) },
+          { label: 'Задача', value: clean(assignment.task) },
+          { label: 'Результат', value: clean(checkpoint?.result) },
+          { label: 'Изменённые файлы', value: clean(checkpoint?.filesChanged) },
+          { label: 'Команды', value: clean(checkpoint?.commandsRun) },
+          { label: 'Проблема', value: clean(checkpoint?.blocker) },
+          { label: 'Следующее действие', value: clean(checkpoint?.nextAction) },
+          { label: 'Контрольная точка', value: clean(checkpoint?.checkpointStatus ?? checkpoint?.stateLabel) },
+          { label: 'Проверяющий', value: clean(assignment.reviewedBy) },
         ],
         artifacts: inferredArtifacts.length ? inferredArtifacts : runtime?.artifacts ?? [],
         previews: runtime?.previews ?? [],
@@ -555,7 +555,7 @@ export function Swarm2ReportsView({
   async function sendGuidance(row: Swarm2InboxItem) {
     const guidance = cleanDetail(replyDrafts[row.id])
     if (!guidance) {
-      setReplyErrors((current) => ({ ...current, [row.id]: 'Add guidance before sending.' }))
+      setReplyErrors((current) => ({ ...current, [row.id]: 'Добавьте указание перед отправкой.' }))
       return
     }
     setBusyId(`reply:${row.id}`)
@@ -567,11 +567,11 @@ export function Swarm2ReportsView({
       await refreshData()
       setReplyDrafts((current) => ({ ...current, [row.id]: buildReplyPrefill(row) }))
       setExpandedId(null)
-      showToast(`Sent to ${row.workerId}`)
+      showToast(`Отправлено агенту ${row.workerId}`)
     } catch (error) {
       setReplyErrors((current) => ({
         ...current,
-        [row.id]: error instanceof Error ? error.message : 'Failed to send guidance.',
+        [row.id]: error instanceof Error ? error.message : 'Не удалось отправить указание.',
       }))
     } finally {
       setBusyId(null)
@@ -586,11 +586,11 @@ export function Swarm2ReportsView({
       })
       await refreshData()
       onRouteToReviewer?.(row)
-      showToast(`Sent to swarm6 for ${row.workerId}`)
+      showToast(`Отправлено swarm6 для ${row.workerId}`)
     } catch (error) {
       setReplyErrors((current) => ({
         ...current,
-        [row.id]: error instanceof Error ? error.message : 'Failed to route reviewer.',
+        [row.id]: error instanceof Error ? error.message : 'Не удалось направить проверяющему.',
       }))
     } finally {
       setBusyId(null)
@@ -603,11 +603,11 @@ export function Swarm2ReportsView({
     try {
       await markInboxItemReadyForEric({ missionId: row.missionId, assignmentId: row.assignmentId })
       await refreshData()
-      showToast(`Marked ${row.workerId} ready for Eric merge`)
+      showToast(`${row.workerId}: отмечено как готовое к слиянию`)
     } catch (error) {
       setReplyErrors((current) => ({
         ...current,
-        [row.id]: error instanceof Error ? error.message : 'Failed to mark ready for Eric.',
+        [row.id]: error instanceof Error ? error.message : 'Не удалось отметить как готовое.',
       }))
     } finally {
       setBusyId(null)
@@ -633,7 +633,7 @@ export function Swarm2ReportsView({
     return (
       <div className="mt-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-3">
         <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]" htmlFor={`guidance-${row.id}`}>
-          Guidance for {row.workerId}
+          Указание для {row.workerId}
         </label>
         <textarea
           id={`guidance-${row.id}`}
@@ -649,7 +649,7 @@ export function Swarm2ReportsView({
             onClick={() => setExpandedId(null)}
             className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-1.5 text-xs font-medium text-[var(--theme-muted)]"
           >
-            Cancel
+            Отмена
           </button>
           <button
             type="button"
@@ -657,7 +657,7 @@ export function Swarm2ReportsView({
             onClick={() => void sendGuidance(row)}
             className="rounded-lg bg-[var(--theme-accent)] px-3 py-1.5 text-xs font-semibold text-primary-950 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {disabled ? 'Sending…' : 'Send guidance'}
+            {disabled ? 'Отправляю…' : 'Отправить указание'}
           </button>
         </div>
       </div>
@@ -671,26 +671,26 @@ export function Swarm2ReportsView({
       : 'rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-2.5 py-1.5 text-xs font-medium text-[var(--theme-text)] hover:border-[var(--theme-accent)]'
     return (
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <button type="button" aria-label={`Open ${row.workerId} worker`} onClick={() => openWorker(row)} className={buttonClass}>
+        <button type="button" aria-label={`Открыть агента ${row.workerId}`} onClick={() => openWorker(row)} className={buttonClass}>
           ↗
         </button>
         {row.state === 'blocked' ? (
           <button type="button" onClick={() => openReply(row)} className={buttonClass}>
-            Guide worker
+            Дать указание
           </button>
         ) : null}
         {row.state === 'needs_review' ? (
           <button type="button" onClick={() => void routeToReviewer(row)} className={cn(buttonClass, 'border-amber-400/40 bg-amber-500/10 text-amber-700 hover:bg-amber-500/15')}>
-            Route to reviewer
+            На проверку
           </button>
         ) : null}
         {row.state === 'ready' && prUrl ? (
           <>
             <a href={prUrl} target="_blank" rel="noreferrer" className={cn(buttonClass, 'border-emerald-400/40 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15')}>
-              Open PR
+              Открыть PR
             </a>
             <button type="button" onClick={() => void markReady(row)} className={cn(buttonClass, 'border-emerald-400/40 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15')}>
-              Mark ready for Eric merge
+              Готово к слиянию
             </button>
           </>
         ) : null}
@@ -736,16 +736,16 @@ export function Swarm2ReportsView({
     <section className="rounded-[1.5rem] border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 shadow-[0_20px_60px_color-mix(in_srgb,var(--theme-shadow)_14%,transparent)]">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--theme-muted)]">Outputs / Reports</div>
-          <h2 className="mt-1 text-lg font-semibold text-[var(--theme-text)]">Worker reports</h2>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--theme-muted)]">Результаты / отчёты</div>
+          <h2 className="mt-1 text-lg font-semibold text-[var(--theme-text)]">Отчёты агентов</h2>
           <p className="mt-1 max-w-3xl text-xs text-[var(--theme-muted-2)]">
-            Board for queues, Cards for worker-level scanning, List for dense detail.
+            Доска показывает очереди, карточки помогают быстро просмотреть агентов, список даёт подробности.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center text-[10px] uppercase tracking-[0.12em] text-[var(--theme-muted)]">
-          <span className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-2 py-1">Review {counts.needs_review}</span>
-          <span className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-2 py-1">Ready {counts.ready}</span>
-          <span className="rounded-xl border border-red-400/40 bg-red-500/10 px-2 py-1">Blocked {counts.blocked}</span>
+          <span className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-2 py-1">Проверка {counts.needs_review}</span>
+          <span className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-2 py-1">Готово {counts.ready}</span>
+          <span className="rounded-xl border border-red-400/40 bg-red-500/10 px-2 py-1">Стоп {counts.blocked}</span>
         </div>
       </div>
 
@@ -766,18 +766,18 @@ export function Swarm2ReportsView({
           </button>
         ))}
         <select value={workerFilter} onChange={(event) => setWorkerFilter(event.target.value)} className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-1.5 text-xs text-[var(--theme-muted)] outline-none">
-          <option value="all">All workers</option>
+          <option value="all">Все агенты</option>
           {workers.map((worker) => <option key={worker} value={worker}>{worker}</option>)}
         </select>
         <select value={missionFilter} onChange={(event) => setMissionFilter(event.target.value)} className="max-w-xs rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-1.5 text-xs text-[var(--theme-muted)] outline-none">
-          <option value="all">All missions</option>
+          <option value="all">Все миссии</option>
           {missionOptions.map((mission) => <option key={mission.id} value={mission.id}>{mission.label}</option>)}
         </select>
         <div className="ml-auto flex rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] p-1">
           {([
-            ['board', 'Board'],
-            ['cards', 'Cards'],
-            ['list', 'List'],
+            ['board', 'Доска'],
+            ['cards', 'Карточки'],
+            ['list', 'Список'],
           ] as const).map(([id, label]) => (
             <button
               key={id}
@@ -798,9 +798,9 @@ export function Swarm2ReportsView({
 
       {layout === 'board' ? (
         <div className="grid gap-3 xl:grid-cols-3">
-          {renderInboxLane('needs_review', 'Needs review', inboxLanes.needs_review, 'Reviewer lane is clear. Route the next completed worker output through swarm6.')}
-          {renderInboxLane('blocked', 'Blocked / needs input', inboxLanes.blocked, 'No blockers waiting on human input.')}
-          {renderInboxLane('ready', 'Ready', inboxLanes.ready, 'Nothing is ready yet.')}
+          {renderInboxLane('needs_review', 'Нужна проверка', inboxLanes.needs_review, 'Очередь проверки пустая. Следующий готовый результат можно отправить в swarm6.')}
+          {renderInboxLane('blocked', 'Стоп / нужен ввод', inboxLanes.blocked, 'Проблем, ожидающих пользователя, нет.')}
+          {renderInboxLane('ready', 'Готово', inboxLanes.ready, 'Готовых результатов пока нет.')}
         </div>
       ) : layout === 'cards' ? (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -842,7 +842,7 @@ export function Swarm2ReportsView({
                       onClick={() => setExpandedId(expanded ? null : `worker:${card.workerId}`)}
                       className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-2.5 py-1.5 text-[11px] font-medium text-[var(--theme-text)] hover:border-[var(--theme-accent)]"
                     >
-                      {expanded ? 'Hide reports' : `Open reports (${card.rows.length})`}
+                      {expanded ? 'Скрыть отчёты' : `Открыть отчёты (${card.rows.length})`}
                     </button>
                     {card.prUrl ? (
                       <a
@@ -860,7 +860,7 @@ export function Swarm2ReportsView({
                         onClick={() => onRouteToReviewer?.(card)}
                         className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-2.5 py-1.5 text-[11px] text-[var(--theme-text)] hover:bg-[var(--theme-card2)]"
                       >
-                        Steer
+                        Направить
                       </button>
                     ) : null}
                   </div>
@@ -870,10 +870,10 @@ export function Swarm2ReportsView({
                 <p className="mt-1 text-center text-[11px] text-[var(--theme-muted)]">{card.latest.summary}</p>
 
                 <div className="mt-4 flex flex-wrap gap-1.5 text-center text-[9px] uppercase tracking-[0.12em] text-[var(--theme-muted)]">
-                  <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-1.5 py-0.5">Review {card.reviewCount}</div>
-                  <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5">Ready {card.readyCount}</div>
-                  <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-1.5 py-0.5">Blocked {card.blockedCount}</div>
-                  <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] px-1.5 py-0.5">Files {card.artifactCount}</div>
+                  <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-1.5 py-0.5">Проверка {card.reviewCount}</div>
+                  <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5">Готово {card.readyCount}</div>
+                  <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-1.5 py-0.5">Стоп {card.blockedCount}</div>
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] px-1.5 py-0.5">Файлы {card.artifactCount}</div>
                 </div>
 
                 {expandedId === `reply:${latestInboxItem.id}` ? renderReplyComposer(latestInboxItem) : null}
@@ -907,7 +907,7 @@ export function Swarm2ReportsView({
             )
           }) : (
             <div className="col-span-full rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)] p-8 text-center text-sm text-[var(--theme-muted)]">
-              No worker reports match these filters yet.
+              По этим фильтрам отчётов агентов пока нет.
             </div>
           )}
         </div>
@@ -949,11 +949,11 @@ export function Swarm2ReportsView({
                         </button>
                         {row.state === 'needs_review' ? (
                           <button type="button" onClick={(event) => { event.stopPropagation(); onRouteToReviewer?.({ ...row, lane: 'needs_review' }) }} className="rounded-lg border border-amber-400/40 bg-amber-500/10 px-2 py-1 font-medium text-amber-700 hover:bg-amber-500/15">
-                            Route swarm6
+                            В swarm6
                           </button>
                         ) : null}
                       </div>
-                      <div className="mt-1 max-w-[14rem] truncate">{row.missionTitle ?? 'runtime output'}</div>
+                      <div className="mt-1 max-w-[14rem] truncate">{row.missionTitle ?? 'результат работы'}</div>
                     </div>
                   </div>
                 </div>
@@ -970,7 +970,7 @@ export function Swarm2ReportsView({
                     </dl>
                     {(row.artifacts.length > 0 || row.previews.length > 0) ? (
                       <div className="mt-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-2">
-                        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]">Artifacts</div>
+                        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]">Артефакты</div>
                         <div className="flex flex-wrap gap-1.5">
                           {row.artifacts.map((artifact) => (
                             <span key={artifact.id} title={artifact.path ?? artifact.label} className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2 py-1 text-[10px] text-[var(--theme-muted-2)]">
@@ -979,7 +979,7 @@ export function Swarm2ReportsView({
                           ))}
                           {row.previews.map((preview) => (
                             <a key={preview.id} href={preview.url} target="_blank" rel="noreferrer" className="rounded-full border border-[var(--theme-accent)]/40 bg-[var(--theme-accent-soft)] px-2 py-1 text-[10px] text-[var(--theme-accent-strong)]">
-                              preview: {preview.label}
+                              превью: {preview.label}
                             </a>
                           ))}
                         </div>
@@ -991,7 +991,7 @@ export function Swarm2ReportsView({
             )
           }) : (
             <div className="rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-bg)] p-8 text-center text-sm text-[var(--theme-muted)]">
-              No reports match these filters yet. Checkpoints appear after workers return the required checkpoint format; runtime artifacts appear when workers publish artifacts/previews.
+              По этим фильтрам отчётов пока нет. Контрольные точки появятся после ответа агентов, а артефакты — когда агенты опубликуют файлы или превью.
             </div>
           )}
         </div>

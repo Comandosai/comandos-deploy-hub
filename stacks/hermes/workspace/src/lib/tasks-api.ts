@@ -223,13 +223,13 @@ export async function moveTask(taskId: string, column: TaskColumn, movedBy = 'us
 // --- Display constants ---------------------------------------------------
 
 export const COLUMN_LABELS: Record<TaskColumn, string> = {
-  backlog: 'Triage',
-  todo: 'Ready',
-  in_progress: 'Running',
-  review: 'Review',
-  blocked: 'Blocked',
-  done: 'Done',
-  deleted: 'Deleted',
+  backlog: 'Разобрать',
+  todo: 'Готово к работе',
+  in_progress: 'В работе',
+  review: 'Проверка',
+  blocked: 'Стоп',
+  done: 'Готово',
+  deleted: 'Удалено',
 }
 
 export const COLUMN_ORDER: Array<TaskColumn> = ['backlog', 'todo', 'in_progress', 'review', 'blocked', 'done']

@@ -177,15 +177,15 @@ export function Swarm2TaskQueue({
         <div className="mb-2">
           <div className="flex items-center justify-between gap-2 text-[10px] font-semibold tracking-[0.02em] text-[var(--theme-muted)]">
             <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--theme-muted)]/80">
-              Tasks
+              Задачи
             </span>
             <span className="text-[10px] normal-case tracking-normal text-[var(--theme-muted)]/80">
-              {activeTasks.length} active · {doneCount} done
+              активных: {activeTasks.length} · готово: {doneCount}
             </span>
             <button
               type="button"
-              aria-label={composerOpen ? 'Close add task' : 'Add task'}
-              title={composerOpen ? 'Close add task' : 'Add task'}
+              aria-label={composerOpen ? 'Закрыть создание задачи' : 'Добавить задачу'}
+              title={composerOpen ? 'Закрыть создание задачи' : 'Добавить задачу'}
               onClick={() => setComposerOpen((value) => !value)}
               className="inline-flex h-5 w-5 items-center justify-center rounded-md text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]"
             >
@@ -194,8 +194,8 @@ export function Swarm2TaskQueue({
             {hasOverflow ? (
               <button
                 type="button"
-                aria-label={detailsOpen ? 'Collapse task details' : 'Expand task details'}
-                title={detailsOpen ? 'Collapse task details' : 'Expand task details'}
+                aria-label={detailsOpen ? 'Свернуть детали задач' : 'Развернуть детали задач'}
+                title={detailsOpen ? 'Свернуть детали задач' : 'Развернуть детали задач'}
                 onClick={() => setDetailsOpen((value) => !value)}
                 className="inline-flex h-5 w-5 items-center justify-center rounded-md text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]"
               >
@@ -212,25 +212,25 @@ export function Swarm2TaskQueue({
           <input
             value={draftTitle}
             onChange={(event) => setDraftTitle(event.target.value)}
-            placeholder="Add a task for this agent…"
+            placeholder="Добавьте задачу для этого агента…"
             className="w-full rounded-md border border-[var(--theme-border)] bg-transparent px-2 py-1.5 text-[12px] text-[var(--theme-text)] outline-none"
           />
           <textarea
             value={draftDescription}
             onChange={(event) => setDraftDescription(event.target.value)}
             rows={2}
-            placeholder="Optional notes"
+            placeholder="Дополнительные заметки"
             className="w-full resize-none rounded-md border border-[var(--theme-border)] bg-transparent px-2 py-1.5 text-[12px] text-[var(--theme-text)] outline-none"
           />
           <div className="flex items-center justify-between gap-2 text-[10px] text-[var(--theme-muted)]">
-            <span>Assigns directly to {workerId}</span>
+            <span>Будет назначено агенту {workerId}</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setComposerOpen(false)}
                 className="rounded-md border border-[var(--theme-border)] px-2 py-1 hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
               >
-                Cancel
+                Отмена
               </button>
               <button
                 type="button"
@@ -238,7 +238,7 @@ export function Swarm2TaskQueue({
                 onClick={() => void createMutation.mutateAsync()}
                 className="rounded-md bg-[var(--theme-accent)] px-2 py-1 font-semibold text-primary-950 disabled:opacity-40"
               >
-                {createMutation.isPending ? 'Adding…' : 'Add task'}
+                {createMutation.isPending ? 'Добавляю…' : 'Добавить'}
               </button>
             </div>
           </div>
@@ -247,9 +247,9 @@ export function Swarm2TaskQueue({
 
       <div className={cn('flex-1', centered && 'flex flex-col justify-center')}>
       {query.isPending ? (
-        <p className="pt-2 text-[11px] text-[var(--theme-muted)] text-center">Loading…</p>
+        <p className="pt-2 text-[11px] text-[var(--theme-muted)] text-center">Загружаю…</p>
       ) : totalVisible === 0 ? (
-        <p className="pt-2 text-[11px] text-[var(--theme-muted)] text-center">No tracked tasks yet.</p>
+        <p className="pt-2 text-[11px] text-[var(--theme-muted)] text-center">Отслеживаемых задач пока нет.</p>
       ) : (
         <div className="mx-auto max-w-xl space-y-1 text-center">
           {summaryTask ? (

@@ -1,0 +1,18 @@
+# Local user config and secrets
+comandos-hermes.env
+*.local
+
+# Generated installer/build artifacts
+workspace/node_modules/
+workspace/dist/
+workspace/logs/
+workspace/.runtime/
+workspace/.env
+
+# Python caches
+__pycache__/
+*/__pycache__/
+*.pyc
+
+# macOS noise
+.DS_Store
