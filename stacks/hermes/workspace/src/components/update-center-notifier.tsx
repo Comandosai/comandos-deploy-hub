@@ -66,7 +66,12 @@ type Notes = {
   updatedAt: number
 }
 
-const CHECK_INTERVAL_MS = 30 * 60 * 1000
+const DEFAULT_CHECK_INTERVAL_MS = 30 * 60 * 1000
+const envCheckIntervalMs = Number(import.meta.env.VITE_UPDATE_CHECK_INTERVAL_MS)
+const CHECK_INTERVAL_MS =
+  Number.isFinite(envCheckIntervalMs) && envCheckIntervalMs >= 10_000
+    ? envCheckIntervalMs
+    : DEFAULT_CHECK_INTERVAL_MS
 const DISMISS_PREFIX = 'hermes-update-v2-dismissed:'
 const NOTES_KEY = 'hermes-update-v2-release-notes'
 const NOTES_SEEN_KEY = 'hermes-update-v2-release-notes-seen'

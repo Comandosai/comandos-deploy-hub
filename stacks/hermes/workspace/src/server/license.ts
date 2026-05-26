@@ -37,6 +37,8 @@ type LicenseServerResponse = {
   expiresAt?: string
   message?: string
   error?: string
+  products?: unknown[]
+  current_balance?: number
 }
 
 function hermesHome(): string {
@@ -192,9 +194,7 @@ async function validateWithLicenseServer(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      licenseKey: licenseKey.trim(),
-      product: 'comandos-hermes-workspace',
-      instanceId: getWorkspaceInstanceId(),
+      license_key: licenseKey.trim(),
     }),
     signal: AbortSignal.timeout(8_000),
   })
@@ -208,7 +208,23 @@ async function validateWithLicenseServer(
     }
   }
 
-  return payload
+  if (payload.ok === false || payload.valid === false || payload.error) {
+    return {
+      ok: false,
+      valid: false,
+      error: payload.error || payload.message || 'License key is invalid',
+    }
+  }
+
+  return {
+    ...payload,
+    ok: true,
+    valid: true,
+    activationId:
+      payload.activationId ||
+      `comandos-${hashLicenseKey(`${licenseKey}:${getWorkspaceInstanceId()}`).slice(0, 16)}`,
+    licensedTo: payload.licensedTo || 'COMANDOS active license',
+  }
 }
 
 export async function activateLicense(

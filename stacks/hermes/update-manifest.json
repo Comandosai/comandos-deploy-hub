@@ -3,10 +3,10 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-komandos.1",
+    "version": "2.3.0-komandos.2",
     "ref": "main",
     "notes": [
-      "Текущая стабильная версия COMANDOS Workspace."
+      "Исправлена активация лицензии COMANDOS и ускорена проверка обновлений панели."
     ]
   },
   "agent": {

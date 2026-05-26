@@ -6,9 +6,14 @@ type LicenseScreenProps = {
   status?: AuthStatus['license']
 }
 
+function initialError(status?: AuthStatus['license']): string {
+  if (!status?.message || status.status === 'missing') return ''
+  return status.message
+}
+
 export function LicenseScreen({ status }: LicenseScreenProps) {
   const [licenseKey, setLicenseKey] = useState('')
-  const [error, setError] = useState(status?.message || '')
+  const [error, setError] = useState(() => initialError(status))
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
