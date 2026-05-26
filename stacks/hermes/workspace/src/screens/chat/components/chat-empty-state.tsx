@@ -119,7 +119,7 @@ export function ChatEmptyState({
               key={suggestion.label}
               type="button"
               onClick={() => onSuggestionClick?.(suggestion.prompt)}
-              className="flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-xs font-medium transition-all"
+              className="kmd-prompt-chip flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-2 text-xs font-medium transition-all"
               style={{
                 background: 'var(--theme-card)',
                 border: '1px solid var(--theme-border)',

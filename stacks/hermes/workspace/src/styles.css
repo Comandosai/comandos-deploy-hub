@@ -1961,6 +1961,18 @@ code {
   background: var(--theme-card);
 }
 
+[data-theme^='komandos'] .kmd-prompt-chip:hover,
+[data-theme^='komandos'] .kmd-prompt-chip:focus-visible,
+[data-theme^='komandos'] .kmd-prompt-chip:hover span,
+[data-theme^='komandos'] .kmd-prompt-chip:focus-visible span {
+  color: var(--theme-text) !important;
+}
+
+[data-theme^='komandos'] .kmd-prompt-chip:hover svg,
+[data-theme^='komandos'] .kmd-prompt-chip:focus-visible svg {
+  color: var(--theme-accent) !important;
+}
+
 [data-theme^='komandos'] .button-danger,
 [data-theme^='komandos'] [data-variant='danger'] {
   background: var(--theme-danger);
