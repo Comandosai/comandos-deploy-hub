@@ -41,7 +41,7 @@ cleanup() { rm -rf "$tmp_dir"; }
 trap cleanup EXIT
 
 payload="$tmp_dir/comandos-hermes-payload.tgz"
-tar -czf "$payload" \
+COPYFILE_DISABLE=1 tar -czf "$payload" \
   --exclude 'workspace/node_modules' \
   --exclude 'workspace/dist' \
   --exclude 'workspace/logs' \
@@ -68,13 +68,13 @@ case "${SSH_AUTH_METHOD:-}" in
     key_path="$(expand_path "${SSH_KEY_PATH:-}")"
     [[ -f "$key_path" ]] || fail "SSH key не найден: $key_path"
     remote_user="${SSH_USER}"
-    ssh_base=(ssh -p "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new)
+    ssh_base=(ssh -p "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
     scp_base=(scp -P "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new)
     ;;
   password)
     command -v sshpass >/dev/null 2>&1 || fail "для SSH_AUTH_METHOD=password нужен sshpass на локальной машине"
     remote_user="${ROOT_USER}"
-    ssh_base=(sshpass -p "${ROOT_PASSWORD}" ssh -p "${SSH_PORT}" -o StrictHostKeyChecking=accept-new)
+    ssh_base=(sshpass -p "${ROOT_PASSWORD}" ssh -p "${SSH_PORT}" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
     scp_base=(sshpass -p "${ROOT_PASSWORD}" scp -P "${SSH_PORT}" -o StrictHostKeyChecking=accept-new)
     ;;
   *)
@@ -96,7 +96,7 @@ set -a
 # shellcheck disable=SC1091
 source comandos-hermes.env
 # shellcheck disable=SC1091
-source payload/comandos-hermes.lock
+source comandos-hermes.lock
 set +a
 
 log() { printf '[COMANDOS Hermes VPS] %s\n' "$*"; }
@@ -115,8 +115,8 @@ REMOTE_HERMES_HOME="${REMOTE_HERMES_HOME:-/home/$APP_USER/.hermes}"
 WORKSPACE_PORT="${WORKSPACE_PORT:-3030}"
 HERMES_GATEWAY_PORT="${HERMES_GATEWAY_PORT:-8642}"
 COMANDOS_LICENSE_SESSION_DAYS="${COMANDOS_LICENSE_SESSION_DAYS:-14}"
-DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-openai}"
-DEFAULT_MODEL="${DEFAULT_MODEL:-gpt-5.4-mini}"
+DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-}"
+DEFAULT_MODEL="${DEFAULT_MODEL:-}"
 PUBLIC_HOST="${PUBLIC_HOST:-${DOMAIN:-${VPS_IP}.nip.io}}"
 PUBLIC_URL="${PUBLIC_URL:-https://$PUBLIC_HOST}"
 COMANDOS_STACK_REPO_URL="${COMANDOS_STACK_REPO_URL:-https://github.com/Comandosai/comandos-deploy-hub.git}"
@@ -127,6 +127,70 @@ COMANDOS_UPDATE_SCRIPT="${COMANDOS_UPDATE_SCRIPT:-$REMOTE_BASE_DIR/install/coman
 COMANDOS_INSTALLED_STATE="${COMANDOS_INSTALLED_STATE:-$REMOTE_WORKSPACE_DIR/.runtime/comandos-installed.json}"
 VITE_UPDATE_CHECK_INTERVAL_MS="${VITE_UPDATE_CHECK_INTERVAL_MS:-60000}"
 
+trim_value() {
+  local value="${1:-}"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
+}
+
+has_value() {
+  [[ -n "$(trim_value "${1:-}")" ]]
+}
+
+telegram_enabled() {
+  has_value "${TELEGRAM_BOT_TOKEN:-}" && has_value "${TELEGRAM_USER_ID:-}"
+}
+
+resolve_default_model() {
+  DEFAULT_PROVIDER="$(trim_value "${DEFAULT_PROVIDER:-}")"
+  DEFAULT_MODEL="$(trim_value "${DEFAULT_MODEL:-}")"
+
+  # Older env files had OpenAI as an example default. If no OpenAI key is set,
+  # treat that pair as "not chosen" and select from the keys the user actually filled.
+  if [[ "$DEFAULT_PROVIDER" == "openai" && "$DEFAULT_MODEL" == "gpt-5.4-mini" && -z "${OPENAI_API_KEY:-}" ]]; then
+    DEFAULT_PROVIDER=""
+    DEFAULT_MODEL=""
+  fi
+
+  if [[ -z "$DEFAULT_PROVIDER" || -z "$DEFAULT_MODEL" ]]; then
+    if has_value "${MINIMAX_API_KEY:-}"; then
+      DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-minimax}"
+      DEFAULT_MODEL="${DEFAULT_MODEL:-MiniMax-M2.7}"
+    elif has_value "${DEEPSEEK_API_KEY:-}"; then
+      DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-deepseek}"
+      DEFAULT_MODEL="${DEFAULT_MODEL:-deepseek-chat}"
+    elif has_value "${OPENAI_API_KEY:-}"; then
+      DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-openai}"
+      DEFAULT_MODEL="${DEFAULT_MODEL:-gpt-5.4-mini}"
+    elif has_value "${QWEN_API_KEY:-}"; then
+      DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-qwen}"
+      DEFAULT_MODEL="${DEFAULT_MODEL:-qwen-max}"
+    fi
+  fi
+
+  [[ -n "$DEFAULT_PROVIDER" ]] || die "DEFAULT_PROVIDER не выбран и ключ модели не найден"
+  [[ -n "$DEFAULT_MODEL" ]] || die "DEFAULT_MODEL не выбран и ключ модели не найден"
+
+  case "$DEFAULT_PROVIDER" in
+    openai)
+      has_value "${OPENAI_API_KEY:-}" || die "DEFAULT_PROVIDER=openai требует OPENAI_API_KEY"
+      ;;
+    deepseek)
+      has_value "${DEEPSEEK_API_KEY:-}" || die "DEFAULT_PROVIDER=deepseek требует DEEPSEEK_API_KEY"
+      ;;
+    minimax)
+      has_value "${MINIMAX_API_KEY:-}" || die "DEFAULT_PROVIDER=minimax требует MINIMAX_API_KEY"
+      ;;
+    qwen)
+      has_value "${QWEN_API_KEY:-}" || die "DEFAULT_PROVIDER=qwen требует QWEN_API_KEY"
+      ;;
+  esac
+
+  export DEFAULT_PROVIDER DEFAULT_MODEL
+  log "Модель по умолчанию: $DEFAULT_PROVIDER / $DEFAULT_MODEL"
+}
+
 if ! id "$APP_USER" >/dev/null 2>&1; then
   [[ "$(id -u)" -eq 0 ]] || die "пользователь $APP_USER не найден, а текущий пользователь не root"
   useradd -m -s /bin/bash "$APP_USER"
@@ -136,7 +200,7 @@ install_apt() {
   if command -v apt-get >/dev/null 2>&1; then
     $SUDO apt-get update -qq
     DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq \
-      ca-certificates curl git jq python3 python3-pip rsync tar gzip build-essential lsof ffmpeg >/dev/null
+      ca-certificates curl git jq python3 python3-pip python3-dev libffi-dev rsync tar gzip build-essential lsof ffmpeg ripgrep >/dev/null
   fi
 }
 
@@ -173,6 +237,51 @@ ensure_caddy() {
   fi
 }
 
+ensure_swap() {
+  case "${COMANDOS_CREATE_SWAP:-auto}" in
+    0|false|False|FALSE|no|No|NO)
+      return
+      ;;
+  esac
+
+  local mem_kb swap_kb swap_file swap_size
+  mem_kb="$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)"
+  swap_kb="$(awk '/SwapTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)"
+  if [[ "$mem_kb" -ge 1800000 || "$swap_kb" -ge 524288 ]]; then
+    return
+  fi
+
+  swap_file="${COMANDOS_SWAP_FILE:-/swapfile-comandos-hermes}"
+  swap_size="${COMANDOS_SWAP_SIZE:-2G}"
+  log "Памяти мало, добавляю swap $swap_size для сборки панели..."
+
+  if [[ ! -f "$swap_file" ]]; then
+    if ! $SUDO fallocate -l "$swap_size" "$swap_file" 2>/dev/null; then
+      if ! $SUDO dd if=/dev/zero of="$swap_file" bs=1M count=2048 status=none 2>/dev/null; then
+        log "Не удалось создать swap-файл. Продолжаю без swap, сборка может упасть на слабом VPS."
+        $SUDO rm -f "$swap_file" 2>/dev/null || true
+        return
+      fi
+    fi
+    $SUDO chmod 600 "$swap_file"
+    $SUDO mkswap "$swap_file" >/dev/null
+  fi
+
+  if ! swapon --show=NAME | grep -qxF "$swap_file"; then
+    $SUDO swapon "$swap_file" || {
+      log "Не удалось включить swap. Продолжаю без swap, сборка может упасть на слабом VPS."
+      return
+    }
+  fi
+
+  if [[ -w /etc/fstab ]] || [[ -n "$SUDO" ]]; then
+    local fstab_line="$swap_file none swap sw 0 0"
+    if ! grep -qxF "$fstab_line" /etc/fstab 2>/dev/null; then
+      printf '%s\n' "$fstab_line" | $SUDO tee -a /etc/fstab >/dev/null
+    fi
+  fi
+}
+
 as_app_user() {
   if [[ "$(id -un)" == "$APP_USER" ]]; then
     HOME="$(getent passwd "$APP_USER" | cut -d: -f6)" bash -lc "$*"
@@ -181,6 +290,31 @@ as_app_user() {
   else
     runuser -u "$APP_USER" -- bash -lc "$*"
   fi
+}
+
+ensure_user_systemd() {
+  local uid runtime_dir bus_path
+  uid="$(id -u "$APP_USER")"
+  runtime_dir="/run/user/$uid"
+  bus_path="$runtime_dir/bus"
+
+  $SUDO loginctl enable-linger "$APP_USER" >/dev/null 2>&1 || true
+  $SUDO systemctl start "user@$uid.service" >/dev/null 2>&1 || true
+
+  for _ in $(seq 1 20); do
+    if [[ -S "$bus_path" ]]; then
+      return 0
+    fi
+    sleep 0.5
+  done
+
+  die "user-systemd для $APP_USER не поднялся: $bus_path не найден"
+}
+
+as_app_user_systemd() {
+  local uid
+  uid="$(id -u "$APP_USER")"
+  as_app_user "export XDG_RUNTIME_DIR='/run/user/$uid'; export DBUS_SESSION_BUS_ADDRESS='unix:path=/run/user/$uid/bus'; $*"
 }
 
 is_commitish_ref() {
@@ -263,19 +397,24 @@ PY
 }
 
 install_systemd_user_services() {
-  local uid systemd_dir
-  uid="$(id -u "$APP_USER")"
+  local systemd_dir service_names
   systemd_dir="$(getent passwd "$APP_USER" | cut -d: -f6)/.config/systemd/user"
   $SUDO mkdir -p "$systemd_dir"
   export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_GATEWAY_PORT HERMES_CLI_PATH NODE_PATH PYTHON_PATH
   render_template "$REMOTE_TMP/payload/templates/systemd/hermes-gateway.service" "$REMOTE_TMP/hermes-gateway.service"
   render_template "$REMOTE_TMP/payload/templates/systemd/comandos-workspace.service" "$REMOTE_TMP/comandos-workspace.service"
-  render_template "$REMOTE_TMP/payload/templates/systemd/comandos-telegram.service" "$REMOTE_TMP/comandos-telegram.service"
-  $SUDO cp "$REMOTE_TMP/hermes-gateway.service" "$REMOTE_TMP/comandos-workspace.service" "$REMOTE_TMP/comandos-telegram.service" "$systemd_dir/"
+  service_names="hermes-gateway.service comandos-workspace.service"
+  if telegram_enabled; then
+    render_template "$REMOTE_TMP/payload/templates/systemd/comandos-telegram.service" "$REMOTE_TMP/comandos-telegram.service"
+    $SUDO cp "$REMOTE_TMP/hermes-gateway.service" "$REMOTE_TMP/comandos-workspace.service" "$REMOTE_TMP/comandos-telegram.service" "$systemd_dir/"
+    service_names="$service_names comandos-telegram.service"
+  else
+    $SUDO cp "$REMOTE_TMP/hermes-gateway.service" "$REMOTE_TMP/comandos-workspace.service" "$systemd_dir/"
+    $SUDO rm -f "$systemd_dir/comandos-telegram.service"
+  fi
   $SUDO chown -R "$APP_USER:$APP_USER" "$systemd_dir"
-  $SUDO loginctl enable-linger "$APP_USER" >/dev/null 2>&1 || true
-  $SUDO systemctl start "user@$uid.service" >/dev/null 2>&1 || true
-  XDG_RUNTIME_DIR="/run/user/$uid" as_app_user "systemctl --user daemon-reload && systemctl --user enable --now hermes-gateway.service comandos-workspace.service comandos-telegram.service"
+  ensure_user_systemd
+  as_app_user_systemd "systemctl --user daemon-reload && systemctl --user enable --now $service_names"
 }
 
 configure_caddy() {
@@ -349,6 +488,9 @@ QWEN_API_KEY=${QWEN_API_KEY:-}
 MINIMAX_API_KEY=${MINIMAX_API_KEY:-}
 DEFAULT_PROVIDER=$DEFAULT_PROVIDER
 DEFAULT_MODEL=$DEFAULT_MODEL
+HERMES_DEFAULT_PROVIDER=$DEFAULT_PROVIDER
+HERMES_DEFAULT_MODEL=$DEFAULT_MODEL
+CLAUDE_DEFAULT_MODEL=$DEFAULT_MODEL
 EOF
   chmod 600 "$REMOTE_WORKSPACE_DIR/.env"
   $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_WORKSPACE_DIR/.env"
@@ -363,8 +505,64 @@ QWEN_API_KEY=${QWEN_API_KEY:-}
 MINIMAX_API_KEY=${MINIMAX_API_KEY:-}
 DEFAULT_PROVIDER=$DEFAULT_PROVIDER
 DEFAULT_MODEL=$DEFAULT_MODEL
+HERMES_DEFAULT_PROVIDER=$DEFAULT_PROVIDER
+HERMES_DEFAULT_MODEL=$DEFAULT_MODEL
+CLAUDE_DEFAULT_MODEL=$DEFAULT_MODEL
 EOF
   chmod 600 "$REMOTE_HERMES_HOME/.env"
+  $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
+}
+
+write_hermes_config() {
+  $SUDO mkdir -p "$REMOTE_HERMES_HOME"
+  local config_path="$REMOTE_HERMES_HOME/config.yaml"
+  if [[ -f "$config_path" ]]; then
+    $SUDO cp "$config_path" "$config_path.backup.$(date +%Y%m%d%H%M%S)"
+  fi
+  python3 - "$config_path" "$DEFAULT_PROVIDER" "$DEFAULT_MODEL" <<'PY'
+import json
+import os
+import re
+import sys
+
+path, provider, model = sys.argv[1:4]
+raw = ""
+if os.path.exists(path):
+    with open(path, encoding="utf-8") as f:
+        raw = f.read()
+
+def strip_top_level_key(text: str, key: str) -> str:
+    lines = text.splitlines()
+    out = []
+    i = 0
+    pattern = re.compile(rf"^{re.escape(key)}\s*:")
+    while i < len(lines):
+        line = lines[i]
+        if pattern.match(line):
+            i += 1
+            while i < len(lines):
+                nxt = lines[i]
+                if nxt.startswith((" ", "\t")):
+                    i += 1
+                    continue
+                if not nxt.strip():
+                    i += 1
+                    continue
+                break
+            continue
+        out.append(line)
+        i += 1
+    return "\n".join(out).strip()
+
+body = strip_top_level_key(raw, "provider")
+body = strip_top_level_key(body, "model")
+head = f"provider: {json.dumps(provider, ensure_ascii=False)}\nmodel: {json.dumps(model, ensure_ascii=False)}"
+next_text = head + ("\n\n" + body if body else "") + "\n"
+
+with open(path, "w", encoding="utf-8") as f:
+    f.write(next_text)
+PY
+  chmod 600 "$config_path"
   $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
 }
 
@@ -482,13 +680,65 @@ PY
   $SUDO chown "$APP_USER:$APP_USER" "$COMANDOS_INSTALLED_STATE"
 }
 
+cleanup_build_space() {
+  $SUDO apt-get clean >/dev/null 2>&1 || true
+  $SUDO rm -rf /var/cache/apt/archives/*.deb /var/cache/apt/*.bin 2>/dev/null || true
+  $SUDO find /tmp -maxdepth 1 -type d -name 'comandos-hermes-*' ! -path "$REMOTE_TMP" -exec rm -rf {} + 2>/dev/null || true
+  as_app_user "rm -rf ~/.cache/pnpm ~/.cache/node ~/.npm/_cacache" || true
+
+  local available_kb
+  available_kb="$(df -Pk / | awk 'NR==2 {print $4}')"
+  if [[ "${available_kb:-0}" -lt 2097152 ]]; then
+    log "Свободного места меньше 2 ГБ, очищаю кеш браузера Hermes для сборки панели..."
+    as_app_user "rm -rf ~/.cache/ms-playwright" || true
+  fi
+}
+
+wait_http() {
+  local url="$1"
+  local label="$2"
+  local attempts="${3:-60}"
+  local delay="${4:-2}"
+
+  for _ in $(seq 1 "$attempts"); do
+    if curl -fsS "$url" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "$delay"
+  done
+
+  die "$label не ответил: $url"
+}
+
+wait_http_head() {
+  local url="$1"
+  local label="$2"
+  local attempts="${3:-60}"
+  local delay="${4:-2}"
+
+  for _ in $(seq 1 "$attempts"); do
+    if curl -k -fsSI "$url" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "$delay"
+  done
+
+  die "$label не ответил: $url"
+}
+
 preflight() {
   log "Проверяю систему..."
+  resolve_default_model
+  ensure_swap
   install_apt
   ensure_node
   ensure_caddy
   install_hermes_agent
-  ensure_python_router_deps
+  if telegram_enabled; then
+    ensure_python_router_deps
+  else
+    log "Telegram router выключен: TELEGRAM_BOT_TOKEN и TELEGRAM_USER_ID не заданы"
+  fi
   HERMES_CLI_PATH="$(find_hermes_cli)"
   NODE_PATH="$(command -v node)"
   PYTHON_PATH="$(command -v python3)"
@@ -499,34 +749,47 @@ install_workspace() {
   log "Копирую COMANDOS Workspace..."
   $SUDO mkdir -p "$REMOTE_BASE_DIR" "$REMOTE_BASE_DIR/backups" "$REMOTE_BASE_DIR/install"
   if [[ -d "$REMOTE_WORKSPACE_DIR" ]]; then
-    local backup="$REMOTE_BASE_DIR/backups/workspace-$(date +%Y%m%d%H%M%S)"
-    $SUDO mkdir -p "$backup"
-    $SUDO rsync -a --delete "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
+    if [[ -f "$COMANDOS_INSTALLED_STATE" ]]; then
+      local backup="$REMOTE_BASE_DIR/backups/workspace-$(date +%Y%m%d%H%M%S)"
+      $SUDO mkdir -p "$backup"
+      $SUDO rsync -a --delete "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
+    else
+      log "Предыдущая установка не завершена, удаляю черновик workspace без backup..."
+      $SUDO rm -rf "$REMOTE_WORKSPACE_DIR"
+    fi
   fi
   $SUDO mkdir -p "$REMOTE_WORKSPACE_DIR"
   $SUDO rsync -a --delete "$REMOTE_TMP/payload/workspace/" "$REMOTE_WORKSPACE_DIR/"
   $SUDO rm -rf "$REMOTE_WORKSPACE_DIR/.git" "$REMOTE_WORKSPACE_DIR/node_modules" "$REMOTE_WORKSPACE_DIR/dist" "$REMOTE_WORKSPACE_DIR/logs"
   $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR"
   write_hermes_env
+  write_hermes_config
   write_workspace_env
-  write_telegram_env
+  if telegram_enabled; then
+    write_telegram_env
+  else
+    $SUDO rm -rf "$REMOTE_BASE_DIR/telegram"
+  fi
   install_update_script
   log "Собираю панель..."
-  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && corepack enable >/dev/null 2>&1 || true; cd '$REMOTE_WORKSPACE_DIR' && ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile && pnpm build"
+  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && corepack enable >/dev/null 2>&1 || true; cd '$REMOTE_WORKSPACE_DIR' && ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile"
+  cleanup_build_space
+  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && pnpm build"
   write_installed_state
 }
 
 checks() {
-  local uid
-  uid="$(id -u "$APP_USER")"
   log "Проверяю сервисы..."
-  XDG_RUNTIME_DIR="/run/user/$uid" as_app_user "systemctl --user is-active hermes-gateway.service"
-  XDG_RUNTIME_DIR="/run/user/$uid" as_app_user "systemctl --user is-active comandos-workspace.service"
-  XDG_RUNTIME_DIR="/run/user/$uid" as_app_user "systemctl --user is-active comandos-telegram.service"
+  ensure_user_systemd
+  as_app_user_systemd "systemctl --user is-active hermes-gateway.service"
+  as_app_user_systemd "systemctl --user is-active comandos-workspace.service"
+  if telegram_enabled; then
+    as_app_user_systemd "systemctl --user is-active comandos-telegram.service"
+  fi
   $SUDO systemctl is-active caddy
-  curl -fsS "http://127.0.0.1:$HERMES_GATEWAY_PORT/health" >/dev/null
-  curl -fsS "http://127.0.0.1:$WORKSPACE_PORT" >/dev/null
-  curl -k -fsSI "$PUBLIC_URL" >/dev/null
+  wait_http "http://127.0.0.1:$HERMES_GATEWAY_PORT/health" "Hermes Gateway"
+  wait_http "http://127.0.0.1:$WORKSPACE_PORT" "COMANDOS Workspace"
+  wait_http_head "$PUBLIC_URL" "Публичная панель"
 }
 
 mkdir -p "$REMOTE_TMP/payload"
@@ -538,6 +801,11 @@ install_systemd_user_services
 configure_caddy
 checks
 
+telegram_status="disabled"
+if telegram_enabled; then
+  telegram_status="active"
+fi
+
 cat <<EOF
 
 COMANDOS Hermes готов.
@@ -547,7 +815,7 @@ URL панели: $PUBLIC_URL
 Лицензия: вводится пользователем при входе
 Hermes gateway: active
 Workspace service: active
-Telegram bot: active
+Telegram bot: $telegram_status
 Версии зафиксированы: да
 Автообновление: выключено
 Уведомления об обновлениях: включены
@@ -558,6 +826,7 @@ info "Подключаюсь к VPS: $remote"
 "${ssh_base[@]}" "$remote" "mkdir -p '$remote_tmp'"
 "${scp_base[@]}" "$payload" "$remote:$remote_tmp/comandos-hermes-payload.tgz" >/dev/null
 "${scp_base[@]}" "$resolved_config" "$remote:$remote_tmp/comandos-hermes.env" >/dev/null
+"${scp_base[@]}" "$SCRIPT_DIR/comandos-hermes.lock" "$remote:$remote_tmp/comandos-hermes.lock" >/dev/null
 "${scp_base[@]}" "$tmp_dir/remote-install.sh" "$remote:$remote_tmp/remote-install.sh" >/dev/null
 "${ssh_base[@]}" "$remote" "chmod 700 '$remote_tmp' && chmod +x '$remote_tmp/remote-install.sh' && mkdir -p '$remote_tmp/payload' && '$remote_tmp/remote-install.sh' '$remote_tmp'"
 

@@ -55,6 +55,27 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
     ),
   },
   {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    description: 'DeepSeek chat and reasoning models.',
+    authTypes: ['api-key'],
+    docsUrl: 'https://platform.deepseek.com/api_keys',
+    configExample: JSON.stringify(
+      {
+        auth: {
+          profiles: {
+            'deepseek:default': {
+              provider: 'deepseek',
+              apiKey: 'sk-your-key-here',
+            },
+          },
+        },
+      },
+      null,
+      2,
+    ),
+  },
+  {
     id: 'google',
     name: 'Google',
     description: 'Gemini models with API key or OAuth.',

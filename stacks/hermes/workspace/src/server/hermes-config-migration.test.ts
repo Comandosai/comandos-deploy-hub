@@ -52,6 +52,25 @@ describe('normalizeHermesConfigState', () => {
     })
   })
 
+  it('marks DeepSeek env provider as configured and default', () => {
+    const state = normalizeHermesConfigState({
+      paths,
+      config: { provider: 'deepseek', model: 'deepseek-chat' },
+      env: { DEEPSEEK_API_KEY: 'sk-deepseek-123456' },
+      authProfiles: {},
+      localProviders: [],
+      localModels: [],
+    })
+
+    expect(state.activeProvider).toBe('deepseek')
+    expect(state.activeModel).toBe('deepseek-chat')
+    const deepseek = state.providers.find((p) => p.id === 'deepseek')
+    expect(deepseek?.configured).toBe(true)
+    expect(deepseek?.authenticated).toBe(true)
+    expect(deepseek?.isDefault).toBe(true)
+    expect(deepseek?.authSource).toBe('env')
+  })
+
   it('falls back to nested model when only a partial flat field is set', () => {
     const state = normalizeHermesConfigState({
       paths,

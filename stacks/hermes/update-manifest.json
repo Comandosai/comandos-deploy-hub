@@ -3,10 +3,10 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-komandos.3",
+    "version": "2.3.0-comandos.4",
     "ref": "main",
     "notes": [
-      "Исправлена активация лицензии COMANDOS, ускорена проверка обновлений и поправлена читаемость кнопок при наведении."
+      "Добавлен автоподбор DeepSeek/MiniMax/OpenAI/Qwen по заполненным ключам и запись выбранной модели в Hermes config."
     ]
   },
   "agent": {

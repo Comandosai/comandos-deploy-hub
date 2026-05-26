@@ -37,6 +37,12 @@ const PROVIDERS = [
     envKeys: ['OPENROUTER_API_KEY'],
   },
   {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    authType: 'api_key',
+    envKeys: ['DEEPSEEK_API_KEY'],
+  },
+  {
     id: 'zai',
     name: 'Z.AI / GLM',
     authType: 'api_key',

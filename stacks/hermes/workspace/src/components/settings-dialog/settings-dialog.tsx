@@ -207,6 +207,14 @@ const PROVIDER_CARDS: Array<{
     envKey: 'OPENROUTER_API_KEY',
   },
   {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    logo: '',
+    models: ['deepseek-chat', 'deepseek-reasoner'],
+    authType: 'api_key',
+    envKey: 'DEEPSEEK_API_KEY',
+  },
+  {
     id: 'zai',
     name: 'Z.AI / GLM',
     logo: '/providers/zhipu.png',
@@ -226,7 +234,7 @@ const PROVIDER_CARDS: Array<{
     id: 'minimax',
     name: 'MiniMax',
     logo: '/providers/minimax.png',
-    models: ['MiniMax-M2.5', 'MiniMax-M2.5-Lightning'],
+    models: ['MiniMax-M2.7', 'MiniMax-M2.7-Lightning'],
     authType: 'api_key',
     envKey: 'MINIMAX_API_KEY',
   },

@@ -21,7 +21,10 @@ open comandos-hermes.env
 
 - `VPS_IP`
 - способ SSH-доступа;
-- `OPENAI_API_KEY` или другой ключ модели;
+- хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`;
+
+Если нужен Telegram-роутер, заполнить оба поля:
+
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_USER_ID`
 

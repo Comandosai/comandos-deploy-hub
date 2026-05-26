@@ -24,9 +24,14 @@
 - `VPS_IP`;
 - `SSH_AUTH_METHOD`;
 - SSH-доступ через ключ или root/password;
-- хотя бы один ключ модели;
+- хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`.
+
+Telegram-роутер включается, если заполнены оба поля:
+
 - `TELEGRAM_BOT_TOKEN`;
 - `TELEGRAM_USER_ID`.
+
+Если оба поля пустые, панель и Hermes gateway ставятся без Telegram-роутера.
 
 Лицензионный ключ не является входным параметром развёртывания. Пользователь вводит его в веб-панели, а панель проверяет доступ через сервер лицензий COMANDOS.
 
@@ -69,7 +74,7 @@
 
 - `hermes-gateway.service`
 - `comandos-workspace.service`
-- `comandos-telegram.service`
+- `comandos-telegram.service`, если заполнены `TELEGRAM_BOT_TOKEN` и `TELEGRAM_USER_ID`
 
 Публично открыт только Caddy:
 
@@ -100,6 +105,26 @@ Telegram-роутер работает как user systemd service `comandos-tel
 - inline-кнопки через блок `[[telegram_buttons]]`;
 - Telegram HTML-форматирование вместо сырых `**звёздочек**`;
 - публичный guard, чтобы бот не показывал пользователю пути, токены и внутренние профили без явного режима настройки.
+
+## Слабый VPS
+
+На сервере с одним vCPU установка допустима, но сборка панели может упереться в память.
+
+Если `COMANDOS_CREATE_SWAP` не выключен и на VPS меньше примерно 1.8 GB RAM без swap, установщик создаёт:
+
+```text
+/swapfile-comandos-hermes
+```
+
+По умолчанию размер `2G`. Параметры:
+
+```env
+COMANDOS_CREATE_SWAP=auto
+COMANDOS_SWAP_SIZE=2G
+COMANDOS_SWAP_FILE=/swapfile-comandos-hermes
+```
+
+Запись добавляется в `/etc/fstab`, чтобы swap сохранился после перезагрузки. Если swap создать нельзя, установка продолжается, но сборка может упасть на этапе `pnpm build`.
 
 ## Как ставить Workspace
 
@@ -143,7 +168,7 @@ HERMES_PASSWORD=<generated-24-symbol-password>
 COMANDOS_LICENSE_REQUIRED=1
 COMANDOS_LICENSE_SERVER_URL=https://api.comandos.ai/v1/license/products
 COMANDOS_LICENSE_SESSION_DAYS=14
-COMANDOS_WORKSPACE_VERSION=2.3.0-komandos.3
+COMANDOS_WORKSPACE_VERSION=2.3.0-comandos.4
 COMANDOS_HERMES_AGENT_REF=87d9239
 COMANDOS_UPDATE_MANIFEST_URL=https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json
 COMANDOS_UPDATE_SCRIPT=/opt/comandos/hermes/install/comandos-update.sh
@@ -152,6 +177,15 @@ COMANDOS_STACK_REPO_URL=https://github.com/Comandosai/comandos-deploy-hub.git
 COMANDOS_STACK_REF=main
 COMANDOS_STACK_PATH=stacks/hermes
 ```
+
+Модель по умолчанию можно оставить пустой в `comandos-hermes.env`. Тогда установщик выберет её по заполненным ключам:
+
+1. `MINIMAX_API_KEY` -> `minimax / MiniMax-M2.7`;
+2. `DEEPSEEK_API_KEY` -> `deepseek / deepseek-chat`;
+3. `OPENAI_API_KEY` -> `openai / gpt-5.4-mini`;
+4. `QWEN_API_KEY` -> `qwen / qwen-max`.
+
+Этот выбор записывается в `workspace/.env`, `~/.hermes/.env` и `~/.hermes/config.yaml`, чтобы панель и Hermes gateway смотрели на одну модель.
 
 ## Env Telegram
 

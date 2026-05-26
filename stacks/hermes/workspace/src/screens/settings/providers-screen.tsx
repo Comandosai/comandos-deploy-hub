@@ -57,6 +57,7 @@ const KNOWN_PROVIDER_PREFIXES = [
   'anthropic',
   'openai',
   'openai-codex',
+  'deepseek',
   'nous',
   'ollama',
   'atomic-chat',

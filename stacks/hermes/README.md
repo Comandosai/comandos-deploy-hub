@@ -10,8 +10,8 @@
 
 - COMANDOS Workspace как единственную панель Hermes;
 - Hermes Agent gateway;
-- Telegram-обвязку;
-- Telegram-роутер с голосовыми, inline-кнопками и маршрутизацией по Telegram ID;
+- Telegram-обвязку, если заполнен токен бота;
+- Telegram-роутер с голосовыми, inline-кнопками и маршрутизацией по Telegram ID, если заполнен токен бота;
 - проверку лицензии COMANDOS;
 - HTTPS через домен или `IP.nip.io`;
 - пароль панели, сгенерированный системой;
@@ -29,7 +29,7 @@
    - URL панели;
    - пароль панели;
    - статус лицензии;
-   - статус Telegram;
+   - статус Telegram, если он включён;
    - статус Hermes gateway.
 
 ## Главные файлы
@@ -55,6 +55,29 @@ bash scripts/check-config.sh comandos-hermes.env
 ```
 
 Пока `comandos-hermes.env` не заполнен, проверка должна показать, каких полей не хватает.
+
+## Ключи моделей
+
+Для первого запуска достаточно одного ключа модели:
+
+- `MINIMAX_API_KEY` - установщик выберет `minimax / MiniMax-M2.7`;
+- `DEEPSEEK_API_KEY` - установщик выберет `deepseek / deepseek-chat`;
+- `OPENAI_API_KEY` - установщик выберет `openai / gpt-5.4-mini`;
+- `QWEN_API_KEY` - установщик выберет `qwen / qwen-max`.
+
+Если нужно жёстко задать модель, заполните `DEFAULT_PROVIDER` и `DEFAULT_MODEL` в `comandos-hermes.env`.
+
+## Слабый VPS
+
+Один vCPU для проверки подходит. Главный риск - память во время `pnpm install` и `pnpm build`.
+
+Если на сервере меньше примерно 1.8 GB RAM и нет swap, установщик автоматически добавит swap-файл:
+
+- путь: `/swapfile-comandos-hermes`;
+- размер: `2G`;
+- отключение: `COMANDOS_CREATE_SWAP=0`.
+
+Это не ускоряет сервер, но снижает риск падения сборки на свежем дешёвом VPS.
 
 ## Публичная команда подготовки
 

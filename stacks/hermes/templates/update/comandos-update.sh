@@ -93,8 +93,65 @@ with open(out, "w", encoding="utf-8") as f:
 PY
 }
 
+workspace_version_order() {
+  python3 - "$1" "$2" <<'PY'
+import re
+import sys
+
+def parse(value):
+    match = re.match(
+        r"^(\d+)\.(\d+)\.(\d+)(?:[-._](?:comandos|komandos)\.(\d+))?$",
+        (value or "").strip().lower(),
+    )
+    if not match:
+        return None
+    return (
+        int(match.group(1)),
+        int(match.group(2)),
+        int(match.group(3)),
+        int(match.group(4) or 0),
+    )
+
+current = parse(sys.argv[1])
+target = parse(sys.argv[2])
+if current is None or target is None:
+    print("unknown")
+elif target > current:
+    print("upgrade")
+elif target == current:
+    print("same")
+else:
+    print("downgrade")
+PY
+}
+
+assert_workspace_not_downgrade() {
+  local state_path="$REMOTE_WORKSPACE_DIR/.runtime/comandos-installed.json"
+  [[ -f "$state_path" ]] || return 0
+
+  local installed order
+  installed="$(python3 - "$state_path" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], "r", encoding="utf-8") as f:
+        print(json.load(f).get("workspaceVersion", ""))
+except Exception:
+    print("")
+PY
+)"
+  [[ -n "$installed" ]] || return 0
+
+  order="$(workspace_version_order "$installed" "$COMANDOS_WORKSPACE_VERSION")"
+  if [[ "$order" == "downgrade" && "${COMANDOS_ALLOW_DOWNGRADE:-0}" != "1" ]]; then
+    die "refuse workspace downgrade: $installed -> $COMANDOS_WORKSPACE_VERSION"
+  fi
+}
+
 update_workspace() {
   log "Обновляю COMANDOS Workspace до $COMANDOS_WORKSPACE_VERSION"
+  assert_workspace_not_downgrade
   mkdir -p "$REMOTE_BASE_DIR/backups" "$REMOTE_WORKSPACE_DIR"
   if [[ -d "$REMOTE_WORKSPACE_DIR" ]]; then
     backup="$REMOTE_BASE_DIR/backups/workspace-update-$(date +%Y%m%d%H%M%S)"

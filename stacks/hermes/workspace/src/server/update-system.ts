@@ -20,6 +20,7 @@ type UpdateMode =
   | 'docker-manual'
   | 'manual'
   | 'comandos-managed'
+type VersionOrder = -1 | 0 | 1 | null
 
 type ReleaseNoteSection = {
   product: ProductId
@@ -208,8 +209,42 @@ function updateScriptPath(): string | null {
   return value || null
 }
 
-function versionChanged(current: string | null | undefined, latest: string | null | undefined): boolean {
+function parseManagedVersion(value: string | null | undefined): Array<number> | null {
+  if (!value) return null
+  const match = value
+    .trim()
+    .toLowerCase()
+    .match(/^(\d+)\.(\d+)\.(\d+)(?:[-._](?:comandos|komandos)\.(\d+))?$/)
+  if (!match) return null
+  return [
+    Number(match[1]),
+    Number(match[2]),
+    Number(match[3]),
+    Number(match[4] ?? 0),
+  ]
+}
+
+export function compareManagedVersions(
+  current: string | null | undefined,
+  latest: string | null | undefined,
+): VersionOrder {
+  const currentParts = parseManagedVersion(current)
+  const latestParts = parseManagedVersion(latest)
+  if (!currentParts || !latestParts) return null
+  for (let i = 0; i < latestParts.length; i += 1) {
+    if (latestParts[i] > currentParts[i]) return 1
+    if (latestParts[i] < currentParts[i]) return -1
+  }
+  return 0
+}
+
+export function versionIsNewer(
+  current: string | null | undefined,
+  latest: string | null | undefined,
+): boolean {
   if (!latest) return false
+  const order = compareManagedVersions(current, latest)
+  if (order !== null) return order === 1
   return (current || 'unknown') !== latest
 }
 
@@ -225,7 +260,7 @@ function managedWorkspaceStatus(manifest: ComandosUpdateManifest): ProductUpdate
     state.workspaceVersion ||
     process.env.COMANDOS_WORKSPACE_VERSION ||
     readWorkspacePackageVersion()
-  const updateAvailable = versionChanged(version, product.version)
+  const updateAvailable = versionIsNewer(version, product.version)
   const script = updateScriptPath()
   const canUpdate = updateAvailable && isExecutable(script)
   return {
@@ -260,7 +295,7 @@ function managedAgentStatus(
   const currentRef =
     state.hermesAgentRef || process.env.COMANDOS_HERMES_AGENT_REF || base.currentHead
   const currentVersion = state.hermesAgentVersion || base.version
-  const versionIsNew = versionChanged(currentVersion, product.version)
+  const versionIsNew = versionIsNewer(currentVersion, product.version)
   const refIsNew = Boolean(product.ref && product.ref !== currentRef)
   const updateAvailable = versionIsNew || refIsNew
   const script = updateScriptPath()

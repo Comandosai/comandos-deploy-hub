@@ -24,6 +24,7 @@ function getIcon(providerId: string): ProviderIconName {
 
   if (normalized === 'anthropic') return AiBrain01Icon
   if (normalized === 'openai') return SourceCodeSquareIcon
+  if (normalized === 'deepseek') return AiBrain01Icon
   if (normalized === 'google') return LanguageSkillIcon
   if (normalized === 'openrouter') return GlobeIcon
   if (normalized === 'minimax') return FlashIcon
