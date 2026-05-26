@@ -1,16 +1,53 @@
 # Команды для урока
 
-## 1. Подготовка папки
+## 1. Главная команда для агента
+
+Пользователь создаёт папку `Hermes`, открывает её в агенте и вставляет:
+
+```text
+Подготовь COMANDOS Hermes в текущей папке.
+
+Что нужно сделать:
+1. Не создавай вложенную папку Hermes/Hermes. Работай строго в текущей папке.
+2. Скачай установщик из GitHub:
+   https://github.com/Comandosai/comandos-deploy-hub/tree/main/stacks/hermes
+3. Для этого выполни:
+   curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/install.sh | bash
+4. Убедись, что появился файл comandos-hermes.env.
+5. Покажи мне коротко, какие поля нужно заполнить: VPS_IP, SSH-доступ, ключи моделей, домен и Telegram при необходимости.
+6. Не печатай в чат значения токенов, паролей и API-ключей.
+```
+
+После заполнения `comandos-hermes.env` пользователь вставляет:
+
+```text
+Разверни COMANDOS Hermes на VPS по файлу comandos-hermes.env.
+
+Что нужно сделать:
+1. Проверь настройки:
+   bash scripts/check-config.sh comandos-hermes.env
+2. Если проверка прошла, запусти:
+   ./deploy.sh
+3. Если проверка упала, покажи только список незаполненных или неверных полей. Секреты не печатай.
+4. После установки отчитайся коротко:
+   - URL панели;
+   - пароль панели;
+   - какая модель выбрана;
+   - Telegram включён или нет;
+   - Hermes gateway отвечает или нет.
+```
+
+Полная версия этих текстов лежит в `AGENT_COMMAND.md`.
+
+## 2. Запасная команда для терминала
 
 Пользователь уже находится в папке `Hermes`.
-
-Будущая публичная команда будет такой:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/install.sh | bash
 ```
 
-## 2. Заполнить настройки
+## 3. Заполнить настройки вручную
 
 ```bash
 cp comandos-hermes.env.example comandos-hermes.env
@@ -30,13 +67,13 @@ open comandos-hermes.env
 
 Лицензионный ключ пользователь вводит уже при входе в веб-панель.
 
-## 3. Проверить настройки
+## 4. Проверить настройки
 
 ```bash
 bash scripts/check-config.sh comandos-hermes.env
 ```
 
-## 4. Развёртывание агентом
+## 5. Развёртывание через терминал
 
 Команда:
 
@@ -44,7 +81,7 @@ bash scripts/check-config.sh comandos-hermes.env
 ./deploy.sh
 ```
 
-## 5. Обновление
+## 6. Обновление
 
 Тихих автообновлений нет.
 
