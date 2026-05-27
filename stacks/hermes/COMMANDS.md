@@ -14,7 +14,7 @@
 3. Для этого выполни:
    curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/install.sh | bash
 4. Убедись, что появился файл comandos-hermes.env.
-5. Покажи мне коротко, какие поля нужно заполнить: SSH-доступ, ключи моделей, домен и Telegram при необходимости.
+5. Покажи мне коротко, какие поля нужно заполнить: доступ к VPS, ключи моделей, домен и Telegram при необходимости.
 6. Не печатай в чат значения токенов, паролей и API-ключей.
 ```
 
@@ -56,8 +56,7 @@ open comandos-hermes.env
 
 Минимально нужно заполнить:
 
-- SSH-доступ: `SSH_CONNECT_COMMAND`, либо `VPS_IP` + SSH-ключ, либо `VPS_IP` + root-пароль;
-- `VPS_IP`, только если не используете SSH alias;
+- доступ к VPS: `ROOT_IP` и либо `SSH_KEY_PATH`, либо `ROOT_PASSWORD`;
 - хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`;
 
 Если нужен Telegram-роутер, заполнить оба поля:

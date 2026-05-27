@@ -68,26 +68,29 @@ bash scripts/check-config.sh comandos-hermes.env
 
 Если нужно жёстко задать модель, заполните `DEFAULT_PROVIDER` и `DEFAULT_MODEL` в `comandos-hermes.env`.
 
-## SSH-доступ
+## Доступ к VPS
 
-Можно заполнить любой удобный вариант доступа.
+В `comandos-hermes.env` нужно заполнить IP сервера и один способ входа.
 
-Если на локальной машине уже работает SSH alias:
-
-```bash
-ssh my-vps
-```
-
-заполните в `comandos-hermes.env`:
+Через SSH-ключ:
 
 ```env
-SSH_CONNECT_COMMAND="ssh my-vps"
+ROOT_IP=1.2.3.4
+ROOT_USER=root
+SSH_KEY_PATH=~/.ssh/id_ed25519
+ROOT_PASSWORD=
 ```
 
-Установщик прочитает `HostName`, `User`, `Port` и `IdentityFile` из `~/.ssh/config`.
+Через root-пароль:
 
-Если SSH alias нет, заполните `VPS_IP` и доступ через SSH-ключ или root-пароль.
-`SSH_AUTH_METHOD` обычно можно оставить пустым: установщик сам выберет способ по заполненным полям.
+```env
+ROOT_IP=1.2.3.4
+ROOT_USER=root
+SSH_KEY_PATH=
+ROOT_PASSWORD=...
+```
+
+Больше ничего для SSH обычно заполнять не нужно.
 
 ## Слабый VPS
 

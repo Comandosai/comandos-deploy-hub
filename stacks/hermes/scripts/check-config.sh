@@ -14,6 +14,11 @@ set -a
 source "$CONFIG_PATH"
 set +a
 
+SSH_KEY_PATH="${SSH_KEY_PATH:-${SSH_KEY_PAT:-}}"
+VPS_IP="${VPS_IP:-${ROOT_IP:-}}"
+SSH_PORT="${SSH_PORT:-22}"
+ROOT_USER="${ROOT_USER:-root}"
+
 errors=()
 warnings=()
 
@@ -70,9 +75,11 @@ detect_ssh_auth_method() {
     printf '%s\n' "$SSH_AUTH_METHOD"
   elif has_value "${SSH_CONNECT_COMMAND:-}" || has_value "${SSH_HOST_ALIAS:-}"; then
     printf '%s\n' "ssh_config"
+  elif has_value "${SSH_KEY_PATH:-}" || has_value "${SSH_KEY_PAT:-}"; then
+    printf '%s\n' "key"
   elif has_value "${ROOT_PASSWORD:-}"; then
     printf '%s\n' "password"
-  elif has_value "${SSH_KEY_PATH:-}" || has_value "${SSH_USER:-}"; then
+  elif has_value "${SSH_USER:-}"; then
     printf '%s\n' "key"
   else
     printf '%s\n' ""
@@ -80,11 +87,11 @@ detect_ssh_auth_method() {
 }
 
 SSH_AUTH_METHOD="$(detect_ssh_auth_method)"
-has_value "$SSH_AUTH_METHOD" || errors+=("SSH access is required: set SSH_CONNECT_COMMAND, SSH alias, key fields, or root password")
+has_value "$SSH_AUTH_METHOD" || errors+=("SSH access is required: set ROOT_IP and SSH_KEY_PATH or ROOT_PASSWORD")
 
 resolved_vps_ip="${VPS_IP:-}"
 resolved_ssh_port="${SSH_PORT:-}"
-resolved_ssh_user="${SSH_USER:-}"
+resolved_ssh_user="${SSH_USER:-$ROOT_USER}"
 
 telegram_token_set=0
 telegram_user_set=0
@@ -115,17 +122,18 @@ case "${SSH_AUTH_METHOD:-}" in
     fi
     ;;
   key)
-    need VPS_IP
-    need SSH_PORT
-    need SSH_USER
+    if ! has_value "$VPS_IP"; then
+      errors+=("ROOT_IP is required")
+    fi
     need SSH_KEY_PATH
     resolved_vps_ip="$VPS_IP"
     resolved_ssh_port="$SSH_PORT"
-    resolved_ssh_user="$SSH_USER"
+    resolved_ssh_user="${SSH_USER:-$ROOT_USER}"
     ;;
   password)
-    need VPS_IP
-    need SSH_PORT
+    if ! has_value "$VPS_IP"; then
+      errors+=("ROOT_IP is required")
+    fi
     need ROOT_USER
     need ROOT_PASSWORD
     resolved_vps_ip="$VPS_IP"

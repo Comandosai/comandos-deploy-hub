@@ -29,6 +29,11 @@ source "$CONFIG_PATH"
 source "$SCRIPT_DIR/comandos-hermes.lock"
 set +a
 
+SSH_KEY_PATH="${SSH_KEY_PATH:-${SSH_KEY_PAT:-}}"
+VPS_IP="${VPS_IP:-${ROOT_IP:-}}"
+SSH_PORT="${SSH_PORT:-22}"
+ROOT_USER="${ROOT_USER:-root}"
+
 resolve_ssh_alias() {
   local command_text="${SSH_CONNECT_COMMAND:-}"
   local alias="${SSH_HOST_ALIAS:-}"
@@ -56,9 +61,11 @@ detect_ssh_auth_method() {
     printf '%s\n' "$SSH_AUTH_METHOD"
   elif [[ -n "${SSH_CONNECT_COMMAND:-}" || -n "${SSH_HOST_ALIAS:-}" ]]; then
     printf '%s\n' "ssh_config"
+  elif [[ -n "${SSH_KEY_PATH:-}" || -n "${SSH_KEY_PAT:-}" ]]; then
+    printf '%s\n' "key"
   elif [[ -n "${ROOT_PASSWORD:-}" ]]; then
     printf '%s\n' "password"
-  elif [[ -n "${SSH_KEY_PATH:-}" || -n "${SSH_USER:-}" ]]; then
+  elif [[ -n "${SSH_USER:-}" ]]; then
     printf '%s\n' "key"
   else
     printf '%s\n' ""
@@ -67,7 +74,7 @@ detect_ssh_auth_method() {
 
 SSH_AUTH_METHOD="$(detect_ssh_auth_method)"
 
-remote_user="${SSH_USER:-}"
+remote_user="${SSH_USER:-$ROOT_USER}"
 remote=""
 ssh_base=()
 scp_base=()
@@ -90,7 +97,8 @@ case "${SSH_AUTH_METHOD:-}" in
   key)
     key_path="$(expand_path "${SSH_KEY_PATH:-}")"
     [[ -f "$key_path" ]] || fail "SSH key не найден: $key_path"
-    remote_user="${SSH_USER}"
+    remote_user="${SSH_USER:-$ROOT_USER}"
+    [[ -n "$VPS_IP" ]] || fail "ROOT_IP не задан"
     remote="${remote_user}@${VPS_IP}"
     ssh_base=(ssh -p "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
     scp_base=(scp -P "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new)
@@ -98,6 +106,7 @@ case "${SSH_AUTH_METHOD:-}" in
   password)
     command -v sshpass >/dev/null 2>&1 || fail "для SSH_AUTH_METHOD=password нужен sshpass на локальной машине"
     remote_user="${ROOT_USER}"
+    [[ -n "$VPS_IP" ]] || fail "ROOT_IP не задан"
     remote="${remote_user}@${VPS_IP}"
     ssh_base=(sshpass -p "${ROOT_PASSWORD}" ssh -p "${SSH_PORT}" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
     scp_base=(sshpass -p "${ROOT_PASSWORD}" scp -P "${SSH_PORT}" -o StrictHostKeyChecking=accept-new)

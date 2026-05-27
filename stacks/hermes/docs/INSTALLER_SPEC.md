@@ -21,14 +21,12 @@
 
 Обязательные поля:
 
-- `SSH_AUTH_METHOD`;
-- SSH-доступ через `ssh_config`, ключ или root/password;
+- `ROOT_IP`;
+- SSH-доступ через `SSH_KEY_PATH` или `ROOT_PASSWORD`;
 - хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`.
 
-Если `SSH_AUTH_METHOD=ssh_config`, достаточно `SSH_HOST_ALIAS` или `SSH_CONNECT_COMMAND`.
-`VPS_IP`, `SSH_PORT` и `SSH_USER` установщик берёт из локального `~/.ssh/config` через `ssh -G`.
-
-Если `SSH_AUTH_METHOD=key` или `password`, `VPS_IP` нужно заполнить явно.
+Если заполнен `SSH_KEY_PATH`, установщик подключается ключом.
+Если `SSH_KEY_PATH` пустой и заполнен `ROOT_PASSWORD`, установщик подключается через пароль.
 
 Telegram-роутер включается, если заполнены оба поля:
 
@@ -49,8 +47,8 @@ Telegram-роутер включается, если заполнены оба �
 
 Если `DOMAIN` пустой:
 
-- публичный адрес строится как `https://VPS_IP.nip.io`;
-- Caddy выпускает HTTPS-сертификат для `VPS_IP.nip.io`;
+- публичный адрес строится как `https://ROOT_IP.nip.io`;
+- Caddy выпускает HTTPS-сертификат для `ROOT_IP.nip.io`;
 - пользователь не настраивает DNS.
 
 ## Пароль панели
@@ -84,7 +82,7 @@ Telegram-роутер включается, если заполнены оба �
 
 - `80/tcp`;
 - `443/tcp`;
-- SSH-порт из `SSH_PORT`.
+- SSH-порт `22`.
 
 Hermes gateway остаётся локальным:
 
