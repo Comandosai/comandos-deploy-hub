@@ -52,5 +52,6 @@ info "Готово. Файлы установщика лежат в текуще
 printf '  %s\n' "$TARGET_DIR"
 printf '\nДальше:\n'
 printf '  1. Заполните comandos-hermes.env\n'
+printf '     Если уже работает ssh clawd, оставьте SSH_AUTH_METHOD=ssh_config и SSH_HOST_ALIAS=clawd\n'
 printf '  2. Если работаете через агента, вставьте второй текст из AGENT_COMMAND.md\n'
 printf '  3. Если работаете через терминал: bash scripts/check-config.sh comandos-hermes.env && ./deploy.sh\n'

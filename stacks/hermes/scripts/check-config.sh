@@ -36,9 +36,40 @@ need() {
   fi
 }
 
-need VPS_IP
-need SSH_PORT
 need SSH_AUTH_METHOD
+
+resolve_ssh_alias() {
+  local command_text="${SSH_CONNECT_COMMAND:-}"
+  local alias="${SSH_HOST_ALIAS:-}"
+
+  if has_value "$command_text"; then
+    local parts=()
+    # shellcheck disable=SC2206
+    parts=($command_text)
+    if [[ "${parts[0]:-}" != "ssh" ]]; then
+      errors+=("SSH_CONNECT_COMMAND must start with ssh")
+      return 1
+    fi
+    alias="${parts[$((${#parts[@]} - 1))]}"
+  fi
+
+  if ! has_value "$alias"; then
+    errors+=("SSH_HOST_ALIAS or SSH_CONNECT_COMMAND is required for SSH_AUTH_METHOD=ssh_config")
+    return 1
+  fi
+
+  printf '%s\n' "$alias"
+}
+
+ssh_config_value() {
+  local alias="$1"
+  local key="$2"
+  ssh -G "$alias" 2>/dev/null | awk -v key="$key" '$1 == key {print $2; exit}'
+}
+
+resolved_vps_ip="${VPS_IP:-}"
+resolved_ssh_port="${SSH_PORT:-}"
+resolved_ssh_user="${SSH_USER:-}"
 
 telegram_token_set=0
 telegram_user_set=0
@@ -51,16 +82,43 @@ elif [[ "$telegram_token_set" -eq 0 ]]; then
 fi
 
 case "${SSH_AUTH_METHOD:-}" in
+  ssh_config)
+    ssh_alias="$(resolve_ssh_alias || true)"
+    if has_value "$ssh_alias"; then
+      if ! command -v ssh >/dev/null 2>&1; then
+        errors+=("ssh command is required for SSH_AUTH_METHOD=ssh_config")
+      else
+        ssh_host="$(ssh_config_value "$ssh_alias" hostname)"
+        ssh_user="$(ssh_config_value "$ssh_alias" user)"
+        ssh_port="$(ssh_config_value "$ssh_alias" port)"
+        has_value "$ssh_host" || errors+=("cannot resolve HostName from ssh config for alias: $ssh_alias")
+        has_value "$ssh_user" || errors+=("cannot resolve User from ssh config for alias: $ssh_alias")
+        resolved_vps_ip="${resolved_vps_ip:-$ssh_host}"
+        resolved_ssh_user="${resolved_ssh_user:-$ssh_user}"
+        resolved_ssh_port="${ssh_port:-${resolved_ssh_port:-22}}"
+      fi
+    fi
+    ;;
   key)
+    need VPS_IP
+    need SSH_PORT
     need SSH_USER
     need SSH_KEY_PATH
+    resolved_vps_ip="$VPS_IP"
+    resolved_ssh_port="$SSH_PORT"
+    resolved_ssh_user="$SSH_USER"
     ;;
   password)
+    need VPS_IP
+    need SSH_PORT
     need ROOT_USER
     need ROOT_PASSWORD
+    resolved_vps_ip="$VPS_IP"
+    resolved_ssh_port="$SSH_PORT"
+    resolved_ssh_user="$ROOT_USER"
     ;;
   *)
-    errors+=("SSH_AUTH_METHOD must be key or password")
+    errors+=("SSH_AUTH_METHOD must be ssh_config, key or password")
     ;;
 esac
 
@@ -116,7 +174,7 @@ case "$resolved_provider" in
 esac
 
 if [[ -z "${DOMAIN:-}" ]]; then
-  warnings+=("DOMAIN is empty; installer will use https://${VPS_IP:-VPS_IP}.nip.io")
+  warnings+=("DOMAIN is empty; installer will use https://${resolved_vps_ip:-VPS_IP}.nip.io")
 fi
 
 if [[ -z "${HERMES_PASSWORD:-}" ]]; then
@@ -146,12 +204,16 @@ if ((${#warnings[@]} > 0)); then
   printf ' - %s\n' "${warnings[@]}"
 fi
 
-public_host="${DOMAIN:-${VPS_IP}.nip.io}"
+public_host="${DOMAIN:-${resolved_vps_ip}.nip.io}"
 
 echo
 echo "Resolved plan:"
-echo " - VPS: ${VPS_IP}:${SSH_PORT}"
+echo " - VPS: ${resolved_vps_ip}:${resolved_ssh_port}"
 echo " - SSH auth: ${SSH_AUTH_METHOD}"
+if [[ "${SSH_AUTH_METHOD:-}" == "ssh_config" ]]; then
+  echo " - SSH alias: ${ssh_alias:-not resolved}"
+  echo " - SSH user: ${resolved_ssh_user:-not resolved}"
+fi
 echo " - Public URL: https://${public_host}"
 echo " - Workspace port: ${WORKSPACE_PORT:-3030}"
 echo " - Hermes gateway port: ${HERMES_GATEWAY_PORT:-8642}"

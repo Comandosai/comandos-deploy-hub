@@ -29,6 +29,68 @@ source "$CONFIG_PATH"
 source "$SCRIPT_DIR/comandos-hermes.lock"
 set +a
 
+resolve_ssh_alias() {
+  local command_text="${SSH_CONNECT_COMMAND:-}"
+  local alias="${SSH_HOST_ALIAS:-}"
+
+  if [[ -n "$command_text" ]]; then
+    local parts=()
+    # shellcheck disable=SC2206
+    parts=($command_text)
+    [[ "${parts[0]:-}" == "ssh" ]] || fail "SSH_CONNECT_COMMAND должен начинаться с ssh"
+    alias="${parts[$((${#parts[@]} - 1))]}"
+  fi
+
+  [[ -n "$alias" ]] || fail "для SSH_AUTH_METHOD=ssh_config укажите SSH_HOST_ALIAS или SSH_CONNECT_COMMAND"
+  printf '%s\n' "$alias"
+}
+
+ssh_config_value() {
+  local alias="$1"
+  local key="$2"
+  ssh -G "$alias" 2>/dev/null | awk -v key="$key" '$1 == key {print $2; exit}'
+}
+
+remote_user="${SSH_USER:-}"
+remote=""
+ssh_base=()
+scp_base=()
+
+case "${SSH_AUTH_METHOD:-}" in
+  ssh_config)
+    ssh_alias="$(resolve_ssh_alias)"
+    resolved_host="$(ssh_config_value "$ssh_alias" hostname)"
+    resolved_user="$(ssh_config_value "$ssh_alias" user)"
+    resolved_port="$(ssh_config_value "$ssh_alias" port)"
+    [[ -n "$resolved_host" ]] || fail "не удалось прочитать HostName для SSH alias: $ssh_alias"
+    [[ -n "$resolved_user" ]] || fail "не удалось прочитать User для SSH alias: $ssh_alias"
+    VPS_IP="${VPS_IP:-$resolved_host}"
+    SSH_PORT="${resolved_port:-${SSH_PORT:-22}}"
+    remote_user="$resolved_user"
+    remote="$ssh_alias"
+    ssh_base=(ssh -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
+    scp_base=(scp -o StrictHostKeyChecking=accept-new)
+    ;;
+  key)
+    key_path="$(expand_path "${SSH_KEY_PATH:-}")"
+    [[ -f "$key_path" ]] || fail "SSH key не найден: $key_path"
+    remote_user="${SSH_USER}"
+    remote="${remote_user}@${VPS_IP}"
+    ssh_base=(ssh -p "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
+    scp_base=(scp -P "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new)
+    ;;
+  password)
+    command -v sshpass >/dev/null 2>&1 || fail "для SSH_AUTH_METHOD=password нужен sshpass на локальной машине"
+    remote_user="${ROOT_USER}"
+    remote="${remote_user}@${VPS_IP}"
+    ssh_base=(sshpass -p "${ROOT_PASSWORD}" ssh -p "${SSH_PORT}" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
+    scp_base=(sshpass -p "${ROOT_PASSWORD}" scp -P "${SSH_PORT}" -o StrictHostKeyChecking=accept-new)
+    ;;
+  *)
+    fail "SSH_AUTH_METHOD должен быть ssh_config, key или password"
+    ;;
+esac
+
 PUBLIC_HOST="${DOMAIN:-${VPS_IP}.nip.io}"
 PUBLIC_URL="https://${PUBLIC_HOST}"
 HERMES_PASSWORD="${HERMES_PASSWORD:-}"
@@ -54,35 +116,14 @@ resolved_config="$tmp_dir/comandos-hermes.env"
 grep -vE '^(HERMES_PASSWORD|PUBLIC_URL|PUBLIC_HOST)=' "$CONFIG_PATH" >"$resolved_config"
 {
   printf '\nHERMES_PASSWORD=%q\n' "$HERMES_PASSWORD"
+  printf 'VPS_IP=%q\n' "$VPS_IP"
+  printf 'SSH_PORT=%q\n' "$SSH_PORT"
+  printf 'SSH_USER=%q\n' "$remote_user"
   printf 'PUBLIC_URL=%q\n' "$PUBLIC_URL"
   printf 'PUBLIC_HOST=%q\n' "$PUBLIC_HOST"
 } >>"$resolved_config"
 chmod 600 "$resolved_config"
 
-remote_user="${SSH_USER:-}"
-ssh_base=()
-scp_base=()
-
-case "${SSH_AUTH_METHOD:-}" in
-  key)
-    key_path="$(expand_path "${SSH_KEY_PATH:-}")"
-    [[ -f "$key_path" ]] || fail "SSH key не найден: $key_path"
-    remote_user="${SSH_USER}"
-    ssh_base=(ssh -p "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
-    scp_base=(scp -P "${SSH_PORT}" -i "$key_path" -o StrictHostKeyChecking=accept-new)
-    ;;
-  password)
-    command -v sshpass >/dev/null 2>&1 || fail "для SSH_AUTH_METHOD=password нужен sshpass на локальной машине"
-    remote_user="${ROOT_USER}"
-    ssh_base=(sshpass -p "${ROOT_PASSWORD}" ssh -p "${SSH_PORT}" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ServerAliveCountMax=6)
-    scp_base=(sshpass -p "${ROOT_PASSWORD}" scp -P "${SSH_PORT}" -o StrictHostKeyChecking=accept-new)
-    ;;
-  *)
-    fail "SSH_AUTH_METHOD должен быть key или password"
-    ;;
-esac
-
-remote="${remote_user}@${VPS_IP}"
 remote_tmp="/tmp/comandos-hermes-$(date +%Y%m%d%H%M%S)"
 
 cat >"$tmp_dir/remote-install.sh" <<'REMOTE'

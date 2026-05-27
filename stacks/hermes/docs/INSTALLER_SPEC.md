@@ -21,10 +21,14 @@
 
 Обязательные поля:
 
-- `VPS_IP`;
 - `SSH_AUTH_METHOD`;
-- SSH-доступ через ключ или root/password;
+- SSH-доступ через `ssh_config`, ключ или root/password;
 - хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`.
+
+Если `SSH_AUTH_METHOD=ssh_config`, достаточно `SSH_HOST_ALIAS=clawd` или `SSH_CONNECT_COMMAND="ssh clawd"`.
+`VPS_IP`, `SSH_PORT` и `SSH_USER` установщик берёт из локального `~/.ssh/config` через `ssh -G`.
+
+Если `SSH_AUTH_METHOD=key` или `password`, `VPS_IP` нужно заполнить явно.
 
 Telegram-роутер включается, если заполнены оба поля:
 

@@ -68,6 +68,27 @@ bash scripts/check-config.sh comandos-hermes.env
 
 Если нужно жёстко задать модель, заполните `DEFAULT_PROVIDER` и `DEFAULT_MODEL` в `comandos-hermes.env`.
 
+## SSH-доступ
+
+Для урока можно не раскладывать подключение на IP, пользователя и ключ.
+
+Если на локальной машине уже работает:
+
+```bash
+ssh clawd
+```
+
+оставьте в `comandos-hermes.env`:
+
+```env
+SSH_AUTH_METHOD=ssh_config
+SSH_HOST_ALIAS=clawd
+```
+
+Установщик прочитает `HostName`, `User`, `Port` и `IdentityFile` из `~/.ssh/config`.
+
+Запасные варианты остались прежними: `SSH_AUTH_METHOD=key` или `SSH_AUTH_METHOD=password`.
+
 ## Слабый VPS
 
 Один vCPU для проверки подходит. Главный риск - память во время `pnpm install` и `pnpm build`.

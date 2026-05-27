@@ -47,7 +47,7 @@ bash scripts/check-config.sh comandos-hermes.env
 - Telegram ID пользователя обязателен. Он попадает в первый маршрут `Telegram ID -> default profile`.
 - Telegram-роутер должен запускаться через `comandos-telegram.service`; не возвращай старую Node.js-заглушку.
 - Если `DOMAIN` заполнен, ставь HTTPS на домен.
-- Если `DOMAIN` пустой, ставь HTTPS через `https://VPS_IP.nip.io`.
+- Если `DOMAIN` пустой, ставь HTTPS через `https://VPS_IP.nip.io`. При `SSH_AUTH_METHOD=ssh_config` установщик сам берёт `VPS_IP` из SSH alias.
 
 ## Что нельзя делать
 
