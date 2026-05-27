@@ -51,11 +51,18 @@ class RouterUnitTest(unittest.TestCase):
         self.assertEqual(spec["on_click"], "edit")
 
     def test_buttons_can_be_disabled_for_boss_profile(self):
-        cfg = {"button_protocol_disabled_profiles": ["boss"]}
+        cfg = {"button_protocol_enabled": True, "button_protocol_disabled_profiles": ["boss"]}
         self.assertFalse(router.buttons_allowed_for_prompt(cfg, "boss", "Что мне сделать дальше?"))
         self.assertTrue(router.buttons_allowed_for_prompt(cfg, "boss", "Сделай кнопки для выбора"))
         prompt = router.maybe_add_button_protocol(cfg, "boss", "Что мне сделать дальше?")
         self.assertIn("Telegram inline buttons disabled", prompt)
+        self.assertNotIn("[Telegram inline buttons protocol]", prompt)
+
+    def test_buttons_are_disabled_by_default(self):
+        cfg = {}
+        self.assertFalse(router.buttons_allowed_for_prompt(cfg, "default", "Сделай кнопки для выбора"))
+        prompt = router.maybe_add_button_protocol(cfg, "default", "Сделай кнопки для выбора")
+        self.assertNotIn("Telegram inline buttons disabled", prompt)
         self.assertNotIn("[Telegram inline buttons protocol]", prompt)
 
     def test_multi_bot_config_is_supported(self):

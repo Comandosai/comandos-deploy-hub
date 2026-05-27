@@ -114,7 +114,10 @@ def load_config():
     cfg.setdefault("stt_model", "base")
     cfg.setdefault("stt_language", "ru")
     cfg.setdefault("voice_prompt_prefix", "Голосовое сообщение пользователя. Расшифровка:")
-    cfg.setdefault("button_protocol_enabled", True)
+    cfg.setdefault("button_protocol_enabled", False)
+    inline_buttons_env = os.environ.get("HERMES_INLINE_BUTTONS_ENABLED")
+    if inline_buttons_env is not None:
+        cfg["button_protocol_enabled"] = as_bool(inline_buttons_env, False)
     cfg.setdefault("button_protocol_disabled_profiles", [])
     cfg.setdefault("button_protocol_trigger_words", list(BUTTON_TRIGGER_WORDS))
     cfg.setdefault("public_telegram_guard_enabled", True)
@@ -508,6 +511,21 @@ def as_string_set(value):
     return {str(value)}
 
 
+def as_bool(value, default=False):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "on", "y", "да"}:
+        return True
+    if normalized in {"0", "false", "no", "off", "n", "нет"}:
+        return False
+    return default
+
+
 def prompt_requests_buttons(cfg, prompt):
     lowered = (prompt or "").lower()
     trigger_words = cfg.get("button_protocol_trigger_words") or BUTTON_TRIGGER_WORDS
@@ -515,7 +533,7 @@ def prompt_requests_buttons(cfg, prompt):
 
 
 def buttons_allowed_for_prompt(cfg, profile, prompt):
-    if not cfg.get("button_protocol_enabled", True):
+    if not as_bool(cfg.get("button_protocol_enabled"), False):
         return False
     profile_name = str(profile or "")
     if profile_name in as_string_set(cfg.get("button_protocol_disabled_profiles")):
@@ -672,7 +690,7 @@ def maybe_add_button_protocol(cfg, profile, prompt):
         parts.append(PUBLIC_TELEGRAM_GUARD_PROMPT)
     if buttons_allowed_for_prompt(cfg, profile, prompt):
         parts.append(BUTTON_PROTOCOL_PROMPT)
-    elif cfg.get("button_protocol_enabled", True):
+    elif as_bool(cfg.get("button_protocol_enabled"), False):
         parts.append(BUTTONS_DISABLED_PROMPT)
     return "\n\n".join(parts)
 

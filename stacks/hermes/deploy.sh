@@ -432,7 +432,7 @@ PY"; then
     return
   fi
   log "Ставлю faster-whisper для голосовых сообщений..."
-  as_app_user "python3 -m pip install --user -q faster-whisper || python3 -m pip install --user --break-system-packages -q faster-whisper"
+  as_app_user "python3 -m pip install --user -q 'numpy<2' faster-whisper || python3 -m pip install --user --break-system-packages -q 'numpy<2' faster-whisper"
 }
 
 find_hermes_cli() {
@@ -634,6 +634,7 @@ PY
 
 write_telegram_env() {
   $SUDO mkdir -p "$REMOTE_BASE_DIR/telegram"
+  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/telegram"
   $SUDO cp "$REMOTE_TMP/payload/templates/telegram/router.py" "$REMOTE_BASE_DIR/telegram/router.py"
   cat >"$REMOTE_BASE_DIR/telegram/.env" <<EOF
 TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
@@ -641,15 +642,22 @@ TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-}
 TELEGRAM_BOT_TOKEN_SECOND=${TELEGRAM_BOT_TOKEN_SECOND:-}
 TELEGRAM_BOT_USERNAME_SECOND=${TELEGRAM_BOT_USERNAME_SECOND:-}
 TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:-}
+HERMES_INLINE_BUTTONS_ENABLED=${HERMES_INLINE_BUTTONS_ENABLED:-false}
 COMANDOS_WORKSPACE_URL=$PUBLIC_URL
 EOF
   chmod 600 "$REMOTE_BASE_DIR/telegram/.env"
 
-  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_WORKDIR TELEGRAM_USER_ID HERMES_TIMEOUT_SECONDS HERMES_POLL_TIMEOUT_SECONDS HERMES_STT_MODEL HERMES_STT_LANGUAGE HERMES_STT_ENABLED HERMES_SHOW_PROFILE_IN_RESPONSE
+  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_WORKDIR TELEGRAM_USER_ID HERMES_TIMEOUT_SECONDS HERMES_POLL_TIMEOUT_SECONDS HERMES_STT_MODEL HERMES_STT_LANGUAGE HERMES_STT_ENABLED HERMES_SHOW_PROFILE_IN_RESPONSE HERMES_INLINE_BUTTONS_ENABLED
   python3 - "$REMOTE_BASE_DIR/telegram/config.json" <<'PY'
 import json
 import os
 import sys
+
+def env_bool(name, default=False):
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on", "y", "да"}
 
 out = sys.argv[1]
 base = os.environ["REMOTE_BASE_DIR"]
@@ -683,7 +691,7 @@ cfg = {
     "stt_model": os.environ.get("HERMES_STT_MODEL", "base"),
     "stt_language": os.environ.get("HERMES_STT_LANGUAGE", "ru"),
     "voice_prompt_prefix": "Голосовое сообщение пользователя. Расшифровка:",
-    "button_protocol_enabled": True,
+    "button_protocol_enabled": env_bool("HERMES_INLINE_BUTTONS_ENABLED", False),
     "public_telegram_guard_enabled": True,
     "state_ttl_seconds": 86400,
     "demo_menu_enabled": False
@@ -719,6 +727,7 @@ install_update_script() {
 
 write_installed_state() {
   $SUDO mkdir -p "$REMOTE_WORKSPACE_DIR/.runtime"
+  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_WORKSPACE_DIR/.runtime"
   local agent_version=""
   agent_version="$(as_app_user "command -v hermes >/dev/null 2>&1 && hermes --version 2>/dev/null | head -1 || true")"
   export COMANDOS_WORKSPACE_VERSION HERMES_AGENT_REF agent_version COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
@@ -838,9 +847,9 @@ install_workspace() {
   fi
   install_update_script
   log "Собираю панель..."
-  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && corepack enable >/dev/null 2>&1 || true; cd '$REMOTE_WORKSPACE_DIR' && ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile"
+  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && corepack enable >/dev/null 2>&1 || true; cd '$REMOTE_WORKSPACE_DIR' && CI=true ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile"
   cleanup_build_space
-  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && pnpm build"
+  as_app_user "cd '$REMOTE_WORKSPACE_DIR' && CI=true pnpm build"
   write_installed_state
 }
 

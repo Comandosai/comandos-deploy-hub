@@ -104,7 +104,7 @@ Telegram-роутер работает как user systemd service `comandos-tel
 - маршрутизация `Telegram ID -> Hermes profile`;
 - поддержка нескольких Telegram-ботов на одном Hermes;
 - голосовые сообщения через локальный `faster-whisper`;
-- inline-кнопки через блок `[[telegram_buttons]]`;
+- inline-кнопки через блок `[[telegram_buttons]]`, но по умолчанию они выключены флагом `HERMES_INLINE_BUTTONS_ENABLED=false`;
 - Telegram HTML-форматирование вместо сырых `**звёздочек**`;
 - публичный guard, чтобы бот не показывал пользователю пути, токены и внутренние профили без явного режима настройки.
 
