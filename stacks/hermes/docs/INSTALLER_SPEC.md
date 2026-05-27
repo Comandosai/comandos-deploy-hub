@@ -25,7 +25,7 @@
 - SSH-доступ через `ssh_config`, ключ или root/password;
 - хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`.
 
-Если `SSH_AUTH_METHOD=ssh_config`, достаточно `SSH_HOST_ALIAS=clawd` или `SSH_CONNECT_COMMAND="ssh clawd"`.
+Если `SSH_AUTH_METHOD=ssh_config`, достаточно `SSH_HOST_ALIAS` или `SSH_CONNECT_COMMAND`.
 `VPS_IP`, `SSH_PORT` и `SSH_USER` установщик берёт из локального `~/.ssh/config` через `ssh -G`.
 
 Если `SSH_AUTH_METHOD=key` или `password`, `VPS_IP` нужно заполнить явно.
@@ -166,8 +166,8 @@ PORT=3030
 COOKIE_SECURE=1
 COMANDOS_SINGLE_PANEL=1
 HERMES_API_URL=http://127.0.0.1:8642
-HERMES_CLI_PATH=/home/clawd/.local/bin/hermes
-HERMES_HOME=/home/clawd/.hermes
+HERMES_CLI_PATH=/home/hermes/.local/bin/hermes
+HERMES_HOME=/home/hermes/.hermes
 HERMES_PASSWORD=<generated-24-symbol-password>
 COMANDOS_LICENSE_REQUIRED=1
 COMANDOS_LICENSE_SERVER_URL=https://api.comandos.ai/v1/license/products

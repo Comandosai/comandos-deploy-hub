@@ -56,7 +56,7 @@ open comandos-hermes.env
 
 Минимально нужно заполнить:
 
-- SSH-доступ. Если на локальной машине уже работает `ssh clawd`, достаточно оставить `SSH_AUTH_METHOD=ssh_config` и `SSH_HOST_ALIAS=clawd`;
+- SSH-доступ: `SSH_CONNECT_COMMAND`, либо `VPS_IP` + SSH-ключ, либо `VPS_IP` + root-пароль;
 - `VPS_IP`, только если не используете SSH alias;
 - хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`;
 

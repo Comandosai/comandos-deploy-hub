@@ -70,24 +70,24 @@ bash scripts/check-config.sh comandos-hermes.env
 
 ## SSH-доступ
 
-Для урока можно не раскладывать подключение на IP, пользователя и ключ.
+Можно заполнить любой удобный вариант доступа.
 
-Если на локальной машине уже работает:
+Если на локальной машине уже работает SSH alias:
 
 ```bash
-ssh clawd
+ssh my-vps
 ```
 
-оставьте в `comandos-hermes.env`:
+заполните в `comandos-hermes.env`:
 
 ```env
-SSH_AUTH_METHOD=ssh_config
-SSH_HOST_ALIAS=clawd
+SSH_CONNECT_COMMAND="ssh my-vps"
 ```
 
 Установщик прочитает `HostName`, `User`, `Port` и `IdentityFile` из `~/.ssh/config`.
 
-Запасные варианты остались прежними: `SSH_AUTH_METHOD=key` или `SSH_AUTH_METHOD=password`.
+Если SSH alias нет, заполните `VPS_IP` и доступ через SSH-ключ или root-пароль.
+`SSH_AUTH_METHOD` обычно можно оставить пустым: установщик сам выберет способ по заполненным полям.
 
 ## Слабый VPS
 

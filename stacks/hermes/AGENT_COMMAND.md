@@ -22,7 +22,7 @@
 
 Минимально нужны:
 
-- SSH-доступ. Самый простой вариант: `SSH_AUTH_METHOD=ssh_config` и `SSH_HOST_ALIAS=clawd`, если команда `ssh clawd` уже работает на локальной машине;
+- SSH-доступ: `SSH_CONNECT_COMMAND`, либо `VPS_IP` + SSH-ключ, либо `VPS_IP` + root-пароль;
 - хотя бы один ключ модели: `MINIMAX_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY` или `QWEN_API_KEY`.
 
 Необязательно:

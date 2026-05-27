@@ -51,6 +51,22 @@ ssh_config_value() {
   ssh -G "$alias" 2>/dev/null | awk -v key="$key" '$1 == key {print $2; exit}'
 }
 
+detect_ssh_auth_method() {
+  if [[ -n "${SSH_AUTH_METHOD:-}" ]]; then
+    printf '%s\n' "$SSH_AUTH_METHOD"
+  elif [[ -n "${SSH_CONNECT_COMMAND:-}" || -n "${SSH_HOST_ALIAS:-}" ]]; then
+    printf '%s\n' "ssh_config"
+  elif [[ -n "${ROOT_PASSWORD:-}" ]]; then
+    printf '%s\n' "password"
+  elif [[ -n "${SSH_KEY_PATH:-}" || -n "${SSH_USER:-}" ]]; then
+    printf '%s\n' "key"
+  else
+    printf '%s\n' ""
+  fi
+}
+
+SSH_AUTH_METHOD="$(detect_ssh_auth_method)"
+
 remote_user="${SSH_USER:-}"
 remote=""
 ssh_base=()
@@ -149,7 +165,7 @@ if [[ "$(id -u)" -ne 0 ]]; then
   SUDO="sudo"
 fi
 
-APP_USER="${REMOTE_APP_USER:-clawd}"
+APP_USER="${REMOTE_APP_USER:-hermes}"
 REMOTE_BASE_DIR="${REMOTE_BASE_DIR:-/opt/comandos/hermes}"
 REMOTE_WORKSPACE_DIR="${REMOTE_WORKSPACE_DIR:-$REMOTE_BASE_DIR/workspace}"
 REMOTE_HERMES_HOME="${REMOTE_HERMES_HOME:-/home/$APP_USER/.hermes}"
@@ -629,7 +645,7 @@ import sys
 out = sys.argv[1]
 base = os.environ["REMOTE_BASE_DIR"]
 home = os.environ["REMOTE_HERMES_HOME"]
-workdir = os.environ.get("HERMES_WORKDIR") or os.environ.get("REMOTE_WORKSPACE_DIR") or "/home/clawd"
+workdir = os.environ.get("HERMES_WORKDIR") or os.environ.get("REMOTE_WORKSPACE_DIR") or "/home/hermes"
 telegram_user_id = os.environ["TELEGRAM_USER_ID"].strip()
 
 cfg = {

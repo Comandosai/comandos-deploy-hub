@@ -36,8 +36,6 @@ need() {
   fi
 }
 
-need SSH_AUTH_METHOD
-
 resolve_ssh_alias() {
   local command_text="${SSH_CONNECT_COMMAND:-}"
   local alias="${SSH_HOST_ALIAS:-}"
@@ -66,6 +64,23 @@ ssh_config_value() {
   local key="$2"
   ssh -G "$alias" 2>/dev/null | awk -v key="$key" '$1 == key {print $2; exit}'
 }
+
+detect_ssh_auth_method() {
+  if has_value "${SSH_AUTH_METHOD:-}"; then
+    printf '%s\n' "$SSH_AUTH_METHOD"
+  elif has_value "${SSH_CONNECT_COMMAND:-}" || has_value "${SSH_HOST_ALIAS:-}"; then
+    printf '%s\n' "ssh_config"
+  elif has_value "${ROOT_PASSWORD:-}"; then
+    printf '%s\n' "password"
+  elif has_value "${SSH_KEY_PATH:-}" || has_value "${SSH_USER:-}"; then
+    printf '%s\n' "key"
+  else
+    printf '%s\n' ""
+  fi
+}
+
+SSH_AUTH_METHOD="$(detect_ssh_auth_method)"
+has_value "$SSH_AUTH_METHOD" || errors+=("SSH access is required: set SSH_CONNECT_COMMAND, SSH alias, key fields, or root password")
 
 resolved_vps_ip="${VPS_IP:-}"
 resolved_ssh_port="${SSH_PORT:-}"
