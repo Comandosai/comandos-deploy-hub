@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -383,6 +384,30 @@ def send_chat_action(token, chat_id, action="typing"):
         log.debug("sendChatAction failed", exc_info=True)
 
 
+class ChatActionHeartbeat:
+    def __init__(self, token, chat_id, action="typing", interval=4):
+        self.token = token
+        self.chat_id = chat_id
+        self.action = action
+        self.interval = interval
+        self.stop_event = threading.Event()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+
+    def __enter__(self):
+        send_chat_action(self.token, self.chat_id, self.action)
+        self.thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.stop_event.set()
+        self.thread.join(timeout=0.5)
+        return False
+
+    def _run(self):
+        while not self.stop_event.wait(self.interval):
+            send_chat_action(self.token, self.chat_id, self.action)
+
+
 def answer_callback(token, callback_id, text="Принято"):
     try:
         telegram_request(token, "answerCallbackQuery", {"callback_query_id": callback_id, "text": text}, timeout=15)
@@ -628,15 +653,15 @@ def extract_message_text(cfg, token, message, chat_id):
     file_id = media.get("file_id")
     if not file_id:
         raise RuntimeError("media file_id is missing")
-    send_chat_action(token, chat_id, "typing")
-    local_path = download_telegram_file(token, file_id, suffix=suffix)
-    try:
-        transcript = transcribe_local_audio(cfg, local_path)
-    finally:
+    with ChatActionHeartbeat(token, chat_id):
+        local_path = download_telegram_file(token, file_id, suffix=suffix)
         try:
-            local_path.unlink(missing_ok=True)
-        except Exception:
-            pass
+            transcript = transcribe_local_audio(cfg, local_path)
+        finally:
+            try:
+                local_path.unlink(missing_ok=True)
+            except Exception:
+                pass
     prefix = cfg.get("voice_prompt_prefix", "Голосовое сообщение пользователя. Расшифровка:")
     return f"{prefix}\n{transcript}"
 
@@ -676,6 +701,7 @@ flock "$COMANDOS_ROUTER_LOCK" bash -lc '\
     run_env["HERMES_PROMPT"] = hermes_prompt
     run_env["HERMES_ACCEPT_HOOKS"] = "1"
     run_env["COMANDOS_ROUTER_LOCK"] = str(LOCK_PATH)
+    started_at = time.monotonic()
     result = subprocess.run(
         ["bash", "-lc", script],
         cwd=workdir,
@@ -685,6 +711,8 @@ flock "$COMANDOS_ROUTER_LOCK" bash -lc '\
         stderr=subprocess.PIPE,
         timeout=timeout,
     )
+    elapsed = time.monotonic() - started_at
+    log.info("hermes cli finished profile=%s seconds=%.2f rc=%s", profile, elapsed, result.returncode)
     if result.returncode != 0:
         err = (result.stderr or result.stdout or "unknown error").strip()
         raise RuntimeError(err[-1600:])
@@ -694,8 +722,8 @@ flock "$COMANDOS_ROUTER_LOCK" bash -lc '\
 def dispatch_to_hermes(cfg, token, chat_id, user_id, profile, text, *, edit_message_id=None):
     log.info("message bot=%s telegram_id=%s chat_id=%s profile=%s chars=%s edit=%s", cfg.get("bot_name", "main"), user_id, chat_id, profile, len(text), bool(edit_message_id))
     try:
-        send_chat_action(token, chat_id, "typing")
-        answer = run_hermes(cfg, profile, text)
+        with ChatActionHeartbeat(token, chat_id):
+            answer = run_hermes(cfg, profile, text)
         deliver_response(cfg, token, chat_id, user_id, profile, answer, source_prompt=text, edit_message_id=edit_message_id)
         log.info("done bot=%s telegram_id=%s profile=%s", cfg.get("bot_name", "main"), user_id, profile)
     except subprocess.TimeoutExpired:
@@ -843,6 +871,17 @@ def poll_bot_once(runtime, poll_timeout):
             handle_callback_query(cfg, token, upd["callback_query"])
 
 
+def poll_bot_loop(runtime, poll_timeout):
+    cfg = runtime["cfg"]
+    bot_name = cfg.get("bot_name", "main")
+    while True:
+        try:
+            poll_bot_once(runtime, poll_timeout)
+        except Exception:
+            log.exception("polling loop failed bot=%s", bot_name)
+            time.sleep(5)
+
+
 def main():
     cfg = load_config()
     runtimes = []
@@ -865,6 +904,21 @@ def main():
         raise SystemExit("No Telegram bots initialized")
     log.info("router started bots=%s", ",".join(rt["cfg"].get("bot_name", "main") for rt in runtimes))
     poll_timeout = int(cfg.get("poll_timeout_seconds", 10))
+    if len(runtimes) > 1:
+        threads = []
+        for runtime in runtimes:
+            bot_name = runtime["cfg"].get("bot_name", "main")
+            thread = threading.Thread(target=poll_bot_loop, args=(runtime, poll_timeout), name=f"poll-{bot_name}", daemon=True)
+            thread.start()
+            threads.append(thread)
+        try:
+            while True:
+                for thread in threads:
+                    if not thread.is_alive():
+                        raise RuntimeError(f"polling thread stopped: {thread.name}")
+                time.sleep(5)
+        except KeyboardInterrupt:
+            raise
     while True:
         for runtime in runtimes:
             try:
