@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from tg_parser.client import make_client
 from tg_parser.config import load_settings, load_sources, parse_chat_identifier
+from tg_parser.notify import live_message_html, notifications_enabled, send_html_async
 from tg_parser.serialize import CSV_FIELDS, append_jsonl, message_matches, serialize_message
 
 
@@ -85,6 +86,8 @@ async def async_main() -> None:
             csv_file.flush()
             text = (row.get("text") or "").replace("\n", " ")[:80]
             print(f"Новое: {row['chat_title']} #{row['message_id']} {text}")
+            if notifications_enabled(settings):
+                await send_html_async(settings, live_message_html(row))
 
         print("Live-сбор запущен. Остановить: Ctrl+C")
         try:

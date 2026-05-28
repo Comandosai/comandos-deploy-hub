@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from tg_parser.config import load_settings
+from tg_parser.notify import notifications_enabled, send_report
 
 
 def load_messages(path: Path, max_items: int = 800) -> list[dict]:
@@ -74,8 +75,10 @@ def main() -> None:
     report_path = settings.output_dir / "report.md"
     report_path.write_text(report, encoding="utf-8")
     print(f"Отчёт готов: {report_path}")
+    if notifications_enabled(settings):
+        send_report(settings, report)
+        print("Отчёт отправлен в Telegram-бота.")
 
 
 if __name__ == "__main__":
     main()
-

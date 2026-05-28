@@ -13,6 +13,7 @@
 - `scripts/collect_history.py` — сбор истории сообщений.
 - `scripts/watch_live.py` — постоянный сбор новых сообщений.
 - `scripts/analyze_deepseek.py` — выжимка по собранным сообщениям через DeepSeek.
+- `scripts/check_bot.py` — проверка Telegram-бота для уведомлений.
 - `START_PROMPT.md` — стартовый промпт для агента.
 - `RUN_WITH_AGENT.md` — инструкция агенту для настройки сессии и запуска задачи.
 - `TASK_EXAMPLES.md` — примеры задач, которые можно дать агенту.
@@ -115,6 +116,39 @@ python scripts/analyze_deepseek.py
 
 Отчёт появится в `data/report.md`.
 
+## Уведомления в Telegram-бота
+
+Парсер может присылать важные сообщения и отчёты в вашего Telegram-бота.
+
+1. Создайте бота через `@BotFather`.
+2. Напишите своему боту `/start`.
+3. Добавьте токен в `.env`:
+
+```text
+TELEGRAM_BOT_TOKEN=123456:ABC...
+```
+
+4. Найдите свой `chat_id`:
+
+```bash
+python scripts/check_bot.py
+```
+
+5. Добавьте `chat_id` в `.env`:
+
+```text
+TELEGRAM_NOTIFY_CHAT_IDS=123456789
+TELEGRAM_BOT_PARSE_MODE=HTML
+```
+
+Можно указать несколько получателей через запятую:
+
+```text
+TELEGRAM_NOTIFY_CHAT_IDS=123456789,987654321
+```
+
+После этого `watch_live.py` будет отправлять HTML-уведомления по подходящим сообщениям, а `analyze_deepseek.py` будет отправлять готовый отчёт.
+
 ## Live-сбор
 
 Чтобы слушать новые сообщения 24/7:
@@ -129,6 +163,7 @@ python scripts/watch_live.py
 - `data/live_messages.csv`
 
 Если в `sources.txt` указан `topic=...` или `keywords=...`, live-сбор будет сохранять только подходящие сообщения.
+Если заполнены `TELEGRAM_BOT_TOKEN` и `TELEGRAM_NOTIFY_CHAT_IDS`, эти сообщения также будут приходить в вашего Telegram-бота.
 
 ## Как использовать в уроке
 

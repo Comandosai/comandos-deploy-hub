@@ -33,6 +33,13 @@ def _path(name: str, default: str) -> Path:
     return PROJECT_ROOT / value
 
 
+def _csv(name: str) -> tuple[str, ...]:
+    value = os.getenv(name, "").strip()
+    if not value:
+        return ()
+    return tuple(item.strip() for item in value.split(",") if item.strip())
+
+
 @dataclass(frozen=True)
 class Settings:
     api_id: int
@@ -45,6 +52,9 @@ class Settings:
     download_media: bool
     deepseek_api_key: str
     deepseek_model: str
+    telegram_bot_token: str
+    telegram_notify_chat_ids: tuple[str, ...]
+    telegram_bot_parse_mode: str
 
 
 @dataclass(frozen=True)
@@ -82,6 +92,9 @@ def load_settings() -> Settings:
         download_media=_bool("DOWNLOAD_MEDIA", False),
         deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", "").strip(),
         deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat",
+        telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", "").strip(),
+        telegram_notify_chat_ids=_csv("TELEGRAM_NOTIFY_CHAT_IDS"),
+        telegram_bot_parse_mode=os.getenv("TELEGRAM_BOT_PARSE_MODE", "HTML").strip() or "HTML",
     )
 
 

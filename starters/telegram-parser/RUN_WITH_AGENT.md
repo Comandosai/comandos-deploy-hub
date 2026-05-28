@@ -64,7 +64,16 @@ python scripts/watch_live.py
 python scripts/analyze_deepseek.py
 ```
 
-14. В конце покажи пользователю, где лежат результаты:
+14. Если пользователь хочет получать уведомления в своего Telegram-бота:
+
+- попроси токен бота от `@BotFather`;
+- добавь его в `.env` как `TELEGRAM_BOT_TOKEN`;
+- попроси пользователя написать `/start` своему боту;
+- запусти `python scripts/check_bot.py`;
+- возьми нужный `chat_id` и добавь его в `.env` как `TELEGRAM_NOTIFY_CHAT_IDS`;
+- запусти `python scripts/check_bot.py` ещё раз, чтобы отправить тестовое сообщение.
+
+15. В конце покажи пользователю, где лежат результаты:
 
 ```text
 data/messages.csv
