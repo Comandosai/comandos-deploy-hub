@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from tg_parser.client import make_client
 from tg_parser.config import load_settings, load_sources, parse_chat_identifier
-from tg_parser.serialize import CSV_FIELDS, append_jsonl, serialize_message
+from tg_parser.serialize import CSV_FIELDS, append_jsonl, message_matches, serialize_message
 
 
 async def async_main() -> None:
@@ -32,11 +32,18 @@ async def async_main() -> None:
             raise RuntimeError("Сначала запустите: python scripts/auth.py")
 
         chats = []
+        specs_by_chat_id = {}
         for source in sources:
-            chat = await client.get_entity(parse_chat_identifier(source))
+            chat = await client.get_entity(parse_chat_identifier(source.chat))
             chats.append(chat)
-            title = getattr(chat, "title", None) or getattr(chat, "username", None) or source
-            print(f"Слушаю: {title} ({utils.get_peer_id(chat)})")
+            chat_id = utils.get_peer_id(chat)
+            specs_by_chat_id.setdefault(chat_id, []).append(source)
+            title = getattr(chat, "title", None) or getattr(chat, "username", None) or source.chat
+            print(f"Слушаю: {title} ({chat_id})")
+            if source.topic_id is not None:
+                print(f"  Ветка/топик: {source.topic_id}")
+            if source.keywords:
+                print(f"  Ключевые слова: {', '.join(source.keywords)}")
 
         csv_file = csv_path.open("a", encoding="utf-8", newline="")
         writer = csv.DictWriter(csv_file, fieldnames=CSV_FIELDS)
@@ -48,10 +55,18 @@ async def async_main() -> None:
             message = event.message
             chat = await event.get_chat()
             sender = await event.get_sender()
+            chat_id = utils.get_peer_id(chat)
+            matched_source = None
+            for source in specs_by_chat_id.get(chat_id, []):
+                if message_matches(message, source.topic_id, source.keywords):
+                    matched_source = source
+                    break
+            if matched_source is None:
+                return
+
             local_media_path = ""
             if settings.download_media and getattr(message, "media", None):
                 media_dir.mkdir(parents=True, exist_ok=True)
-                chat_id = utils.get_peer_id(chat)
                 downloaded = await client.download_media(
                     message,
                     file=str(media_dir / f"{chat_id}_{message.id}_"),
@@ -60,7 +75,7 @@ async def async_main() -> None:
 
             row = serialize_message(
                 message,
-                source=str(utils.get_peer_id(chat)),
+                source=matched_source,
                 chat=chat,
                 sender=sender,
                 local_media_path=local_media_path,

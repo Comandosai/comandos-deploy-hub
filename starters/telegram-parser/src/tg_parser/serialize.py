@@ -15,6 +15,8 @@ CSV_FIELDS = [
     "message_id",
     "message_link",
     "message_date",
+    "topic_id",
+    "matched_keywords",
     "sender_id",
     "sender_username",
     "sender_name",
@@ -69,6 +71,34 @@ def message_link(chat: Any, chat_id: int | None, message_id: int) -> str:
     return ""
 
 
+def message_topic_id(message: Any) -> int | None:
+    reply_to = getattr(message, "reply_to", None)
+    if not reply_to:
+        return None
+    top_id = getattr(reply_to, "reply_to_top_id", None)
+    if top_id is not None:
+        return int(top_id)
+    reply_id = getattr(reply_to, "reply_to_msg_id", None)
+    if reply_id is not None and getattr(reply_to, "forum_topic", False):
+        return int(reply_id)
+    return None
+
+
+def text_matches_keywords(text: str, keywords: tuple[str, ...]) -> list[str]:
+    if not keywords:
+        return []
+    lowered = text.lower()
+    return [keyword for keyword in keywords if keyword in lowered]
+
+
+def message_matches(message: Any, topic_id: int | None, keywords: tuple[str, ...]) -> bool:
+    if topic_id is not None and message.id != topic_id and message_topic_id(message) != topic_id:
+        return False
+    if keywords and not text_matches_keywords(getattr(message, "message", "") or getattr(message, "raw_text", "") or "", keywords):
+        return False
+    return True
+
+
 def serialize_message(
     message: Any,
     source: str,
@@ -80,19 +110,24 @@ def serialize_message(
     sender_id = getattr(message, "sender_id", None) or getattr(sender, "id", None)
     sender_username = getattr(sender, "username", None) or ""
     sender_display_name = display_name(sender)
+    text = getattr(message, "message", None) or getattr(message, "raw_text", "") or ""
+    source_keywords = getattr(source, "keywords", ()) if not isinstance(source, str) else ()
+    source_label = source.label if not isinstance(source, str) and hasattr(source, "label") else str(source)
 
     return {
-        "source": source,
+        "source": source_label,
         "chat_id": chat_id,
         "chat_title": display_name(chat),
         "chat_username": getattr(chat, "username", None) or "",
         "message_id": message.id,
         "message_link": message_link(chat, chat_id, message.id),
         "message_date": message.date.isoformat() if message.date else "",
+        "topic_id": message_topic_id(message),
+        "matched_keywords": ", ".join(text_matches_keywords(text, source_keywords)),
         "sender_id": sender_id,
         "sender_username": sender_username,
         "sender_name": sender_display_name,
-        "text": getattr(message, "message", None) or getattr(message, "raw_text", "") or "",
+        "text": text,
         "media_type": media_type(message),
         "views": getattr(message, "views", None),
         "forwards": getattr(message, "forwards", None),

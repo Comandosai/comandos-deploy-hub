@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from tg_parser.client import make_client
 from tg_parser.config import load_settings, load_sources, parse_chat_identifier
-from tg_parser.serialize import CSV_FIELDS, append_jsonl, serialize_message
+from tg_parser.serialize import CSV_FIELDS, append_jsonl, message_matches, serialize_message
 
 
 def parse_args() -> argparse.Namespace:
@@ -50,13 +50,24 @@ async def async_main() -> None:
                 raise RuntimeError("Сначала запустите: python scripts/auth.py")
 
             for source in sources:
-                identifier = parse_chat_identifier(source)
+                identifier = parse_chat_identifier(source.chat)
                 chat = await client.get_entity(identifier)
                 chat_id = utils.get_peer_id(chat)
-                title = getattr(chat, "title", None) or getattr(chat, "username", None) or source
+                title = getattr(chat, "title", None) or getattr(chat, "username", None) or source.chat
                 print(f"Собираю: {title} ({chat_id})")
+                if source.topic_id is not None:
+                    print(f"  Ветка/топик: {source.topic_id}")
+                if source.keywords:
+                    print(f"  Ключевые слова: {', '.join(source.keywords)}")
 
-                async for message in client.iter_messages(chat, limit=limit):
+                iter_kwargs = {"limit": limit}
+                if source.topic_id is not None:
+                    iter_kwargs["reply_to"] = source.topic_id
+
+                async for message in client.iter_messages(chat, **iter_kwargs):
+                    if not message_matches(message, source.topic_id, source.keywords):
+                        continue
+
                     local_media_path = ""
                     if settings.download_media and getattr(message, "media", None):
                         media_dir.mkdir(parents=True, exist_ok=True)
