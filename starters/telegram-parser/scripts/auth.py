@@ -19,13 +19,15 @@ async def async_main() -> None:
     await client.connect()
     try:
         if not await client.is_user_authorized():
-            phone = input("Telegram phone number: ").strip()
+            print("Создаём Telegram-сессию в папке проекта.")
+            print("Телефон вводите в международном формате, например: +78001234567")
+            phone = input("Телефон Telegram: ").strip()
             await client.send_code_request(phone)
-            code = input("Telegram code: ").strip()
+            code = input("Код из Telegram: ").strip()
             try:
                 await client.sign_in(phone, code)
             except SessionPasswordNeededError:
-                password = input("Telegram 2FA password: ").strip()
+                password = input("Пароль 2FA Telegram: ").strip()
                 await client.sign_in(password=password)
 
         me = await client.get_me()
@@ -36,6 +38,7 @@ async def async_main() -> None:
         print("Сессия создана.")
         print(f"Аккаунт: {name or '-'} @{username} id={me.id}")
         print(f"Файл сессии лежит в: {settings.sessions_dir}")
+        print("Теперь можно выбирать чаты, группы, каналы и запускать задачу.")
     finally:
         await client.disconnect()
 

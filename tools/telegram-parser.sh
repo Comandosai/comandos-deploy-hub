@@ -84,3 +84,7 @@ echo "Следующие команды:"
 echo "cd $(pwd)"
 echo "source .venv/bin/activate"
 echo "python scripts/list_sources.py"
+echo
+echo "Если работаешь через ИИ-агента, попроси его прочитать:"
+echo "RUN_WITH_AGENT.md"
+echo "START_PROMPT.md"
