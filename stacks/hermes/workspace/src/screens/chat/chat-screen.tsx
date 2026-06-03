@@ -617,10 +617,10 @@ export function ChatScreen({
     streamingRunId,
     activeToolCalls,
   } = useRealtimeChatHistory({
-    sessionKey: isPortableMode
-      ? 'main'
-      : isNewChat
-        ? 'new'
+    sessionKey: isNewChat
+      ? 'new'
+      : isPortableMode
+        ? 'main'
         : resolvedSessionKey ||
         sessionKeyForHistory ||
         activeCanonicalKey ||

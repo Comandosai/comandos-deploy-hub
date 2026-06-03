@@ -131,8 +131,9 @@ export function useRealtimeChatHistory({
   onCompactionEnd,
 }: UseRealtimeChatHistoryOptions & { portableMode?: boolean }) {
   const queryClient = useQueryClient()
-  const effectiveFriendlyId = portableMode ? 'main' : friendlyId
-  const effectiveSessionKey = portableMode ? 'main' : sessionKey
+  const usePortableMainHistory = portableMode && sessionKey !== 'new'
+  const effectiveFriendlyId = usePortableMainHistory ? 'main' : friendlyId
+  const effectiveSessionKey = usePortableMainHistory ? 'main' : sessionKey
   const [lastCompletedRunAt, setLastCompletedRunAt] = useState<number | null>(
     null,
   )

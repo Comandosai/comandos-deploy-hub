@@ -310,13 +310,16 @@ export function useChatHistory({
       (!isRedirecting &&
         (hasDirectSessionKey || !sessionsReady || activeExists)))
 
-  const effectiveFriendlyId = portableMode ? 'main' : activeFriendlyId
+  const usePortableMainHistory = portableMode && !isNewChat
+  const effectiveFriendlyId = usePortableMainHistory ? 'main' : activeFriendlyId
   const effectiveSessionKeyForHistory = portableMode
-    ? 'main'
+    ? isNewChat
+      ? 'new'
+      : 'main'
     : sessionKeyForHistory
   const portableHistory = useMemo(
-    () => (portableMode ? readPortableHistory() : undefined),
-    [portableMode],
+    () => (usePortableMainHistory ? readPortableHistory() : undefined),
+    [usePortableMainHistory],
   )
   const historyKey = chatQueryKeys.history(
     effectiveFriendlyId,
@@ -327,6 +330,7 @@ export function useChatHistory({
     queryKey: historyKey,
     queryFn: async function fetchHistoryForSession() {
       if (portableMode) {
+        if (isNewChat) return { sessionKey: 'new', messages: [] }
         return readPortableHistory()
       }
 
@@ -379,6 +383,12 @@ export function useChatHistory({
     enabled: shouldFetchHistory,
     initialData: function useInitialHistory(): HistoryResponse | undefined {
       if (portableMode) {
+        if (isNewChat) {
+          return {
+            sessionKey: 'new',
+            messages: [],
+          }
+        }
         return (
           portableHistory ?? {
             sessionKey: 'main',
