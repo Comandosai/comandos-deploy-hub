@@ -175,6 +175,44 @@ function comandosManifestUrl(): string | null {
   return value || null
 }
 
+function resolveGithubRawBranchUrl(url: string): string {
+  const match = url.match(
+    /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/,
+  )
+  if (!match) return url
+
+  const [, owner, repo, ref, path] = match
+  if (/^[0-9a-f]{40}$/i.test(ref)) return url
+
+  const apiUrl = `https://api.github.com/repos/${encodeURIComponent(
+    owner,
+  )}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(ref)}`
+  const raw = exec(
+    'curl',
+    [
+      '-fsSL',
+      '--max-time',
+      '6',
+      '-H',
+      'Accept: application/vnd.github+json',
+      '-H',
+      'User-Agent: comandos-workspace-update-check',
+      apiUrl,
+    ],
+    { timeout: 8_000 },
+  )
+
+  try {
+    const data = raw ? (JSON.parse(raw) as { sha?: unknown }) : null
+    const sha = typeof data?.sha === 'string' ? data.sha : null
+    return sha && /^[0-9a-f]{40}$/i.test(sha)
+      ? `https://raw.githubusercontent.com/${owner}/${repo}/${sha}/${path}`
+      : url
+  } catch {
+    return url
+  }
+}
+
 function readComandosManifest(): ComandosUpdateManifest | null {
   const url = comandosManifestUrl()
   if (!url) return null
@@ -185,9 +223,23 @@ function readComandosManifest(): ComandosUpdateManifest | null {
     if (url.startsWith('/')) {
       return JSON.parse(readFileSync(url, 'utf8')) as ComandosUpdateManifest
     }
-    const raw = exec('curl', ['-fsSL', '--max-time', '6', url], {
-      timeout: 8_000,
-    })
+    const manifestUrl = resolveGithubRawBranchUrl(url)
+    const raw = exec(
+      'curl',
+      [
+        '-fsSL',
+        '--max-time',
+        '6',
+        '-H',
+        'Cache-Control: no-cache',
+        '-H',
+        'Pragma: no-cache',
+        manifestUrl,
+      ],
+      {
+        timeout: 8_000,
+      },
+    )
     return raw ? (JSON.parse(raw) as ComandosUpdateManifest) : null
   } catch {
     return null

@@ -3,10 +3,11 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.5",
+    "version": "2.3.0-comandos.6",
     "ref": "main",
     "notes": [
-      "Исправлено создание новой сессии в переносимом режиме панели."
+      "Исправлено создание новой сессии в переносимом режиме панели.",
+      "Проверка обновлений теперь обходит кэш GitHub Raw для ветки main."
     ]
   },
   "agent": {
