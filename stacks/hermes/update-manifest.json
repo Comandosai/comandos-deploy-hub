@@ -3,10 +3,10 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.4",
+    "version": "2.3.0-comandos.5",
     "ref": "main",
     "notes": [
-      "Добавлен автоподбор DeepSeek/MiniMax/OpenAI/Qwen по заполненным ключам и запись выбранной модели в Hermes config."
+      "Исправлено создание новой сессии в переносимом режиме панели."
     ]
   },
   "agent": {
