@@ -120,7 +120,7 @@ export function LogsTailCard({
         >
           {previewLines.length === 0 ? (
             <span style={{ color: 'var(--theme-muted)' }}>
-              no recent log lines.
+              свежих строк лога нет.
             </span>
           ) : (
             previewLines.map((line, i) => (

@@ -86,7 +86,7 @@ const PROVIDERS = [
   },
   {
     id: 'custom',
-    name: 'Custom OpenAI-compatible',
+    name: 'Свой OpenAI-совместимый сервер',
     authType: 'api_key',
     envKeys: ['CUSTOM_API_KEY'],
   },

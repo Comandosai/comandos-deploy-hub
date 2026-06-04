@@ -120,10 +120,10 @@ export function TokenMixHourCard({
           className="font-mono text-[9px] uppercase tracking-[0.15em]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          {totalTokens > 0 ? `out/in ${ratio.toFixed(1)}%` : ''}
+          {totalTokens > 0 ? `выход/вход ${ratio.toFixed(1)}%` : ''}
           {totalTokens > 0 && totalSessions > 0 ? ' · ' : ''}
           {totalSessions > 0
-            ? `peak ${formatHour(peakHour)} · ${totalSessions} sess`
+            ? `пик ${formatHour(peakHour)} · ${totalSessions} сессий`
             : ''}
         </span>
       </div>

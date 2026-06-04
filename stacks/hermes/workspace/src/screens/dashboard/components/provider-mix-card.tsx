@@ -199,7 +199,7 @@ export function ProviderMixCard({
                 key={b.key}
                 className="flex items-center justify-between gap-2 text-[10px]"
                 style={{ color: 'var(--theme-muted)' }}
-                title={`${b.sessions} sessions \u00b7 ${formatTokens(b.tokens)} tokens`}
+                title={`${b.sessions} сессий \u00b7 ${formatTokens(b.tokens)} токенов`}
               >
                 <span className="flex min-w-0 items-center gap-1.5 truncate">
                   <span

@@ -1,5 +1,6 @@
 import {
   createKanbanCard,
+  deleteKanbanCard,
   listKanbanCards,
   type KanbanBackendMeta,
   getKanbanBackendMeta,
@@ -163,4 +164,8 @@ export async function updateClaudeTask(taskId: string, updates: UpdateTaskInput)
 
 export async function moveClaudeTask(taskId: string, column: TaskColumn): Promise<ClaudeTaskRecord | null> {
   return updateClaudeTask(taskId, { column })
+}
+
+export async function deleteClaudeTask(taskId: string): Promise<boolean> {
+  return deleteKanbanCard(taskId)
 }

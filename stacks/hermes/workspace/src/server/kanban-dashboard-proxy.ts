@@ -102,6 +102,27 @@ async function dashboardFetch<T>(
   return (await res.json()) as T
 }
 
+async function dashboardFetchVoid(
+  path: string,
+  init: RequestInit = {},
+  params: Record<string, string | undefined> = {},
+): Promise<boolean> {
+  const headers = await buildHeaders()
+  const res = await fetch(dashboardUrl(path, params), {
+    ...init,
+    headers: { ...headers, ...(init.headers || {}) },
+    signal: AbortSignal.timeout(PROXY_TIMEOUT_MS),
+  })
+  if (res.status === 404) return false
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(
+      `Dashboard kanban proxy: ${init.method || 'GET'} ${path} → ${res.status}${body ? ` — ${body.slice(0, 200)}` : ''}`,
+    )
+  }
+  return true
+}
+
 /** Fetch the full board (all columns + tasks) from the dashboard plugin. */
 export function fetchDashboardKanbanBoard(
   board?: string,
@@ -181,6 +202,18 @@ export async function updateDashboardKanbanTask(
     board ? { board } : {},
   )
   return wrapped.task
+}
+
+/** Delete a task from the dashboard board. Returns false when it is already gone. */
+export function deleteDashboardKanbanTask(
+  taskId: string,
+  board?: string,
+): Promise<boolean> {
+  return dashboardFetchVoid(
+    `/api/plugins/kanban/tasks/${encodeURIComponent(taskId)}`,
+    { method: 'DELETE' },
+    board ? { board } : {},
+  )
 }
 
 /**

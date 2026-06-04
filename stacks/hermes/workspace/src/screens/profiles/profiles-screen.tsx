@@ -497,10 +497,22 @@ export function ProfilesScreen() {
                 <button
                   type="button"
                   onClick={() => {
+                    if (profile.name === 'default') return
                     setRenameTarget(profile)
                     setRenameValue(profile.name)
                   }}
-                  className="flex flex-1 items-center justify-center gap-1.5 border-r border-primary-200 py-2.5 text-xs font-semibold text-primary-700 transition-colors hover:bg-primary-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                  disabled={profile.name === 'default' || busy}
+                  title={
+                    profile.name === 'default'
+                      ? 'Базовый профиль default нельзя переименовать'
+                      : 'Переименовать профиль'
+                  }
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-1.5 border-r border-primary-200 py-2.5 text-xs font-semibold transition-colors dark:border-neutral-800',
+                    profile.name === 'default' || busy
+                      ? 'cursor-default text-primary-300 dark:text-neutral-600'
+                      : 'text-primary-700 hover:bg-primary-100 dark:text-neutral-300 dark:hover:bg-neutral-900',
+                  )}
                 >
                   <HugeiconsIcon
                     icon={Edit02Icon}

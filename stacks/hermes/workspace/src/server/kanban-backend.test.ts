@@ -54,6 +54,7 @@ async function loadKanbanBackend(options?: {
       createdAt: 1,
       updatedAt: 2,
     })),
+    deleteSwarmKanbanCard: vi.fn((cardId) => cardId === 'local-1'),
   }))
 
   vi.doMock('node:fs', () => ({
@@ -186,6 +187,8 @@ describe('kanban-backend', () => {
       path: '/tmp/swarm2-kanban.json',
     })
     expect((await mod.listKanbanCards())[0]?.id).toBe('local-1')
+    await expect(mod.deleteKanbanCard('local-1')).resolves.toBe(true)
+    await expect(mod.deleteKanbanCard('missing-local')).resolves.toBe(false)
   })
 
   it('creates and updates Hermes tasks through canonical kanban.db path', async () => {
@@ -229,6 +232,50 @@ describe('kanban-backend', () => {
     expect(sqliteCalls.every((call) => call.startsWith('/Users/aurora/.claude/kanban.db '))).toBe(true)
     expect(sqliteCalls.some((call) => call.includes('insert into tasks'))).toBe(true)
     expect(sqliteCalls.some((call) => call.includes('update tasks set'))).toBe(true)
+  })
+
+  it('deletes native Kanban tasks and related records through canonical kanban.db path', async () => {
+    vi.stubEnv('HERMES_HOME', '/Users/aurora/.claude/profiles/swarm2')
+    vi.stubEnv('CLAUDE_HOME', '/Users/aurora/.claude/profiles/swarm2')
+    vi.stubEnv('CLAUDE_KANBAN_BACKEND', 'claude')
+    const sqliteCalls: string[] = []
+    let deleted = false
+    const mod = await loadKanbanBackend({
+      existsSync: (target) => target === '/Users/aurora/.claude/kanban.db',
+      execFileSync: (command, args = []) => {
+        if (command === 'which' && args[0] === 'claude') throw new Error('not found')
+        if (command === 'sqlite3') {
+          sqliteCalls.push(args.join(' '))
+          const sql = args[2] ?? ''
+          if (sql.includes('delete from tasks')) {
+            deleted = true
+            return '[]'
+          }
+          if (sql.includes('where id =') && !deleted) {
+            return JSON.stringify([
+              {
+                id: 't_delete',
+                title: 'Delete me',
+                body: '',
+                status: 'todo',
+                assignee: null,
+                created_at: 1777527540,
+                updated_at: 1777527540,
+              },
+            ])
+          }
+          return '[]'
+        }
+        throw new Error(`Unexpected command: ${command} ${args.join(' ')}`)
+      },
+    })
+
+    await expect(mod.deleteKanbanCard('t_delete')).resolves.toBe(true)
+
+    expect(sqliteCalls.some((call) => call.includes('delete from task_links'))).toBe(true)
+    expect(sqliteCalls.some((call) => call.includes('delete from task_runs'))).toBe(true)
+    expect(sqliteCalls.some((call) => call.includes('delete from tasks'))).toBe(true)
+    expect(sqliteCalls.every((call) => call.startsWith('/Users/aurora/.claude/kanban.db '))).toBe(true)
   })
 
   it('projects native Kanban tasks without collapsing statuses or dependency/run metadata', async () => {

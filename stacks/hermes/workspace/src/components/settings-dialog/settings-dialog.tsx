@@ -246,7 +246,7 @@ const PROVIDER_CARDS: Array<{
     authType: 'api_key',
     envKey: 'XIAOMI_API_KEY',
   },
-  { id: 'custom', name: 'Custom', logo: '', models: [], authType: 'api_key', envKey: 'CUSTOM_API_KEY' },
+  { id: 'custom', name: 'Свой сервер', logo: '', models: [], authType: 'api_key', envKey: 'CUSTOM_API_KEY' },
 ]
 
 export type ProviderClickAction =
@@ -1012,7 +1012,7 @@ function HermesContent() {
             className="mb-1 text-xs font-semibold uppercase tracking-wider"
             style={mutedStyle}
           >
-            Model — pick one, then confirm below
+            Модель — выберите и подтвердите ниже
           </p>
           <div className="flex flex-wrap gap-2">
             {(() => {

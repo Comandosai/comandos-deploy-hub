@@ -17,10 +17,22 @@ type Props = {
   defaultColumn?: TaskColumn
   assignees: Array<TaskAssignee>
   onSubmit: (input: CreateTaskInput) => Promise<void>
+  onDelete?: () => Promise<void>
   isSubmitting: boolean
+  isDeleting?: boolean
 }
 
-export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees, onSubmit, isSubmitting }: Props) {
+export function TaskDialog({
+  open,
+  onOpenChange,
+  task,
+  defaultColumn,
+  assignees,
+  onSubmit,
+  onDelete,
+  isSubmitting,
+  isDeleting = false,
+}: Props) {
   const isEdit = Boolean(task)
 
   const [title, setTitle] = useState('')
@@ -63,6 +75,12 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       due_date: dueDate || null,
     })
+  }
+
+  async function handleDelete() {
+    if (!task || !onDelete) return
+    if (!window.confirm(`Удалить задачу «${task.title}»?`)) return
+    await onDelete()
   }
 
   const inputClass = cn(
@@ -183,20 +201,31 @@ export function TaskDialog({ open, onOpenChange, task, defaultColumn, assignees,
 
             <div className="flex items-center justify-between pt-2">
               <p className="text-[10px] text-[var(--theme-muted)]">Esc закрывает окно</p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
+                {isEdit && onDelete ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => void handleDelete()}
+                    disabled={isSubmitting || isDeleting}
+                  >
+                    {isDeleting ? 'Удаляю...' : 'Удалить'}
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => onOpenChange(false)}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isDeleting}
                 >
                   Отмена
                 </Button>
                 <Button
                   type="submit"
                   size="sm"
-                  disabled={isSubmitting || !title.trim()}
+                  disabled={isSubmitting || isDeleting || !title.trim()}
                   style={{ background: 'var(--theme-accent)', color: 'var(--theme-on-accent)' }}
                 >
                   {isSubmitting ? 'Сохраняю...' : isEdit ? 'Сохранить' : 'Создать'}

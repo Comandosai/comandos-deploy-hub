@@ -7,6 +7,7 @@ import {
   SWARM_KANBAN_FILE,
   type CreateSwarmKanbanCardInput,
   createSwarmKanbanCard,
+  deleteSwarmKanbanCard,
   listSwarmKanbanCards,
   type SwarmKanbanCard,
   updateSwarmKanbanCard,
@@ -16,6 +17,7 @@ import { CLAUDE_DASHBOARD_URL, getCapabilities } from './gateway-capabilities'
 import {
   fetchDashboardKanbanBoard,
   createDashboardKanbanTask,
+  deleteDashboardKanbanTask,
   updateDashboardKanbanTask,
   type DashboardKanbanTask,
 } from './kanban-dashboard-proxy'
@@ -39,6 +41,7 @@ type KanbanBackend = {
     cardId: string,
     updates: UpdateSwarmKanbanCardInput,
   ): SwarmKanbanCard | null | Promise<SwarmKanbanCard | null>
+  delete(cardId: string): boolean | Promise<boolean>
 }
 
 // Map upstream Hermes kanban statuses (triage/todo/ready/running/done/blocked
@@ -412,6 +415,9 @@ const localBackend: KanbanBackend = {
   update(cardId, updates) {
     return updateSwarmKanbanCard(cardId, updates)
   },
+  delete(cardId) {
+    return deleteSwarmKanbanCard(cardId)
+  },
 }
 
 const claudeBackend: KanbanBackend = {
@@ -504,6 +510,24 @@ const claudeBackend: KanbanBackend = {
     const updated = readClaudeTask(cardId)
     return updated ? claudeTaskToCard(updated) : null
   },
+  delete(cardId) {
+    const detection = detectClaudeKanban()
+    if (!detection.available) return false
+    const current = readClaudeTask(cardId)
+    if (!current) return false
+    const quotedId = sqliteQuote(cardId)
+    runSqlite(
+      detection.dbPath,
+      [
+        'begin immediate;',
+        `delete from task_links where parent_id = ${quotedId} or child_id = ${quotedId};`,
+        `delete from task_runs where task_id = ${quotedId};`,
+        `delete from tasks where id = ${quotedId};`,
+        'commit;',
+      ].join(' '),
+    )
+    return readClaudeTask(cardId) === null
+  },
 }
 
 // Hermes Dashboard kanban plugin backend (HTTP proxy).
@@ -574,6 +598,9 @@ const dashboardProxyBackend: KanbanBackend = {
       throw err
     }
   },
+  async delete(cardId) {
+    return deleteDashboardKanbanTask(cardId)
+  },
 }
 
 /**
@@ -626,4 +653,8 @@ export async function updateKanbanCard(
   updates: UpdateSwarmKanbanCardInput,
 ): Promise<SwarmKanbanCard | null> {
   return Promise.resolve(resolveKanbanBackend().update(cardId, updates))
+}
+
+export async function deleteKanbanCard(cardId: string): Promise<boolean> {
+  return Promise.resolve(resolveKanbanBackend().delete(cardId))
 }

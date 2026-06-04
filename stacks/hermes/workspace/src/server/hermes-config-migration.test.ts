@@ -50,6 +50,10 @@ describe('normalizeHermesConfigState', () => {
       model: 'gpt-5.4',
       source: 'nested',
     })
+    const codex = state.providers.find((p) => p.id === 'openai-codex')
+    expect(codex?.kind).toBe('cli_token')
+    expect(codex?.configured).toBe(false)
+    expect(codex?.authSource).toBe('none')
   })
 
   it('marks DeepSeek env provider as configured and default', () => {

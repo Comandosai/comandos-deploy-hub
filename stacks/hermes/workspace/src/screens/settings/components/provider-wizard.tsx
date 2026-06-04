@@ -471,7 +471,7 @@ export function ProviderWizard({
                   Шаг 2: выберите способ входа
                 </h3>
                 <p className="mt-1 text-sm text-primary-600 text-pretty">
-                  {selectedProvider.name} supports{' '}
+                  {selectedProvider.name} поддерживает:{' '}
                   {selectedProvider.authTypes
                     .map(function mapAuthType(authType) {
                       return getAuthTypeLabel(authType)

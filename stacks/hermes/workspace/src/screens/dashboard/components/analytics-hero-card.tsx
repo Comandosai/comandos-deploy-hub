@@ -242,11 +242,11 @@ export function AnalyticsHeroCard({
               <div className="mt-1 flex items-center gap-4 text-[10px]">
                 <LegendDot
                   tone="var(--theme-accent)"
-                  label="tokens (in+out)"
+                  label="токены (вход+выход)"
                 />
                 <LegendDot
                   tone="var(--theme-accent-secondary)"
-                  label="cache reads"
+                  label="чтения кэша"
                 />
               </div>
             </div>
@@ -255,7 +255,7 @@ export function AnalyticsHeroCard({
                 className="text-[10px] font-semibold uppercase tracking-[0.15em]"
                 style={{ color: 'var(--theme-muted)' }}
               >
-                By model · top 5
+                По моделям · топ 5
               </div>
               {analytics.topModels.map((m, i) => {
                 const max = analytics.topModels[0]?.tokens || 1
@@ -316,7 +316,7 @@ export function AnalyticsHeroCard({
               color: 'var(--theme-muted)',
             }}
           >
-            No analytics usage in the last {analytics.windowDays}d.
+            Нет использования аналитики за последние {analytics.windowDays} дн.
           </div>
         )}
       </div>
@@ -378,15 +378,15 @@ function AnalyticsModal({
               className="text-sm font-semibold uppercase tracking-[0.18em]"
               style={{ color: 'var(--theme-text)' }}
             >
-              Analytics · last {analytics.windowDays}d
+              Аналитика · последние {analytics.windowDays} дн.
             </h2>
             <p
               className="font-mono text-[10px] uppercase tracking-[0.1em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              {formatTokens(analytics.totalTokens)} tokens ·{' '}
-              {analytics.totalSessions.toLocaleString()} sessions ·{' '}
-              {analytics.totalApiCalls.toLocaleString()} calls ·{' '}
+              {formatTokens(analytics.totalTokens)} токенов ·{' '}
+              {analytics.totalSessions.toLocaleString()} сессий ·{' '}
+              {analytics.totalApiCalls.toLocaleString()} вызовов ·{' '}
               {formatCost(analytics.estimatedCostUsd ?? 0)}
             </p>
           </div>
@@ -411,7 +411,7 @@ function AnalyticsModal({
               className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              Daily token mix
+              Токены по дням
             </h3>
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -452,21 +452,21 @@ function AnalyticsModal({
                   />
                   <Bar
                     dataKey="input"
-                    name="input"
+                    name="вход"
                     stackId="t"
                     fill="var(--theme-accent)"
                     radius={[2, 2, 0, 0]}
                   />
                   <Bar
                     dataKey="output"
-                    name="output"
+                    name="выход"
                     stackId="t"
                     fill="var(--theme-success)"
                     radius={[2, 2, 0, 0]}
                   />
                   <Bar
                     dataKey="reasoning"
-                    name="reasoning"
+                    name="рассуждение"
                     stackId="t"
                     fill="var(--theme-warning)"
                     radius={[2, 2, 0, 0]}
@@ -475,9 +475,9 @@ function AnalyticsModal({
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-4 text-[10px]">
-              <LegendDot tone="var(--theme-accent)" label="input" />
-              <LegendDot tone="var(--theme-success)" label="output" />
-              <LegendDot tone="var(--theme-warning)" label="reasoning" />
+              <LegendDot tone="var(--theme-accent)" label="вход" />
+              <LegendDot tone="var(--theme-success)" label="выход" />
+              <LegendDot tone="var(--theme-warning)" label="рассуждение" />
             </div>
           </div>
 
@@ -486,7 +486,7 @@ function AnalyticsModal({
               className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              Models · ranked by tokens
+              Модели · по расходу токенов
             </h3>
             <div className="space-y-2">
               {analytics.topModels.map((m, i) => (
@@ -524,19 +524,19 @@ function AnalyticsModal({
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-[10px]">
                     <span style={{ color: 'var(--theme-muted)' }}>
-                      sessions{' '}
+                      сессии{' '}
                       <span style={{ color: 'var(--theme-text)' }}>
                         {m.sessions.toLocaleString()}
                       </span>
                     </span>
                     <span style={{ color: 'var(--theme-muted)' }}>
-                      calls{' '}
+                      вызовы{' '}
                       <span style={{ color: 'var(--theme-text)' }}>
                         {m.calls.toLocaleString()}
                       </span>
                     </span>
                     <span style={{ color: 'var(--theme-muted)' }}>
-                      cost{' '}
+                      стоимость{' '}
                       <span style={{ color: 'var(--theme-text)' }}>
                         {formatCost(m.cost)}
                       </span>
@@ -552,7 +552,7 @@ function AnalyticsModal({
                     color: 'var(--theme-muted)',
                   }}
                 >
-                  No model data.
+                  Нет данных по моделям.
                 </div>
               ) : null}
             </div>

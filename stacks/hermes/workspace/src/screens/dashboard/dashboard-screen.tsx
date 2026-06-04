@@ -168,7 +168,7 @@ function GlassCard({
   )
 }
 
-function EnhancedBadge({ label = 'Enhanced API' }: { label?: string }) {
+function EnhancedBadge({ label = 'Расширенный API' }: { label?: string }) {
   return (
     <span
       className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]"
@@ -625,9 +625,9 @@ function SessionRow({
             {session.model}
           </span>
         )}
-        <span>{msgs} msgs</span>
-        {tools > 0 && <span>{tools} tools</span>}
-        {tokens > 0 && <span>{formatNumber(tokens)} tok</span>}
+        <span>{msgs} сообщ.</span>
+        {tools > 0 && <span>{tools} инстр.</span>}
+        {tokens > 0 && <span>{formatNumber(tokens)} ток.</span>}
       </div>
       <div className="h-[3px] rounded-full w-full bg-[var(--theme-border)] overflow-hidden">
         <div

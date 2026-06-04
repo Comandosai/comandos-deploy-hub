@@ -167,12 +167,12 @@ export function getResolvedUrls(): {
 }
 
 export const CLAUDE_UPGRADE_INSTRUCTIONS =
-  'Install Hermes Agent, enable API_SERVER_ENABLED=true in ~/.hermes/.env, then start the gateway on :8642 (`hermes gateway run`). COMANDOS Workspace is the main panel; Hermes dashboard is optional legacy compatibility.'
+  'Установите Hermes Agent, включите API_SERVER_ENABLED=true в ~/.hermes/.env и запустите шлюз на :8642 командой `hermes gateway run`. COMANDOS Workspace — основная панель; старый Hermes dashboard нужен только для совместимости.'
 
 export const DASHBOARD_REQUIRED_INSTRUCTIONS =
-  'Hermes dashboard-backed APIs are unavailable. In COMANDOS single-panel mode this is expected; start `hermes dashboard --no-open` only when you explicitly need legacy dashboard APIs.'
+  'API старого Hermes dashboard недоступны. В режиме единой панели COMANDOS это нормально; запускайте `hermes dashboard --no-open` только если явно нужны старые dashboard API.'
 
-export const SESSIONS_API_UNAVAILABLE_MESSAGE = `Your Hermes backend does not support the sessions API. ${CLAUDE_UPGRADE_INSTRUCTIONS}`
+export const SESSIONS_API_UNAVAILABLE_MESSAGE = `Текущая серверная часть Hermes не поддерживает API сессий. ${CLAUDE_UPGRADE_INSTRUCTIONS}`
 
 const PROBE_TIMEOUT_MS = 3_000
 // Probe TTL: 120s when the gateway is healthy, 15s when it isn't. The

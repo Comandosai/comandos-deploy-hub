@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { z } from 'zod'
-import { activateLicense } from '../../../server/license'
+import { activateLicense, normalizeLicenseError } from '../../../server/license'
 import {
   getClientIp,
   rateLimit,
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/api/license/activate')({
         const parsed = ActivateLicenseSchema.safeParse(raw)
         if (!parsed.success) {
           return json(
-            { ok: false, error: 'Invalid request' },
+            { ok: false, error: 'Введите лицензионный ключ.' },
             { status: 400 },
           )
         }
@@ -39,8 +39,8 @@ export const Route = createFileRoute('/api/license/activate')({
             ok: false,
             error:
               error instanceof Error
-                ? error.message
-                : 'License activation failed',
+                ? normalizeLicenseError(error.message)
+                : 'Не удалось активировать лицензию.',
           }),
         )
 

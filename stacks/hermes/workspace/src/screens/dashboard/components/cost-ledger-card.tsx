@@ -144,17 +144,17 @@ export function CostLedgerCard({
               style={{ color: 'var(--theme-text)' }}
             >
               {row.included ? (
-                <span title={`${row.sessions} sessions`}>
+                <span title={`${row.sessions} сессий`}>
                   {formatTokens(row.tokens)}
                   <span
                     className="ml-1"
                     style={{ color: 'var(--theme-muted)' }}
                   >
-                    incl
+                    вкл.
                   </span>
                 </span>
               ) : (
-                <span title={`${row.sessions} sessions \u00b7 ${row.tokens.toLocaleString()} tokens`}>
+                <span title={`${row.sessions} сессий \u00b7 ${row.tokens.toLocaleString()} токенов`}>
                   {formatCostUsd(row.cost)}
                 </span>
               )}

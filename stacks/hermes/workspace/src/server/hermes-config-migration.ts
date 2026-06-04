@@ -1,4 +1,9 @@
-export type HermesProviderKind = 'oauth' | 'api_key' | 'local' | 'custom'
+export type HermesProviderKind =
+  | 'oauth'
+  | 'api_key'
+  | 'local'
+  | 'custom'
+  | 'cli_token'
 
 export type HermesAuthSource =
   | 'env'
@@ -85,7 +90,7 @@ export type NormalizeHermesConfigInput = {
 
 export const HERMES_PROVIDER_CATALOG: Array<ProviderDef> = [
   { id: 'nous', name: 'Nous Portal', kind: 'oauth', envKeys: [], models: [] },
-  { id: 'openai-codex', name: 'OpenAI Codex', kind: 'oauth', envKeys: [], models: [] },
+  { id: 'openai-codex', name: 'OpenAI Codex', kind: 'cli_token', envKeys: [], models: [] },
   { id: 'anthropic', name: 'Anthropic', kind: 'api_key', envKeys: ['ANTHROPIC_API_KEY'], models: [] },
   { id: 'openrouter', name: 'OpenRouter', kind: 'api_key', envKeys: ['OPENROUTER_API_KEY'], models: [] },
   { id: 'deepseek', name: 'DeepSeek', kind: 'api_key', envKeys: ['DEEPSEEK_API_KEY'], models: [] },
@@ -206,6 +211,10 @@ export function normalizeHermesConfigState(input: NormalizeHermesConfigInput): H
         authSource = 'auth-profiles'
         maskedCredentials['auth-profiles'] = maskSecret(token)
       }
+      available = configured
+    }
+
+    if (def.kind === 'cli_token') {
       available = configured
     }
 

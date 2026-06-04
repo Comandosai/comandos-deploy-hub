@@ -782,7 +782,7 @@ type PerformanceDraft = {
 }
 
 const MODEL_PROVIDER_OPTIONS: Array<SelectOption> = [
-  { label: 'Custom', value: 'custom' },
+  { label: 'Свой сервер', value: 'custom' },
   { label: 'OpenRouter', value: 'openrouter' },
   { label: 'Anthropic', value: 'anthropic' },
   { label: 'OpenAI', value: 'openai' },
@@ -1534,7 +1534,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
 
   async function handleDelete(provider: ProviderSummary) {
     const confirmed = window.confirm(
-      `Remove provider "${provider.name}"? This will delete the API key from your local config.`,
+      `Удалить провайдера "${provider.name}"? API-ключ будет удалён из локального конфига.`,
     )
     if (!confirmed) return
 

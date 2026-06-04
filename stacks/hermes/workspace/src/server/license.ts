@@ -41,6 +41,40 @@ type LicenseServerResponse = {
   current_balance?: number
 }
 
+export function normalizeLicenseError(message: string | null | undefined): string {
+  const raw = (message || '').trim()
+  if (!raw) return 'Лицензия не прошла проверку.'
+  const lower = raw.toLowerCase()
+
+  if (lower.includes('license key required') || lower.includes('key is required')) {
+    return 'Введите лицензионный ключ.'
+  }
+
+  if (lower.includes('license key expired') || lower.includes('expired')) {
+    return 'Срок действия лицензии истёк.'
+  }
+
+  if (lower.includes('license server is not configured')) {
+    return 'Сервер лицензий не настроен. Проверьте COMANDOS_LICENSE_SERVER_URL.'
+  }
+
+  if (
+    lower.includes('license key is invalid') ||
+    lower.includes('invalid') ||
+    lower.includes('not found') ||
+    lower.includes('rejected')
+  ) {
+    return 'Лицензия не найдена или отклонена сервером.'
+  }
+
+  const serverReturned = raw.match(/^License server returned\s+(\d{3})$/i)
+  if (serverReturned) {
+    return `Сервер лицензий вернул ошибку ${serverReturned[1]}. Проверьте адрес сервера и ключ.`
+  }
+
+  return raw
+}
+
 function hermesHome(): string {
   return process.env.HERMES_HOME ?? process.env.CLAUDE_HOME ?? join(homedir(), '.hermes')
 }
@@ -131,7 +165,7 @@ export function getLicenseStatus(): LicenseStatus {
       required: true,
       activated: false,
       status: 'missing',
-      message: 'License key required',
+      message: normalizeLicenseError('License key required'),
     }
   }
 
@@ -140,7 +174,7 @@ export function getLicenseStatus(): LicenseStatus {
       required: true,
       activated: false,
       status: 'expired',
-      message: 'License key expired',
+      message: normalizeLicenseError('License key expired'),
       activationId: activation.activationId,
       licensedTo: activation.licensedTo,
       expiresAt: activation.expiresAt,
@@ -186,7 +220,7 @@ async function validateWithLicenseServer(
     return {
       ok: false,
       valid: false,
-      error: 'License server is not configured',
+      error: normalizeLicenseError('License server is not configured'),
     }
   }
 
@@ -204,7 +238,9 @@ async function validateWithLicenseServer(
     return {
       ok: false,
       valid: false,
-      error: payload.error || payload.message || `License server returned ${response.status}`,
+      error: normalizeLicenseError(
+        payload.error || payload.message || `License server returned ${response.status}`,
+      ),
     }
   }
 
@@ -212,7 +248,7 @@ async function validateWithLicenseServer(
     return {
       ok: false,
       valid: false,
-      error: payload.error || payload.message || 'License key is invalid',
+      error: normalizeLicenseError(payload.error || payload.message || 'License key is invalid'),
     }
   }
 
@@ -234,7 +270,7 @@ export async function activateLicense(
   if (!key) {
     return {
       ok: false,
-      error: 'License key is required',
+      error: normalizeLicenseError('License key is required'),
       status: getLicenseStatus(),
     }
   }
@@ -249,14 +285,15 @@ export async function activateLicense(
   const result = await validateWithLicenseServer(key)
   const valid = result.ok === true || result.valid === true
   if (!valid) {
+    const error = normalizeLicenseError(result.error || result.message || 'License key is invalid')
     return {
       ok: false,
-      error: result.error || result.message || 'License key is invalid',
+      error,
       status: {
         required: true,
         activated: false,
         status: 'invalid',
-        message: result.error || result.message || 'License key is invalid',
+        message: error,
       },
     }
   }

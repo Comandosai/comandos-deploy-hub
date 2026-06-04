@@ -97,9 +97,9 @@ export function CacheEfficiencyCard({
         <span
           className="font-mono text-[10px] uppercase tracking-[0.1em]"
           style={{ color: 'var(--theme-muted)' }}
-          title="Cache reads divided by (cache reads + first-pass input)."
+          title="Чтения из кэша, делённые на сумму чтений из кэша и первичного входа."
         >
-          hit rate
+          попадания
         </span>
       </div>
 
@@ -111,22 +111,21 @@ export function CacheEfficiencyCard({
           <span style={{ color: 'var(--theme-text)' }}>
             {formatTokens(cache)}
           </span>{' '}
-          cache /{' '}
+          кэш /{' '}
           <span style={{ color: 'var(--theme-text)' }}>
             {formatTokens(input)}
           </span>{' '}
-          input
+          вход
           <br />
           <span
             className="font-mono"
-            title="How many cache tokens per fresh input token."
+            title="Сколько токенов кэша приходится на один новый входной токен."
           >
-            {ratio.toFixed(1)}× ratio
+            {ratio.toFixed(1)}× коэффициент
           </span>
         </div>
 
-        {/* Daily hit-rate sparkline — bars rather than a line so a
-            single zero day is obvious rather than buried in a slope. */}
+        {/* Bars make a zero day obvious instead of hiding it in a line slope. */}
         <div
           className="flex items-end gap-[2px]"
           style={{ height: 28, width: 96 }}

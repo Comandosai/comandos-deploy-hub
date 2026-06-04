@@ -128,7 +128,7 @@ export function VelocityCard({
           className="font-mono uppercase tracking-[0.1em]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          {formatNumber(callsPerDay)} calls/day
+          {formatNumber(callsPerDay)} вызовов/день
         </span>
         <div
           className="flex items-end gap-[2px]"
@@ -146,7 +146,7 @@ export function VelocityCard({
                     ? 'color-mix(in srgb, var(--theme-border) 35%, transparent)'
                     : `color-mix(in srgb, var(--theme-accent) ${Math.max(40, (c / max) * 100)}%, transparent)`,
               }}
-              title={`day ${idx + 1}: ${c} session${c === 1 ? '' : 's'}`}
+              title={`день ${idx + 1}: ${c} сессий`}
             />
           ))}
         </div>

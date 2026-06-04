@@ -128,16 +128,16 @@ export function AnalyticsChartCard({
                 className="text-[11px] font-semibold uppercase tracking-[0.18em]"
                 style={{ color: 'var(--theme-text)' }}
               >
-                Usage trend · {period}d
+                Динамика использования · {period} дн.
               </h3>
               <p
                 className="font-mono text-[10px] uppercase tracking-[0.1em]"
                 style={{ color: 'var(--theme-muted)' }}
               >
-                {formatTokens(analytics.totalTokens)} tokens ·{' '}
-                {analytics.totalApiCalls.toLocaleString()} calls ·{' '}
+                {formatTokens(analytics.totalTokens)} ток. ·{' '}
+                {analytics.totalApiCalls.toLocaleString()} вызовов ·{' '}
                 {formatCost(analytics.estimatedCostUsd ?? 0)}
-                {loading ? ' · refreshing…' : ''}
+                {loading ? ' · обновляю…' : ''}
               </p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export function AnalyticsChartCard({
                   color: 'var(--theme-muted)',
                 }}
               >
-                Expand →
+                Подробнее →
               </button>
             ) : null}
           </div>
@@ -267,7 +267,7 @@ export function AnalyticsChartCard({
                 <Area
                   type="monotone"
                   dataKey="cache"
-                  name="cache"
+                  name="кэш"
                   stroke="var(--theme-accent-secondary)"
                   fill="url(#acache)"
                   strokeWidth={1}
@@ -276,7 +276,7 @@ export function AnalyticsChartCard({
                 <Area
                   type="monotone"
                   dataKey="tokens"
-                  name="tokens"
+                  name="токены"
                   stroke="var(--theme-accent)"
                   fill="url(#atok)"
                   strokeWidth={1.6}
@@ -293,16 +293,16 @@ export function AnalyticsChartCard({
               color: 'var(--theme-muted)',
             }}
           >
-            No analytics usage in the last {analytics.windowDays}d.
+            За последние {analytics.windowDays} дн. использования не было.
           </div>
         )}
 
         {hasData ? (
           <div className="flex items-center gap-4 text-[10px]">
-            <Legend tone="var(--theme-accent)" label="tokens (in+out)" />
+            <Legend tone="var(--theme-accent)" label="токены вход+выход" />
             <Legend
               tone="var(--theme-accent-secondary)"
-              label="cache reads"
+              label="чтение кэша"
             />
           </div>
         ) : null}
@@ -411,15 +411,15 @@ function AnalyticsModal({
               className="text-sm font-semibold uppercase tracking-[0.18em]"
               style={{ color: 'var(--theme-text)' }}
             >
-              Usage trend · last {period}d
+              Динамика использования · последние {period} дн.
             </h2>
             <p
               className="font-mono text-[10px] uppercase tracking-[0.1em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              {formatTokens(analytics.totalTokens)} tokens ·{' '}
-              {analytics.totalSessions.toLocaleString()} sessions ·{' '}
-              {analytics.totalApiCalls.toLocaleString()} calls ·{' '}
+              {formatTokens(analytics.totalTokens)} ток. ·{' '}
+              {analytics.totalSessions.toLocaleString()} сессий ·{' '}
+              {analytics.totalApiCalls.toLocaleString()} вызовов ·{' '}
               {formatCost(analytics.estimatedCostUsd ?? 0)}
             </p>
           </div>
@@ -444,7 +444,7 @@ function AnalyticsModal({
               className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              Daily token mix
+              Токены по дням
             </h3>
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -508,9 +508,9 @@ function AnalyticsModal({
               </ResponsiveContainer>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-4 text-[10px]">
-              <Legend tone="var(--theme-accent)" label="input" />
-              <Legend tone="var(--theme-success)" label="output" />
-              <Legend tone="var(--theme-warning)" label="reasoning" />
+              <Legend tone="var(--theme-accent)" label="вход" />
+              <Legend tone="var(--theme-success)" label="выход" />
+              <Legend tone="var(--theme-warning)" label="рассуждение" />
             </div>
           </div>
 
@@ -519,7 +519,7 @@ function AnalyticsModal({
               className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              Models · ranked by tokens
+              Модели · по расходу токенов
             </h3>
             <div className="space-y-2">
               {analytics.topModels.map((m, i) => (
@@ -557,19 +557,19 @@ function AnalyticsModal({
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-[10px]">
                     <span style={{ color: 'var(--theme-muted)' }}>
-                      sessions{' '}
+                      сессии{' '}
                       <span style={{ color: 'var(--theme-text)' }}>
                         {m.sessions.toLocaleString()}
                       </span>
                     </span>
                     <span style={{ color: 'var(--theme-muted)' }}>
-                      calls{' '}
+                      вызовы{' '}
                       <span style={{ color: 'var(--theme-text)' }}>
                         {m.calls.toLocaleString()}
                       </span>
                     </span>
                     <span style={{ color: 'var(--theme-muted)' }}>
-                      cost{' '}
+                      стоимость{' '}
                       <span style={{ color: 'var(--theme-text)' }}>
                         {formatCost(m.cost)}
                       </span>

@@ -25,6 +25,7 @@ async function loadBackend(options?: {
     updatedAt: 1_700_000_000_000,
   }))
   const updateKanbanCard = vi.fn(async (_taskId, _updates) => options?.updatedCard ?? null)
+  const deleteKanbanCard = vi.fn(async (taskId: string) => taskId === 'card-2')
   const getKanbanBackendMeta = vi.fn(() => ({
     id: 'hermes-proxy',
     label: 'Hermes Dashboard kanban',
@@ -36,11 +37,12 @@ async function loadBackend(options?: {
     listKanbanCards,
     createKanbanCard,
     updateKanbanCard,
+    deleteKanbanCard,
     getKanbanBackendMeta,
   }))
 
   const mod = await import('./claude-tasks-backend')
-  return { mod, listKanbanCards, createKanbanCard, updateKanbanCard, getKanbanBackendMeta }
+  return { mod, listKanbanCards, createKanbanCard, updateKanbanCard, deleteKanbanCard, getKanbanBackendMeta }
 }
 
 describe('claude-tasks-backend', () => {
@@ -118,5 +120,15 @@ describe('claude-tasks-backend', () => {
     const task = await mod.moveClaudeTask('card-2', 'blocked')
     expect(updateKanbanCard).toHaveBeenCalledWith('card-2', expect.objectContaining({ status: 'blocked' }))
     expect(task).toMatchObject({ id: 'card-2', column: 'blocked' })
+  })
+
+  it('deletes tasks through the shared kanban backend', async () => {
+    const { mod, deleteKanbanCard } = await loadBackend()
+
+    await expect(mod.deleteClaudeTask('card-2')).resolves.toBe(true)
+    await expect(mod.deleteClaudeTask('missing-card')).resolves.toBe(false)
+
+    expect(deleteKanbanCard).toHaveBeenCalledWith('card-2')
+    expect(deleteKanbanCard).toHaveBeenCalledWith('missing-card')
   })
 })

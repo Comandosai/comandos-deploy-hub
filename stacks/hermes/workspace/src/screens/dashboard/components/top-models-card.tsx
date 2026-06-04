@@ -120,7 +120,7 @@ export function TopModelsCard({
                 style={{ color: 'var(--theme-muted)' }}
               >
                 <span>
-                  {sharePct}% of calls · {m.sessions.toLocaleString()} sessions
+                  {sharePct}% вызовов · {m.sessions.toLocaleString()} сессий
                 </span>
                 <span>{formatCost(m.cost)}</span>
               </div>

@@ -39,10 +39,10 @@ export function DebugPanel({
       <div className="flex items-center gap-2 border-b border-primary-700/40 px-4 py-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-medium text-primary-100 text-balance">
-            Debug Analyzer
+            Диагностика терминала
           </h3>
           <p className="text-xs text-primary-400 text-pretty">
-            Диагностика проблем активного терминала с помощью агента
+            Разбор последних строк активного терминала
           </p>
         </div>
         <Button
@@ -73,7 +73,7 @@ export function DebugPanel({
           <div className="space-y-4">
             <section className="rounded-lg border border-accent-500/40 bg-accent-500/10 p-3">
               <h4 className="text-xs font-medium text-accent-200 text-balance">
-                Summary
+                Кратко
               </h4>
               <p className="mt-1 text-sm text-accent-100 text-pretty">
                 {analysis.summary}
@@ -82,7 +82,7 @@ export function DebugPanel({
 
             <section className="rounded-lg border border-primary-700/50 bg-primary-900/40 p-3">
               <h4 className="text-xs font-medium text-primary-300 text-balance">
-                Root Cause
+                Возможная причина
               </h4>
               <p className="mt-1 text-sm text-primary-100 text-pretty">
                 {analysis.rootCause}
@@ -91,7 +91,7 @@ export function DebugPanel({
 
             <section>
               <h4 className="text-xs font-medium text-primary-300 text-balance">
-                Suggested Commands
+                Что проверить
               </h4>
               {analysis.suggestedCommands.length > 0 ? (
                 <ul className="mt-2 space-y-2">
@@ -114,7 +114,7 @@ export function DebugPanel({
                                 onRunCommand(item.command)
                               }}
                             >
-                              ▶ Run
+                              Запустить
                             </Button>
                           </div>
                           <p className="mt-2 text-xs text-primary-400 text-pretty">
@@ -127,7 +127,7 @@ export function DebugPanel({
                 </ul>
               ) : (
                 <p className="mt-2 text-xs text-primary-500 text-pretty">
-                  No command suggestions were returned.
+                  Команд для проверки не предложено.
                 </p>
               )}
             </section>
@@ -135,7 +135,7 @@ export function DebugPanel({
             {analysis.docsLink ? (
               <section className="rounded-lg border border-primary-700/50 bg-primary-900/30 p-3">
                 <h4 className="text-xs font-medium text-primary-300 text-balance">
-                  Documentation
+                  Документация
                 </h4>
                 <a
                   href={analysis.docsLink}
@@ -152,7 +152,7 @@ export function DebugPanel({
 
         {!isLoading && !analysis ? (
           <p className="text-sm text-primary-500 text-pretty">
-            Click Debug to analyze the most recent terminal output.
+            Нажмите анализ терминала, чтобы разобрать последние строки вывода.
           </p>
         ) : null}
       </div>

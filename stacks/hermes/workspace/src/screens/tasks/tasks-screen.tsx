@@ -129,7 +129,7 @@ export function TasksScreen() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteTask,
-    onSuccess: () => { invalidate(); toast('Задача удалена') },
+    onSuccess: () => { invalidate(); toast('Задача удалена'); setEditingTask(null) },
     onError: (e) => toast(e instanceof Error ? e.message : 'Не удалось удалить задачу', { type: 'error' }),
   })
 
@@ -384,9 +384,14 @@ export function TasksScreen() {
         task={editingTask}
         assignees={assignees}
         isSubmitting={updateMutation.isPending}
+        isDeleting={deleteMutation.isPending}
         onSubmit={async (input) => {
           if (!editingTask) return
           await updateMutation.mutateAsync({ id: editingTask.id, input })
+        }}
+        onDelete={async () => {
+          if (!editingTask) return
+          await deleteMutation.mutateAsync(editingTask.id)
         }}
       />
     </div>
