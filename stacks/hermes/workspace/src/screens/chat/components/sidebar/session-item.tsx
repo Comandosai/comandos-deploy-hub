@@ -177,7 +177,7 @@ function SessionItemComponent({
             'opacity-0 transition-opacity group-hover:opacity-100 hover:bg-primary-200 dark:hover:bg-primary-800',
             'aria-expanded:opacity-100 aria-expanded:bg-primary-200',
           )}
-          aria-label="Session options"
+          aria-label="Настройки сессии"
         >
           <HugeiconsIcon
             icon={MoreHorizontalIcon}

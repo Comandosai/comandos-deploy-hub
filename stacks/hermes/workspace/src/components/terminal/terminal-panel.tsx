@@ -13,6 +13,10 @@ import {
   Search01Icon,
 } from '@hugeicons/core-free-icons'
 import { Button } from '@/components/ui/button'
+import {
+  fitXtermAndHideMeasureElements,
+  hideXtermMeasureElements,
+} from '@/components/terminal/xterm-accessibility'
 import { cn } from '@/lib/utils'
 
 const PANEL_HEIGHT_KEY = 'terminal.panel.height'
@@ -169,7 +173,9 @@ export function TerminalPanel({ isMobile }: TerminalPanelProps) {
         setHeight(nextHeight)
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
         const fit = fitMap.current.get(activeTab?.id ?? '')
-        fit?.fit()
+        if (fit) {
+          fitXtermAndHideMeasureElements(fit, null)
+        }
       }
 
       const handleUp = () => {
@@ -220,7 +226,8 @@ export function TerminalPanel({ isMobile }: TerminalPanelProps) {
       terminal.loadAddon(webLinks)
       terminal.loadAddon(searchAddon)
       terminal.open(container)
-      fitAddon.fit()
+      hideXtermMeasureElements(container)
+      fitXtermAndHideMeasureElements(fitAddon, container)
 
       const storedTab = tabs.find((tab) => tab.id === tabId)
       if (storedTab?.log) {

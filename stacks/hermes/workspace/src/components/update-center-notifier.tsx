@@ -240,7 +240,7 @@ export function UpdateCenterNotifier() {
   return (
     <>
       <ReleaseNotes notes={notes} onClose={closeNotes} />
-      <div className="pointer-events-none fixed left-1/2 top-[calc(var(--titlebar-h,0px)+1rem)] z-[9998] flex w-[92vw] max-w-md -translate-x-1/2 flex-col gap-3">
+      <div className="pointer-events-none fixed left-1/2 top-[calc(var(--titlebar-h,0px)+1rem)] z-[9998] flex w-[92vw] max-w-md -translate-x-1/2 flex-col gap-3 md:left-auto md:right-4 md:top-[calc(var(--titlebar-h,0px)+4.75rem)] md:w-[min(28rem,calc(100vw-332px))] md:translate-x-0">
         <AnimatePresence>
           {visibleProducts.map((product) => (
             <UpdateCard

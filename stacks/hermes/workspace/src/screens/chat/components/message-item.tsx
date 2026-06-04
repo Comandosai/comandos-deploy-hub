@@ -2619,7 +2619,7 @@ function MessageItemComponent({
                       >
                         <img
                           src={source}
-                          alt={attachment.name || 'Attached image'}
+                          alt={attachment.name || 'Прикреплённое изображение'}
                           className="max-h-64 w-auto max-w-full object-contain"
                           loading="lazy"
                         />

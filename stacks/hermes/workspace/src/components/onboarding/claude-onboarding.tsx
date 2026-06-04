@@ -1137,12 +1137,12 @@ export function ClaudeOnboarding() {
               >
                 <div className="rounded-xl p-2" style={cardStyle}>
                   <div className="mb-1 text-lg">💬</div>
-                  <div>Chat Ready</div>
+                  <div>Чат готов</div>
                 </div>
                 <div className="rounded-xl p-2" style={cardStyle}>
                   <div className="mb-1 text-lg">🔗</div>
                   <div>
-                    {enhancedFeatures.length > 0 ? 'Enhanced' : 'Portable'}
+                    {enhancedFeatures.length > 0 ? 'Расширенный' : 'Переносимый'}
                   </div>
                 </div>
                 <div className="rounded-xl p-2" style={cardStyle}>
@@ -1150,21 +1150,21 @@ export function ClaudeOnboarding() {
                   <div>
                     {enhancedFeatures.length > 0
                       ? enhancedFeatures.length
-                      : 'Optional'}{' '}
-                    Extras
+                      : 'Опционально'}{' '}
+                    Дополнения
                   </div>
                 </div>
               </div>
               {enhancedFeatures.length > 0 ? (
                 <p className="text-xs" style={mutedStyle}>
-                  Available now: {enhancedFeatures.join(', ')}.
+                  Уже доступно: {enhancedFeatures.join(', ')}.
                 </p>
               ) : null}
               <button
                 onClick={complete}
                 className="w-full rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
               >
-                Open Workspace
+                Открыть Workspace
               </button>
             </div>
           )}

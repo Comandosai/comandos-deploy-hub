@@ -116,15 +116,15 @@ function PlaygroundChatInner({ worldId, messages, onSend, collapsed = false, onT
       {!visiblyCollapsed && (
         <>
           <div className="flex items-center gap-1 border-b border-white/8 px-2 py-1.5">
-            <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} label="All" count={messages.length} />
-            <FilterButton active={filter === 'humans'} onClick={() => setFilter('humans')} label="Humans" count={humanMessages.length} />
+            <FilterButton active={filter === 'all'} onClick={() => setFilter('all')} label="Все" count={messages.length} />
+            <FilterButton active={filter === 'humans'} onClick={() => setFilter('humans')} label="Люди" count={humanMessages.length} />
             <FilterButton active={filter === 'npcs'} onClick={() => setFilter('npcs')} label="NPC" count={npcMessages.length} />
-            <span className="ml-auto text-[9px] text-white/32">NPC flavor is local, not analytics</span>
+            <span className="ml-auto text-[9px] text-white/32">Реплики NPC локальные, не аналитика</span>
           </div>
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-3 py-2 text-[12px] leading-snug">
             {visibleMessages.length === 0 ? (
               <div className="text-center text-white/40">
-                {filter === 'humans' ? 'No human chat yet — say hi 👋' : filter === 'npcs' ? 'No ambient NPC lines yet.' : 'No messages yet — say hi 👋'}
+                {filter === 'humans' ? 'Сообщений от людей пока нет' : filter === 'npcs' ? 'Фоновых реплик NPC пока нет' : 'Сообщений пока нет'}
               </div>
             ) : (
               visibleMessages.map((m) => {

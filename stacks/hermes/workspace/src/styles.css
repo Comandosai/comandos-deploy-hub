@@ -59,6 +59,19 @@ html[data-theme^='komandos'] body {
   isolation: isolate;
 }
 
+.xterm-char-measure-element {
+  position: absolute !important;
+  left: -9999px !important;
+  top: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+[style*='top: -50000px'][style*='width: 50000px'][style*='white-space: pre'] {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Global theme utilities — use these in components
    ═══════════════════════════════════════════════════════════════ */

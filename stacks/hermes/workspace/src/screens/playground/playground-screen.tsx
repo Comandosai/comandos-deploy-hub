@@ -1493,7 +1493,7 @@ function PlaygroundUtilityDock({
       <button
         onClick={captureScreenshot}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title="Screenshot the world (PNG)"
+        title="Сделать снимок мира (PNG)"
       >
         📸
       </button>

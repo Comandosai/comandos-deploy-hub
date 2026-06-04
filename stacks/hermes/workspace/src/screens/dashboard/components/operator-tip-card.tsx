@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Idea01Icon, Refresh01Icon } from '@hugeicons/core-free-icons'
 import type { DashboardOverview } from '@/server/dashboard-aggregator'
@@ -33,11 +32,11 @@ type Tip = {
 const TIPS: ReadonlyArray<Tip> = [
   {
     id: 'cache-low',
-    title: 'Cache hit rate is low',
-    body: "Reusable system prompts get cached on most providers. Pin shared scaffolding (skills, persona, tools) into a stable preamble so the next request hits cache instead of paying for fresh input.",
+    title: 'Низкий процент кеша',
+    body: 'Повторяемые системные инструкции лучше держать стабильными: навыки, роль и инструменты должны меньше меняться между запросами. Тогда следующий запрос чаще использует кеш, а не платит за весь ввод заново.',
     tone: 'warn',
-    cta: 'Open analytics',
-    href: '/analytics',
+    cta: 'К аналитике',
+    href: '/dashboard',
     score: (o) => {
       const a = o?.analytics
       if (!a || a.source !== 'analytics') return 0
@@ -49,8 +48,8 @@ const TIPS: ReadonlyArray<Tip> = [
   },
   {
     id: 'cache-high',
-    title: 'Cache hit rate looks great',
-    body: "Cache reads are doing the heavy lifting. Worth checking if any *cold* sessions are skipping your shared preamble — those usually represent untapped savings.",
+    title: 'Кеш работает хорошо',
+    body: 'Кеш берёт на себя заметную часть нагрузки. Проверьте только новые сессии: если они не используют общий ввод, там ещё можно снизить расход.',
     tone: 'positive',
     score: (o) => {
       const a = o?.analytics
@@ -63,10 +62,10 @@ const TIPS: ReadonlyArray<Tip> = [
   },
   {
     id: 'stale-cron',
-    title: 'You have stale cron jobs',
-    body: "Cron jobs that haven't run in 7+ days are usually a sign of a paused integration or a misconfigured schedule. Worth a quick triage so you don't lose silent automation.",
+    title: 'Есть устаревшие задания',
+    body: 'Задания, которые давно не запускались, часто означают паузу интеграции или ошибку расписания. Лучше быстро проверить их, чтобы автоматизация не молчала незаметно.',
     tone: 'warn',
-    cta: 'Open jobs',
+    cta: 'Открыть задания',
     href: '/jobs',
     score: (o) => {
       const cron = o?.cron
@@ -82,10 +81,10 @@ const TIPS: ReadonlyArray<Tip> = [
   },
   {
     id: 'config-drift',
-    title: 'Gateway config has drift',
-    body: "There are pending diffs between your local gateway config and the latest committed version. Apply or reject them so your live behavior matches what the repo says.",
+    title: 'Конфигурация шлюза отличается',
+    body: 'Локальные настройки шлюза отличаются от сохранённой версии. Примените или отклоните изменения, чтобы рабочее поведение совпадало с тем, что лежит в репозитории.',
     tone: 'warn',
-    cta: 'Open settings',
+    cta: 'Открыть настройки',
     href: '/settings',
     score: (o) => {
       const s = o?.status
@@ -102,19 +101,19 @@ const TIPS: ReadonlyArray<Tip> = [
   },
   {
     id: 'restart-pending',
-    title: 'Gateway restart pending',
-    body: "Some config or plugin change wants a gateway restart to take effect. Best to do it during a quiet window — long-running sessions handle it gracefully.",
+    title: 'Нужен перезапуск шлюза',
+    body: 'Часть изменений вступит в силу только после перезапуска шлюза. Лучше сделать это в спокойный момент, чтобы не мешать текущим задачам.',
     tone: 'warn',
-    cta: 'Open settings',
+    cta: 'Открыть настройки',
     href: '/settings',
     score: (o) => (o?.status?.restartRequested ? 75 : 0),
   },
   {
     id: 'achievements-momentum',
-    title: 'Achievement momentum',
-    body: "You unlocked something recently — keep going. The Hermes achievements track real workflows, so the next tier usually drops out of normal usage rather than grinding.",
+    title: 'Есть свежий прогресс',
+    body: 'Недавно разблокировано достижение. Достижения Hermes привязаны к реальным сценариям, поэтому следующий уровень обычно появляется в обычной работе.',
     tone: 'positive',
-    cta: 'View all',
+    cta: 'Посмотреть',
     score: (o) => {
       const ach = o?.achievements
       if (!ach || ach.recentUnlocks.length === 0) return 0
@@ -126,11 +125,11 @@ const TIPS: ReadonlyArray<Tip> = [
   },
   {
     id: 'sessions-low',
-    title: 'Things have been quiet',
-    body: "Session count is below the prior period — could be intentional, could be silent breakage. Worth scanning recent logs and reviewing your cron / heartbeat schedule.",
+    title: 'Сессий стало меньше',
+    body: 'Сессий меньше, чем раньше. Это может быть нормально, а может быть тихой поломкой. Проверьте последние сессии, задания и расписание.',
     tone: 'info',
-    cta: 'Open sessions',
-    href: '/sessions',
+    cta: 'Открыть чат',
+    href: '/chat',
     score: (o) => {
       const a = o?.analytics
       if (!a || a.source !== 'analytics') return 0
@@ -146,11 +145,11 @@ const TIPS: ReadonlyArray<Tip> = [
   },
   {
     id: 'top-model-share',
-    title: 'One model is doing all the work',
-    body: "Concentration risk: if your top model is handling >70% of calls, an outage or pricing change hits hard. Worth setting up a fallback even if you never use it.",
+    title: 'Одна модель делает почти всё',
+    body: 'Если одна модель обрабатывает больше 70% запросов, сбой или изменение цены ударит по всей работе. Лучше заранее настроить запасную модель.',
     tone: 'info',
-    cta: 'Open models',
-    href: '/models',
+    cta: 'Открыть модели',
+    href: '/settings/providers',
     score: (o) => {
       const a = o?.analytics
       if (!a || a.source !== 'analytics') return 0
@@ -165,15 +164,15 @@ const TIPS: ReadonlyArray<Tip> = [
   // nothing context-specific is more relevant.
   {
     id: 'edit-mode',
-    title: 'Customize this dashboard',
-    body: "Use the pencil icon in the header to enter edit mode. You can hide widgets you don't care about and reveal extras (Provider Mix, Velocity, Cost Ledger, Live Logs) from the picker.",
+    title: 'Настройте панель под себя',
+    body: 'Нажмите карандаш в шапке, чтобы скрыть лишние блоки или вернуть дополнительные виджеты из списка.',
     tone: 'info',
     score: () => 5,
   },
   {
     id: 'skills-shortcut',
-    title: 'Skills are first-class',
-    body: "Hermes loads skills into context on demand. Click any row in Skills Usage to jump to that skill's page and edit its SKILL.md — every change is hot-reloaded.",
+    title: 'Навыки доступны из панели',
+    body: 'Hermes подгружает навыки по мере необходимости. Через блок навыков можно быстро перейти к их управлению.',
     tone: 'info',
     cta: 'Открыть навыки',
     href: '/skills',
@@ -203,8 +202,6 @@ export function OperatorTipCard({
 }: {
   overview: DashboardOverview | null
 }) {
-  const navigate = useNavigate()
-
   // Sort once per overview update. Highest-scoring tips first; ties
   // broken by the catalog's own order (stable).
   const ranked = useMemo(() => {
@@ -244,11 +241,7 @@ export function OperatorTipCard({
       window.open(tip.href, '_blank', 'noopener,noreferrer')
       return
     }
-    if (tip.href === '/chat/new') {
-      navigate({ to: '/chat/$sessionKey', params: { sessionKey: 'new' } })
-      return
-    }
-    navigate({ to: tip.href as never })
+    window.location.href = tip.href
   }
 
   return (
@@ -290,7 +283,7 @@ export function OperatorTipCard({
             className="font-mono text-[9px] uppercase tracking-[0.18em]"
             style={{ color: tone }}
           >
-            Tip · {index + 1}/{ranked.length}
+          Совет · {index + 1}/{ranked.length}
           </span>
           <div className="flex items-center gap-1.5">
             {tip.href ? (
@@ -303,14 +296,14 @@ export function OperatorTipCard({
                   color: 'var(--theme-text)',
                 }}
               >
-                {tip.cta ?? 'Open'} →
+                {tip.cta ?? 'Открыть'} →
               </button>
             ) : null}
             <button
               type="button"
               onClick={handleNext}
-              aria-label="Next tip"
-              title="Next tip"
+              aria-label="Следующий совет"
+              title="Следующий совет"
               className="inline-flex size-6 items-center justify-center rounded-full border transition-all hover:scale-[1.05] hover:bg-[var(--theme-card)]/70"
               style={{
                 borderColor: 'var(--theme-border)',

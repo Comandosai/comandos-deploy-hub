@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import type { DashboardOverview } from '@/server/dashboard-aggregator'
 
@@ -90,7 +89,6 @@ export function OpsStrip({
   cron: DashboardOverview['cron']
   platforms: DashboardOverview['platforms']
 }) {
-  const navigate = useNavigate()
   if (!status) return null
 
   const ok =
@@ -171,9 +169,8 @@ export function OpsStrip({
           </span>
         ) : null}
         {drift > 0 ? (
-          <button
-            type="button"
-            onClick={() => navigate({ to: '/settings', search: {} })}
+          <a
+            href="/settings"
             className="rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] transition-colors hover:bg-[var(--theme-card)]/80"
             style={{
               background:
@@ -185,7 +182,7 @@ export function OpsStrip({
             title={`Локальная конфигурация v${status.configVersion} · свежая v${status.latestConfigVersion}`}
           >
             расхождение конфигурации: {drift}
-          </button>
+          </a>
         ) : null}
       </div>
 
@@ -220,9 +217,8 @@ export function OpsStrip({
           const isStale = next?.text === 'устарело'
           const isWarn = next?.text === 'просрочено' || isStale
           return (
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/jobs' })}
+            <a
+              href="/jobs"
               className="inline-flex items-center gap-2 rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors hover:bg-[var(--theme-card)]/80"
               style={{
                 borderColor: isWarn
@@ -254,7 +250,7 @@ export function OpsStrip({
               {next ? (
                 <span style={{ color: next.tone }}>· {next.text}</span>
               ) : null}
-            </button>
+            </a>
           )
         })() : null}
       </div>

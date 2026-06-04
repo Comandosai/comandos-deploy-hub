@@ -1771,7 +1771,7 @@ function OrchestratorAvatarComponent({ size = 48, compact = false }: Orchestrato
         type="button"
         onClick={() => setShowPicker((v) => !v)}
         className="absolute -right-1 -top-1 rounded-full border border-primary-300/70 bg-primary-100/90 p-1 text-primary-500 shadow-sm transition-all hover:bg-primary-200 hover:text-primary-800 hover:scale-110"
-        aria-label="Change avatar"
+        aria-label="Изменить аватар"
       >
         <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
           <path d="M12.146.854a.5.5 0 0 1 .708 0l2.292 2.292a.5.5 0 0 1 0 .708L5.854 13.146a.5.5 0 0 1-.233.131l-3.5 1a.5.5 0 0 1-.617-.617l1-3.5a.5.5 0 0 1 .131-.233L12.146.854zM11.5 2.5 13.5 4.5" />

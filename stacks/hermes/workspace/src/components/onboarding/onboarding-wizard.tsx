@@ -107,7 +107,7 @@ export function OnboardingWizard() {
             <button
               onClick={skip}
               className="absolute right-4 top-4 z-10 rounded-full p-2 text-primary-500 transition-colors hover:bg-primary-100 hover:text-primary-700"
-              aria-label="Skip onboarding"
+              aria-label="Пропустить настройку"
             >
               <HugeiconsIcon icon={Cancel01Icon} className="size-5" />
             </button>
@@ -189,7 +189,7 @@ export function OnboardingWizard() {
                       index < currentStep && 'hover:bg-primary-400',
                       index > currentStep && 'cursor-not-allowed opacity-50',
                     )}
-                    aria-label={`Go to step ${index + 1}`}
+                    aria-label={`Перейти к шагу ${index + 1}`}
                   />
                 ))}
               </div>

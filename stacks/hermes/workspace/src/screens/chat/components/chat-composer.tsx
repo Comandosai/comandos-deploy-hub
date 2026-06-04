@@ -1314,6 +1314,16 @@ function ChatComposerComponent({
     [draftStorageKey],
   )
 
+  const setComposerValue = useCallback(
+    (nextValue: string) => {
+      setIsSlashMenuDismissed(false)
+      setValue(nextValue)
+      persistDraft(nextValue)
+      focusPrompt()
+    },
+    [focusPrompt, persistDraft],
+  )
+
   const clearDraft = useCallback(
     function clearDraft() {
       if (typeof window === 'undefined') return
@@ -1339,16 +1349,6 @@ function ChatComposerComponent({
     resetDragState()
     focusPrompt()
   }, [clearDraft, focusPrompt, resetDragState])
-
-  const setComposerValue = useCallback(
-    (nextValue: string) => {
-      setIsSlashMenuDismissed(false)
-      setValue(nextValue)
-      persistDraft(nextValue)
-      focusPrompt()
-    },
-    [focusPrompt, persistDraft],
-  )
 
   useEffect(
     function applyPrefillPrompt() {
@@ -2133,14 +2133,14 @@ function ChatComposerComponent({
                         onClick={() =>
                           setPreviewImage({
                             url: attachment.previewUrl || '',
-                            name: attachment.name || 'Attached image',
+                            name: attachment.name || 'Изображение',
                           })
                         }
-                        aria-label={`Preview ${attachment.name || 'image'}`}
+                        aria-label={`Предпросмотр: ${attachment.name || 'изображение'}`}
                       >
                         <img
                           src={attachment.previewUrl}
-                          alt={attachment.name || 'Attached image'}
+                          alt={attachment.name || 'Прикреплённое изображение'}
                           className="h-full w-full object-cover"
                         />
                       </button>
@@ -2152,7 +2152,7 @@ function ChatComposerComponent({
                     )}
                     <button
                       type="button"
-                      aria-label="Remove attachment"
+                      aria-label="Удалить вложение"
                       onClick={(event) => {
                         event.preventDefault()
                         event.stopPropagation()
@@ -2186,7 +2186,7 @@ function ChatComposerComponent({
               {/* + button — opens bottom sheet actions menu */}
               <button
                 type="button"
-                aria-label="Actions"
+                aria-label="Действия"
                 disabled={disabled}
                 onClick={(event) => {
                   event.stopPropagation()
@@ -2325,12 +2325,12 @@ function ChatComposerComponent({
                     <div
                       className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-2xl bg-white shadow-2xl pb-safe dark:bg-neutral-900 animate-in slide-in-from-bottom-10 duration-200"
                       role="dialog"
-                      aria-label="Actions"
+                      aria-label="Действия"
                       onClick={(event) => event.stopPropagation()}
                     >
                       <div className="mx-auto mt-3 mb-4 h-1 w-10 rounded-full bg-neutral-300 dark:bg-neutral-600" />
                       <div className="px-4 pb-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400">
-                        Actions
+                        Действия
                       </div>
                       <div className="grid grid-cols-2 gap-2 px-4 pb-4">
                         {/* Attach File — keep sheet open so iOS picker can layer on top */}

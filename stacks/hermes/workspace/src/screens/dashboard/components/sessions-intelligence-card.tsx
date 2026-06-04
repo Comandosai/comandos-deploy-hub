@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { formatModelName } from '@/screens/dashboard/lib/formatters'
 
 export type SessionRowData = {
@@ -153,7 +152,6 @@ export function SessionsIntelligenceCard({
 }: {
   sessions: Array<SessionRowData>
 }) {
-  const navigate = useNavigate()
   const enriched = useMemo(() => {
     return sessions.map((s) => ({
       session: s,
@@ -201,14 +199,8 @@ export function SessionsIntelligenceCard({
           >
             {sessions.length} недавних
           </span>
-          <button
-            type="button"
-            onClick={() =>
-              navigate({
-                to: '/chat/$sessionKey',
-                params: { sessionKey: 'main' },
-              })
-            }
+          <a
+            href="/chat/main"
             className="rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors hover:bg-[var(--theme-card)]/80"
             style={{
               borderColor: 'var(--theme-border)',
@@ -216,7 +208,7 @@ export function SessionsIntelligenceCard({
             }}
           >
             Открыть чат →
-          </button>
+          </a>
         </div>
       </div>
 
@@ -241,14 +233,8 @@ export function SessionsIntelligenceCard({
             const icon = sessionGlyph(s)
             return (
               <li key={s.key}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate({
-                      to: '/chat/$sessionKey',
-                      params: { sessionKey: s.key },
-                    })
-                  }
+                <a
+                  href={`/chat/${encodeURIComponent(s.key)}`}
                   className="group flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left transition-colors hover:bg-[var(--theme-card)]/80"
                   style={{
                     borderColor: isHighlight
@@ -318,7 +304,7 @@ export function SessionsIntelligenceCard({
                       </span>
                     </div>
                   </div>
-                </button>
+                </a>
               </li>
             )
           })}

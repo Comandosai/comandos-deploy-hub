@@ -70,8 +70,8 @@ export function WidgetShell({
             color: 'var(--theme-danger)',
             border: '1px solid var(--theme-border)',
           }}
-          title={`Hide ${meta?.label ?? id}`}
-          aria-label={`Hide widget ${meta?.label ?? id}`}
+          title={`Скрыть ${meta?.label ?? id}`}
+          aria-label={`Скрыть виджет ${meta?.label ?? id}`}
         >
           ×
         </button>

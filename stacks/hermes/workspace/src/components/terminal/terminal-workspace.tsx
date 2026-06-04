@@ -18,6 +18,10 @@ import type * as WebLinksAddonModule from 'xterm-addon-web-links'
 import type { DebugAnalysis } from '@/components/terminal/debug-panel'
 import type { TerminalTab } from '@/stores/terminal-panel-store'
 import { DebugPanel } from '@/components/terminal/debug-panel'
+import {
+  fitXtermAndHideMeasureElements,
+  hideXtermMeasureElements,
+} from '@/components/terminal/xterm-accessibility'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useTerminalPanelStore } from '@/stores/terminal-panel-store'
@@ -461,7 +465,7 @@ export function TerminalWorkspace({
       }
 
       // Flush any remaining buffered writes
-      clearTimeout(flushTimer as ReturnType<typeof setTimeout>)
+      if (flushTimer) clearTimeout(flushTimer)
       flushWrites()
 
       const latestTab = useTerminalPanelStore
@@ -554,7 +558,8 @@ export function TerminalWorkspace({
       terminal.loadAddon(fitAddon)
       terminal.loadAddon(webLinks)
       terminal.open(container)
-      fitAddon.fit()
+      hideXtermMeasureElements(container)
+      fitXtermAndHideMeasureElements(fitAddon, container)
 
       terminal.onData(function onData(data) {
         void sendInput(tab.id, data)
@@ -631,9 +636,12 @@ export function TerminalWorkspace({
       if (!panelVisible) return
       // Refit all terminals when becoming visible (e.g. navigating back to terminal route)
       window.setTimeout(() => {
-        for (const fitAddon of fitMapRef.current.values()) {
+        for (const [tabId, fitAddon] of fitMapRef.current.entries()) {
           try {
-            fitAddon.fit()
+            fitXtermAndHideMeasureElements(
+              fitAddon,
+              containerMapRef.current.get(tabId) ?? null,
+            )
           } catch {
             /* ignore */
           }
@@ -652,9 +660,12 @@ export function TerminalWorkspace({
   useEffect(
     function fitOnResize() {
       function refitAll() {
-        for (const fitAddon of fitMapRef.current.values()) {
+        for (const [tabId, fitAddon] of fitMapRef.current.entries()) {
           try {
-            fitAddon.fit()
+            fitXtermAndHideMeasureElements(
+              fitAddon,
+              containerMapRef.current.get(tabId) ?? null,
+            )
           } catch {
             /* */
           }

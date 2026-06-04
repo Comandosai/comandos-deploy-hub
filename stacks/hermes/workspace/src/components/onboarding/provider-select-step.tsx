@@ -87,41 +87,41 @@ const PROVIDERS: Array<Provider> = [
     id: 'anthropic',
     name: 'Anthropic (Claude)',
     description:
-      'Best for complex reasoning, long-form writing and precise instructions',
+      'Подходит для сложных задач, длинных текстов и точных инструкций',
     badge: 'Recommended',
     logo: <AnthropicLogo className="size-8" />,
     placeholder: 'sk-ant-...',
     helpUrl: 'https://console.anthropic.com/settings/keys',
-    helpLabel: 'Get API key →',
+    helpLabel: 'Получить API-ключ →',
   },
   {
     id: 'openrouter',
     name: 'OpenRouter',
     description:
-      'One Hermes Agent connection to 200+ AI models. Ideal for flexibility and experimentation',
+      'Один доступ к 200+ моделям. Удобно для экспериментов и запасных вариантов',
     badge: 'Popular',
     logo: <OpenRouterLogo className="size-8" />,
     placeholder: 'sk-or-v1-...',
     helpUrl: 'https://openrouter.ai/keys',
-    helpLabel: 'Get API key →',
+    helpLabel: 'Получить API-ключ →',
   },
   {
     id: 'google',
     name: 'Google (Gemini)',
-    description: 'Strong with images, documents and large amounts of context',
+    description: 'Хорошо работает с изображениями, документами и большим контекстом',
     logo: <GoogleLogo className="size-8" />,
     placeholder: 'AI...',
     helpUrl: 'https://aistudio.google.com/apikey',
-    helpLabel: 'Get API key →',
+    helpLabel: 'Получить API-ключ →',
   },
   {
     id: 'openai',
     name: 'OpenAI (GPT)',
-    description: 'An all-rounder for chat, coding, and everyday tasks',
+    description: 'Универсальный вариант для чата, кода и ежедневных задач',
     logo: <OpenAILogo className="size-8" />,
     placeholder: 'sk-...',
     helpUrl: 'https://platform.openai.com/api-keys',
-    helpLabel: 'Get API key →',
+    helpLabel: 'Получить API-ключ →',
   },
 ]
 
@@ -163,11 +163,11 @@ export function ProviderSelectStep({
         setValidated(true)
       } else {
         setValidated(false)
-        setError(data.error || 'Invalid API key')
+        setError(data.error || 'API-ключ не прошёл проверку')
       }
     } catch {
       setValidated(false)
-      setError('Validation failed — check your connection')
+      setError('Проверка не удалась — проверьте подключение')
     } finally {
       setValidating(false)
     }
@@ -258,7 +258,7 @@ export function ProviderSelectStep({
                           : 'bg-purple-100 text-purple-700',
                       )}
                     >
-                      {provider.badge}
+                      {provider.badge === 'Recommended' ? 'Советуем' : 'Популярно'}
                     </span>
                   )}
                 </div>
@@ -276,7 +276,7 @@ export function ProviderSelectStep({
         <div className="mb-5 rounded-xl border border-primary-200 bg-primary-50 p-4">
           <div className="mb-3 flex items-center justify-between">
             <label className="text-sm font-medium text-primary-900">
-              {selected.name} API Key
+              API-ключ {selected.name}
             </label>
             <a
               href={selected.helpUrl}
@@ -306,7 +306,7 @@ export function ProviderSelectStep({
                   type="button"
                   onClick={() => setShowKey(!showKey)}
                   className="inline-flex size-8 items-center justify-center rounded-md text-primary-400 hover:text-primary-600"
-                  title={showKey ? 'Hide' : 'Show'}
+                  title={showKey ? 'Скрыть' : 'Показать'}
                 >
                   <HugeiconsIcon
                     icon={showKey ? ViewOffIcon : ViewIcon}
@@ -318,7 +318,7 @@ export function ProviderSelectStep({
                   type="button"
                   onClick={handlePaste}
                   className="inline-flex size-8 items-center justify-center rounded-md text-primary-400 hover:text-primary-600"
-                  title="Paste from clipboard"
+                  title="Вставить из буфера"
                 >
                   <HugeiconsIcon
                     icon={Copy01Icon}
@@ -335,7 +335,7 @@ export function ProviderSelectStep({
               disabled={!apiKey.trim() || validating}
               className="shrink-0"
             >
-              {validating ? 'Checking...' : 'Validate'}
+              {validating ? 'Проверяю...' : 'Проверить'}
             </Button>
           </div>
 

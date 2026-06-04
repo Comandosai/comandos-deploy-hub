@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router'
 import type {
   DashboardIncident,
   DashboardOverview,
@@ -36,7 +35,6 @@ export function AttentionMarquee({
 }: {
   overview: DashboardOverview | null
 }) {
-  const navigate = useNavigate()
   const items = overview?.incidents ?? []
   if (items.length === 0) return null
 
@@ -51,7 +49,7 @@ export function AttentionMarquee({
         borderColor:
           'color-mix(in srgb, var(--theme-warning) 35%, transparent)',
       }}
-      title={`${items.length} item${items.length === 1 ? '' : 's'} need attention`}
+      title={`Требуют внимания: ${items.length}`}
     >
       <span
         className="z-10 shrink-0 rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em]"
@@ -61,7 +59,7 @@ export function AttentionMarquee({
           color: 'var(--theme-warning)',
         }}
       >
-        ⚠️ Attention · {items.length}
+        ⚠️ Внимание · {items.length}
       </span>
 
       {/* Fade mask on right edge for "ticker continues" feel. */}
@@ -82,28 +80,17 @@ export function AttentionMarquee({
           className="oc-marquee-track flex shrink-0 items-center gap-6 pl-3 will-change-transform"
         >
           {tracks.map((item, idx) => {
-            const handleClick = () => {
-              if (item.href) {
-                if (
-                  item.href.startsWith('http://') ||
-                  item.href.startsWith('https://')
-                ) {
-                  window.open(item.href, '_blank', 'noopener,noreferrer')
-                  return
-                }
-                window.location.assign(item.href)
-                return
-              }
-              if (item.source === 'cron') navigate({ to: '/jobs' })
-              else if (item.source === 'config')
-                navigate({ to: '/settings', search: {} })
-              else navigate({ to: '/jobs' })
-            }
+            const href =
+              item.href ||
+              (item.source === 'config' ? '/settings' : '/jobs')
+            const isExternal =
+              href.startsWith('http://') || href.startsWith('https://')
             return (
-              <button
+              <a
                 key={`${item.id}-${idx}`}
-                type="button"
-                onClick={handleClick}
+                href={href}
+                target={isExternal ? '_blank' : undefined}
+                rel={isExternal ? 'noopener noreferrer' : undefined}
                 className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] hover:underline"
                 style={{ color: SEVERITY_COLOR[item.severity] }}
               >
@@ -118,7 +105,7 @@ export function AttentionMarquee({
                     · {item.detail}
                   </span>
                 ) : null}
-              </button>
+              </a>
             )
           })}
         </div>

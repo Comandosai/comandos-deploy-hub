@@ -10,7 +10,6 @@ import {
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Area,
@@ -287,8 +286,8 @@ function ActivityChart({
 
   return (
     <GlassCard
-      title="Activity"
-      titleRight={<span className="text-[10px] text-muted">14 days</span>}
+      title="Активность"
+      titleRight={<span className="text-[10px] text-muted">14 дней</span>}
       accentColor={palette.accent}
       className="h-full"
     >
@@ -365,11 +364,11 @@ function ActivityChart({
       <div className="mt-2 flex items-center gap-5 text-[10px] text-muted">
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full" style={{ background: palette.accent }} />
-          Sessions
+          Сессии
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full" style={{ background: palette.success }} />
-          Messages
+          Сообщения
         </span>
       </div>
     </GlassCard>
@@ -405,7 +404,7 @@ function SkillsWidget({
   if (!skillsAvailable) {
     return (
       <UnavailableWidget
-        title="Skills"
+        title="Навыки"
         description={getUnavailableReason('skills')}
       />
     )
@@ -444,13 +443,13 @@ function SkillsWidget({
           className="text-[10px] font-semibold uppercase tracking-[0.18em]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          Skills
+          Навыки
         </h3>
         <span
           className="font-mono text-[9px] uppercase tracking-[0.15em]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          manage →
+          управлять →
         </span>
       </div>
       <div
@@ -464,10 +463,10 @@ function SkillsWidget({
         style={{ color: 'var(--theme-muted)' }}
       >
         {installed === 0
-          ? 'no skills installed'
+          ? 'навыки не установлены'
           : usedThisWindow !== null && usedThisWindow > 0
-            ? `${enabled} enabled · ${usedThisWindow} used · top: ${topName}`
-            : `${enabled} enabled · top: ${topName}`}
+            ? `${enabled} включено · ${usedThisWindow} использовано · топ: ${topName}`
+            : `${enabled} включено · топ: ${topName}`}
       </div>
     </button>
   )
@@ -478,27 +477,24 @@ function SkillsWidget({
 function SecondaryAction({
   label,
   icon,
-  onClick,
+  href,
   disabled,
 }: {
   label: string
   icon: HugeIcon
-  onClick: () => void
+  href: string
   disabled?: boolean
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="group inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.05em] transition-all hover:scale-[1.015] hover:bg-[var(--theme-card)]/70 hover:text-[var(--theme-text)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-      style={{
-        borderColor: 'var(--theme-border)',
-        color: 'var(--theme-muted)',
-        background:
-          'linear-gradient(135deg, color-mix(in srgb, var(--theme-card) 80%, transparent), transparent)',
-      }}
-    >
+  const className =
+    'group inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-[0.05em] transition-all hover:scale-[1.015] hover:bg-[var(--theme-card)]/70 hover:text-[var(--theme-text)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50'
+  const style = {
+    borderColor: 'var(--theme-border)',
+    color: 'var(--theme-muted)',
+    background:
+      'linear-gradient(135deg, color-mix(in srgb, var(--theme-card) 80%, transparent), transparent)',
+  }
+  const content = (
+    <>
       <HugeiconsIcon
         icon={icon}
         size={14}
@@ -506,7 +502,25 @@ function SecondaryAction({
         className="transition-colors group-hover:text-[var(--theme-accent)]"
       />
       <span>{label}</span>
-    </button>
+    </>
+  )
+
+  if (disabled) {
+    return (
+      <button type="button" disabled className={className} style={style}>
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <a
+      href={href}
+      className={className}
+      style={style}
+    >
+      {content}
+    </a>
   )
 }
 
@@ -631,7 +645,6 @@ function SessionRow({
 // ── Main Dashboard ───────────────────────────────────────────────
 
 export function DashboardScreen() {
-  const navigate = useNavigate()
   const skillsAvailable = useFeatureAvailable('skills')
   const sessionsQuery = useQuery({
     // Use a dedicated query key — NOT chatQueryKeys.sessions — to avoid
@@ -836,7 +849,7 @@ export function DashboardScreen() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-2 h-12" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <button
           type="button"
-          aria-label="Open navigation menu"
+          aria-label="Открыть меню навигации"
           onClick={openHamburgerMenu}
           className="flex items-center justify-center w-11 h-11 rounded-xl active:bg-white/10 transition-colors touch-manipulation"
         >
@@ -846,7 +859,7 @@ export function DashboardScreen() {
         </button>
         <button
           type="button"
-          aria-label="Toggle theme"
+          aria-label="Переключить тему"
           onClick={() => {
             const LIGHT_DARK_PAIRS: Record<string, string> = {
               'komandos-dark': 'komandos-light',
@@ -913,14 +926,8 @@ export function DashboardScreen() {
            New Chat is primary (full button + accent), Terminal +
            Skills are secondary, Settings collapses to icon-only. */}
         <div className="flex w-full flex-wrap items-center justify-end gap-2 lg:max-w-xl">
-          <button
-            type="button"
-            onClick={() =>
-              navigate({
-                to: '/chat/$sessionKey',
-                params: { sessionKey: 'new' },
-              })
-            }
+          <a
+            href="/chat/new"
             className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg px-3.5 py-2 text-sm font-semibold uppercase tracking-[0.05em] transition-all hover:scale-[1.02] active:scale-[0.99]"
             style={{
               background: `linear-gradient(135deg, ${palette.accent}, ${palette.accentSecondary})`,
@@ -942,16 +949,16 @@ export function DashboardScreen() {
               strokeWidth={1.8}
             />
             <span>Новый чат</span>
-          </button>
+          </a>
           <SecondaryAction
             label="Терминал"
             icon={ConsoleIcon}
-            onClick={() => navigate({ to: '/terminal' })}
+            href="/terminal"
           />
           <SecondaryAction
             label="Навыки"
             icon={PuzzleIcon}
-            onClick={() => navigate({ to: '/skills' })}
+            href="/skills"
             disabled={!skillsAvailable}
           />
           {/* Edit toggle: enters "layout edit mode" where each widget
@@ -981,11 +988,10 @@ export function DashboardScreen() {
               strokeWidth={1.7}
             />
           </button>
-          <button
-            type="button"
+          <a
+            href="/settings"
             aria-label="Настройки"
             title="Настройки"
-            onClick={() => navigate({ to: '/settings', search: {} })}
             className="inline-flex size-9 items-center justify-center rounded-lg border transition-all hover:scale-[1.05] hover:bg-[var(--theme-card)]/70 hover:text-[var(--theme-text)]"
             style={{
               borderColor: 'var(--theme-border)',
@@ -999,7 +1005,7 @@ export function DashboardScreen() {
               size={15}
               strokeWidth={1.7}
             />
-          </button>
+          </a>
         </div>
       </div>
 
@@ -1128,7 +1134,7 @@ export function DashboardScreen() {
               <WidgetShell id="sessions_intelligence" layout={layout}>
                 {sessionsQuery.isError || sessionsUnavailable ? (
                   <UnavailableWidget
-                    title="Recent Sessions"
+                    title="Недавние сессии"
                     description={
                       sessionsQuery.isError
                         ? getUnavailableReason('sessions')
@@ -1164,7 +1170,6 @@ export function DashboardScreen() {
             <SkillsUsageCard
               usage={overview?.skillsUsage ?? null}
               installedCount={skillsInstalled}
-              onOpen={() => navigate({ to: '/skills' })}
             />
           </WidgetShell>
           {/* `flex-1` here pushes the rhythm card to consume any

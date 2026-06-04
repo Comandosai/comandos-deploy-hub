@@ -40,12 +40,12 @@ export function AgoraChatPanel({ self, others, messages, onSend }: AgoraChatPane
       }}
     >
       <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--theme-border)' }}>
-        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">Room Chat</span>
-        <span className="text-[10px] opacity-50">{messages.length} msg</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">Чат комнаты</span>
+        <span className="text-[10px] opacity-50">{messages.length} сообщ.</span>
       </div>
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-3 py-2 text-[12px] leading-snug">
         {messages.length === 0 ? (
-          <div className="opacity-50 text-center mt-6 text-[11px]">No messages yet — say hi 👋</div>
+          <div className="opacity-50 text-center mt-6 text-[11px]">Сообщений пока нет — напишите первым</div>
         ) : (
           messages.map((m) => (
             <div key={m.id} className="mb-1.5">

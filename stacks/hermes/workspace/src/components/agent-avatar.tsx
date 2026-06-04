@@ -121,7 +121,7 @@ function AgentAvatar({
             getContainerSizeClassName(size),
             className,
           )}
-          aria-label="Toggle agent avatar"
+          aria-label="Сменить аватар агента"
           onClick={function handleToggleAvatar(event) {
             event.stopPropagation()
             toggleAgentAvatarPreference(preference as AgentAvatarPreference)

@@ -43,7 +43,7 @@ type CommandPaletteProps = {
 
 type CommandAction = {
   id: string
-  group: 'Screens' | 'Recent Sessions' | 'Slash Commands'
+  group: 'Разделы' | 'Недавние сессии' | 'Команды'
   label: string
   keywords: string
   shortcut?: string
@@ -58,9 +58,9 @@ type ScoredAction = CommandAction & {
 }
 
 const SCREEN_GROUP_ORDER = [
-  'Screens',
-  'Recent Sessions',
-  'Slash Commands',
+  'Разделы',
+  'Недавние сессии',
+  'Команды',
 ] as const
 
 function getSessionLabel(session: SessionMeta) {
@@ -169,55 +169,55 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
     () => [
       {
         id: 'screen-chat',
-        group: 'Screens',
-        label: 'Chat',
-        keywords: 'conversation new session home',
-        shortcut: 'Go',
+        group: 'Разделы',
+        label: 'Чат',
+        keywords: 'conversation new session home чат новая сессия',
+        shortcut: 'Открыть',
         icon: Chat01Icon,
         onSelect: () => void navigate({ to: '/chat' }),
       },
       {
         id: 'screen-files',
-        group: 'Screens',
-        label: 'Files',
-        keywords: 'workspace editor browser',
-        shortcut: 'Go',
+        group: 'Разделы',
+        label: 'Файлы',
+        keywords: 'workspace editor browser файлы рабочая папка',
+        shortcut: 'Открыть',
         icon: File01Icon,
         onSelect: () => void navigate({ to: '/files' }),
       },
       {
         id: 'screen-terminal',
-        group: 'Screens',
-        label: 'Terminal',
-        keywords: 'console shell command line',
-        shortcut: 'Go',
+        group: 'Разделы',
+        label: 'Терминал',
+        keywords: 'console shell command line терминал команды',
+        shortcut: 'Открыть',
         icon: CommandLineIcon,
         onSelect: () => void navigate({ to: '/terminal' }),
       },
       {
         id: 'screen-memory',
-        group: 'Screens',
-        label: 'Memory',
-        keywords: 'knowledge durable memory notes',
-        shortcut: 'Go',
+        group: 'Разделы',
+        label: 'Память',
+        keywords: 'knowledge durable memory notes память знания',
+        shortcut: 'Открыть',
         icon: BrainIcon,
         onSelect: () => void navigate({ to: '/memory' }),
       },
       {
         id: 'screen-skills',
-        group: 'Screens',
-        label: 'Skills',
-        keywords: 'install tools capabilities',
-        shortcut: 'Go',
+        group: 'Разделы',
+        label: 'Навыки',
+        keywords: 'install tools capabilities skills навыки',
+        shortcut: 'Открыть',
         icon: PuzzleIcon,
         onSelect: () => void navigate({ to: '/skills' }),
       },
       {
         id: 'screen-mcp',
-        group: 'Screens',
+        group: 'Разделы',
         label: 'MCP',
-        keywords: 'mcp servers model context protocol presets',
-        shortcut: 'Go',
+        keywords: 'mcp servers model context protocol presets серверы',
+        shortcut: 'Открыть',
         icon: McpServerIcon,
         onSelect: () => void navigate({ to: '/mcp' }),
       },
@@ -244,7 +244,7 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
           group: 'Недавние сессии',
           label: getSessionLabel(session),
           keywords: `${session.key} ${session.friendlyId} ${session.title ?? ''} ${session.derivedTitle ?? ''}`,
-          shortcut: 'Open',
+          shortcut: 'Открыть',
           icon: Chat01Icon,
           onSelect: () =>
             void navigate({
@@ -259,64 +259,64 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
     () => [
       {
         id: 'slash-new',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/new',
-        keywords: 'start new session conversation',
-        shortcut: 'Run',
+        keywords: 'start new session conversation новая сессия',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/new'),
       },
       {
         id: 'slash-clear',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/clear',
-        keywords: 'clear current chat history conversation',
-        shortcut: 'Run',
+        keywords: 'clear current chat history conversation очистить чат',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/clear'),
       },
       {
         id: 'slash-model',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/model',
-        keywords: 'open model picker settings claude provider',
-        shortcut: 'Run',
+        keywords: 'open model picker settings claude provider модель провайдер',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/model'),
       },
       {
         id: 'slash-skills',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/skills',
-        keywords: 'browse manage skills page',
-        shortcut: 'Run',
+        keywords: 'browse manage skills page навыки',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/skills'),
       },
       {
         id: 'slash-mcp',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/mcp',
-        keywords: 'mcp servers model context protocol page',
-        shortcut: 'Run',
+        keywords: 'mcp servers model context protocol page серверы',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/mcp'),
       },
       {
         id: 'slash-skin',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/skin',
-        keywords: 'open appearance settings theme',
-        shortcut: 'Run',
+        keywords: 'open appearance settings theme тема оформление',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/skin'),
       },
       {
         id: 'slash-save',
-        group: 'Slash Commands',
+        group: 'Команды',
         label: '/save',
-        keywords: 'export current conversation transcript',
-        shortcut: 'Run',
+        keywords: 'export current conversation transcript сохранить экспорт',
+        shortcut: 'Выполнить',
         icon: CommandLineIcon,
         onSelect: () => runSlashCommand('/save'),
       },
@@ -449,11 +449,11 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
           onValueChange={setQuery}
           mode="none"
         >
-          <CommandInput placeholder="Search screens, sessions, and commands" />
+          <CommandInput placeholder="Поиск разделов, сессий и команд" />
           <CommandPanel className="flex min-h-0 flex-1 flex-col">
             {groupedActions.length === 0 ? (
               <div className="flex h-72 items-center justify-center text-sm text-primary-600">
-                No results for “{query.trim()}”.
+                Ничего не найдено по запросу “{query.trim()}”.
               </div>
             ) : (
               <CommandList className="h-72 min-h-0">

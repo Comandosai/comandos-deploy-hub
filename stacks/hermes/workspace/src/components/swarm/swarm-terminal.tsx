@@ -6,6 +6,10 @@ import type * as XtermModule from 'xterm'
 import type { FitAddon } from 'xterm-addon-fit'
 import type * as FitAddonModule from 'xterm-addon-fit'
 import type * as WebLinksAddonModule from 'xterm-addon-web-links'
+import {
+  fitXtermAndHideMeasureElements,
+  hideXtermMeasureElements,
+} from '@/components/terminal/xterm-accessibility'
 import { cn } from '@/lib/utils'
 
 let xtermLoaded = false
@@ -161,9 +165,10 @@ export const SwarmTerminal = memo(function SwarmTerminal({
       terminal.loadAddon(fit)
       terminal.loadAddon(links)
       terminal.open(containerRef.current)
+      hideXtermMeasureElements(containerRef.current)
 
       try {
-        fit.fit()
+        fitXtermAndHideMeasureElements(fit, containerRef.current)
       } catch {
         /* noop */
       }
@@ -234,7 +239,7 @@ export const SwarmTerminal = memo(function SwarmTerminal({
 
       const handleResize = () => {
         try {
-          fit.fit()
+          fitXtermAndHideMeasureElements(fit, containerRef.current)
         } catch {
           /* noop */
         }
@@ -317,7 +322,10 @@ export const SwarmTerminal = memo(function SwarmTerminal({
     if (!active) return
     const id = setTimeout(() => {
       try {
-        fitRef.current?.fit()
+        const fit = fitRef.current
+        if (fit) {
+          fitXtermAndHideMeasureElements(fit, containerRef.current)
+        }
       } catch {
         /* noop */
       }

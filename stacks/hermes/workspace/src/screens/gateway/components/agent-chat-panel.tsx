@@ -261,19 +261,19 @@ export function AgentChatPanel({
         >
           {!sessionKey && (
             <div className="flex items-center justify-center py-12 text-sm text-neutral-500">
-              No active session for this agent. Start a mission first.
+              У этого агента нет активной сессии. Сначала запустите миссию.
             </div>
           )}
 
           {sessionKey && messages.length === 0 && !loading && (
             <div className="flex items-center justify-center py-12 text-sm text-neutral-500">
-              No messages yet. Send one to start a conversation.
+              Сообщений пока нет. Отправьте первое сообщение, чтобы начать разговор.
             </div>
           )}
 
           {loading && messages.length === 0 && (
             <div className="flex items-center justify-center py-12 text-sm text-neutral-500">
-              Loading conversation…
+              Загружаю разговор…
             </div>
           )}
 

@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   AlertCircleIcon,
@@ -33,7 +32,6 @@ export function AttentionCard({
 }: {
   overview: DashboardOverview | null
 }) {
-  const navigate = useNavigate()
   const items = overview?.incidents ?? []
   const empty = items.length === 0
 
@@ -67,7 +65,7 @@ export function AttentionCard({
             className="text-[10px] font-semibold uppercase tracking-[0.18em]"
             style={{ color: 'var(--theme-text)' }}
           >
-            Attention
+            Требует внимания
           </h3>
         </div>
         <span
@@ -79,7 +77,7 @@ export function AttentionCard({
             color: empty ? 'var(--theme-success)' : 'var(--theme-warning)',
           }}
         >
-          {empty ? 'all clear' : `${items.length}`}
+          {empty ? 'всё спокойно' : `${items.length}`}
         </span>
       </div>
 
@@ -88,7 +86,7 @@ export function AttentionCard({
           className="py-1 text-[11px]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          Nothing to triage. Gateway healthy, no stale jobs, logs quiet.
+          Проверять нечего: шлюз отвечает, просроченных заданий нет, в логах тихо.
         </p>
       ) : (
         <ul className="flex flex-col gap-1">
@@ -127,18 +125,19 @@ export function AttentionCard({
             )
             if (item.href) {
               const href = item.href
+              const isExternal =
+                href.startsWith('http://') || href.startsWith('https://')
               return (
                 <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate({ to: href, search: {} } as never)
-                    }
+                  <a
+                    href={href}
+                    target={isExternal ? '_blank' : undefined}
+                    rel={isExternal ? 'noopener noreferrer' : undefined}
                     className="w-full rounded border px-2 py-1.5 text-left transition-colors hover:bg-[var(--theme-card)]/80"
                     style={{ borderColor: 'var(--theme-border)' }}
                   >
                     {content}
-                  </button>
+                  </a>
                 </li>
               )
             }

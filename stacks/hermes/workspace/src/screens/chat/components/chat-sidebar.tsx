@@ -26,7 +26,7 @@ import {
 } from '@hugeicons/core-free-icons'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+import { useRouterState } from '@tanstack/react-router'
 import { CHAT_OPEN_SETTINGS_EVENT } from '../chat-events'
 import { useChatSettings as useSidebarSettings } from '../hooks/use-chat-settings'
 import { useDeleteSession } from '../hooks/use-delete-session'
@@ -104,7 +104,7 @@ function ThemeToggleMini() {
       }}
       className="shrink-0 rounded-lg p-1.5 transition-colors hover:opacity-80"
       style={{ color: 'var(--theme-muted)' }}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? 'Включить светлую тему' : 'Включить тёмную тему'}
     >
       <HugeiconsIcon
         icon={isDark ? Sun02Icon : Moon02Icon}
@@ -144,6 +144,11 @@ type NavItemDef = {
   disabled?: boolean
   badge?: 'error-dot' | string | number
   dataTour?: string
+}
+
+function buildSidebarHref(item: Pick<NavItemDef, 'to' | 'hash'>): string {
+  const base = item.to || '#'
+  return item.hash ? `${base}#${item.hash}` : base
 }
 
 export async function fetchWorkspaceStats(): Promise<WorkspaceStats | null> {
@@ -240,22 +245,22 @@ function NavItem({
   }
 
   if (item.kind === 'link') {
+    const href = buildSidebarHref(item)
     if (isCollapsed) {
       return (
         <TooltipProvider>
           <TooltipRoot>
             <TooltipTrigger
               render={
-                <Link
-                  to={item.to}
-                  search={item.search}
-                  hash={item.hash}
+                <a
+                  href={href}
                   onClick={handleSelect}
                   className={cls}
                   data-tour={item.dataTour}
+                  data-sidebar-active={item.active ? 'true' : undefined}
                 >
                   {iconEl}
-                </Link>
+                </a>
               }
             />
             <TooltipContent side="right">{item.label}</TooltipContent>
@@ -264,17 +269,16 @@ function NavItem({
       )
     }
     return (
-      <Link
-        to={item.to}
-        search={item.search}
-        hash={item.hash}
+      <a
+        href={href}
         onClick={handleSelect}
         className={cls}
         data-tour={item.dataTour}
+        data-sidebar-active={item.active ? 'true' : undefined}
       >
         {iconEl}
         {labelEl}
-      </Link>
+      </a>
     )
   }
 
@@ -294,6 +298,7 @@ function NavItem({
                 }}
                 className={cls}
                 data-tour={item.dataTour}
+                data-sidebar-active={item.active ? 'true' : undefined}
               >
                 {iconEl}
               </Button>
@@ -316,6 +321,7 @@ function NavItem({
       }}
       className={cls}
       data-tour={item.dataTour}
+      data-sidebar-active={item.active ? 'true' : undefined}
     >
       {iconEl}
       {labelEl}
@@ -378,18 +384,16 @@ function SectionLabel({
 
   if (collapsible) {
     return (
-      <motion.div
-        layout
-        transition={{ layout: transition }}
+      <div
         className="flex items-center gap-1.5 px-3 pt-3 pb-1 w-full"
       >
         {navigateTo ? (
-          <Link
-            to={navigateTo}
+          <a
+            href={navigateTo}
             className="text-[10px] font-semibold uppercase tracking-wider text-primary-500 dark:text-neutral-400 hover:text-primary-700 dark:hover:text-neutral-200 select-none transition-colors"
           >
             {label}
-          </Link>
+          </a>
         ) : (
           labelContent
         )}
@@ -397,7 +401,7 @@ function SectionLabel({
           type="button"
           onClick={onToggle}
           className="ml-auto p-0.5 rounded hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors"
-          aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+          aria-label={expanded ? `Свернуть ${label}` : `Развернуть ${label}`}
         >
           <HugeiconsIcon
             icon={ArrowDown01Icon}
@@ -409,27 +413,25 @@ function SectionLabel({
             )}
           />
         </button>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      layout
-      transition={{ layout: transition }}
+    <div
       className="px-3 pt-3 pb-1"
     >
       {navigateTo ? (
-        <Link
-          to={navigateTo}
+        <a
+          href={navigateTo}
           className="text-[10px] font-semibold uppercase tracking-wider text-primary-500 dark:text-neutral-400 hover:text-primary-700 dark:hover:text-neutral-200 select-none transition-colors"
         >
           {label}
-        </Link>
+        </a>
       ) : (
         labelContent
       )}
-    </motion.div>
+    </div>
   )
 }
 
@@ -459,10 +461,8 @@ function CollapsibleSection({
           className="overflow-hidden space-y-0.5"
         >
           {items.map((item) => (
-            <motion.div
+            <div
               key={item.label}
-              layout
-              transition={{ layout: transition }}
               className="w-full"
             >
               <NavItem
@@ -471,7 +471,7 @@ function CollapsibleSection({
                 transition={transition}
                 onSelectSession={onSelectSession}
               />
-            </motion.div>
+            </div>
           ))}
         </motion.div>
       )}
@@ -532,7 +532,6 @@ function ChatSidebarComponent({
   const { renameSession } = useRenameSession()
   const openSearchModal = useSearchModal((state) => state.openModal)
   const isSearchModalOpen = useSearchModal((state) => state.isOpen)
-  const navigate = useNavigate()
   const pathname = useRouterState({
     select: function selectPathname(state) {
       return state.location.pathname
@@ -556,13 +555,8 @@ function ChatSidebarComponent({
 
   function openSettingsPage(event?: { preventDefault: () => void }) {
     event?.preventDefault()
-    void navigate({ to: '/settings' })
     if (typeof window !== 'undefined') {
-      window.setTimeout(() => {
-        if (window.location.pathname !== '/settings') {
-          window.location.assign('/settings')
-        }
-      }, 0)
+      window.location.assign('/settings')
     }
   }
 
@@ -641,6 +635,7 @@ function ChatSidebarComponent({
   const [isHoverExpanded, setIsHoverExpanded] = useState(false)
   const sidebarHoverExpand = useChatSettingsStore(selectSidebarHoverExpand)
   const sidebarRef = useRef<HTMLElement | null>(null)
+  const sidebarScrollRef = useRef<HTMLDivElement | null>(null)
   const swipeStartRef = useRef<{ x: number; y: number } | null>(null)
 
   function handleOpenRename(session: SessionMeta) {
@@ -703,6 +698,28 @@ function ChatSidebarComponent({
   const isHoverPreviewExpanded =
     sidebarHoverExpand && !isMobile && isCollapsed && isHoverExpanded
   const isVisuallyCollapsed = isCollapsed && !isHoverPreviewExpanded
+
+  useEffect(() => {
+    const scroller = sidebarScrollRef.current
+    if (!scroller || isMobile || isVisuallyCollapsed) return
+
+    const active = scroller.querySelector<HTMLElement>(
+      '[data-sidebar-active="true"]',
+    )
+    if (!active) return
+
+    const scrollerRect = scroller.getBoundingClientRect()
+    const activeRect = active.getBoundingClientRect()
+    const topGap = activeRect.top - scrollerRect.top
+    const bottomGap = activeRect.bottom - scrollerRect.bottom
+    const padding = 8
+
+    if (topGap < padding) {
+      scroller.scrollTop += topGap - padding
+    } else if (bottomGap > -padding) {
+      scroller.scrollTop += bottomGap + padding
+    }
+  }, [isMobile, isVisuallyCollapsed, pathname, mainExpanded, knowledgeExpanded])
 
   function handleSidebarToggle() {
     // In hover-preview mode, a click should dismiss the preview first;
@@ -936,8 +953,8 @@ function ChatSidebarComponent({
               exit={{ opacity: 0 }}
               transition={transition}
             >
-              <Link
-                to="/chat"
+              <a
+                href="/chat"
                 className={cn(
                   buttonVariants({ variant: 'ghost', size: 'sm' }),
                   'w-full pl-1.5 justify-start gap-2',
@@ -954,7 +971,7 @@ function ChatSidebarComponent({
                 >
                   Командос AI
                 </span>
-              </Link>
+              </a>
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -1014,9 +1031,8 @@ function ChatSidebarComponent({
       {/* ── New Session button ──────────────────────────────────────── */}
       {!isVisuallyCollapsed && (
         <div className="px-2 pb-1">
-          <Link
-            to="/chat/$sessionKey"
-            params={{ sessionKey: 'new' }}
+          <a
+            href="/chat/new"
             onClick={() => {
               onSelectSession?.()
             }}
@@ -1035,7 +1051,7 @@ function ChatSidebarComponent({
               className="size-5 shrink-0"
             />
             <span>Новая сессия</span>
-          </Link>
+          </a>
         </div>
       )}
 
@@ -1044,8 +1060,8 @@ function ChatSidebarComponent({
       {!isVisuallyCollapsed &&
         (import.meta as any).env?.VITE_HERMESWORLD_ENABLED !== '0' && (
         <div className="px-2 pb-2">
-          <Link
-            to="/playground"
+          <a
+            href="/playground"
             onClick={() => onSelectSession?.()}
             className={cn(
               buttonVariants({ variant: 'ghost', size: 'sm' }),
@@ -1075,12 +1091,15 @@ function ChatSidebarComponent({
             >
               НОВОЕ
             </span>
-          </Link>
+          </a>
         </div>
       )}
 
       {/* ── Scrollable body: nav + sessions ─────────────────────────── */}
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin flex flex-col">
+      <div
+        ref={sidebarScrollRef}
+        className="flex-1 min-h-0 overflow-y-auto scrollbar-thin flex flex-col"
+      >
         {/* Navigation sections */}
         <div className={cn('shrink-0 space-y-0.5 px-2', isMobile && 'order-2')}>
           <SectionLabel

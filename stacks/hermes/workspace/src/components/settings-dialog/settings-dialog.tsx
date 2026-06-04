@@ -1465,8 +1465,8 @@ function _ProfileContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Profile"
-        description="Your display identity in chat."
+        title="Профиль"
+        description="Как вас видит чат."
       />
       <div className={SETTINGS_CARD_CLASS}>
         <div className="flex items-center gap-3">
@@ -1524,7 +1524,7 @@ function _ProfileContent() {
               disabled={!cs.avatarDataUrl || processing}
               className="h-8 rounded-lg border-primary-200 px-3"
             >
-              Remove
+              Удалить
             </Button>
           </div>
           {profileError && (
@@ -1567,12 +1567,12 @@ function AppearanceContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Appearance"
-        description="Theme and color accents."
+        title="Оформление"
+        description="Тема и цветовые акценты."
       />
       <div className={SETTINGS_CARD_CLASS}>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
-          Theme Mode
+          Режим темы
         </p>
         <div className="inline-flex rounded-lg border border-primary-200 p-1">
           {[
@@ -2485,12 +2485,12 @@ function LanguageContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Language"
-        description="Choose the display language for the workspace UI."
+        title="Язык"
+        description="Выберите язык интерфейса Workspace."
       />
       <Row
-        label="Interface Language"
-        description="Translates navigation, labels, and buttons."
+        label="Язык интерфейса"
+        description="Переводит навигацию, подписи и кнопки."
       >
         <select
           value={getLocale()}
