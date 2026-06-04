@@ -1,14 +1,17 @@
 import { execFileSync } from 'node:child_process'
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   readFileSync,
-  statSync,
   realpathSync,
+  renameSync,
+  statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 
 type ProductId = 'workspace' | 'agent'
 type InstallKind = 'git' | 'desktop' | 'docker' | 'unknown'
@@ -100,9 +103,12 @@ type ComandosUpdateManifest = {
 
 const DEFAULT_COMANDOS_UPDATE_MANIFEST_URL =
   'https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json'
+const DEFAULT_HERMES_AGENT_INSTALLER_URL =
+  'https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh'
 const DEFAULT_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000
 const MIN_UPDATE_CHECK_INTERVAL_MS = 10 * 1000
 const MAX_UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
+let managedUpdateScriptSyncAttempted = false
 
 function pendingNotesPath(): string {
   return join(process.cwd(), '.runtime', 'pending-update-release-notes.json')
@@ -165,7 +171,9 @@ function installedStatePath(): string {
 
 function readInstalledState(): ComandosInstalledState {
   try {
-    return JSON.parse(readFileSync(installedStatePath(), 'utf8')) as ComandosInstalledState
+    return JSON.parse(
+      readFileSync(installedStatePath(), 'utf8'),
+    ) as ComandosInstalledState
   } catch {
     return {}
   }
@@ -203,11 +211,9 @@ function resolveGithubRawBranchUrl(url: string): string {
   if (/^[0-9a-f]{40}$/i.test(ref)) return url
 
   const remoteUrl = `https://github.com/${owner}/${repo}.git`
-  const lsRemote = exec(
-    'git',
-    ['ls-remote', remoteUrl, ref],
-    { timeout: 8_000 },
-  )
+  const lsRemote = exec('git', ['ls-remote', remoteUrl, ref], {
+    timeout: 8_000,
+  })
   const lsRemoteSha = lsRemote?.split(/\s+/)[0] ?? null
   if (lsRemoteSha && /^[0-9a-f]{40}$/i.test(lsRemoteSha)) {
     return `https://raw.githubusercontent.com/${owner}/${repo}/${lsRemoteSha}/${path}`
@@ -247,7 +253,9 @@ function readComandosManifest(): ComandosUpdateManifest | null {
   if (!url) return null
   try {
     if (url.startsWith('file://')) {
-      return JSON.parse(readFileSync(url.slice('file://'.length), 'utf8')) as ComandosUpdateManifest
+      return JSON.parse(
+        readFileSync(url.slice('file://'.length), 'utf8'),
+      ) as ComandosUpdateManifest
     }
     if (url.startsWith('/')) {
       return JSON.parse(readFileSync(url, 'utf8')) as ComandosUpdateManifest
@@ -290,7 +298,118 @@ function updateScriptPath(): string | null {
   return value || null
 }
 
-function parseManagedVersion(value: string | null | undefined): Array<number> | null {
+function managedUpdateTemplatePath(): string | null {
+  const manifestUrl = comandosManifestUrl()
+  if (!manifestUrl) return null
+  const manifestPath = manifestUrl.startsWith('file://')
+    ? manifestUrl.slice('file://'.length)
+    : manifestUrl
+
+  if (manifestPath.startsWith('/')) {
+    return join(
+      dirname(manifestPath),
+      'templates',
+      'update',
+      'comandos-update.sh',
+    )
+  }
+
+  return manifestUrl.replace(
+    /\/update-manifest\.json(?:\?.*)?$/,
+    '/templates/update/comandos-update.sh',
+  )
+}
+
+function readManagedUpdateTemplate(): string | null {
+  const templatePath = managedUpdateTemplatePath()
+  if (!templatePath) return null
+  try {
+    if (templatePath.startsWith('file://')) {
+      return readFileSync(templatePath.slice('file://'.length), 'utf8')
+    }
+    if (templatePath.startsWith('/')) return readFileSync(templatePath, 'utf8')
+    const rawUrl = resolveGithubRawBranchUrl(templatePath)
+    return exec(
+      'curl',
+      [
+        '-fsSL',
+        '--max-time',
+        '6',
+        '-H',
+        'Cache-Control: no-cache',
+        '-H',
+        'Pragma: no-cache',
+        rawUrl,
+      ],
+      { timeout: 8_000 },
+    )
+  } catch {
+    return null
+  }
+}
+
+export function renderManagedUpdateScriptTemplate(
+  template: string,
+  values: Partial<Record<string, string>> = {},
+): string {
+  const replacements: Record<string, string> = {
+    REMOTE_BASE_DIR: process.env.REMOTE_BASE_DIR || '/opt/comandos/hermes',
+    REMOTE_WORKSPACE_DIR: process.env.REMOTE_WORKSPACE_DIR || process.cwd(),
+    REMOTE_HERMES_HOME:
+      process.env.REMOTE_HERMES_HOME ||
+      process.env.HERMES_HOME ||
+      join(homedir(), '.hermes'),
+    HERMES_AGENT_INSTALLER_URL:
+      process.env.HERMES_AGENT_INSTALLER_URL ||
+      DEFAULT_HERMES_AGENT_INSTALLER_URL,
+    COMANDOS_STACK_REPO_URL:
+      process.env.COMANDOS_STACK_REPO_URL ||
+      'https://github.com/Comandosai/comandos-deploy-hub.git',
+    COMANDOS_STACK_REF: process.env.COMANDOS_STACK_REF || 'main',
+    COMANDOS_STACK_PATH: process.env.COMANDOS_STACK_PATH || 'stacks/hermes',
+    ...values,
+  }
+  return template.replace(/\{\{([A-Z0-9_]+)\}\}/g, (_, key: string) => {
+    return replacements[key] ?? ''
+  })
+}
+
+function syncManagedUpdateScriptIfNeeded(): void {
+  if (managedUpdateScriptSyncAttempted) return
+  managedUpdateScriptSyncAttempted = true
+
+  const script = updateScriptPath()
+  if (!script) return
+
+  let tmpPath: string | null = null
+  try {
+    const template = readManagedUpdateTemplate()
+    if (!template) return
+
+    const rendered = renderManagedUpdateScriptTemplate(template)
+    const current = existsSync(script) ? readFileSync(script, 'utf8') : ''
+    if (current === rendered) return
+
+    mkdirSync(dirname(script), { recursive: true })
+    tmpPath = `${script}.tmp.${process.pid}`
+    writeFileSync(tmpPath, rendered)
+    chmodSync(tmpPath, 0o700)
+    renameSync(tmpPath, script)
+    tmpPath = null
+  } catch {
+    if (tmpPath) {
+      try {
+        unlinkSync(tmpPath)
+      } catch {
+        // ignore cleanup failures; update status must stay readable
+      }
+    }
+  }
+}
+
+function parseManagedVersion(
+  value: string | null | undefined,
+): Array<number> | null {
   if (!value) return null
   const match = value
     .trim()
@@ -301,7 +420,7 @@ function parseManagedVersion(value: string | null | undefined): Array<number> | 
     Number(match[1]),
     Number(match[2]),
     Number(match[3]),
-    Number(match[4] ?? 0),
+    match[4] ? Number(match[4]) : 0,
   ]
 }
 
@@ -333,7 +452,9 @@ function readWorkspacePackageVersion(repoPath = process.cwd()): string {
   return pkgVersion(repoPath)
 }
 
-function managedWorkspaceStatus(manifest: ComandosUpdateManifest): ProductUpdateStatus | null {
+function managedWorkspaceStatus(
+  manifest: ComandosUpdateManifest,
+): ProductUpdateStatus | null {
   const product = manifest.workspace
   if (!product?.version) return null
   const state = readInstalledState()
@@ -358,9 +479,10 @@ function managedWorkspaceStatus(manifest: ComandosUpdateManifest): ProductUpdate
     updateAvailable,
     canUpdate,
     state: updateAvailable ? (canUpdate ? 'available' : 'blocked') : 'current',
-    reason: updateAvailable && !canUpdate
-      ? 'Скрипт обновления COMANDOS не настроен или не имеет права на запуск.'
-      : null,
+    reason:
+      updateAvailable && !canUpdate
+        ? 'Скрипт обновления COMANDOS не настроен или не имеет права на запуск.'
+        : null,
     manifestUrl: comandosManifestUrl(),
     updateMode: 'comandos-managed',
   }
@@ -374,7 +496,9 @@ function managedAgentStatus(
   if (!product?.version && !product?.ref) return null
   const state = readInstalledState()
   const currentRef =
-    state.hermesAgentRef || process.env.COMANDOS_HERMES_AGENT_REF || base.currentHead
+    state.hermesAgentRef ||
+    process.env.COMANDOS_HERMES_AGENT_REF ||
+    base.currentHead
   const currentVersion = state.hermesAgentVersion || base.version
   const versionIsNew = versionIsNewer(currentVersion, product.version)
   const refIsNew = Boolean(product.ref && product.ref !== currentRef)
@@ -391,9 +515,10 @@ function managedAgentStatus(
     updateAvailable,
     canUpdate,
     state: updateAvailable ? (canUpdate ? 'available' : 'blocked') : 'current',
-    reason: updateAvailable && !canUpdate
-      ? 'Скрипт обновления COMANDOS не настроен или не имеет права на запуск.'
-      : null,
+    reason:
+      updateAvailable && !canUpdate
+        ? 'Скрипт обновления COMANDOS не настроен или не имеет права на запуск.'
+        : null,
     manifestUrl: comandosManifestUrl(),
     updateMode: 'comandos-managed',
   }
@@ -624,10 +749,17 @@ export function readWorkspaceUpdateStatus(
     supportedBranch && currentHead && latestHead && currentHead !== latestHead,
   )
   const remoteRef = `origin/${branch || 'main'}`
-  const remoteAvailable = updateAvailable ? remoteRefExists(gitRepo, remoteRef) : true
+  const remoteAvailable = updateAvailable
+    ? remoteRefExists(gitRepo, remoteRef)
+    : true
   const ff = updateAvailable ? canFastForward(gitRepo, remoteRef) : true
   const canUpdate = Boolean(
-    repoMatches && supportedBranch && updateAvailable && !dirty && remoteAvailable && ff,
+    repoMatches &&
+    supportedBranch &&
+    updateAvailable &&
+    !dirty &&
+    remoteAvailable &&
+    ff,
   )
 
   return {
@@ -688,7 +820,9 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
   const repoPath = agentRepoPath()
   const repoHermes = repoPath ? join(repoPath, 'venv', 'bin', 'hermes') : null
   const path =
-    repoHermes && existsSync(repoHermes) ? repoHermes : exec('which', ['hermes'])
+    repoHermes && existsSync(repoHermes)
+      ? repoHermes
+      : exec('which', ['hermes'])
   const version =
     (path ? exec(path, ['--version'], { timeout: 10_000 }) : null)?.split(
       '\n',
@@ -730,9 +864,13 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
   const updateAvailable = Boolean(
     currentHead && latestHead && currentHead !== latestHead && remoteRef,
   )
-  const remoteAvailable = remoteRef ? remoteRefExists(repoPath, remoteRef) : false
+  const remoteAvailable = remoteRef
+    ? remoteRefExists(repoPath, remoteRef)
+    : false
   const ff = remoteRef ? canFastForward(repoPath, remoteRef) : false
-  const canUpdate = Boolean(repoMatches && updateAvailable && !dirty && remoteAvailable && ff)
+  const canUpdate = Boolean(
+    repoMatches && updateAvailable && !dirty && remoteAvailable && ff,
+  )
 
   return {
     id: 'agent',
@@ -772,6 +910,7 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
 
 export function readUpdateStatus(): UpdateStatus {
   const manifest = readComandosManifest()
+  if (manifest) syncManagedUpdateScriptIfNeeded()
   const legacyWorkspace = readWorkspaceUpdateStatus()
   const legacyAgent = readAgentUpdateStatus()
   const workspace = manifest
@@ -790,7 +929,10 @@ export function readUpdateStatus(): UpdateStatus {
   }
 }
 
-function applyManagedUpdate(product: ProductId, before: ProductUpdateStatus): ApplyUpdateResult {
+function applyManagedUpdate(
+  product: ProductId,
+  before: ProductUpdateStatus,
+): ApplyUpdateResult {
   const script = updateScriptPath()
   if (!before.canUpdate || !script) {
     return {

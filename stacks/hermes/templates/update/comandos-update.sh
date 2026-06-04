@@ -38,6 +38,42 @@ source "$src/comandos-hermes.lock"
 export COMANDOS_WORKSPACE_VERSION HERMES_AGENT_REF HERMES_AGENT_INSTALLER_URL
 export COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
 
+sync_update_script() {
+  local template="$src/templates/update/comandos-update.sh"
+  local target="${COMANDOS_UPDATE_SCRIPT:-$REMOTE_BASE_DIR/install/comandos-update.sh}"
+  [[ -f "$template" ]] || return
+
+  mkdir -p "$(dirname "$target")" || {
+    log "Не удалось подготовить папку для скрипта обновления: $target"
+    return
+  }
+
+  local tmp_target="${target}.tmp.$$"
+  export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_AGENT_INSTALLER_URL
+  export COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
+  python3 - "$template" "$tmp_target" <<'PY'
+import os
+import sys
+
+src, dst = sys.argv[1:3]
+with open(src, encoding="utf-8") as f:
+    text = f.read()
+for key, value in os.environ.items():
+    text = text.replace("{{" + key + "}}", value)
+with open(dst, "w", encoding="utf-8") as f:
+    f.write(text)
+PY
+  chmod 700 "$tmp_target" || true
+  if mv "$tmp_target" "$target"; then
+    log "Скрипт обновления синхронизирован: $target"
+  else
+    rm -f "$tmp_target"
+    log "Не удалось обновить скрипт обновления: $target"
+  fi
+}
+
+sync_update_script
+
 is_commitish_ref() {
   [[ "${1:-}" =~ ^[0-9a-fA-F]{7,40}$ ]]
 }

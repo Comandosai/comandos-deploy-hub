@@ -3,6 +3,7 @@ import {
   compareManagedVersions,
   readUpdateCheckIntervalMs,
   remoteUrlMatches,
+  renderManagedUpdateScriptTemplate,
   versionIsNewer,
 } from './update-system'
 
@@ -26,9 +27,9 @@ describe('update-system helpers', () => {
   })
 
   it('compares managed COMANDOS versions without offering downgrades', () => {
-    expect(
-      compareManagedVersions('2.3.0-komandos.4', '2.3.0-comandos.4'),
-    ).toBe(0)
+    expect(compareManagedVersions('2.3.0-komandos.4', '2.3.0-comandos.4')).toBe(
+      0,
+    )
     expect(versionIsNewer('2.3.0-comandos.4', '2.3.0-comandos.3')).toBe(false)
     expect(versionIsNewer('2.3.0-komandos.4', '2.3.0-comandos.5')).toBe(true)
     expect(versionIsNewer('2.3.0-comandos.4', '2.3.0-comandos.4')).toBe(false)
@@ -45,7 +46,9 @@ describe('update-system helpers', () => {
       process.env.COMANDOS_UPDATE_CHECK_INTERVAL_MS = '1000'
       expect(readUpdateCheckIntervalMs()).toBe(10_000)
 
-      process.env.COMANDOS_UPDATE_CHECK_INTERVAL_MS = String(48 * 60 * 60 * 1000)
+      process.env.COMANDOS_UPDATE_CHECK_INTERVAL_MS = String(
+        48 * 60 * 60 * 1000,
+      )
       expect(readUpdateCheckIntervalMs()).toBe(24 * 60 * 60 * 1000)
 
       delete process.env.COMANDOS_UPDATE_CHECK_INTERVAL_MS
@@ -63,5 +66,36 @@ describe('update-system helpers', () => {
         process.env.VITE_UPDATE_CHECK_INTERVAL_MS = previousVite
       }
     }
+  })
+
+  it('renders managed update script placeholders', () => {
+    const rendered = renderManagedUpdateScriptTemplate(
+      [
+        'REMOTE_BASE_DIR="{{REMOTE_BASE_DIR}}"',
+        'REMOTE_WORKSPACE_DIR="{{REMOTE_WORKSPACE_DIR}}"',
+        'REMOTE_HERMES_HOME="{{REMOTE_HERMES_HOME}}"',
+        'HERMES_AGENT_INSTALLER_URL="{{HERMES_AGENT_INSTALLER_URL}}"',
+        'COMANDOS_STACK_REPO_URL="{{COMANDOS_STACK_REPO_URL}}"',
+        'COMANDOS_STACK_REF="{{COMANDOS_STACK_REF}}"',
+        'COMANDOS_STACK_PATH="{{COMANDOS_STACK_PATH}}"',
+      ].join('\n'),
+      {
+        REMOTE_BASE_DIR: '/opt/test/hermes',
+        REMOTE_WORKSPACE_DIR: '/opt/test/hermes/workspace',
+        REMOTE_HERMES_HOME: '/home/hermes/.hermes',
+        HERMES_AGENT_INSTALLER_URL: 'https://example.test/install.sh',
+        COMANDOS_STACK_REPO_URL:
+          'https://github.com/Comandosai/comandos-deploy-hub.git',
+        COMANDOS_STACK_REF: 'main',
+        COMANDOS_STACK_PATH: 'stacks/hermes',
+      },
+    )
+
+    expect(rendered).toContain('REMOTE_BASE_DIR="/opt/test/hermes"')
+    expect(rendered).toContain(
+      'REMOTE_WORKSPACE_DIR="/opt/test/hermes/workspace"',
+    )
+    expect(rendered).toContain('REMOTE_HERMES_HOME="/home/hermes/.hermes"')
+    expect(rendered).not.toContain('{{')
   })
 })
