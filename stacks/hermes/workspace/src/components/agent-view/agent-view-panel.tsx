@@ -12,8 +12,17 @@ import {
   motion,
   useReducedMotion,
 } from 'motion/react'
+import {
+  providerHasUsageProgress,
+  readConfigModelLabel,
+  usageRowsFromProviders,
+} from './agent-usage-helpers'
 import { AgentCard } from './agent-card'
 import { useAgentSpawn } from './hooks/use-agent-spawn'
+import type {
+  AgentProviderUsageEntry as OcProviderEntry,
+  AgentUsageRow as OcUsageRow,
+} from './agent-usage-helpers'
 import type {
   AgentNode,
   AgentNodeStatus,
@@ -21,7 +30,8 @@ import type {
 } from './agent-card'
 import type { ActiveAgent } from '@/hooks/use-agent-view'
 import { AgentChatModal } from '@/components/agent-chat/AgentChatModal'
-import { AgentCard as MiniAgentCard, type AgentCardStatus } from '@/components/agent-card'
+import { AgentCard as MiniAgentCard } from '@/components/agent-card'
+import type { AgentCardStatus } from '@/components/agent-card'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -42,7 +52,10 @@ import { OrchestratorAvatar } from '@/components/orchestrator-avatar'
 import { useOrchestratorState } from '@/hooks/use-orchestrator-state'
 import { useChatActivityStore } from '@/stores/chat-activity-store'
 import { cn } from '@/lib/utils'
-import { InspectorPanel, InspectorToggleButton } from '@/components/inspector/inspector-panel'
+import {
+  InspectorPanel,
+  InspectorToggleButton,
+} from '@/components/inspector/inspector-panel'
 
 function getLastUserMessageBubbleElement(): HTMLElement | null {
   const nodes = document.querySelectorAll<HTMLElement>(
@@ -135,7 +148,11 @@ function formatMissionStateLabel(status: string): string {
   if (normalized === 'running' || normalized === 'active') return 'работает'
   if (normalized === 'queued') return 'в очереди'
   if (normalized === 'thinking') return 'думает'
-  if (normalized === 'complete' || normalized === 'completed' || normalized === 'done') {
+  if (
+    normalized === 'complete' ||
+    normalized === 'completed' ||
+    normalized === 'done'
+  ) {
     return 'готово'
   }
   if (normalized === 'failed' || normalized === 'error') return 'ошибка'
@@ -184,55 +201,8 @@ const STATE_GLOW: Record<string, string> = {
 const USAGE_POLL_MS = 30_000
 const PREFERRED_PROVIDER_KEY_OC = 'hermes-workspace-preferred-provider'
 
-type OcUsageLine = {
-  type: 'progress' | 'text' | 'badge'
-  label: string
-  used?: number
-  limit?: number
-  format?: 'percent' | 'dollars' | 'tokens'
-  value?: string
-  color?: string
-  resetsAt?: string
-}
-
-type OcProviderEntry = {
-  provider: string
-  displayName: string
-  status: 'ok' | 'missing_credentials' | 'auth_expired' | 'error'
-  plan?: string
-  lines: Array<OcUsageLine>
-}
-
-type OcUsageRow = { label: string; pct: number; resetHint: string | null }
-
-function ocFormatResetHint(resetsAt?: string): string | null {
-  if (!resetsAt) return null
-  const now = Date.now()
-  const diff = new Date(resetsAt).getTime() - now
-  if (diff <= 0) return null
-  const hours = diff / 3_600_000
-  if (hours >= 24) {
-    const days = Math.ceil(hours / 24)
-    return `~${days} дн.`
-  }
-  return `~${Math.ceil(hours)} ч.`
-}
-
-function ocFormatUsageLabel(label: string): string {
-  const normalized = label.replace(/\s*\([^)]*\)\s*$/, '').trim()
-  const key = normalized.toLowerCase()
-  if (key === 'session' || key === 'sess') return 'Сессия'
-  if (key === 'weekly' || key === 'week') return 'Неделя'
-  if (key === 'daily' || key === 'day') return 'День'
-  if (key === 'monthly' || key === 'month') return 'Месяц'
-  if (key === 'context' || key === 'ctx') return 'Контекст'
-  if (key === 'tokens') return 'Токены'
-  if (key === 'cost') return 'Расход'
-  return normalized
-}
-
 function ocBarColor(pct: number): string {
-  if (pct >= 100) return 'bg-amber-400'  // full = amber (resets soon, not an error)
+  if (pct >= 100) return 'bg-amber-400' // full = amber (resets soon, not an error)
   if (pct >= 80) return 'bg-red-400'
   if (pct >= 60) return 'bg-amber-400'
   return 'bg-emerald-500'
@@ -260,7 +230,10 @@ function ocReadPercent(value: unknown): number {
 }
 
 function ocParseContextPct(payload: unknown): number {
-  const root = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}
+  const root =
+    payload && typeof payload === 'object'
+      ? (payload as Record<string, unknown>)
+      : {}
   const usage =
     (root.today as Record<string, unknown> | undefined) ??
     (root.usage as Record<string, unknown> | undefined) ??
@@ -299,50 +272,48 @@ function OrchestratorCard({
 
   // Usage state
   const [contextPct, setContextPct] = useState<number | null>(null)
-  const [usageRows, setUsageRows] = useState<OcUsageRow[]>([])
+  const [usageRows, setUsageRows] = useState<Array<OcUsageRow>>([])
   const [providerLabel, setProviderLabel] = useState<string | null>(null)
   const [usageExpanded, setUsageExpanded] = useState(true)
-  const [preferredProvider, setPreferredProvider] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    try { return window.localStorage.getItem(PREFERRED_PROVIDER_KEY_OC) } catch { return null }
-  })
-  const [allOcProviders, setAllOcProviders] = useState<OcProviderEntry[]>([])
+  const [preferredProvider, setPreferredProvider] = useState<string | null>(
+    () => {
+      if (typeof window === 'undefined') return null
+      try {
+        return window.localStorage.getItem(PREFERRED_PROVIDER_KEY_OC)
+      } catch {
+        return null
+      }
+    },
+  )
+  const [allOcProviders, setAllOcProviders] = useState<Array<OcProviderEntry>>(
+    [],
+  )
   const [providerFlash, setProviderFlash] = useState(false)
   const flashTimerRefOc = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  function getPrimaryProvider(all: OcProviderEntry[], preferred: string | null) {
-    if (preferred) {
-      const m = all.find((p) => p.provider === preferred && p.status === 'ok' && p.lines.length > 0)
-      if (m) return m
-    }
-    return all.find((p) => p.status === 'ok' && p.lines.length > 0) ?? null
-  }
-
-  function updateUsageRowsFromProviders(providers: OcProviderEntry[], preferred: string | null) {
-    const primary = getPrimaryProvider(providers, preferred)
-    if (!primary) return
-    const rows: OcUsageRow[] = primary.lines
-      .filter((l) => l.type === 'progress' && l.used !== undefined)
-      .slice(0, 2)
-      .map((l) => ({
-        label: ocFormatUsageLabel(l.label),
-        pct: Math.min(100, Math.round(l.used as number)),
-        resetHint: ocFormatResetHint(l.resetsAt),
-      }))
-    setUsageRows(rows)
-    const name = primary.displayName.split(' ')[0]
-    const lbl = primary.plan ? `${name} ${primary.plan}` : name
-    setProviderLabel(lbl.length > 14 ? name : lbl)
+  function updateUsageRowsFromProviders(
+    providers: Array<OcProviderEntry>,
+    preferred: string | null,
+  ) {
+    const result = usageRowsFromProviders(providers, preferred)
+    setUsageRows(result.rows)
+    setProviderLabel(result.providerLabel)
   }
 
   function cycleOcProvider() {
-    const okProviders = allOcProviders.filter((p) => p.status === 'ok' && p.lines.length > 0)
+    const okProviders = allOcProviders.filter(providerHasUsageProgress)
     if (okProviders.length < 2) return
-    const currentIdx = okProviders.findIndex((p) => p.provider === preferredProvider)
+    const currentIdx = okProviders.findIndex(
+      (p) => p.provider === preferredProvider,
+    )
     const next = okProviders[(currentIdx + 1) % okProviders.length]
     if (!next) return
     setPreferredProvider(next.provider)
-    try { localStorage.setItem(PREFERRED_PROVIDER_KEY_OC, next.provider) } catch { /* noop */ }
+    try {
+      localStorage.setItem(PREFERRED_PROVIDER_KEY_OC, next.provider)
+    } catch {
+      /* noop */
+    }
     updateUsageRowsFromProviders(allOcProviders, next.provider)
     if (flashTimerRefOc.current) clearTimeout(flashTimerRefOc.current)
     setProviderFlash(true)
@@ -352,25 +323,51 @@ function OrchestratorCard({
   useEffect(() => {
     let cancelled = false
     async function fetchAll() {
+      let modelFound = false
       try {
         // session-status: model + context pct
         const res = await fetch('/api/session-status')
-        if (!res.ok) return
-        const data = await res.json()
-        const payload = data.payload ?? data
-        const m = payload.model ?? payload.currentModel ?? ''
-        if (!cancelled && m) setModel(String(m))
-        const sn = String(payload.sessionLabel ?? payload.sessionName ?? payload.name ?? payload.label ?? '')
-        if (!cancelled && sn) setSessionName(sn)
-        const pct = ocParseContextPct(payload)
-        if (!cancelled) setContextPct(Math.min(100, Math.round(pct)))
-      } catch { /* noop */ }
+        if (res.ok) {
+          const data = await res.json()
+          const payload = data.payload ?? data
+          const m = readConfigModelLabel(payload)
+          if (!cancelled && m) {
+            modelFound = true
+            setModel(m)
+          }
+          const sn = String(
+            payload.sessionLabel ??
+              payload.sessionName ??
+              payload.name ??
+              payload.label ??
+              '',
+          )
+          if (!cancelled && sn) setSessionName(sn)
+          const pct = ocParseContextPct(payload)
+          if (!cancelled) setContextPct(Math.min(100, Math.round(pct)))
+        }
+      } catch {
+        /* noop */
+      }
+
+      try {
+        if (!cancelled && !modelFound) {
+          const res = await fetch('/api/claude-config')
+          if (res.ok && !cancelled) {
+            const data = await res.json()
+            const fallbackModel = readConfigModelLabel(data)
+            if (!cancelled && fallbackModel) setModel(fallbackModel)
+          }
+        }
+      } catch {
+        /* noop */
+      }
 
       try {
         // provider-usage: all bars
         const res2 = await fetch('/api/provider-usage')
         if (!res2.ok || cancelled) return
-        const data2 = await res2.json().catch(() => null) as {
+        const data2 = (await res2.json().catch(() => null)) as {
           ok?: boolean
           providers?: Array<OcProviderEntry>
         } | null
@@ -380,7 +377,9 @@ function OrchestratorCard({
           setAllOcProviders(data2.providers)
           updateUsageRowsFromProviders(data2.providers, preferredProvider)
         }
-      } catch { /* noop */ }
+      } catch {
+        /* noop */
+      }
     }
 
     void fetchAll()
@@ -390,7 +389,7 @@ function OrchestratorCard({
       clearInterval(timer)
       if (flashTimerRefOc.current) clearTimeout(flashTimerRefOc.current)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferredProvider])
 
   const displayName = agentName || sessionName || 'Агент'
@@ -405,29 +404,43 @@ function OrchestratorCard({
     const trimmed = editValue.trim()
     setAgentName(trimmed)
     setIsEditing(false)
-    try { localStorage.setItem(AGENT_NAME_KEY, trimmed) } catch { /* noop */ }
+    try {
+      localStorage.setItem(AGENT_NAME_KEY, trimmed)
+    } catch {
+      /* noop */
+    }
   }
 
   // Build usage rows: provider rows if available, else synthetic context row
-  const ctxRow: OcUsageRow = { label: 'Контекст', pct: contextPct ?? 0, resetHint: null }
-  const displayRows: OcUsageRow[] = usageRows.length > 0 ? usageRows : (contextPct !== null ? [ctxRow] : [])
-  const usageHeader = providerLabel ?? 'Использование'
+  const ctxRow: OcUsageRow = {
+    label: 'Контекст',
+    pct: contextPct ?? 0,
+    resetHint: null,
+  }
+  const displayRows: Array<OcUsageRow> =
+    usageRows.length > 0 ? usageRows : contextPct !== null ? [ctxRow] : []
+  const visibleUsageRows = displayRows.filter(
+    (row) => !(row.label === 'Контекст' && row.pct === 0) && row.pct > 0,
+  )
+  const usageHeader = providerLabel
+    ? `Расход: ${providerLabel}`
+    : 'Использование'
 
   // Provider logo URLs (Simple Icons CDN)
   const PROVIDER_LOGO_URLS: Record<string, string> = {
-    'anthropic': 'https://cdn.simpleicons.org/anthropic',
-    'claude':    'https://cdn.simpleicons.org/anthropic',
-    'openai':    'https://cdn.simpleicons.org/openai',
-    'gemini':    'https://cdn.simpleicons.org/googlegemini',
-    'google':    'https://cdn.simpleicons.org/google',
-    'mistral':   'https://cdn.simpleicons.org/mistral',
-    'groq':      'https://cdn.simpleicons.org/groq',
-    'ollama':    'https://cdn.simpleicons.org/ollama',
-    'deepseek':  'https://cdn.simpleicons.org/deepseek',
-    'minimax':   'https://cdn.simpleicons.org/minimax',
-    'cohere':    'https://cdn.simpleicons.org/cohere',
-    'meta':      'https://cdn.simpleicons.org/meta',
-    'nvidia':    'https://cdn.simpleicons.org/nvidia',
+    anthropic: 'https://cdn.simpleicons.org/anthropic',
+    claude: 'https://cdn.simpleicons.org/anthropic',
+    openai: 'https://cdn.simpleicons.org/openai',
+    gemini: 'https://cdn.simpleicons.org/googlegemini',
+    google: 'https://cdn.simpleicons.org/google',
+    mistral: 'https://cdn.simpleicons.org/mistral',
+    groq: 'https://cdn.simpleicons.org/groq',
+    ollama: 'https://cdn.simpleicons.org/ollama',
+    deepseek: 'https://cdn.simpleicons.org/deepseek',
+    minimax: 'https://cdn.simpleicons.org/minimax',
+    cohere: 'https://cdn.simpleicons.org/cohere',
+    meta: 'https://cdn.simpleicons.org/meta',
+    nvidia: 'https://cdn.simpleicons.org/nvidia',
   }
   function getProviderLogoUrl(label: string | null): string | null {
     if (!label) return null
@@ -438,7 +451,7 @@ function OrchestratorCard({
     return null
   }
   const providerLogoUrl = getProviderLogoUrl(providerLabel)
-  const canCycleOc = allOcProviders.filter((p) => p.status === 'ok' && p.lines.length > 0).length > 1
+  const canCycleOc = allOcProviders.filter(providerHasUsageProgress).length > 1
 
   return (
     <div
@@ -497,28 +510,42 @@ function OrchestratorCard({
                   'font-semibold text-primary-900 transition-colors hover:text-accent-600',
                   compact ? 'text-sm' : 'text-base',
                 )}
-              title="Переименовать агента"
+                title="Переименовать агента"
               >
                 {displayName}
               </button>
             )}
           </div>
           {/* State indicator — dot + label */}
-          <div className={cn('flex items-center gap-1.5 mt-0.5', !compact && 'justify-center')}>
-            <span className={cn(
-              'inline-block h-1.5 w-1.5 rounded-full shrink-0',
-              state === 'idle' ? 'bg-primary-400' :
-              state === 'thinking' ? 'bg-yellow-400 animate-pulse' :
-              state === 'tool-use' ? 'bg-violet-400 animate-pulse' :
-              state === 'responding' ? 'bg-emerald-400 animate-pulse' :
-              state === 'reading' ? 'bg-blue-400 animate-pulse' :
-              'bg-accent-400 animate-pulse'
-            )} />
-            <p className={cn(
-              'text-primary-600',
-              compact ? 'text-[9px]' : 'text-[10px]',
-              state !== 'idle' && 'font-medium text-primary-700',
-            )}>
+          <div
+            className={cn(
+              'flex items-center gap-1.5 mt-0.5',
+              !compact && 'justify-center',
+            )}
+          >
+            <span
+              className={cn(
+                'inline-block h-1.5 w-1.5 rounded-full shrink-0',
+                state === 'idle'
+                  ? 'bg-primary-400'
+                  : state === 'thinking'
+                    ? 'bg-yellow-400 animate-pulse'
+                    : state === 'tool-use'
+                      ? 'bg-violet-400 animate-pulse'
+                      : state === 'responding'
+                        ? 'bg-emerald-400 animate-pulse'
+                        : state === 'reading'
+                          ? 'bg-blue-400 animate-pulse'
+                          : 'bg-accent-400 animate-pulse',
+              )}
+            />
+            <p
+              className={cn(
+                'text-primary-600',
+                compact ? 'text-[9px]' : 'text-[10px]',
+                state !== 'idle' && 'font-medium text-primary-700',
+              )}
+            >
               {label}
             </p>
           </div>
@@ -531,8 +558,13 @@ function OrchestratorCard({
       </div>
 
       {/* ── Usage section ── */}
-      {displayRows.length > 0 && (
-        <div className={cn('border-t border-primary-200/20 pt-2 space-y-1.5', compact ? 'mt-1.5 px-2' : 'mt-2 px-3')}>
+      {visibleUsageRows.length > 0 && (
+        <div
+          className={cn(
+            'border-t border-primary-200/20 pt-2 space-y-1.5',
+            compact ? 'mt-1.5 px-2' : 'mt-2 px-3',
+          )}
+        >
           {/* Provider header row — centered */}
           <div className="flex w-full items-center justify-between">
             <div className="flex-1" />
@@ -553,7 +585,9 @@ function OrchestratorCard({
                   src={providerLogoUrl}
                   alt={usageHeader}
                   className="h-3 w-3 object-contain opacity-70"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  onError={(e) => {
+                    ;(e.target as HTMLImageElement).style.display = 'none'
+                  }}
                 />
               ) : (
                 <span className="h-3 w-3 rounded-full bg-primary-300/60 inline-block" />
@@ -575,17 +609,27 @@ function OrchestratorCard({
 
           {usageExpanded && (
             <div className="space-y-1.5">
-              {displayRows.filter(row => !(row.label === 'Контекст' && row.pct === 0) && row.pct > 0).map((row) => (
+              {visibleUsageRows.map((row) => (
                 <div key={row.label} className="space-y-0.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-medium text-primary-500 leading-none">{row.label}</span>
-                    <span className={cn('text-[9px] tabular-nums font-semibold', ocTextColor(row.pct))}>
+                    <span className="text-[9px] font-medium text-primary-500 leading-none">
+                      {row.label}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-[9px] tabular-nums font-semibold',
+                        ocTextColor(row.pct),
+                      )}
+                    >
                       {row.pct}%
                     </span>
                   </div>
                   <div className="h-1 w-full rounded-full bg-primary-200/70">
                     <div
-                      className={cn('h-full rounded-full transition-all duration-500', ocBarColor(row.pct))}
+                      className={cn(
+                        'h-full rounded-full transition-all duration-500',
+                        ocBarColor(row.pct),
+                      )}
                       style={{ width: `${row.pct}%` }}
                     />
                   </div>
@@ -603,7 +647,6 @@ function OrchestratorCard({
     </div>
   )
 }
-
 
 function getStatusLabel(status: AgentNodeStatus): string {
   if (status === 'failed') return 'Ошибка'
@@ -992,7 +1035,6 @@ export function AgentViewPanel() {
                 </Button>
               </div>
             </div>
-
           </div>
 
           <ScrollAreaRoot className="h-[calc(100%-3.25rem)]">
@@ -1004,221 +1046,225 @@ export function AgentViewPanel() {
                 <OrchestratorCard compact={false} />
 
                 {/* Agents — agent cards — only show when there's something */}
-                {(activeCount > 0 || queuedAgents.length > 0 || historyAgents.length > 0) && <section className="rounded-2xl bg-primary-200/15 p-1">
-                  {/* Centered Agents pill */}
-                  <div className="mb-1 flex justify-center">
-                    <span className="rounded-full bg-primary-200/30 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-500">
-                      Агенты
-                    </span>
-                  </div>
-
-                  <div className="mb-1 flex items-center justify-between">
-                    <div>
-                      {activeMissionName ? (
-                        <p className="mb-0.5 text-[10px] font-medium text-accent-400 tabular-nums">
-                          Миссия: {activeMissionName} · {missionStateLabel}
-                        </p>
-                      ) : null}
-                      <p className="text-[10px] text-primary-600 tabular-nums">
-                        {isLoading
-                          ? 'синхронизация...'
-                          : statusCounts.running === 0 &&
-                              statusCounts.thinking === 0 &&
-                              statusCounts.failed === 0 &&
-                              statusCounts.complete === 0
-                            ? ''
-                            : formatStatusCounts(statusCounts)}
-                      </p>
-                      {errorMessage ? (
-                        <p className="line-clamp-1 text-[10px] text-red-300 tabular-nums">
-                          {errorMessage}
-                        </p>
-                      ) : null}
+                {(activeCount > 0 ||
+                  queuedAgents.length > 0 ||
+                  historyAgents.length > 0) && (
+                  <section className="rounded-2xl bg-primary-200/15 p-1">
+                    {/* Centered Agents pill */}
+                    <div className="mb-1 flex justify-center">
+                      <span className="rounded-full bg-primary-200/30 px-3 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary-500">
+                        Агенты
+                      </span>
                     </div>
-                    <div className="text-right text-[10px] text-primary-500 tabular-nums">
-                      <p>
-                        {isLoading
-                          ? ''
-                          : ''}
-                      </p>
-                    </div>
-                  </div>
 
-                  <LayoutGroup id="agent-swarm-grid">
-                    {activeNodes.length > 0 ||
-                    spawningNodes.length > 0 ||
-                    queuedNodes.length > 0 ? (
-                      <motion.div
-                        ref={networkLayerRef}
-                        layout
-                        transition={{
-                          layout: {
-                            type: 'spring',
-                            stiffness: 320,
-                            damping: 30,
-                          },
-                        }}
-                        className="relative rounded-xl bg-primary-200/15 p-1"
-                      >
-                        <AnimatePresence initial={false}>
-                          {spawningNodes.map(
-                            function renderSpawningGhost(node, index) {
-                              const fallbackLeft = 24 + index * 14
-                              const fallbackTop = 128 + index * 10
-                              const width = sourceBubbleRect
-                                ? Math.min(sourceBubbleRect.width, 152)
-                                : 124
-                              const height = sourceBubbleRect
-                                ? Math.min(sourceBubbleRect.height, 44)
-                                : 32
-                              const top = sourceBubbleRect
-                                ? sourceBubbleRect.top
-                                : fallbackTop
-                              const left = sourceBubbleRect
-                                ? sourceBubbleRect.left +
-                                  sourceBubbleRect.width -
-                                  width
-                                : fallbackLeft
-
-                              return (
-                                <motion.div
-                                  key={`spawn-ghost-${node.id}`}
-                                  layoutId={agentSpawn.getSharedLayoutId(
-                                    node.id,
-                                  )}
-                                  initial={
-                                    shouldReduceMotion
-                                      ? { opacity: 0, scale: 0.96 }
-                                      : { opacity: 0, scale: 0.9 }
-                                  }
-                                  animate={
-                                    shouldReduceMotion
-                                      ? { opacity: 0.65, scale: 1 }
-                                      : {
-                                          opacity: [0.5, 0.85, 0.5],
-                                          scale: [0.94, 1, 0.94],
-                                        }
-                                  }
-                                  exit={{ opacity: 0, scale: 0.94 }}
-                                  transition={
-                                    shouldReduceMotion
-                                      ? { duration: 0.12, ease: 'easeOut' }
-                                      : { duration: 0.42, ease: 'easeInOut' }
-                                  }
-                                  className="pointer-events-none fixed z-30 rounded-full border border-accent-500/40 bg-accent-500/20 shadow-sm backdrop-blur-sm"
-                                  style={{ top, left, width, height }}
-                                />
-                              )
-                            },
-                          )}
-                        </AnimatePresence>
-
-                        {activeNodes.length > 0 || spawningNodes.length > 0 ? (
-                          <motion.div
-                            layout
-                            transition={{
-                              layout: {
-                                type: 'spring',
-                                stiffness: 360,
-                                damping: 34,
-                              },
-                            }}
-                            className={cn(
-                              'grid gap-1.5 items-start',
-                              'grid-cols-1',
-                            )}
-                          >
-                            <AnimatePresence mode="popLayout" initial={false}>
-                              {visibleActiveNodes.map(
-                                function renderActiveNode(node) {
-                                  return (
-                                    <motion.div
-                                      key={node.id}
-                                      layout="position"
-                                      initial={{
-                                        y: -18,
-                                        opacity: 0,
-                                        scale: 0.96,
-                                      }}
-                                      animate={{ y: 0, opacity: 1, scale: 1 }}
-                                      exit={{ y: 10, opacity: 0, scale: 0.88 }}
-                                      transition={{
-                                        type: 'spring',
-                                        stiffness: 300,
-                                        damping: 25,
-                                      }}
-                                      className="w-full"
-                                    >
-                                      <AgentCard
-                                        node={node}
-                                        layoutId={agentSpawn.getSharedLayoutId(
-                                          node.id,
-                                        )}
-                                        viewMode={viewMode}
-                                        onChat={handleChatByNodeId}
-                                        onKill={killAgent}
-                                        useInlineDetail
-                                        className={cn(
-                                          agentSpawn.isSpawning(node.id)
-                                            ? 'ring-2 ring-accent-500/35'
-                                            : '',
-                                        )}
-                                      />
-                                    </motion.div>
-                                  )
-                                },
-                              )}
-                            </AnimatePresence>
-                          </motion.div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <div>
+                        {activeMissionName ? (
+                          <p className="mb-0.5 text-[10px] font-medium text-accent-400 tabular-nums">
+                            Миссия: {activeMissionName} · {missionStateLabel}
+                          </p>
                         ) : null}
+                        <p className="text-[10px] text-primary-600 tabular-nums">
+                          {isLoading
+                            ? 'синхронизация...'
+                            : statusCounts.running === 0 &&
+                                statusCounts.thinking === 0 &&
+                                statusCounts.failed === 0 &&
+                                statusCounts.complete === 0
+                              ? ''
+                              : formatStatusCounts(statusCounts)}
+                        </p>
+                        {errorMessage ? (
+                          <p className="line-clamp-1 text-[10px] text-red-300 tabular-nums">
+                            {errorMessage}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="text-right text-[10px] text-primary-500 tabular-nums">
+                        <p>{isLoading ? '' : ''}</p>
+                      </div>
+                    </div>
 
-                        {queuedNodes.length > 0 ? (
-                          <motion.div layout className="mt-1.5 space-y-1">
-                            <p className="text-[10px] text-primary-600 tabular-nums">
-                              Queue
-                            </p>
+                    <LayoutGroup id="agent-swarm-grid">
+                      {activeNodes.length > 0 ||
+                      spawningNodes.length > 0 ||
+                      queuedNodes.length > 0 ? (
+                        <motion.div
+                          ref={networkLayerRef}
+                          layout
+                          transition={{
+                            layout: {
+                              type: 'spring',
+                              stiffness: 320,
+                              damping: 30,
+                            },
+                          }}
+                          className="relative rounded-xl bg-primary-200/15 p-1"
+                        >
+                          <AnimatePresence initial={false}>
+                            {spawningNodes.map(
+                              function renderSpawningGhost(node, index) {
+                                const fallbackLeft = 24 + index * 14
+                                const fallbackTop = 128 + index * 10
+                                const width = sourceBubbleRect
+                                  ? Math.min(sourceBubbleRect.width, 152)
+                                  : 124
+                                const height = sourceBubbleRect
+                                  ? Math.min(sourceBubbleRect.height, 44)
+                                  : 32
+                                const top = sourceBubbleRect
+                                  ? sourceBubbleRect.top
+                                  : fallbackTop
+                                const left = sourceBubbleRect
+                                  ? sourceBubbleRect.left +
+                                    sourceBubbleRect.width -
+                                    width
+                                  : fallbackLeft
+
+                                return (
+                                  <motion.div
+                                    key={`spawn-ghost-${node.id}`}
+                                    layoutId={agentSpawn.getSharedLayoutId(
+                                      node.id,
+                                    )}
+                                    initial={
+                                      shouldReduceMotion
+                                        ? { opacity: 0, scale: 0.96 }
+                                        : { opacity: 0, scale: 0.9 }
+                                    }
+                                    animate={
+                                      shouldReduceMotion
+                                        ? { opacity: 0.65, scale: 1 }
+                                        : {
+                                            opacity: [0.5, 0.85, 0.5],
+                                            scale: [0.94, 1, 0.94],
+                                          }
+                                    }
+                                    exit={{ opacity: 0, scale: 0.94 }}
+                                    transition={
+                                      shouldReduceMotion
+                                        ? { duration: 0.12, ease: 'easeOut' }
+                                        : { duration: 0.42, ease: 'easeInOut' }
+                                    }
+                                    className="pointer-events-none fixed z-30 rounded-full border border-accent-500/40 bg-accent-500/20 shadow-sm backdrop-blur-sm"
+                                    style={{ top, left, width, height }}
+                                  />
+                                )
+                              },
+                            )}
+                          </AnimatePresence>
+
+                          {activeNodes.length > 0 ||
+                          spawningNodes.length > 0 ? (
                             <motion.div
                               layout
+                              transition={{
+                                layout: {
+                                  type: 'spring',
+                                  stiffness: 360,
+                                  damping: 34,
+                                },
+                              }}
                               className={cn(
                                 'grid gap-1.5 items-start',
                                 'grid-cols-1',
                               )}
                             >
-                              {queuedNodes.map(function renderQueuedNode(node) {
-                                return (
-                                  <div key={node.id} className="w-full">
-                                    <AgentCard
-                                      node={node}
-                                      layoutId={agentSpawn.getCardLayoutId(
-                                        node.id,
-                                      )}
-                                      viewMode={viewMode}
-                                      onChat={handleChatByNodeId}
-                                      onCancel={cancelQueueTask}
-                                      useInlineDetail
-                                    />
-                                  </div>
-                                )
-                              })}
+                              <AnimatePresence mode="popLayout" initial={false}>
+                                {visibleActiveNodes.map(
+                                  function renderActiveNode(node) {
+                                    return (
+                                      <motion.div
+                                        key={node.id}
+                                        layout="position"
+                                        initial={{
+                                          y: -18,
+                                          opacity: 0,
+                                          scale: 0.96,
+                                        }}
+                                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                                        exit={{
+                                          y: 10,
+                                          opacity: 0,
+                                          scale: 0.88,
+                                        }}
+                                        transition={{
+                                          type: 'spring',
+                                          stiffness: 300,
+                                          damping: 25,
+                                        }}
+                                        className="w-full"
+                                      >
+                                        <AgentCard
+                                          node={node}
+                                          layoutId={agentSpawn.getSharedLayoutId(
+                                            node.id,
+                                          )}
+                                          viewMode={viewMode}
+                                          onChat={handleChatByNodeId}
+                                          onKill={killAgent}
+                                          useInlineDetail
+                                          className={cn(
+                                            agentSpawn.isSpawning(node.id)
+                                              ? 'ring-2 ring-accent-500/35'
+                                              : '',
+                                          )}
+                                        />
+                                      </motion.div>
+                                    )
+                                  },
+                                )}
+                              </AnimatePresence>
                             </motion.div>
-                          </motion.div>
-                        ) : null}
-                      </motion.div>
-                    ) : cliAgents.length > 0 ? null : (
-                      <p
-                        ref={
-                          networkLayerRef as React.RefObject<HTMLParagraphElement>
-                        }
-                        className="text-[11px] text-pretty text-primary-600 py-1"
-                      >
+                          ) : null}
 
+                          {queuedNodes.length > 0 ? (
+                            <motion.div layout className="mt-1.5 space-y-1">
+                              <p className="text-[10px] text-primary-600 tabular-nums">
+                                Queue
+                              </p>
+                              <motion.div
+                                layout
+                                className={cn(
+                                  'grid gap-1.5 items-start',
+                                  'grid-cols-1',
+                                )}
+                              >
+                                {queuedNodes.map(
+                                  function renderQueuedNode(node) {
+                                    return (
+                                      <div key={node.id} className="w-full">
+                                        <AgentCard
+                                          node={node}
+                                          layoutId={agentSpawn.getCardLayoutId(
+                                            node.id,
+                                          )}
+                                          viewMode={viewMode}
+                                          onChat={handleChatByNodeId}
+                                          onCancel={cancelQueueTask}
+                                          useInlineDetail
+                                        />
+                                      </div>
+                                    )
+                                  },
+                                )}
+                              </motion.div>
+                            </motion.div>
+                          ) : null}
+                        </motion.div>
+                      ) : cliAgents.length > 0 ? null : (
+                        <p
+                          ref={
+                            networkLayerRef as React.RefObject<HTMLParagraphElement>
+                          }
+                          className="text-[11px] text-pretty text-primary-600 py-1"
+                        ></p>
+                      )}
+                    </LayoutGroup>
+                  </section>
+                )}
 
-                      </p>
-                    )}
-                  </LayoutGroup>
-                </section>}
-
-                {(cliAgentsQuery.isLoading || visibleCliAgents.length > 0) ? (
+                {cliAgentsQuery.isLoading || visibleCliAgents.length > 0 ? (
                   <section className="rounded-2xl bg-primary-200/15 p-2">
                     <Collapsible
                       open={cliAgentsExpanded}
@@ -1282,9 +1328,14 @@ export function AgentViewPanel() {
                                     type="button"
                                     onClick={async () => {
                                       try {
-                                        await fetch(`/api/cli-agents/${agent.pid}/kill`, { method: 'POST' })
+                                        await fetch(
+                                          `/api/cli-agents/${agent.pid}/kill`,
+                                          { method: 'POST' },
+                                        )
                                         cliAgentsQuery.refetch()
-                                      } catch { /* noop */ }
+                                      } catch {
+                                        /* noop */
+                                      }
                                     }}
                                     className="shrink-0 rounded px-1 py-0.5 text-[9px] text-primary-400 hover:bg-red-100 hover:text-red-500 transition-colors"
                                     title="Остановить агента"
@@ -1322,7 +1373,6 @@ export function AgentViewPanel() {
                     </Collapsible>
                   </section>
                 ) : null}
-
               </div>
             </ScrollAreaViewport>
             <ScrollAreaScrollbar>
@@ -1371,13 +1421,17 @@ export function AgentViewPanel() {
                       <span
                         className={cn(
                           'size-1.5 rounded-full',
-                          activeCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-primary-400/50',
+                          activeCount > 0
+                            ? 'bg-emerald-400 animate-pulse'
+                            : 'bg-primary-400/50',
                         )}
                       />
                       {activeCount}
                     </span>
                   </div>
-                  <h2 className="text-sm font-semibold text-primary-900">Панель агента</h2>
+                  <h2 className="text-sm font-semibold text-primary-900">
+                    Панель агента
+                  </h2>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
@@ -1385,7 +1439,12 @@ export function AgentViewPanel() {
                     aria-label="Закрыть"
                   >
                     <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <path
+                        d="M4 4l8 8M12 4l-8 8"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -1412,7 +1471,8 @@ export function AgentViewPanel() {
                       <div className="space-y-1.5 p-1">
                         {missionActiveAgents.length > 0 ? (
                           <p className="px-1 text-[10px] font-medium uppercase tracking-[0.16em] text-accent-400">
-                            {activeMissionName || 'Миссия'} · {missionActiveAgents.length} сессий
+                            {activeMissionName || 'Миссия'} ·{' '}
+                            {missionActiveAgents.length} сессий
                           </p>
                         ) : null}
                         {activeNodes.map((node) => (
@@ -1425,10 +1485,16 @@ export function AgentViewPanel() {
                             footer={
                               <div className="flex items-center justify-between">
                                 {missionSessionIds.has(node.id) ? (
-                                  <span className="text-[10px] text-accent-400">Активная миссия</span>
+                                  <span className="text-[10px] text-accent-400">
+                                    Активная миссия
+                                  </span>
                                 ) : nonMissionActiveAgents.length > 0 ? (
-                                  <span className="text-[10px] text-primary-500">Вне миссии</span>
-                                ) : <span />}
+                                  <span className="text-[10px] text-primary-500">
+                                    Вне миссии
+                                  </span>
+                                ) : (
+                                  <span />
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => killAgent(node.id)}
@@ -1465,7 +1531,13 @@ export function AgentViewPanel() {
                                 <div className="flex justify-end">
                                   <button
                                     type="button"
-                                    onClick={() => setSelectedAgentChat({ sessionKey: agent.id, agentName: agent.name, statusLabel: agent.status })}
+                                    onClick={() =>
+                                      setSelectedAgentChat({
+                                        sessionKey: agent.id,
+                                        agentName: agent.name,
+                                        statusLabel: agent.status,
+                                      })
+                                    }
                                     className="text-[10px] text-accent-600 hover:text-accent-800 font-medium"
                                   >
                                     Открыть

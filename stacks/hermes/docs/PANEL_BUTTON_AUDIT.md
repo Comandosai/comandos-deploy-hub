@@ -23,9 +23,11 @@
 ## Среда проверки
 
 - Локальная панель: `http://127.0.0.1:33030`
+- Живая тестовая панель: `https://194.113.38.109.nip.io`
 - Ветка: `codex/product-button-audit`
 - Проверка маршрутов: Playwright Chromium, чистые контексты, `claude-onboarding-complete=true`
 - Локальный Hermes gateway: не поднят. Разделы, зависящие от gateway, проверялись на честное русское disabled-состояние.
+- Живой Hermes gateway на `clawd`: доступен через `127.0.0.1:8642`, workspace через `127.0.0.1:3030`, сервисы `comandos-workspace`, `hermes-gateway`, `comandos-telegram` активны как user services.
 
 ## Исправленные дефекты
 
@@ -46,7 +48,9 @@
 | Обновления | Кнопка обновления успевала перезапустить панель до ответа API; state записывал старую версию из lock | `comandos-hermes.lock` поднят до `2.3.0-comandos.12`; restart delay вынесен в `COMANDOS_WORKSPACE_RESTART_DELAY_SECONDS` с дефолтом 30 сек; отложенный restart отсоединён через `nohup` | На `clawd` повторный API-вызов вернул JSON `ok=true`; после отложенного рестарта служба активна, installed state `.12`, update status `current` | FIXED |
 | Обновления | После правки установщика без bump версии установленная панель не увидела бы обновление | Workspace поднят до `2.3.0-comandos.13`, manifest/lock/package синхронизированы | `clawd`: status показал `.12 → .13`, POST `/api/update/workspace` вернул `ok=true`, после рестарта services active, update status `current` | FIXED |
 | Установка | В уроке пользователь мог заполнить `comandos-hermes.env.example`, а агент дальше проверял пустой `comandos-hermes.env` | Workspace поднят до `2.3.0-comandos.13`; `deploy.sh` берёт заполненный example, если основной env не проходит проверку; тексты урока обновлены | Чистая установка из GitHub отдаёт новые тексты; изолированный fake-SSH прогон: основной env падает, example проходит, deploy выбирает example | FIXED |
-| Задачи | На чистом VPS может отсутствовать системный `sqlite3`, из-за чего backend задач пишет `spawnSync sqlite3 ENOENT` | Workspace поднят до `2.3.0-comandos.15`; `deploy.sh` ставит `sqlite3`, update script доставляет его на уже установленной панели, а backend временно уходит на локальную доску, если зависимость ещё отсутствует | `bash -n` для install/update scripts OK; `kanban-backend` тест добавлен для fallback без `sqlite3`; live-проверка обновления на `clawd` нужна после push `.15` | FIXED |
+| Задачи | На чистом VPS может отсутствовать системный `sqlite3`, из-за чего backend задач пишет `spawnSync sqlite3 ENOENT` | Workspace поднят до `2.3.0-comandos.15`; `deploy.sh` ставит `sqlite3`, update script доставляет его на уже установленной панели, а backend временно уходит на локальную доску, если зависимость ещё отсутствует | `bash -n` для install/update scripts OK; `kanban-backend` тест добавлен для fallback без `sqlite3`; `clawd` обновлён до `.15`, tasks API не падает | FIXED |
+| Панель агента | Справа показывался пустой и ложный `OpenAI`, хотя активная модель — `deepseek-chat` | Workspace поднят до `2.3.0-comandos.16`; панель агента теперь берёт модель из `/api/claude-config`, а провайдер расхода выбирает только при наличии реальных progress-строк | Тест `agent-usage-helpers` проверяет, что badge-only OpenAI не выбирается; `pnpm build` OK | FIXED |
+| Обновления | Модалка показывала урезанную версию `2.3.0-c → main` и могла всплывать от старых pending notes при обычном открытии | Workspace поднят до `2.3.0-comandos.16`; версии больше не режутся как SHA, managed release notes пишут версию вместо `main`, старые notes нормализуются и не открываются сами на routine status poll | Тесты `update-center-notifier` и `update-system` проверяют формат версий и нормализацию `main → 2.3.0-comandos.*`; `pnpm build` OK | FIXED |
 
 ## Проверенные маршруты
 
@@ -85,6 +89,7 @@
 | Chat | `Создать файл` | Подставить готовый промпт в composer | OK |
 | Chat | `Настройки чата` | Открыть настройки текущей сессии | OK |
 | Chat | `Голосовой ввод` | Не падать без микрофона/разрешения браузера | OK |
+| Agent panel | Индикатор модели и расхода | Не показывать пустой `OpenAI`, если у него нет данных расхода | FIXED |
 | Files | `Новый файл`, `Загрузить`, сохранить, preview, context menu, удалить | Работа с временным файлом | OK |
 | Terminal | `Новая вкладка терминала` | Создать вкладку | OK |
 | Terminal | `AI-анализ терминала` | Показать русскую диагностику | FIXED |
@@ -106,6 +111,8 @@
 | `pnpm build` | OK | Есть только предупреждения Vite про размер чанков и смешанные dynamic/static imports |
 | `pnpm exec vitest run src/server/update-system.test.ts` после bump/cache fix | OK | Проверка сравнения версий и настроек polling |
 | `pnpm exec vitest run src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | 5 тестов прошли; проверены временное скрытие обновлений и сравнение версий |
+| `pnpm exec vitest run src/components/agent-view/agent-usage-helpers.test.ts src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | 12 тестов прошли; проверены выбор провайдера расхода, формат версий и managed release notes |
+| `pnpm exec eslint src/components/agent-view/agent-usage-helpers.ts src/components/agent-view/agent-usage-helpers.test.ts src/components/update-center-notifier.tsx src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | Новая логика и тесты проходят; полный `agent-view-panel.tsx` всё ещё имеет старый lint-долг |
 | Маршрутный Playwright-обход 17 страниц | OK | Нет аварийных экранов, console errors, сетевых падений и проверяемых английских пользовательских фраз |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
@@ -120,9 +127,10 @@
 | MCP с реальным gateway | Локально gateway недоступен, поэтому проверено только честное disabled-состояние |
 | Обновление Hermes Agent при новой версии | На `clawd` Hermes Agent сейчас `current`; нужно повторить кнопку, когда manifest будет указывать более новую проверенную версию агента |
 | Telegram router / голос / inline-кнопки | Нужен VPS с Telegram-токеном и живым ботом |
+| Полный eslint большого `agent-view-panel.tsx` | Файл содержит старые замечания lint: отсутствующее правило `react-hooks/exhaustive-deps`, старые optional-chain/assertion места и shadow warnings. Сборка проходит, но перед финальной продажей это надо вынести в отдельную чистку. |
 
 ## Текущий вывод
 
-Локальная панель стала существенно ближе к коробочному состоянию: основные разделы открываются, мёртвые кнопки из найденного прохода исправлены или честно отключены, ложный OAuth для Codex убран, пользовательские ошибки лицензии и gateway русифицированы.
+Локальная и живая тестовая панель стали существенно ближе к коробочному состоянию: основные разделы открываются, мёртвые кнопки из найденного прохода исправлены или честно отключены, ложный OAuth для Codex убран, пользовательские ошибки лицензии и gateway русифицированы, ложный `OpenAI` в панели агента и кривые версии обновлений исправлены.
 
 Следующий обязательный шаг перед продажей и видео: чистая установка на VPS из GitHub и повтор тех же проверок уже на установленной панели.

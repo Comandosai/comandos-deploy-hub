@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatReleaseRef,
   parseUpdateDismissal,
   serializeUpdateDismissal,
 } from './update-center-notifier'
@@ -19,5 +20,18 @@ describe('update center dismissal', () => {
     expect(
       parseUpdateDismissal('workspace:2.3.0-comandos.11', Date.now()),
     ).toBeNull()
+  })
+})
+
+describe('update center release refs', () => {
+  it('does not shorten managed COMANDOS versions', () => {
+    expect(formatReleaseRef('2.3.0-comandos.13')).toBe('2.3.0-comandos.13')
+    expect(formatReleaseRef('2.3.0-komandos.4')).toBe('2.3.0-komandos.4')
+  })
+
+  it('shortens only commit-like hashes', () => {
+    expect(formatReleaseRef('96bc5ad1234567890abcdef')).toBe('96bc5ad')
+    expect(formatReleaseRef('main')).toBe('main')
+    expect(formatReleaseRef(null)).toBe('неизвестно')
   })
 })

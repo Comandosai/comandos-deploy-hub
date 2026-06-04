@@ -83,8 +83,11 @@ const DISMISS_TTL_MS = 24 * 60 * 60 * 1000
 const NOTES_KEY = 'hermes-update-v2-release-notes'
 const NOTES_SEEN_KEY = 'hermes-update-v2-release-notes-seen'
 
-function shortSha(value: string | null | undefined): string {
-  return value ? value.slice(0, 7) : 'неизвестно'
+export function formatReleaseRef(value: string | null | undefined): string {
+  const normalized = value?.trim()
+  if (!normalized) return 'неизвестно'
+  if (/^[a-f0-9]{8,40}$/i.test(normalized)) return normalized.slice(0, 7)
+  return normalized
 }
 
 function productUpdateTitle(
@@ -215,8 +218,7 @@ export function UpdateCenterNotifier() {
 
   useEffect(() => {
     if (!data?.pendingReleaseNotes?.length) return
-    const stored = storeNotes(data.pendingReleaseNotes)
-    if (stored) setNotes((current) => current ?? stored)
+    storeNotes(data.pendingReleaseNotes)
   }, [data?.pendingReleaseNotes])
 
   const visibleProducts = useMemo(() => {
@@ -325,8 +327,8 @@ function UpdateCard({
       ? error
       : blocked
         ? product.reason || 'Обновление требует ручной проверки.'
-        : `${product.version || shortSha(product.currentHead)} → ${
-            product.latestVersion || shortSha(product.latestHead)
+        : `${product.version || formatReleaseRef(product.currentHead)} → ${
+            product.latestVersion || formatReleaseRef(product.latestHead)
           } · ${product.updateMode}`
 
   return (
@@ -550,7 +552,8 @@ function ReleaseNotes({
                       color: 'var(--theme-muted)',
                     }}
                   >
-                    {shortSha(section.from)} → {shortSha(section.to)}
+                    {formatReleaseRef(section.from)} →{' '}
+                    {formatReleaseRef(section.to)}
                   </span>
                 </div>
                 <ul className="space-y-1.5">

@@ -1,13 +1,42 @@
 import { describe, expect, it } from 'vitest'
 import {
   compareManagedVersions,
+  normalizePendingReleaseNotes,
   readUpdateCheckIntervalMs,
   remoteUrlMatches,
   renderManagedUpdateScriptTemplate,
   versionIsNewer,
 } from './update-system'
+import type { ProductUpdateStatus } from './update-system'
 
 describe('update-system helpers', () => {
+  const workspaceProduct: ProductUpdateStatus = {
+    id: 'workspace',
+    label: 'COMANDOS AI Workspace',
+    installKind: 'unknown',
+    version: '2.3.0-comandos.15',
+    path: null,
+    repoPath: null,
+    branch: null,
+    currentHead: null,
+    latestHead: 'main',
+    latestVersion: '2.3.0-comandos.15',
+    updateAvailable: false,
+    canUpdate: false,
+    state: 'current',
+    reason: null,
+    updateMode: 'comandos-managed',
+  }
+
+  const agentProduct: ProductUpdateStatus = {
+    ...workspaceProduct,
+    id: 'agent',
+    label: 'Hermes Agent',
+    version: 'Hermes Agent v0.14.0',
+    latestHead: 'agent-ref',
+    latestVersion: 'Hermes Agent v0.14.0',
+  }
+
   it('matches GitHub URL forms against expected repo aliases', () => {
     expect(
       remoteUrlMatches('https://github.com/outsourc-e/hermes-workspace.git', [
@@ -97,5 +126,33 @@ describe('update-system helpers', () => {
     )
     expect(rendered).toContain('REMOTE_HERMES_HOME="/home/hermes/.hermes"')
     expect(rendered).not.toContain('{{')
+  })
+
+  it('normalizes managed release notes from branch ref to version', () => {
+    expect(
+      normalizePendingReleaseNotes(
+        [
+          {
+            product: 'workspace',
+            label: 'COMANDOS AI Workspace',
+            from: '2.3.0-comandos.13',
+            to: 'main',
+            commits: [],
+          },
+        ],
+        {
+          workspace: workspaceProduct,
+          agent: agentProduct,
+        },
+      ),
+    ).toEqual([
+      {
+        product: 'workspace',
+        label: 'COMANDOS AI Workspace',
+        from: '2.3.0-comandos.13',
+        to: '2.3.0-comandos.15',
+        commits: [],
+      },
+    ])
   })
 })

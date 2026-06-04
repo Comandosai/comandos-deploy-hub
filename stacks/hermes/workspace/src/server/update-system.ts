@@ -25,7 +25,7 @@ type UpdateMode =
   | 'comandos-managed'
 type VersionOrder = -1 | 0 | 1 | null
 
-type ReleaseNoteSection = {
+export type ReleaseNoteSection = {
   product: ProductId
   label: string
   from: string | null
@@ -133,6 +133,24 @@ function readPendingReleaseNotes(): Array<ReleaseNoteSection> {
   } catch {
     return []
   }
+}
+
+export function normalizePendingReleaseNotes(
+  sections: Array<ReleaseNoteSection>,
+  products: UpdateStatus['products'],
+): Array<ReleaseNoteSection> {
+  return sections.map((section) => {
+    const product = products[section.product]
+    if (!product) return section
+    const to =
+      section.to &&
+      product.latestHead &&
+      section.to === product.latestHead &&
+      product.latestVersion
+        ? product.latestVersion
+        : section.to
+    return { ...section, to }
+  })
 }
 
 function exec(
@@ -919,13 +937,17 @@ export function readUpdateStatus(): UpdateStatus {
   const agent = manifest
     ? managedAgentStatus(legacyAgent, manifest) || legacyAgent
     : legacyAgent
+  const products = { workspace, agent }
   return {
     ok: true,
     checkedAt: Date.now(),
     checkIntervalMs: readUpdateCheckIntervalMs(),
-    products: { workspace, agent },
+    products,
     updateAvailable: workspace.updateAvailable || agent.updateAvailable,
-    pendingReleaseNotes: readPendingReleaseNotes(),
+    pendingReleaseNotes: normalizePendingReleaseNotes(
+      readPendingReleaseNotes(),
+      products,
+    ),
   }
 }
 
@@ -955,8 +977,8 @@ function applyManagedUpdate(
       {
         product,
         label: before.label,
-        from: before.currentHead || before.version,
-        to: before.latestHead || before.latestVersion,
+        from: before.version || before.currentHead,
+        to: before.latestVersion || before.latestHead,
         commits: [],
       },
     ]
