@@ -202,6 +202,17 @@ function resolveGithubRawBranchUrl(url: string): string {
   const [, owner, repo, ref, path] = match
   if (/^[0-9a-f]{40}$/i.test(ref)) return url
 
+  const remoteUrl = `https://github.com/${owner}/${repo}.git`
+  const lsRemote = exec(
+    'git',
+    ['ls-remote', remoteUrl, ref],
+    { timeout: 8_000 },
+  )
+  const lsRemoteSha = lsRemote?.split(/\s+/)[0] ?? null
+  if (lsRemoteSha && /^[0-9a-f]{40}$/i.test(lsRemoteSha)) {
+    return `https://raw.githubusercontent.com/${owner}/${repo}/${lsRemoteSha}/${path}`
+  }
+
   const apiUrl = `https://api.github.com/repos/${encodeURIComponent(
     owner,
   )}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(ref)}`
