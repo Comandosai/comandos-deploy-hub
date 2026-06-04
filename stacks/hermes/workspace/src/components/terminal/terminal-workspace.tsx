@@ -148,6 +148,14 @@ export function TerminalWorkspace({
     new Map<string, ReadableStreamDefaultReader<Uint8Array>>(),
   )
   const connectedRef = useRef(new Set<string>())
+  const panelVisibleRef = useRef(panelVisible)
+
+  useEffect(
+    function syncPanelVisibleRef() {
+      panelVisibleRef.current = panelVisible
+    },
+    [panelVisible],
+  )
 
   const activeTab = useMemo(
     function activeTabMemo() {
@@ -334,6 +342,7 @@ export function TerminalWorkspace({
 
   const connectTab = useCallback(
     async function connectTab(tab: TerminalTab) {
+      if (!panelVisibleRef.current) return
       if (connectedRef.current.has(tab.id)) return
       const terminal = terminalMapRef.current.get(tab.id)
       if (!terminal) return
@@ -489,6 +498,11 @@ export function TerminalWorkspace({
       connectedRef.current.delete(tab.id)
       setTabStatus(tab.id, 'idle')
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- visibility can change while the SSE reader awaits.
+      if (!panelVisibleRef.current) {
+        return
+      }
+
       if (previousSessionId) {
         // Don't call /api/terminal-close — we *want* the PTY to live so
         // we can reattach to it. The server will reap the session via
@@ -639,6 +653,7 @@ export function TerminalWorkspace({
       if (!panelVisible) return
       // Refit all terminals when becoming visible (e.g. navigating back to terminal route)
       window.setTimeout(() => {
+        const snapshot = useTerminalPanelStore.getState().tabs
         for (const [tabId, fitAddon] of fitMapRef.current.entries()) {
           try {
             fitXtermAndHideMeasureElements(
@@ -649,15 +664,33 @@ export function TerminalWorkspace({
             /* ignore */
           }
         }
-        const snapshot = useTerminalPanelStore.getState().tabs
         for (const tab of snapshot) {
           const term = terminalMapRef.current.get(tab.id)
-          if (term) void resizeSession(tab.id, term)
+          if (!term) continue
+          void resizeSession(tab.id, term)
+          if (!connectedRef.current.has(tab.id)) {
+            void connectTab(tab)
+          }
         }
         focusActiveTerminal()
       }, 100)
     },
-    [focusActiveTerminal, panelVisible, resizeSession],
+    [connectTab, focusActiveTerminal, panelVisible, resizeSession],
+  )
+
+  useEffect(
+    function pauseStreamsWhenHidden() {
+      if (panelVisible) return
+      for (const [tabId, reader] of readerMapRef.current.entries()) {
+        readerMapRef.current.delete(tabId)
+        connectedRef.current.delete(tabId)
+        setTabStatus(tabId, 'idle')
+        void reader.cancel().catch(function ignore() {
+          return undefined
+        })
+      }
+    },
+    [panelVisible, setTabStatus],
   )
 
   useEffect(
