@@ -58,6 +58,7 @@ export type ProductUpdateStatus = {
 export type UpdateStatus = {
   ok: true
   checkedAt: number
+  checkIntervalMs: number
   products: {
     workspace: ProductUpdateStatus
     agent: ProductUpdateStatus
@@ -99,6 +100,9 @@ type ComandosUpdateManifest = {
 
 const DEFAULT_COMANDOS_UPDATE_MANIFEST_URL =
   'https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json'
+const DEFAULT_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000
+const MIN_UPDATE_CHECK_INTERVAL_MS = 10 * 1000
+const MAX_UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
 
 function pendingNotesPath(): string {
   return join(process.cwd(), '.runtime', 'pending-update-release-notes.json')
@@ -173,6 +177,20 @@ function comandosManifestUrl(): string | null {
     DEFAULT_COMANDOS_UPDATE_MANIFEST_URL
   ).trim()
   return value || null
+}
+
+export function readUpdateCheckIntervalMs(): number {
+  const raw = (
+    process.env.COMANDOS_UPDATE_CHECK_INTERVAL_MS ||
+    process.env.VITE_UPDATE_CHECK_INTERVAL_MS ||
+    ''
+  ).trim()
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed)) return DEFAULT_UPDATE_CHECK_INTERVAL_MS
+  return Math.min(
+    MAX_UPDATE_CHECK_INTERVAL_MS,
+    Math.max(MIN_UPDATE_CHECK_INTERVAL_MS, parsed),
+  )
 }
 
 function resolveGithubRawBranchUrl(url: string): string {
@@ -754,6 +772,7 @@ export function readUpdateStatus(): UpdateStatus {
   return {
     ok: true,
     checkedAt: Date.now(),
+    checkIntervalMs: readUpdateCheckIntervalMs(),
     products: { workspace, agent },
     updateAvailable: workspace.updateAvailable || agent.updateAvailable,
     pendingReleaseNotes: readPendingReleaseNotes(),

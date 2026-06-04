@@ -36,6 +36,7 @@ type ProductUpdateStatus = {
 type UpdateStatus = {
   ok: true
   checkedAt: number
+  checkIntervalMs?: number
   products: Record<ProductId, ProductUpdateStatus>
   updateAvailable: boolean
   pendingReleaseNotes?: Array<ReleaseNoteSection>
@@ -158,7 +159,12 @@ export function UpdateCenterNotifier() {
       if (!res.ok) return null
       return res.json() as Promise<UpdateStatus>
     },
-    refetchInterval: CHECK_INTERVAL_MS,
+    refetchInterval: (query) => {
+      const serverInterval = query.state.data?.checkIntervalMs
+      return typeof serverInterval === 'number' && serverInterval >= 10_000
+        ? serverInterval
+        : CHECK_INTERVAL_MS
+    },
     staleTime: CHECK_INTERVAL_MS,
     retry: false,
   })
