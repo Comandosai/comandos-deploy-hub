@@ -13,6 +13,7 @@ HERMES_AGENT_INSTALLER_URL="${HERMES_AGENT_INSTALLER_URL:-{{HERMES_AGENT_INSTALL
 COMANDOS_STACK_REPO_URL="${COMANDOS_STACK_REPO_URL:-https://github.com/Comandosai/comandos-deploy-hub.git}"
 COMANDOS_STACK_REF="${COMANDOS_STACK_REF:-main}"
 COMANDOS_STACK_PATH="${COMANDOS_STACK_PATH:-stacks/hermes}"
+WORKSPACE_RESTART_DELAY_SECONDS="${COMANDOS_WORKSPACE_RESTART_DELAY_SECONDS:-8}"
 
 case "$PRODUCT" in
   workspace|agent|all) ;;
@@ -177,8 +178,8 @@ update_workspace() {
   write_state
 
   if command -v systemctl >/dev/null 2>&1; then
-    log "Перезапускаю панель через 2 секунды..."
-    (sleep 2; systemctl --user restart comandos-workspace.service >/dev/null 2>&1 || true) &
+    log "Перезапускаю панель через $WORKSPACE_RESTART_DELAY_SECONDS сек..."
+    (sleep "$WORKSPACE_RESTART_DELAY_SECONDS"; systemctl --user restart comandos-workspace.service >/dev/null 2>&1 || true) &
   else
     log "systemctl не найден; перезапустите панель вручную."
   fi
