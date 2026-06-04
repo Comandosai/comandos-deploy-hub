@@ -44,6 +44,7 @@
 | Обновления | После пуша версия manifest могла не измениться или raw GitHub мог отдать старый кэш | Workspace поднят до `2.3.0-comandos.11`; update checker сначала превращает `main` в конкретный SHA через `git ls-remote` | Raw manifest по SHA отдаёт `.11`; `update-system` тесты проходят | FIXED |
 | Обновления | Крестик в карточке обновления скрывал конкретную версию навсегда в `localStorage` | Workspace поднят до `2.3.0-comandos.12`; скрытие теперь действует 24 часа, старые вечные маркеры игнорируются | `update-center-notifier` тесты проходят; `clawd` API показал `2.3.0-comandos.7 → 2.3.0-comandos.11` до фикса | FIXED |
 | Обновления | Кнопка обновления успевала перезапустить панель до ответа API; state записывал старую версию из lock | `comandos-hermes.lock` поднят до `2.3.0-comandos.12`; restart delay вынесен в `COMANDOS_WORKSPACE_RESTART_DELAY_SECONDS` с дефолтом 30 сек; отложенный restart отсоединён через `nohup` | На `clawd` повторный API-вызов вернул JSON `ok=true`; после отложенного рестарта служба активна, installed state `.12`, update status `current` | FIXED |
+| Установка | В уроке пользователь мог заполнить `comandos-hermes.env.example`, а агент дальше проверял пустой `comandos-hermes.env` | Workspace поднят до `2.3.0-comandos.13`; `deploy.sh` берёт заполненный example, если основной env не проходит проверку; тексты урока обновлены | Чистая установка из GitHub отдаёт новые тексты; изолированный fake-SSH прогон: основной env падает, example проходит, deploy выбирает example | FIXED |
 
 ## Проверенные маршруты
 
