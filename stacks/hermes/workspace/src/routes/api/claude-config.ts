@@ -23,7 +23,12 @@ const ENV_PATH = path.join(CLAUDE_HOME, '.env')
 // Known Hermes providers
 const PROVIDERS = [
   { id: 'nous', name: 'Nous Portal', authType: 'oauth', envKeys: [] },
-  { id: 'openai-codex', name: 'OpenAI Codex', authType: 'oauth', envKeys: [] },
+  {
+    id: 'openai-codex',
+    name: 'OpenAI Codex',
+    authType: 'cli_token',
+    envKeys: [],
+  },
   {
     id: 'anthropic',
     name: 'Anthropic',
@@ -147,6 +152,25 @@ function checkAuthStore(providerId: string): {
   source: string
   maskedKey?: string
 } {
+  if (providerId === 'openai-codex') {
+    const codexAuthPath = path.join(os.homedir(), '.codex', 'auth.json')
+    try {
+      if (fs.existsSync(codexAuthPath)) {
+        const auth = JSON.parse(fs.readFileSync(codexAuthPath, 'utf-8'))
+        const accessToken = String(auth?.tokens?.access_token || '').trim()
+        const refreshToken = String(auth?.tokens?.refresh_token || '').trim()
+        if (accessToken && refreshToken) {
+          return {
+            hasToken: true,
+            source: 'codex-cli-oauth',
+            maskedKey: maskKey(accessToken),
+          }
+        }
+      }
+    } catch {}
+    return { hasToken: false, source: '' }
+  }
+
   // Check Claude auth store
   const storePath = path.join(CLAUDE_HOME, 'auth-profiles.json')
   try {
@@ -190,8 +214,7 @@ export const Route = createFileRoute('/api/claude-config')({
 
         // Build provider status
         const providerStatus = PROVIDERS.map((p) => {
-          const hasEnvKey =
-            p.envKeys.length === 0 || p.envKeys.some((k) => !!env[k])
+          const hasEnvKey = p.envKeys.length > 0 && p.envKeys.some((k) => !!env[k])
           const authStoreCheck = checkAuthStore(p.id)
           const hasKey =
             hasEnvKey || authStoreCheck.hasToken || p.authType === 'none'

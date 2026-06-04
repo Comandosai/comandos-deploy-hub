@@ -152,7 +152,7 @@ const PROVIDER_CARDS: Array<{
   name: string
   logo: string
   models: Array<string>
-  authType: 'oauth' | 'api_key' | 'none'
+  authType: 'oauth' | 'api_key' | 'none' | 'cli_token'
   envKey?: string
 }> = [
   // Local providers first — zero setup
@@ -196,7 +196,7 @@ const PROVIDER_CARDS: Array<{
     name: 'OpenAI Codex',
     logo: '/providers/openai.png',
     models: ['gpt-5.4', 'gpt-5.3-codex', 'gpt-4o'],
-    authType: 'oauth',
+    authType: 'cli_token',
   },
   {
     id: 'openrouter',
@@ -249,16 +249,23 @@ const PROVIDER_CARDS: Array<{
   { id: 'custom', name: 'Custom', logo: '', models: [], authType: 'api_key', envKey: 'CUSTOM_API_KEY' },
 ]
 
-export type ProviderClickAction = 'select' | 'oauth' | 'local' | 'custom' | 'ignore'
+export type ProviderClickAction =
+  | 'select'
+  | 'oauth'
+  | 'local'
+  | 'custom'
+  | 'cli'
+  | 'ignore'
 
 export function getProviderClickAction(input: {
   providerId?: string
-  authType: 'oauth' | 'api_key' | 'none'
+  authType: 'oauth' | 'api_key' | 'none' | 'cli_token'
   hasKey: boolean
 }): ProviderClickAction {
   if (input.providerId === 'custom') return 'custom'
   if (input.authType === 'oauth') return 'oauth'
   if (input.authType === 'none') return 'local'
+  if (input.authType === 'cli_token') return input.hasKey ? 'select' : 'cli'
   return input.hasKey ? 'select' : 'ignore'
 }
 
@@ -285,8 +292,8 @@ const DEFAULT_OAUTH_POLL_INTERVAL_SECONDS = 3
 
 export function getOAuthStartButtonLabel(status: OAuthStatus): string {
   return status === 'starting' || status === 'pending'
-    ? 'Waiting...'
-    : 'Start OAuth'
+    ? 'Ожидаю...'
+    : 'Начать OAuth'
 }
 
 type OAuthDeviceCodeResponse = {
@@ -317,6 +324,16 @@ function HermesContent() {
   const [configuredKeys, setConfiguredKeys] = useState<Record<string, string>>(
     {},
   )
+  const [providerStatuses, setProviderStatuses] = useState<
+    Record<
+      string,
+      {
+        configured: boolean
+        authType?: string
+        authSource?: string
+      }
+    >
+  >({})
   const [memEnabled, setMemEnabled] = useState(true)
   const [userProfileEnabled, setUserProfileEnabled] = useState(true)
   const [customBaseUrl, setCustomBaseUrl] = useState('')
@@ -328,6 +345,7 @@ function HermesContent() {
   const [oauthVerificationUri, setOauthVerificationUri] = useState('')
   const oauthAbortRef = useRef<AbortController | null>(null)
   const [localProviderId, setLocalProviderId] = useState<string | null>(null)
+  const [cliProviderId, setCliProviderId] = useState<string | null>(null)
   const [localDiscovery, setLocalDiscovery] = useState<{
     providers: Array<{
       id: string
@@ -391,12 +409,19 @@ function HermesContent() {
         setUserProfileEnabled(mem.user_profile_enabled !== false)
         // Build configured keys map
         const keys: Record<string, string> = {}
+        const statuses: typeof providerStatuses = {}
         for (const p of d.providers || []) {
+          statuses[p.id] = {
+            configured: !!p.configured,
+            authType: p.authType,
+            authSource: p.authSource,
+          }
           const envKey = p.envKeys?.[0]
           if (!p.configured || !envKey) continue
           keys[envKey] = p.maskedCredentials?.[envKey] || '••••'
         }
         setConfiguredKeys(keys)
+        setProviderStatuses(statuses)
         // Load custom provider config (may be stored as 'custom' or legacy 'manifest')
         const cfgProviders = (d.config?.providers as Record<string, any>) || {}
         const customCfg = cfgProviders['custom'] || cfgProviders['manifest'] || {}
@@ -420,12 +445,20 @@ function HermesContent() {
       setCustomModel(d.activeModel)
     }
     const keys: Record<string, string> = {}
+    const statuses: typeof providerStatuses = {}
     for (const p of d.providers || []) {
+      statuses[p.id] = {
+        configured: !!p.configured,
+        authType: p.authType,
+        authSource: p.authSource,
+      }
       const envKey = p.envKeys?.[0]
       if (!p.configured || !envKey) continue
       keys[envKey] = p.maskedCredentials?.[envKey] || '••••'
     }
     setConfiguredKeys(keys)
+    setProviderStatuses(statuses)
+    return d
   }
 
   const save = async (
@@ -458,6 +491,7 @@ function HermesContent() {
   const selectProvider = (providerId: string, model?: string) => {
     setOauthProviderId(null)
     setLocalProviderId(null)
+    setCliProviderId(null)
     if (providerId !== activeProvider) setActiveModel('')
     setActiveProvider(providerId)
     if (model) setActiveModel(model)
@@ -479,6 +513,7 @@ function HermesContent() {
     abortOAuth()
     setOauthProviderId(providerId)
     setLocalProviderId(null)
+    setCliProviderId(null)
     clearProviderPreview()
     setOauthStatus('idle')
     setOauthMessage('')
@@ -491,6 +526,16 @@ function HermesContent() {
     abortOAuth()
     setOauthProviderId(null)
     setLocalProviderId(providerId)
+    setCliProviderId(null)
+    clearProviderPreview()
+    setMsg(null)
+  }
+
+  const showCliProviderSetup = (providerId: string) => {
+    abortOAuth()
+    setOauthProviderId(null)
+    setLocalProviderId(null)
+    setCliProviderId(providerId)
     clearProviderPreview()
     setMsg(null)
   }
@@ -499,6 +544,7 @@ function HermesContent() {
     abortOAuth()
     setOauthProviderId(null)
     setLocalProviderId(null)
+    setCliProviderId(null)
     setActiveProvider('custom')
     setAvailableModels([])
     setMsg(null)
@@ -535,7 +581,7 @@ function HermesContent() {
     const { signal } = controller
 
     setOauthStatus('starting')
-    setOauthMessage(`Starting ${provider.name} OAuth...`)
+    setOauthMessage(`Запускаю OAuth для ${provider.name}...`)
     setOauthUserCode('')
     setOauthVerificationUri('')
 
@@ -548,7 +594,7 @@ function HermesContent() {
       })
       const codeData = (await codeRes.json()) as OAuthDeviceCodeResponse
       if (!codeRes.ok || codeData.error || !codeData.device_code) {
-        throw new Error(codeData.error || 'Could not start OAuth device flow')
+        throw new Error(codeData.error || 'Не удалось запустить OAuth-вход')
       }
 
       const verificationUri = codeData.verification_uri_complete || ''
@@ -557,8 +603,8 @@ function HermesContent() {
       setOauthVerificationUri(verificationUri)
       setOauthMessage(
         verificationUri
-          ? `Authorize ${provider.name} in the browser, then return here.`
-          : `Enter the user code to authorize ${provider.name}.`,
+          ? `Подтвердите вход ${provider.name} в браузере и вернитесь сюда.`
+          : `Введите код пользователя для входа ${provider.name}.`,
       )
 
       if (verificationUri) {
@@ -589,20 +635,20 @@ function HermesContent() {
         if (pollData.status === 'success') {
           setOauthStatus('success')
           setOauthMessage(
-            `${provider.name} OAuth is connected. TUI and WebUI will use the shared Hermes credentials.`,
+            `${provider.name} OAuth подключён. Панель и Hermes будут использовать общие учётные данные.`,
           )
           await refreshConfig()
           return
         }
-        throw new Error(pollData.message || 'OAuth authorization failed')
+        throw new Error(pollData.message || 'OAuth-вход не удался')
       }
 
-      throw new Error('OAuth authorization timed out')
+      throw new Error('Время OAuth-входа истекло')
     } catch (error) {
       if ((error as { name?: string })?.name === 'AbortError') return
       setOauthStatus('error')
       setOauthMessage(
-        error instanceof Error ? error.message : 'OAuth authorization failed',
+        error instanceof Error ? error.message : 'OAuth-вход не удался',
       )
     } finally {
       if (oauthAbortRef.current === controller) {
@@ -648,15 +694,15 @@ function HermesContent() {
           className="mb-1 text-xs font-semibold uppercase tracking-wider"
           style={mutedStyle}
         >
-          Provider
+          Провайдер
         </p>
         <p className="mb-3 text-[11px]" style={mutedStyle}>
-          Select your AI provider. OAuth providers authenticate via browser.
+          Выберите провайдера модели. OAuth показываем только там, где он реально реализован.
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {PROVIDER_CARDS.map((p) => {
             const isActive =
-              (oauthProviderId || localProviderId || activeProvider) === p.id
+              (oauthProviderId || localProviderId || cliProviderId || activeProvider) === p.id
             const localOnline =
               localDiscovery?.providers.find((lp) => lp.id === p.id)?.online ===
               true
@@ -665,16 +711,21 @@ function HermesContent() {
             // check is wired. Local providers require live discovery hit.
             const verified =
               (p.authType === 'none' && localOnline) ||
+              (p.authType === 'cli_token' &&
+                providerStatuses[p.id]?.configured === true) ||
               (p.authType === 'api_key' &&
                 !!p.envKey &&
                 !!configuredKeys[p.envKey])
             const missingKey =
-              p.authType === 'api_key' && !verified && p.id !== 'custom'
-            // hasKey gates click — keep OAuth + local clickable (existing
-            // behaviour) so users can still authenticate via the card.
+              ((p.authType === 'api_key' || p.authType === 'cli_token') &&
+                !verified &&
+                p.id !== 'custom')
+            // hasKey gates direct selection. OAuth, local and CLI-token cards
+            // remain clickable because they open their own setup panels.
             const hasKey =
               p.authType === 'none' ||
               p.authType === 'oauth' ||
+              (p.authType === 'cli_token' && verified) ||
               verified ||
               p.id === 'custom'
             return (
@@ -693,6 +744,10 @@ function HermesContent() {
                   }
                   if (action === 'local') {
                     showLocalProviderSetup(p.id)
+                    return
+                  }
+                  if (action === 'cli') {
+                    showCliProviderSetup(p.id)
                     return
                   }
                   if (action === 'custom') {
@@ -727,10 +782,13 @@ function HermesContent() {
                     const disc = localDiscovery?.providers.find(
                       (lp) => lp.id === p.id,
                     )
-                    if (disc?.online) return '🟢 Detected'
+                    if (disc?.online) return 'Обнаружен'
                     if (p.authType === 'oauth') return 'OAuth'
-                    if (p.authType === 'none') return 'Local'
-                    return hasKey ? 'Key set' : 'Key required'
+                    if (p.authType === 'cli_token') {
+                      return verified ? 'Codex CLI подключён' : 'Нужен вход CLI'
+                    }
+                    if (p.authType === 'none') return 'Локально'
+                    return verified ? 'Ключ задан' : 'Нужен ключ'
                   })()}
                 </span>
               </button>
@@ -782,6 +840,65 @@ function HermesContent() {
                       Open authorization page
                     </a>
                   ) : null}
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+      ) : null}
+
+      {cliProviderId ? (
+        <div className="rounded-xl px-3 py-2.5" style={cardStyle}>
+          {(() => {
+            const provider = PROVIDER_CARDS.find((p) => p.id === cliProviderId)
+            if (!provider) return null
+            const status = providerStatuses[provider.id]
+            const connected = status?.configured === true
+
+            return (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{provider.name}</p>
+                    <p className="mt-0.5 text-[11px]" style={mutedStyle}>
+                      {connected
+                        ? 'Codex CLI подключён на сервере.'
+                        : 'Codex CLI ещё не подключён на сервере.'}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const d = await refreshConfig()
+                      const updated = (d.providers || []).find(
+                        (p: any) => p.id === provider.id,
+                      )
+                      setMsg(
+                        updated?.configured
+                          ? 'Codex CLI подключён.'
+                          : 'Codex CLI не подключён. Выполните вход через codex login на сервере.',
+                      )
+                    }}
+                  >
+                    Проверить
+                  </Button>
+                </div>
+
+                <div className="rounded-lg border border-primary-200 bg-primary-50/80 px-3 py-2 text-xs text-primary-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+                  OpenAI Codex не подключается через OAuth-кнопку в панели. Панель
+                  читает серверный файл{' '}
+                  <code className="rounded bg-black/10 px-1 py-0.5 font-mono dark:bg-white/10">
+                    ~/.codex/auth.json
+                  </code>
+                  , который создаёт Codex CLI после входа.
+                  <div className="mt-2">
+                    На VPS выполните{' '}
+                    <code className="rounded bg-black/10 px-1 py-0.5 font-mono dark:bg-white/10">
+                      codex login
+                    </code>
+                    , потом нажмите «Проверить». Если Codex CLI не установлен,
+                    используйте DeepSeek, MiniMax или другой провайдер с API-ключом.
+                  </div>
                 </div>
               </div>
             )
