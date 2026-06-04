@@ -125,10 +125,15 @@ export const Route = createFileRoute('/api/terminal-stream')({
               }
             }
 
+            let abort = () => {
+              /* initialized after cleanupStream */
+            }
+
             const handleClose = () => {
               send('close', { sessionId: session.id })
-              if (!isStreamActive) return
-              isStreamActive = false
+              const shouldCloseController = isStreamActive
+              cleanupStream(false)
+              if (!shouldCloseController) return
               try {
                 controller.close()
               } catch {
@@ -143,19 +148,30 @@ export const Route = createFileRoute('/api/terminal-stream')({
               send('ping', { t: Date.now() })
             }, 8000)
 
-            const abort = () => {
+            const cleanupStream = (markDetached: boolean) => {
               isStreamActive = false
               clearInterval(keepAlive)
               session.emitter.off('event', handleEvent)
               session.emitter.off('close', handleClose)
+              request.signal.removeEventListener('abort', abort)
+              if (markDetached) {
+                // DON'T close the PTY on SSE disconnect. Let it survive so
+                // the user can reattach after a network blip / tab suspension /
+                // HMR reload. The session reaps itself after DETACH_TTL_MS if
+                // no client reattaches. See #298.
+                session.markDetached()
+              }
+            }
+
+            abort = () => {
               // DON'T close the PTY on SSE disconnect. Let it survive so
               // the user can reattach after a network blip / tab suspension /
               // HMR reload. The session reaps itself after DETACH_TTL_MS if
               // no client reattaches. See #298.
-              session.markDetached()
+              cleanupStream(true)
             }
 
-            request.signal.addEventListener('abort', abort)
+            request.signal.addEventListener('abort', abort, { once: true })
           },
         })
 

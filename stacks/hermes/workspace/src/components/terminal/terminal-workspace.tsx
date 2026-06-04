@@ -176,26 +176,27 @@ export function TerminalWorkspace({
     })
   }, [])
 
-  const resizeSession = useCallback(async function resizeSession(
-    tabId: string,
-    terminal: Terminal,
-  ) {
-    const currentTab = useTerminalPanelStore
-      .getState()
-      .tabs.find((t) => t.id === tabId)
-    if (!currentTab?.sessionId) return
-    await fetch('/api/terminal-resize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: currentTab.sessionId,
-        cols: terminal.cols,
-        rows: terminal.rows,
-      }),
-    }).catch(function ignore() {
-      return undefined
-    })
-  }, [])
+  const resizeSession = useCallback(
+    async function resizeSession(tabId: string, terminal: Terminal) {
+      if (!panelVisible) return
+      const currentTab = useTerminalPanelStore
+        .getState()
+        .tabs.find((t) => t.id === tabId)
+      if (!currentTab?.sessionId) return
+      await fetch('/api/terminal-resize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: currentTab.sessionId,
+          cols: terminal.cols,
+          rows: terminal.rows,
+        }),
+      }).catch(function ignore() {
+        return undefined
+      })
+    },
+    [panelVisible],
+  )
 
   const captureRecentTerminalOutput = useCallback(
     function captureRecentTerminalOutput(tabId: string): string {
@@ -465,6 +466,7 @@ export function TerminalWorkspace({
       }
 
       // Flush any remaining buffered writes
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- queueWrite can schedule a pending async flush while the stream loop is active.
       if (flushTimer) clearTimeout(flushTimer)
       flushWrites()
 
@@ -624,11 +626,12 @@ export function TerminalWorkspace({
 
   useEffect(
     function initializeVisibleTabs() {
+      if (!panelVisible && terminalMapRef.current.size === 0) return
       for (const tab of tabs) {
         ensureTerminalForTab(tab)
       }
     },
-    [ensureTerminalForTab, tabs],
+    [ensureTerminalForTab, panelVisible, tabs],
   )
 
   useEffect(
@@ -659,6 +662,7 @@ export function TerminalWorkspace({
 
   useEffect(
     function fitOnResize() {
+      if (!panelVisible) return
       function refitAll() {
         for (const [tabId, fitAddon] of fitMapRef.current.entries()) {
           try {
@@ -699,7 +703,7 @@ export function TerminalWorkspace({
         window.visualViewport?.removeEventListener('scroll', handleResize)
       }
     },
-    [resizeSession],
+    [panelVisible, resizeSession],
   )
 
   useEffect(function disposeOnUnmount() {
