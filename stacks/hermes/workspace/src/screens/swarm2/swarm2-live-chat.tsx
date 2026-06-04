@@ -142,14 +142,14 @@ function MessageBubble({
       </div>
         {todoSummary ? (
           <div className="space-y-2">
-            <div className="text-[11px] font-medium text-[var(--theme-text)]">Task snapshot</div>
+            <div className="text-[11px] font-medium text-[var(--theme-text)]">Срез задач</div>
             <div className="flex flex-wrap gap-1.5 text-[10px] text-[var(--theme-muted-2)]">
-              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">{todoSummary.total} total</span>
-              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">{todoSummary.pending} pending</span>
-              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">{todoSummary.inProgress} in progress</span>
-              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">{todoSummary.completed} completed</span>
+              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">всего: {todoSummary.total}</span>
+              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">ожидают: {todoSummary.pending}</span>
+              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">в работе: {todoSummary.inProgress}</span>
+              <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">готово: {todoSummary.completed}</span>
               {todoSummary.cancelled > 0 ? (
-                <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">{todoSummary.cancelled} cancelled</span>
+                <span className="rounded-full border border-[var(--theme-border)] px-1.5 py-0.5">отменено: {todoSummary.cancelled}</span>
               ) : null}
             </div>
           </div>

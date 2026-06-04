@@ -14,24 +14,24 @@ type KanbanColumn = {
 }
 
 const DEFAULT_COLUMNS: KanbanColumn[] = [
-  { key: 'backlog', label: 'Backlog' },
-  { key: 'in_progress', label: 'In Progress' },
-  { key: 'review', label: 'Review' },
-  { key: 'done', label: 'Done' },
+  { key: 'backlog', label: 'Очередь' },
+  { key: 'in_progress', label: 'В работе' },
+  { key: 'review', label: 'Проверка' },
+  { key: 'done', label: 'Готово' },
 ]
 
 const COMPACT_COLUMNS: KanbanColumn[] = [
-  { key: 'backlog', label: 'Todo' },
-  { key: 'in_progress', label: 'WIP' },
-  { key: 'review', label: 'Review' },
-  { key: 'done', label: 'Done' },
+  { key: 'backlog', label: 'План' },
+  { key: 'in_progress', label: 'В работе' },
+  { key: 'review', label: 'Проверка' },
+  { key: 'done', label: 'Готово' },
 ]
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  urgent: 'Urgent',
-  high: 'High',
-  normal: 'Normal',
-  low: 'Low',
+  urgent: 'Срочно',
+  high: 'Высокий',
+  normal: 'Обычный',
+  low: 'Низкий',
 }
 
 const PRIORITY_BADGES: Record<TaskPriority, string> = {
@@ -413,7 +413,7 @@ export function KanbanBoard({
             onChange={(event) => setNoteDraft(event.target.value)}
             rows={3}
             className="mb-2 w-full resize-none rounded-md border border-[var(--theme-border)] bg-[var(--theme-card2)] px-2 py-1.5 text-xs text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
-            placeholder="Leave a note for this task"
+            placeholder="Оставьте заметку к задаче"
           />
           <div className="flex items-center justify-between gap-2">
             <button
@@ -424,7 +424,7 @@ export function KanbanBoard({
               }}
               className="rounded-md border border-red-400/40 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-300 hover:bg-red-500/20"
             >
-              Delete
+              Удалить
             </button>
             <button
               type="button"

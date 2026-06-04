@@ -105,6 +105,27 @@ const DEFAULT_CATEGORIES = [
   'Finance & Crypto',
 ]
 
+const CATEGORY_LABELS: Record<string, string> = {
+  All: 'Все',
+  'Web & Frontend': 'Веб и фронтенд',
+  'Coding Agents': 'Агенты для кода',
+  'Git & GitHub': 'Git и GitHub',
+  'DevOps & Cloud': 'Серверы и облако',
+  'Browser & Automation': 'Браузер и автоматизация',
+  'Image & Video': 'Изображения и видео',
+  'Search & Research': 'Поиск и исследование',
+  'AI & LLMs': 'ИИ и модели',
+  Productivity: 'Продуктивность',
+  'Marketing & Sales': 'Маркетинг и продажи',
+  Communication: 'Коммуникации',
+  'Data & Analytics': 'Данные и аналитика',
+  'Finance & Crypto': 'Финансы и крипто',
+}
+
+function formatCategoryLabel(category: string): string {
+  return CATEGORY_LABELS[category] ?? category
+}
+
 function resolveSkillSearchTier(
   skill: SkillSummary,
   query: string,
@@ -317,7 +338,7 @@ export function SkillsScreen() {
   async function copyCommandAndToast(command: string, message: string) {
     try {
       await writeTextToClipboard(command)
-      toast(`${message} Copied: ${command}`, {
+      toast(`${message} Скопировано: ${command}`, {
         type: 'warning',
         icon: '📋',
       })
@@ -499,7 +520,7 @@ export function SkillsScreen() {
                 >
                   {categories.map((item) => (
                     <option key={item} value={item}>
-                      {item}
+                      {formatCategoryLabel(item)}
                     </option>
                   ))}
                 </select>

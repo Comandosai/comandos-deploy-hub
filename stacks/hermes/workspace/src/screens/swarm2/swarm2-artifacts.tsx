@@ -179,7 +179,7 @@ export function Swarm2Artifacts({
             })}
             {overflowArtifacts > 0 ? (
               <span className="inline-flex items-center rounded-full border border-dashed border-[var(--theme-border)] px-2 py-1 text-[10px] text-[var(--theme-muted)]">
-                +{overflowArtifacts} more
+                ещё: {overflowArtifacts}
               </span>
             ) : null}
           </div>

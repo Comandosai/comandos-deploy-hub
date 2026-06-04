@@ -57,11 +57,11 @@ export function PlaygroundJournal({
         <div className="border-b border-white/10 bg-black/25 p-4 md:border-b-0 md:border-r">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-lg font-bold">Quest Journal</div>
-              <div className="text-[11px] uppercase tracking-[0.16em] text-white/45">Press J to toggle</div>
+              <div className="text-lg font-bold">Журнал заданий</div>
+              <div className="text-[11px] uppercase tracking-[0.16em] text-white/45">J — открыть или закрыть</div>
             </div>
             <button onClick={onClose} className="rounded px-2 py-1 text-[11px] uppercase tracking-[0.12em] text-white/55 hover:bg-white/10">
-              Close
+              Закрыть
             </button>
           </div>
           <div className="mt-4 space-y-2">

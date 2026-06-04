@@ -108,7 +108,7 @@ export function OverviewTab({
                 onClick={onOpenLaunchWizard}
                 className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-accent-600"
               >
-                Start Mission
+                Запустить миссию
               </button>
             </div>
           )}
@@ -116,10 +116,10 @@ export function OverviewTab({
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            { label: 'Agents', value: teamCount.toString(), sub: teamLabel },
-            { label: 'Active', value: activeCount.toString(), sub: missionActive ? 'Currently working' : 'Idle' },
-            { label: 'Tasks', value: totalTasks.toString(), sub: totalTasks > 0 ? `${doneTasks} done` : 'No tasks yet' },
-            { label: 'Approvals', value: pendingApprovalCount.toString(), sub: pendingApprovalCount > 0 ? 'Needs review' : 'All clear' },
+            { label: 'Агенты', value: teamCount.toString(), sub: teamLabel },
+            { label: 'Активные', value: activeCount.toString(), sub: missionActive ? 'Сейчас работают' : 'Ожидают' },
+            { label: 'Задачи', value: totalTasks.toString(), sub: totalTasks > 0 ? `готово: ${doneTasks}` : 'Задач пока нет' },
+            { label: 'Согласования', value: pendingApprovalCount.toString(), sub: pendingApprovalCount > 0 ? 'Нужна проверка' : 'Всё чисто' },
           ].map((stat) => (
             <div
               key={stat.label}

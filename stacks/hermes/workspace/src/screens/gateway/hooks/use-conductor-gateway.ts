@@ -602,7 +602,7 @@ async function fetchConductorMission(missionId: string): Promise<ConductorMissio
   const response = await fetch(`/api/conductor-spawn?missionId=${encodeURIComponent(missionId)}&lines=400`)
   const payload = (await response.json().catch(() => ({}))) as ConductorMissionResponse
   if (!response.ok || !payload.ok || !payload.mission) {
-    throw new Error(payload.error || `Failed to load conductor mission ${missionId}`)
+    throw new Error(payload.error || `Не удалось загрузить миссию оркестратора ${missionId}`)
   }
   return payload.mission
 }
@@ -723,7 +723,7 @@ async function fetchWorkerOutput(sessionKey: string, limit = 5): Promise<string>
   const response = await fetch(`/api/history?sessionKey=${encodeURIComponent(sessionKey)}&limit=${limit}`)
   const payload = (await response.json().catch(() => ({}))) as HistoryResponse
   if (!response.ok) {
-    throw new Error(payload.error || `Failed to load history for ${sessionKey}`)
+    throw new Error(payload.error || `Не удалось загрузить историю для ${sessionKey}`)
   }
   return getLastAssistantMessage(payload.messages)
 }

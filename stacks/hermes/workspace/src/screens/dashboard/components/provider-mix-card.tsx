@@ -225,7 +225,7 @@ export function ProviderMixCard({
               className="text-[9px] font-mono uppercase tracking-[0.1em]"
               style={{ color: 'var(--theme-muted)' }}
             >
-              +{buckets.length - 4} more
+              ещё: {buckets.length - 4}
             </li>
           ) : null}
         </ul>

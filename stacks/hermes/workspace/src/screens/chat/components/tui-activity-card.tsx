@@ -387,7 +387,7 @@ function TuiActivityCardComponent({
           className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          {isStreaming ? '⚡ Working' : 'Activity'}
+          {isStreaming ? '⚡ В работе' : 'Активность'}
         </span>
         <span className="flex-1" />
         {summary ? (

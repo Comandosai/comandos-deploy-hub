@@ -26,7 +26,7 @@ import {
 } from '@hugeicons/core-free-icons'
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useRouterState } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { CHAT_OPEN_SETTINGS_EVENT } from '../chat-events'
 import { useChatSettings as useSidebarSettings } from '../hooks/use-chat-settings'
 import { useDeleteSession } from '../hooks/use-delete-session'
@@ -532,6 +532,7 @@ function ChatSidebarComponent({
   const { renameSession } = useRenameSession()
   const openSearchModal = useSearchModal((state) => state.openModal)
   const isSearchModalOpen = useSearchModal((state) => state.isOpen)
+  const navigate = useNavigate()
   const pathname = useRouterState({
     select: function selectPathname(state) {
       return state.location.pathname
@@ -552,6 +553,18 @@ function ChatSidebarComponent({
       )
     }
   }, [handleOpenSettings])
+
+  function openSettingsPage(event?: { preventDefault: () => void }) {
+    event?.preventDefault()
+    void navigate({ to: '/settings' })
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        if (window.location.pathname !== '/settings') {
+          window.location.assign('/settings')
+        }
+      }, 0)
+    }
+  }
 
   // Platform-aware modifier key
   const _mod = useMemo(
@@ -1188,9 +1201,7 @@ function ChatSidebarComponent({
             </MenuTrigger>
             <MenuContent side="top" align="start" className="min-w-[200px]">
               <MenuItem
-                onClick={function onOpenSettings() {
-                  handleOpenSettings('claude')
-                }}
+                onClick={() => openSettingsPage()}
                 className="justify-between"
               >
                 <span className="flex items-center gap-2">
@@ -1210,7 +1221,7 @@ function ChatSidebarComponent({
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
-                onClick={() => handleOpenSettings('claude')}
+                onClick={openSettingsPage}
                 className="shrink-0 rounded-lg p-1.5 text-primary-400 hover:bg-primary-200 dark:hover:bg-neutral-800 hover:text-primary-600 dark:hover:text-neutral-300 transition-colors"
                 aria-label="Настройки"
               >

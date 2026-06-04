@@ -79,16 +79,16 @@ export function ManageModesModal({
             id="manage-modes-title"
             className="mb-4 text-lg font-semibold text-primary-900"
           >
-            Manage Modes
+            Управление режимами
           </h2>
-          <p className="mb-6 text-sm text-primary-500">No modes saved.</p>
+          <p className="mb-6 text-sm text-primary-500">Сохранённых режимов пока нет.</p>
           <div className="flex justify-end">
             <button
               type="button"
               onClick={onClose}
               className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400"
             >
-              Close
+              Закрыть
             </button>
           </div>
         </div>
@@ -117,7 +117,7 @@ export function ManageModesModal({
           id="manage-modes-title"
           className="mb-4 text-lg font-semibold text-primary-900"
         >
-          Manage Modes
+          Управление режимами
         </h2>
 
         <div className="mb-6 max-h-[24rem] space-y-3 overflow-y-auto">
@@ -148,17 +148,17 @@ export function ManageModesModal({
                       type="button"
                       onClick={() => setModeToRename(mode)}
                       className="rounded-lg border border-primary-200 bg-surface px-3 py-1 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                      aria-label={`Rename ${mode.name}`}
+                      aria-label={`Переименовать ${mode.name}`}
                     >
-                      Rename
+                      Переименовать
                     </button>
                     <button
                       type="button"
                       onClick={() => setModeToDelete(mode)}
                       className="rounded-lg border border-red-200 bg-surface px-3 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400"
-                      aria-label={`Delete ${mode.name}`}
+                      aria-label={`Удалить ${mode.name}`}
                     >
-                      Delete
+                      Удалить
                     </button>
                   </div>
                 </div>
@@ -204,7 +204,7 @@ export function ManageModesModal({
             onClick={onClose}
             className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400"
           >
-            Close
+            Закрыть
           </button>
         </div>
       </div>
@@ -235,11 +235,10 @@ export function ManageModesModal({
               id="delete-mode-title"
               className="mb-2 text-lg font-semibold text-primary-900"
             >
-              Delete Mode
+              Удалить режим
             </h2>
             <p className="mb-6 text-sm text-primary-600">
-              Are you sure you want to delete "{modeToDelete.name}"? This action
-              cannot be undone.
+              Удалить режим "{modeToDelete.name}"? Это действие нельзя отменить.
             </p>
             <div className="flex justify-end gap-2">
               <button
@@ -247,14 +246,14 @@ export function ManageModesModal({
                 onClick={() => setModeToDelete(null)}
                 className="rounded-lg border border-primary-200 bg-surface px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-400"
               >
-                Cancel
+                Отмена
               </button>
               <button
                 type="button"
                 onClick={() => handleDelete(modeToDelete)}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
               >
-                Delete
+                Удалить
               </button>
             </div>
           </div>

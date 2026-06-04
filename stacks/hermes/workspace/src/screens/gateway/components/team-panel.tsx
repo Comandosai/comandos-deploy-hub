@@ -5,23 +5,23 @@ import type { HubTask } from './task-board'
 function formatRelativeTime(ts: number): string {
   const diffMs = Math.max(0, Date.now() - ts)
   const seconds = Math.floor(diffMs / 1000)
-  if (seconds < 60) return `${seconds}s ago`
+  if (seconds < 60) return `${seconds} с назад`
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return `${minutes} мин назад`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return `${hours} ч назад`
+  return `${Math.floor(hours / 24)} д назад`
 }
 
 // Presets shown in Agent Hub. 'auto' uses gateway default.
 // Additional models from gateway providers show in the chat model switcher.
 export const MODEL_PRESETS = [
-  { id: 'auto', label: 'Auto (Gateway Default)', desc: 'Uses your configured default model' },
-  { id: 'opus', label: 'Claude Opus 4.6', desc: 'Deep reasoning — Anthropic' },
-  { id: 'sonnet', label: 'Claude Sonnet 4.6', desc: 'Fast & capable — Anthropic' },
-  { id: 'codex', label: 'GPT-5 Codex', desc: 'Code specialist — OpenAI' },
-  { id: 'flash', label: 'Gemini 2.5 Flash', desc: 'Quick & cheap — Google' },
-  { id: 'minimax', label: 'MiniMax M2.7', desc: 'Cost efficient — MiniMax' },
+  { id: 'auto', label: 'Авто (модель шлюза)', desc: 'Использует модель из настроек' },
+  { id: 'opus', label: 'Claude Opus 4.6', desc: 'Глубокое рассуждение — Anthropic' },
+  { id: 'sonnet', label: 'Claude Sonnet 4.6', desc: 'Быстрая рабочая модель — Anthropic' },
+  { id: 'codex', label: 'GPT-5 Codex', desc: 'Модель для кода — OpenAI' },
+  { id: 'flash', label: 'Gemini 2.5 Flash', desc: 'Быстро и недорого — Google' },
+  { id: 'minimax', label: 'MiniMax M2.7', desc: 'Экономичная модель — MiniMax' },
   { id: 'pc1-coder', label: 'PC1 Coder (97 TPS)', desc: 'Qwen3-Coder 30B · Local · RTX 4090' },
   { id: 'pc1-planner', label: 'PC1 Planner (175 TPS)', desc: 'Qwen3-30B Sonnet Distill MoE · Local · RTX 4090' },
   { id: 'pc1-critic', label: 'PC1 Critic (83 TPS)', desc: 'Qwen3-14B Opus Distill · Local · RTX 4090' },
@@ -30,25 +30,25 @@ export const MODEL_PRESETS = [
 export const TEAM_TEMPLATES = [
   {
     id: 'research',
-    name: 'Research Team',
+    name: 'Команда исследования',
     agents: ['Atlas', 'Lens', 'Cipher'],
     icon: '🔍',
   },
   {
     id: 'coding',
-    name: 'Coding Sprint',
+    name: 'Спринт разработки',
     agents: ['Forge', 'Sentinel', 'Spark'],
     icon: '💻',
   },
   {
     id: 'content',
-    name: 'Content Pipeline',
+    name: 'Контент-команда',
     agents: ['Scout', 'Quill', 'Polish'],
     icon: '📝',
   },
   {
     id: 'pc1-loop',
-    name: 'PC1 Loop (Local ⚡)',
+    name: 'PC1 цикл (локально)',
     agents: ['Atlas', 'Forge', 'Lens'],
     icon: '⚡',
   },
@@ -323,7 +323,7 @@ export function TeamPanel({
                         {agent.status}
                       </span>
                       <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-600 dark:bg-neutral-800 dark:text-neutral-300">
-                        {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
+                        {taskCount} {taskCount === 1 ? 'задача' : 'задач'}
                       </span>
                     </div>
                     {agentSessionEntry?.lastSeen ? (
@@ -333,7 +333,7 @@ export function TeamPanel({
                     ) : null}
                     {agentModelNotApplied?.[agent.id] ? (
                       <p className="mt-0.5 text-[9px] text-neutral-400 dark:text-neutral-500">
-                        Gateway used default model
+                        Шлюз использовал модель по умолчанию
                       </p>
                     ) : null}
                   </div>
@@ -354,7 +354,7 @@ export function TeamPanel({
                 {showRetry ? (
                   <button
                     type="button"
-                    title="Retry spawn"
+                    title="Перезапустить сессию"
                     onClick={(event) => {
                       event.stopPropagation()
                       onRetrySpawn?.(agent)
@@ -531,7 +531,7 @@ export function TeamPanel({
           className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-primary-300 py-2.5 text-xs font-semibold text-primary-500 transition-colors hover:border-accent-400 hover:text-accent-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-accent-700 dark:hover:text-accent-300"
         >
           <span aria-hidden>+</span>
-          <span>Add Agent</span>
+          <span>Добавить агента</span>
         </button>
       </div>
     </div>

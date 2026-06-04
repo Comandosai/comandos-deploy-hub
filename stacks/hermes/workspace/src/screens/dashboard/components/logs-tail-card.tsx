@@ -253,7 +253,7 @@ function LogsModal({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label="Закрыть"
               className="rounded p-1 hover:bg-[var(--theme-card)]/80"
             >
               <HugeiconsIcon

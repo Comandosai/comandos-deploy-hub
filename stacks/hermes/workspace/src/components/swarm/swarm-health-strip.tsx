@@ -83,9 +83,9 @@ export function SwarmHealthStrip({ targetWorkerId }: { targetWorkerId?: string |
         return
       }
       const diff = Math.floor((Date.now() - data.checkedAt) / 1000)
-      if (diff < 5) setTickLabel('just now')
-      else if (diff < 60) setTickLabel(`${diff}s ago`)
-      else setTickLabel(`${Math.floor(diff / 60)}m ago`)
+      if (diff < 5) setTickLabel('только что')
+      else if (diff < 60) setTickLabel(`${diff} сек назад`)
+      else setTickLabel(`${Math.floor(diff / 60)} мин назад`)
     }
     update()
     const interval = setInterval(update, 5_000)
@@ -137,10 +137,10 @@ export function SwarmHealthStrip({ targetWorkerId }: { targetWorkerId?: string |
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={degraded ? AlertCircleIcon : CheckmarkCircle02Icon} size={14} className={degraded ? 'text-amber-300' : 'text-emerald-300'} />
-          <span className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/80">Swarm health</span>
+          <span className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/80">Здоровье роя</span>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-emerald-100/55">
-          <span>{tickLabel ? `Checked ${tickLabel}` : isLoading ? 'Checking…' : ''}</span>
+          <span>{tickLabel ? `Проверено ${tickLabel}` : isLoading ? 'Проверяю…' : ''}</span>
           <button
             type="button"
             onClick={() => void refetch()}
@@ -148,24 +148,24 @@ export function SwarmHealthStrip({ targetWorkerId }: { targetWorkerId?: string |
             className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-emerald-100/70 hover:text-white"
           >
             <HugeiconsIcon icon={RefreshIcon} size={11} className={isFetching ? 'animate-spin' : ''} />
-            Refresh
+            Обновить
           </button>
         </div>
       </div>
 
       {isError ? (
         <div className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-          Failed to load health. Try refresh.
+          Не удалось загрузить состояние роя. Нажмите «Обновить».
         </div>
       ) : null}
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <HealthTile icon={CpuIcon} label="Workspace model" value={workspaceModel} />
-        <HealthTile icon={FlashIcon} label="Provider" value={provider} />
+        <HealthTile icon={CpuIcon} label="Модель workspace" value={workspaceModel} />
+        <HealthTile icon={FlashIcon} label="Провайдер" value={provider} />
         <HealthTile icon={FlashIcon} label="Wrappers" value={`${wrappersConfigured}/${totalWorkers}`} />
         <HealthTile
           icon={totalFallbacks === 0 ? CheckmarkCircle02Icon : AlertCircleIcon}
-          label="Fallbacks 24h"
+          label="Запасные модели 24ч"
           value={String(totalFallbacks)}
           tone={totalFallbacks === 0 ? 'good' : 'warn'}
         />
@@ -173,25 +173,25 @@ export function SwarmHealthStrip({ targetWorkerId }: { targetWorkerId?: string |
 
       {degraded ? (
         <div className="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-          <div className="font-semibold">Primary model readiness degraded.</div>
+          <div className="font-semibold">Основная модель работает нестабильно.</div>
           <div className="mt-1 text-amber-100/80">
-            Auth errors: {totalAuthErrors}. Fallbacks: {totalFallbacks}. Reply smoke tests can pass on fallback; fix primary auth before production swarm work.
+            Ошибки авторизации: {totalAuthErrors}. Переходов на запасную модель: {totalFallbacks}. Короткий тест ответа может пройти на запасной модели; перед рабочим использованием роя исправьте доступ к основной модели.
           </div>
           {warnings.length > 0 ? <div className="mt-1 text-amber-100/70">{warnings.join(' ')}</div> : null}
         </div>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-emerald-100/55">
-        <span>Gateway: <span className="text-emerald-50">{apiUrl}</span></span>
+        <span>Шлюз: <span className="text-emerald-50">{apiUrl}</span></span>
         {distinctModels.length > 0 ? (
-          <span>Worker models: <span className="text-emerald-50">{distinctModels.join(', ')}</span></span>
+          <span>Модели агентов: <span className="text-emerald-50">{distinctModels.join(', ')}</span></span>
         ) : null}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-400/15 bg-emerald-500/5 px-3 py-2">
         <div className="text-[11px] text-emerald-100/70">
-          Reply smoke test: dispatch a tiny prompt to{' '}
-          <span className="font-semibold text-emerald-100">{pingTarget ?? 'no worker'}</span>. This confirms a reply, not primary-model readiness.
+          Быстрый тест ответа: отправить короткий запрос агенту{' '}
+          <span className="font-semibold text-emerald-100">{pingTarget ?? 'агент не выбран'}</span>. Это подтверждает ответ, но не гарантирует готовность основной модели.
         </div>
         <button
           type="button"
@@ -203,13 +203,13 @@ export function SwarmHealthStrip({ targetWorkerId }: { targetWorkerId?: string |
           )}
         >
           <HugeiconsIcon icon={FlashIcon} size={12} />
-          {pinging ? 'Pinging…' : `Ping ${pingTarget ?? '—'}`}
+          {pinging ? 'Проверяю…' : `Проверить ${pingTarget ?? '—'}`}
         </button>
       </div>
 
       {pingError ? (
         <div className="mt-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-          Ping failed: {pingError}
+          Проверка не прошла: {pingError}
         </div>
       ) : null}
       {pingResult ? (
@@ -220,7 +220,7 @@ export function SwarmHealthStrip({ targetWorkerId }: { targetWorkerId?: string |
           )}
         >
           <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em]">
-            <span>{pingResult.workerId} · {pingResult.ok ? 'reply received' : 'failure'}</span>
+            <span>{pingResult.workerId} · {pingResult.ok ? 'ответ получен' : 'ошибка'}</span>
             <span>{(pingResult.durationMs / 1000).toFixed(1)}s</span>
           </div>
           {pingResult.error ? (

@@ -108,7 +108,7 @@ export function ActiveModelKpi({
             }}
             title="Доля API-вызовов в окне аналитики."
           >
-            {share}% calls
+            {share}% вызовов
           </span>
         ) : null}
       </div>
@@ -120,7 +120,7 @@ export function ActiveModelKpi({
         >
           {provider}
           {sessionsForModel !== null
-            ? ` · ${formatCount(sessionsForModel)} sessions`
+            ? ` · ${formatCount(sessionsForModel)} сессий`
             : ''}
         </span>
         {modelInfo?.effectiveContextLength ? (

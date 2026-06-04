@@ -20,7 +20,7 @@ export const Route = createFileRoute('/api/ping')({
           return Response.json(
             {
               ok: false,
-              error: 'Authentication required',
+              error: 'Требуется вход',
               status: 401,
               claudeUrl: CLAUDE_API,
             } satisfies PingResponse,
@@ -33,11 +33,11 @@ export const Route = createFileRoute('/api/ping')({
           return Response.json(
             {
               ok: false,
-              error: 'Hermes Agent unavailable',
+              error: 'Hermes Agent недоступен',
               status: 503,
               claudeUrl: CLAUDE_API,
             } satisfies PingResponse,
-            { status: 503 },
+            { status: 200 },
           )
         }
 

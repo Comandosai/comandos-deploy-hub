@@ -199,7 +199,7 @@ export const Route = createRootRoute({
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-primary-50">
         <h1 className="text-2xl font-semibold text-primary-900 mb-4">
-          Something went wrong
+          Что-то пошло не так
         </h1>
         <pre className="p-4 bg-primary-100 rounded-lg text-sm text-primary-700 max-w-full overflow-auto mb-6">
           {error instanceof Error ? error.message : String(error)}
@@ -208,7 +208,7 @@ export const Route = createRootRoute({
           onClick={() => (window.location.href = '/')}
           className="px-4 py-2 bg-accent-500 text-[var(--theme-on-accent)] rounded-lg hover:bg-accent-600 transition-colors"
         >
-          Return Home
+          На главную
         </button>
       </div>
     )
@@ -382,8 +382,8 @@ function RootLayout() {
           <WorkspaceShell>
             <ErrorBoundary
               className="h-full min-h-0 flex-1"
-              title="Something went wrong"
-              description="This page failed to render. Reload to try again."
+              title="Что-то пошло не так"
+              description="Страница не открылась. Обновите её и попробуйте ещё раз."
             >
               <Outlet />
             </ErrorBoundary>
@@ -477,6 +477,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               if (!el) return;
               if (bar) bar.style.width = '100%';
               setTimeout(function(){
+                el.style.pointerEvents = 'none';
                 el.style.opacity = '0';
                 setTimeout(function(){ el.remove(); }, 500);
               }, 300);

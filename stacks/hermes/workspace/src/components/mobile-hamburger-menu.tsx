@@ -328,7 +328,7 @@ export function MobileHamburgerMenu() {
               type="button"
               onClick={() => handleNav('/settings')}
               className="flex items-center justify-center size-9 rounded-xl active:bg-white/10 transition-colors"
-              aria-label="Settings"
+              aria-label="Настройки"
               style={{ color: 'var(--color-ink-muted, #888)' }}
             >
               <HugeiconsIcon

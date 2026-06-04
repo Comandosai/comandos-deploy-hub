@@ -28,12 +28,12 @@ function shellCommandForRuntime(
 }
 
 function relative(ts: number | null | undefined): string {
-  if (!ts) return 'never'
+  if (!ts) return 'никогда'
   const d = Date.now() - ts
-  if (d < 60_000) return `${Math.max(1, Math.floor(d / 1000))}s ago`
-  if (d < 3_600_000) return `${Math.floor(d / 60_000)}m ago`
-  if (d < 86_400_000) return `${Math.floor(d / 3_600_000)}h ago`
-  return `${Math.floor(d / 86_400_000)}d ago`
+  if (d < 60_000) return `${Math.max(1, Math.floor(d / 1000))} сек назад`
+  if (d < 3_600_000) return `${Math.floor(d / 60_000)} мин назад`
+  if (d < 86_400_000) return `${Math.floor(d / 3_600_000)} ч назад`
+  return `${Math.floor(d / 86_400_000)} дн назад`
 }
 
 function TuiPill({
@@ -81,28 +81,28 @@ export function StandaloneRuntimePane({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <TuiPill tone="live">Live TUI</TuiPill>
-                <TuiPill>{terminalTargets.length} terminal{terminalTargets.length === 1 ? '' : 's'}</TuiPill>
-                {roomIds.length > 0 ? <TuiPill tone="warn">room {roomIds.join(', ')}</TuiPill> : null}
+                <TuiPill tone="live">Живой TUI</TuiPill>
+                <TuiPill>терминалов: {terminalTargets.length}</TuiPill>
+                {roomIds.length > 0 ? <TuiPill tone="warn">комната {roomIds.join(', ')}</TuiPill> : null}
               </div>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
-                Swarm tmux control
+                Управление tmux роя
               </h2>
               <p className="mt-1 max-w-2xl text-sm text-emerald-50/55">
-                Native Swarm2 TUI cards attached directly to the worker tmux sessions. Click a terminal to focus and type.
+                TUI-карточки подключены прямо к tmux-сессиям агентов. Нажмите терминал, чтобы сфокусироваться и вводить команды.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <TuiPill>Auto</TuiPill>
-              <TuiPill>Chat</TuiPill>
-              <TuiPill>Logs</TuiPill>
+              <TuiPill>Авто</TuiPill>
+              <TuiPill>Чат</TuiPill>
+              <TuiPill>Логи</TuiPill>
             </div>
           </div>
         </div>
 
         {terminalTargets.length === 0 ? (
           <div className="rounded-[1.75rem] border border-dashed border-emerald-400/16 bg-emerald-500/5 px-4 py-12 text-center text-sm text-emerald-100/55">
-            Select a worker or add workers to the room to open tmux terminals here.
+            Выберите агента или добавьте агентов в комнату, чтобы открыть здесь tmux-терминалы.
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
@@ -129,23 +129,23 @@ export function StandaloneRuntimePane({
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <TuiPill tone={attached ? 'live' : 'warn'}>
-                            {attached ? 'tmux' : 'fallback'}
+                            {attached ? 'tmux' : 'резерв'}
                           </TuiPill>
                           <span className="truncate rounded-full border border-white/10 bg-black/35 px-2.5 py-1 font-mono text-[11px] text-emerald-50/70">
                             {sessionLabel}
                           </span>
                           <span className="text-[11px] text-emerald-100/42">
-                            output {relative(runtime?.lastOutputAt)}
+                            вывод {relative(runtime?.lastOutputAt)}
                           </span>
                         </div>
                         <div className="mt-2 flex flex-wrap items-baseline gap-2">
                           <h3 className="text-lg font-semibold text-white">{member.id}</h3>
                           <span className="text-xs text-emerald-100/45">
-                            {member.displayName || member.role || 'Swarm worker'}
+                            {member.displayName || member.role || 'Агент роя'}
                           </span>
                         </div>
                         <p className="mt-1 line-clamp-2 text-sm text-emerald-50/62">
-                          {runtime?.currentTask ?? member.lastSessionTitle ?? 'Idle live worker session'}
+                          {runtime?.currentTask ?? member.lastSessionTitle ?? 'Живая сессия агента ожидает задачу'}
                         </p>
                       </div>
                       <button
@@ -158,15 +158,15 @@ export function StandaloneRuntimePane({
                             : 'border-emerald-300/16 bg-white/[0.025] text-emerald-100/65 hover:border-emerald-200/35 hover:text-white',
                         )}
                       >
-                        {member.id === selectedId ? 'Focused' : 'Focus TUI'}
+                        {member.id === selectedId ? 'В фокусе' : 'Открыть TUI'}
                       </button>
                     </div>
                   </div>
 
                   <div className="grid gap-2 border-b border-white/8 bg-black/20 px-4 py-2 text-[11px] text-emerald-100/55 sm:grid-cols-3">
                     <div className="truncate">PID {runtime?.pid != null ? runtime.pid : '—'}</div>
-                    <div className="truncate">started {relative(runtime?.startedAt)}</div>
-                    <div className="truncate font-mono">{runtime?.cwd ?? 'no cwd'}</div>
+                    <div className="truncate">старт {relative(runtime?.startedAt)}</div>
+                    <div className="truncate font-mono">{runtime?.cwd ?? 'без рабочей папки'}</div>
                   </div>
 
                   <div className="bg-[#050806] p-3">

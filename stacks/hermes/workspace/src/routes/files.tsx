@@ -96,17 +96,19 @@ function FilesRoute() {
                 setFileExplorerCollapsed((prev) => !prev)
               }}
               className="rounded-lg p-1.5 text-primary-600 hover:bg-primary-100 transition-colors"
-              aria-label={fileExplorerCollapsed ? 'Show files' : 'Hide files'}
-              title={fileExplorerCollapsed ? 'Show files' : 'Hide files'}
+              aria-label={
+                fileExplorerCollapsed ? 'Показать файлы' : 'Скрыть файлы'
+              }
+              title={fileExplorerCollapsed ? 'Показать файлы' : 'Скрыть файлы'}
             >
               <HugeiconsIcon icon={Folder01Icon} size={20} strokeWidth={1.5} />
             </button>
             <div>
               <h1 className="text-base font-medium text-balance md:text-lg">
-                Files
+                Файлы
               </h1>
               <p className="hidden text-sm text-primary-600 text-pretty sm:block">
-                Explore your workspace and draft notes in the editor.
+                Просматривайте рабочую папку и редактируйте заметки.
               </p>
             </div>
           </header>
@@ -116,6 +118,7 @@ function FilesRoute() {
               theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs-light'}
               language="typescript"
               value={editorValue}
+              loading="Загружаю редактор..."
               onChange={function onEditorChange(value) {
                 setEditorValue(value || '')
               }}

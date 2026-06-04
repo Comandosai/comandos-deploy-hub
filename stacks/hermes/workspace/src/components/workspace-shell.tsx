@@ -397,7 +397,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
               }}
             >
               {isMobile && isOnTerminalRoute && (
-                <MobilePageHeader title="Terminal" />
+                <MobilePageHeader title="Терминал" />
               )}
               <div className="flex-1 min-h-0 overflow-hidden">
                 <Suspense fallback={null}>
@@ -442,7 +442,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         {showDesktopSidebarBackdrop ? (
           <button
             type="button"
-            aria-label="Collapse navigation sidebar"
+            aria-label="Свернуть боковое меню"
             onClick={() => setSidebarCollapsed(true)}
             className={DESKTOP_SIDEBAR_BACKDROP_CLASS}
           />

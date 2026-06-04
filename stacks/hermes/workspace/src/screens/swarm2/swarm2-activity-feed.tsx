@@ -32,12 +32,12 @@ type ActivityRow = {
 }
 
 function relativeTime(ts: number | null | undefined): string {
-  if (!ts) return 'just now'
+  if (!ts) return 'только что'
   const diff = Date.now() - ts
-  if (diff < 60_000) return `${Math.max(1, Math.floor(diff / 1000))}s ago`
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
-  return `${Math.floor(diff / 86_400_000)}d ago`
+  if (diff < 60_000) return `${Math.max(1, Math.floor(diff / 1000))} сек назад`
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} мин назад`
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} ч назад`
+  return `${Math.floor(diff / 86_400_000)} дн назад`
 }
 
 function stripLogPrefix(line: string): string {

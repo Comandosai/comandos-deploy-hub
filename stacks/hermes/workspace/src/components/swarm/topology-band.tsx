@@ -31,21 +31,21 @@ function workerRole(id: string): string {
     case '3':
       return 'Bench'
     case '4':
-      return 'Research'
+      return 'Исследование'
     case '5':
     case '10':
-      return 'Build'
+      return 'Сборка'
     case '6':
     case '11':
-      return 'Review'
+      return 'Проверка'
     case '7':
-      return 'Docs'
+      return 'Документы'
     case '8':
-      return 'Ops'
+      return 'Операции'
     case '9':
       return 'Hack'
     default:
-      return 'Worker'
+      return 'Воркер'
   }
 }
 

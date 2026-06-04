@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 type ConnectionStatus = {
   status: 'connected' | 'enhanced' | 'partial' | 'disconnected'
-  label: 'Connected' | 'Enhanced' | 'Partial' | 'Disconnected'
+  label: string
   detail: string
   health: boolean
   chatReady: boolean
@@ -22,7 +22,7 @@ async function fetchConnectionStatus(): Promise<ConnectionStatus> {
   if (!response.ok) {
     return {
       status: 'disconnected',
-      label: 'Disconnected',
+      label: 'Отключено',
       detail: 'Совместимый сервер не найден.',
       health: false,
       chatReady: false,

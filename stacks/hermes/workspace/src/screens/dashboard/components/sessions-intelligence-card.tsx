@@ -54,11 +54,11 @@ function sessionGlyph(
 function relativeTime(ms: number | null): string {
   if (!ms) return '—'
   const diff = Date.now() - ms
-  if (diff < 0) return 'just now'
-  if (diff < 60_000) return '<1m ago'
-  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h ago`
-  return `${Math.round(diff / 86_400_000)}d ago`
+  if (diff < 0) return 'только что'
+  if (diff < 60_000) return '<1 мин'
+  if (diff < 3_600_000) return `${Math.round(diff / 60_000)} мин`
+  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)} ч`
+  return `${Math.round(diff / 86_400_000)} дн`
 }
 
 function formatTokens(n: number): string {
@@ -72,7 +72,7 @@ function shortTitle(s: SessionRowData): string {
   const t = s.title?.trim()
   if (t && t.length > 0 && t !== s.key) return t
   // Fall back to friendly slug from the key
-  return `Session ${s.key.slice(0, 8)}`
+  return `Сессия ${s.key.slice(0, 8)}`
 }
 
 type SessionBadge = {
@@ -91,30 +91,30 @@ function buildBadges(s: SessionRowData): Array<SessionBadge> {
     s.status !== 'ended'
   ) {
     badges.push({
-      label: 'hot',
+      label: 'живая',
       tone: 'var(--theme-success)',
-      title: 'Active in last 5 minutes',
+      title: 'Активность была за последние 5 минут',
     })
   }
   if (s.toolCallCount >= 20) {
     badges.push({
-      label: 'tool-heavy',
+      label: 'инструменты',
       tone: 'var(--theme-accent)',
-      title: `${s.toolCallCount} tool calls`,
+      title: `${s.toolCallCount} вызовов инструментов`,
     })
   }
   if (s.tokenCount >= 50_000) {
     badges.push({
-      label: 'high-token',
+      label: 'много токенов',
       tone: 'var(--theme-accent-secondary)',
-      title: `${formatTokens(s.tokenCount)} tokens`,
+      title: `${formatTokens(s.tokenCount)} токенов`,
     })
   }
   if (s.status?.toLowerCase() === 'error' || s.status?.toLowerCase() === 'failed') {
     badges.push({
-      label: 'error',
+      label: 'ошибка',
       tone: 'var(--theme-danger)',
-      title: 'Session ended in an error state',
+      title: 'Сессия завершилась с ошибкой',
     })
   }
   if (
@@ -123,9 +123,9 @@ function buildBadges(s: SessionRowData): Array<SessionBadge> {
     s.status !== 'ended'
   ) {
     badges.push({
-      label: 'stale',
+      label: 'устарела',
       tone: 'var(--theme-muted)',
-      title: 'No activity in over 7 days',
+      title: 'Нет активности больше 7 дней',
     })
   }
   return badges
@@ -192,14 +192,14 @@ export function SessionsIntelligenceCard({
           className="text-[11px] font-semibold uppercase tracking-[0.18em]"
           style={{ color: 'var(--theme-text)' }}
         >
-          Sessions intelligence
+          Активность сессий
         </h3>
         <div className="flex items-center gap-2">
           <span
             className="font-mono text-[10px] uppercase tracking-[0.15em]"
             style={{ color: 'var(--theme-muted)' }}
           >
-            {sessions.length} recent
+            {sessions.length} недавних
           </span>
           <button
             type="button"
@@ -215,7 +215,7 @@ export function SessionsIntelligenceCard({
               color: 'var(--theme-muted)',
             }}
           >
-            Open chat →
+            Открыть чат →
           </button>
         </div>
       </div>
@@ -228,7 +228,7 @@ export function SessionsIntelligenceCard({
             color: 'var(--theme-muted)',
           }}
         >
-          No sessions yet — start a chat.
+          Сессий пока нет — начните первый чат.
         </div>
       ) : (
         // Iter 013: bumped from 8 → 14 rows. The card is now the
@@ -306,12 +306,12 @@ export function SessionsIntelligenceCard({
                           {formatModelName(s.model)}
                         </span>
                       ) : null}
-                      <span>{s.messageCount} msgs</span>
+                      <span>{s.messageCount} сообщ.</span>
                       {s.toolCallCount > 0 ? (
-                        <span>{s.toolCallCount} tools</span>
+                        <span>{s.toolCallCount} инстр.</span>
                       ) : null}
                       {s.tokenCount > 0 ? (
-                        <span>{formatTokens(s.tokenCount)} tok</span>
+                        <span>{formatTokens(s.tokenCount)} ток.</span>
                       ) : null}
                       <span className="ml-auto">
                         {relativeTime(s.updatedAt ?? s.startedAt)}

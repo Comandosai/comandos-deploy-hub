@@ -38,7 +38,7 @@ function readActiveModel(): string {
 
 type ConnectionStatus = {
   status: 'connected' | 'enhanced' | 'partial' | 'disconnected'
-  label: 'Connected' | 'Enhanced' | 'Partial' | 'Disconnected'
+  label: string
   detail: string
   health: boolean
   chatReady: boolean
@@ -57,7 +57,7 @@ export const Route = createFileRoute('/api/connection-status')({
         // unknown as Response" cast silenced TypeScript but threw at runtime
         // because the framework received `false`, not a Response. See #261, #263.
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Требуется вход в панель' }, { status: 401 })
         }
 
         const caps = await ensureGatewayProbed()
@@ -77,35 +77,35 @@ export const Route = createFileRoute('/api/connection-status')({
 
         if (!caps.health && !chatReady) {
           status = 'disconnected'
-          label = 'Disconnected'
-          detail = 'No compatible backend detected.'
+          label = 'Отключено'
+          detail = 'Совместимая серверная часть не найдена.'
         } else if (enhancedReady) {
           status = 'enhanced'
-          label = 'Enhanced'
+          label = 'Расширенный режим'
           detail = modelConfigured
             ? caps.dashboard.available
-              ? 'Core chat works and the Hermes Agent dashboard APIs are available.'
-              : 'Core chat works and Hermes Agent gateway APIs are available.'
+              ? 'Чат работает, API панели Hermes Agent доступны.'
+              : 'Чат работает, API шлюза Hermes Agent доступны.'
             : caps.dashboard.available
-              ? 'Hermes Agent dashboard APIs are available. Choose a model to start chatting.'
-              : 'Hermes Agent gateway APIs are available. Choose a model to start chatting.'
+              ? 'API панели Hermes Agent доступны. Выберите модель, чтобы начать чат.'
+              : 'API шлюза Hermes Agent доступны. Выберите модель, чтобы начать чат.'
         } else if (chatReady && modelConfigured) {
           status = 'connected'
-          label = 'Connected'
+          label = 'Подключено'
           detail = caps.dashboard.available
-            ? 'Core chat is ready on this backend.'
-            : 'Core chat is ready. COMANDOS Workspace is running in single-panel mode.'
+            ? 'Чат готов на этой серверной части.'
+            : 'Чат готов. COMANDOS Workspace работает в режиме единой панели.'
         } else {
           status = 'partial'
-          label = 'Partial'
+          label = 'Частично'
           if (!chatReady) {
-            detail = 'Backend reachable, but chat API is not ready yet.'
+            detail = 'Сервер отвечает, но API чата ещё не готов.'
           } else if (!modelConfigured) {
             detail =
-              'Backend connected. Choose a provider and model to test chat.'
+              'Сервер подключён. Выберите провайдера и модель, чтобы проверить чат.'
           } else {
             detail =
-              'Core chat works. Enhanced Hermes Agent gateway APIs are optional and unlock automatically when available.'
+              'Чат работает. Расширенные API Hermes Agent включатся автоматически, когда будут доступны.'
           }
         }
 

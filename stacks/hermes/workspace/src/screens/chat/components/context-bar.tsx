@@ -178,7 +178,7 @@ function ContextBarComponent({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-primary-900">
-              Context Window
+              Окно контекста
             </span>
             <span
               className={cn(
@@ -201,7 +201,7 @@ function ContextBarComponent({
           <div className="flex items-center justify-between">
             <span className="text-[10px] text-primary-500 tabular-nums">
               {formatTokens(ctx.usedTokens)} / {formatTokens(ctx.maxTokens)}{' '}
-              tokens
+              токенов
             </span>
             {ctx.model && (
               <span className="text-[10px] text-primary-400 truncate max-w-[100px]">
@@ -211,7 +211,7 @@ function ContextBarComponent({
           </div>
           {isCritical && (
             <p className="text-[10px] text-red-600 font-medium">
-              Context almost full — consider starting a new chat
+              Контекст почти заполнен — лучше начать новый чат
             </p>
           )}
         </div>

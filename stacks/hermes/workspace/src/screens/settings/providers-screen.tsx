@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils'
 // bundling Node.js-only modules (node:sqlite, node:fs) into the client bundle.
 async function getConfig(): Promise<Record<string, unknown>> {
   const res = await fetch('/api/claude-config')
-  if (!res.ok) throw new Error(`Failed to load config: HTTP ${res.status}`)
+  if (!res.ok) throw new Error(`Не удалось загрузить конфиг: HTTP ${res.status}`)
   const data = await res.json() as { config?: Record<string, unknown> }
   return data.config ?? {}
 }
@@ -42,7 +42,7 @@ async function patchConfig(patch: Record<string, unknown>): Promise<Record<strin
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ config: patch }),
   })
-  if (!res.ok) throw new Error(`Failed to save config: HTTP ${res.status}`)
+  if (!res.ok) throw new Error(`Не удалось сохранить конфиг: HTTP ${res.status}`)
   return res.json() as Promise<Record<string, unknown>>
 }
 
@@ -236,15 +236,15 @@ async function fetchModels(): Promise<{
 }
 
 const TAB_ORDER: Array<{ id: SettingsTabId; label: string }> = [
-  { id: 'providers', label: 'Providers' },
-  { id: 'models', label: 'Models' },
-  { id: 'agents', label: 'AI & Agents' },
-  { id: 'session', label: 'Session' },
-  { id: 'memory', label: 'Memory' },
+  { id: 'providers', label: 'Провайдеры' },
+  { id: 'models', label: 'Модели' },
+  { id: 'agents', label: 'Агенты' },
+  { id: 'session', label: 'Сессия' },
+  { id: 'memory', label: 'Память' },
 ]
 
 const MEMORY_PROVIDER_OPTIONS: Array<SelectOption> = [
-  { label: 'Local', value: 'local' },
+  { label: 'Локально', value: 'local' },
   { label: 'OpenAI', value: 'openai' },
   { label: 'Gemini', value: 'gemini' },
   { label: 'Voyage', value: 'voyage' },
@@ -253,7 +253,7 @@ const MEMORY_PROVIDER_OPTIONS: Array<SelectOption> = [
 ]
 
 const MEMORY_FALLBACK_OPTIONS: Array<SelectOption> = [
-  { label: 'None', value: 'none' },
+  { label: 'Нет', value: 'none' },
   ...MEMORY_PROVIDER_OPTIONS,
 ]
 
@@ -262,9 +262,9 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'primary-model',
     tab: 'models',
     path: 'model.default',
-    label: 'Default model',
+    label: 'Модель по умолчанию',
     description:
-      'Backend default model used when a chat does not select a per-session override.',
+      'Модель, которую Hermes использует, если в конкретной сессии не выбрана другая.',
     kind: 'text',
     placeholder: 'provider/model',
   },
@@ -272,9 +272,9 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'fallback-chain',
     tab: 'models',
     path: 'agents.defaults.model.fallbacks',
-    label: 'Fallback chain',
+    label: 'Цепочка запасных моделей',
     description:
-      'Ordered fallback models. Use one per line or separate with commas.',
+      'Запасные модели по порядку. Укажите по одной в строке или через запятую.',
     kind: 'multiline',
     rows: 3,
     placeholder: 'anthropic-oauth/claude-sonnet-4-6',
@@ -285,9 +285,9 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'context-tokens-models',
     tab: 'models',
     path: 'agents.defaults.contextTokens',
-    label: 'Context tokens',
+    label: 'Токены контекста',
     description:
-      'Default token budget applied to agents when no narrower override is present.',
+      'Бюджет контекста для агентов по умолчанию, если нет более точной настройки.',
     kind: 'number',
     min: 1,
     step: 1000,
@@ -299,9 +299,9 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'context-tokens-session',
     tab: 'session',
     path: 'agents.defaults.contextTokens',
-    label: 'Session context tokens',
+    label: 'Токены контекста сессии',
     description:
-      'Same agent default context budget surfaced here for session setup workflows.',
+      'Тот же бюджет контекста по умолчанию, показанный в настройках сессии.',
     kind: 'number',
     min: 1,
     step: 1000,
@@ -310,8 +310,8 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'memory-provider',
     tab: 'memory',
     path: 'agents.defaults.memorySearch.provider',
-    label: 'Memory search provider',
-    description: 'Embedding provider used for memory lookup and consolidation.',
+    label: 'Провайдер поиска по памяти',
+    description: 'Провайдер эмбеддингов для поиска и объединения памяти.',
     kind: 'select',
     options: MEMORY_PROVIDER_OPTIONS,
   },
@@ -319,9 +319,9 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'memory-fallback',
     tab: 'memory',
     path: 'agents.defaults.memorySearch.fallback',
-    label: 'Memory fallback provider',
+    label: 'Запасной провайдер памяти',
     description:
-      'Fallback provider when the primary memory search provider is unavailable.',
+      'Запасной провайдер, если основной поиск по памяти недоступен.',
     kind: 'select',
     options: MEMORY_FALLBACK_OPTIONS,
   },
@@ -329,24 +329,24 @@ const SETTINGS: Array<SettingDefinition> = [
     id: 'memory-sync-on-session-start',
     tab: 'memory',
     path: 'agents.defaults.memorySearch.sync.onSessionStart',
-    label: 'Sync on session start',
-    description: 'Refresh indexed memory paths when a new session starts.',
+    label: 'Синхронизировать при старте сессии',
+    description: 'Обновлять индекс памяти при запуске новой сессии.',
     kind: 'boolean',
   },
   {
     id: 'memory-sync-on-search',
     tab: 'memory',
     path: 'agents.defaults.memorySearch.sync.onSearch',
-    label: 'Sync on search',
-    description: 'Run a sync before memory search queries.',
+    label: 'Синхронизировать перед поиском',
+    description: 'Запускать синхронизацию перед запросами к памяти.',
     kind: 'boolean',
   },
   {
     id: 'memory-sync-interval',
     tab: 'memory',
     path: 'agents.defaults.memorySearch.sync.intervalMinutes',
-    label: 'Consolidation interval',
-    description: 'Background memory consolidation cadence, in minutes.',
+    label: 'Интервал объединения памяти',
+    description: 'Как часто объединять память в фоне, в минутах.',
     kind: 'number',
     min: 0,
     step: 5,
@@ -410,7 +410,7 @@ function buildProviderSummaries(payload: {
       name: getProviderDisplayName(providerId),
       description:
         metadata?.description ||
-        'Configured provider in your local Hermes setup.',
+        'Провайдер настроен в локальной конфигурации Hermes.',
       modelCount,
       status: modelCount > 0 ? 'active' : 'configured',
     })
@@ -540,7 +540,7 @@ function ProviderStatusBadge({ status }: { status: ProviderStatus }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-primary-300 bg-white px-2 py-0.5 text-xs font-medium text-primary-700">
       <HugeiconsIcon icon={CheckmarkCircle02Icon} size={20} strokeWidth={1.5} />
-      {status === 'active' ? 'Active' : 'Configured'}
+      {status === 'active' ? 'Активен' : 'Настроен'}
     </span>
   )
 }
@@ -619,12 +619,12 @@ function SettingCard(props: {
             </h3>
             {setting.unsupported ? (
               <span className="rounded-full border border-primary-300 bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-700">
-                Not available
+                Недоступно
               </span>
             ) : null}
             {isActiveSave ? (
               <span className="rounded-full border border-primary-300 bg-primary-50 px-2 py-0.5 text-[11px] font-medium text-primary-700">
-                Saving...
+                Сохраняю...
               </span>
             ) : null}
           </div>
@@ -912,7 +912,7 @@ function ModelConfigSection(props: {
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-xs font-medium uppercase tracking-[0.12em] text-primary-600">
-            Provider
+            Провайдер
           </span>
           <select
             className="h-10 w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 text-sm text-primary-900 outline-none"
@@ -934,7 +934,7 @@ function ModelConfigSection(props: {
 
         <label className="space-y-1.5">
           <span className="text-xs font-medium uppercase tracking-[0.12em] text-primary-600">
-            Model Name
+            Имя модели
           </span>
           <Input
             value={value.model}
@@ -953,7 +953,7 @@ function ModelConfigSection(props: {
 
       <label className="mt-4 block space-y-1.5">
         <span className="text-xs font-medium uppercase tracking-[0.12em] text-primary-600">
-          Base URL
+          Базовый URL
         </span>
         <Input
           value={value.baseUrl}
@@ -1076,13 +1076,13 @@ function ActiveModelCard({
         queryClient.invalidateQueries({ queryKey: ['claude', 'config'] }),
         queryClient.invalidateQueries({ queryKey: ['claude-config'] }),
       ])
-      toast('Model config saved — takes effect on next message', {
+      toast('Конфигурация модели сохранена — сработает со следующего сообщения', {
         type: 'success',
       })
     },
     onError: (error) => {
       toast(
-        error instanceof Error ? error.message : 'Failed to save model config',
+        error instanceof Error ? error.message : 'Не удалось сохранить конфигурацию модели',
         { type: 'error' },
       )
     },
@@ -1100,11 +1100,11 @@ function ActiveModelCard({
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
           <h3 className="text-base font-medium text-primary-900">
-            Model Configuration
+            Конфигурация модели
           </h3>
           <p className="text-sm text-primary-600">
-            Update the primary model, optional fallback, and stream timeout
-            settings saved in the active profile configuration.
+            Обновите основную модель, запасную модель и таймауты потока,
+            сохранённые в активном профиле.
           </p>
         </div>
         <Button
@@ -1112,23 +1112,23 @@ function ActiveModelCard({
           onClick={() => void saveMutation.mutateAsync()}
           disabled={configQuery.isPending || saveMutation.isPending}
         >
-          {saveMutation.isPending ? 'Saving...' : 'Save'}
+          {saveMutation.isPending ? 'Сохраняю...' : 'Сохранить'}
         </Button>
       </div>
 
       {configQuery.isPending ? (
         <p className="mt-4 text-sm text-primary-500">
-          Loading configuration...
+          Загружаю конфигурацию...
         </p>
       ) : configQuery.error ? (
         <p className="mt-4 text-sm text-red-500">
-          Could not load config — is Hermes Agent running?
+          Не удалось загрузить конфигурацию. Проверьте, что Hermes Agent запущен.
         </p>
       ) : (
         <div className="mt-5 space-y-4">
           <ModelConfigSection
-            title="Primary Model"
-            description="Default provider, model, and base URL used for new Hermes Agent requests."
+            title="Основная модель"
+            description="Провайдер, модель и адрес API, которые будут использоваться по умолчанию."
             value={primaryConfig}
             onChange={setPrimaryConfig}
             modelOptions={modelOptions}
@@ -1140,11 +1140,10 @@ function ActiveModelCard({
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-primary-900">
-                  Fallback Model
+                  Запасная модель
                 </h3>
                 <p className="text-sm text-primary-600">
-                  Optional secondary model Hermes Agent can use if the primary path
-                  fails.
+                  Дополнительная модель на случай, если основной путь не сработает.
                 </p>
               </div>
               <Button
@@ -1156,15 +1155,15 @@ function ActiveModelCard({
                   setShowFallback((current) => !current)
                 }}
               >
-                {showFallback ? 'Hide Fallback' : 'Show Fallback'}
+                {showFallback ? 'Скрыть запасную' : 'Показать запасную'}
               </Button>
             </div>
 
             {showFallback ? (
               <div className="mt-4">
                 <ModelConfigSection
-                  title="Fallback Settings"
-                  description="Keep these fields empty if you do not want a fallback model configured."
+                  title="Настройки запасной модели"
+                  description="Оставьте поля пустыми, если запасная модель не нужна."
                   value={fallbackConfig}
                   onChange={setFallbackConfig}
                   modelOptions={modelOptions}
@@ -1177,18 +1176,18 @@ function ActiveModelCard({
           <section className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 shadow-sm">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-primary-900">
-                Performance
+                Производительность
               </h3>
               <p className="text-sm text-primary-600">
-                Increase these timeouts for slower local models or larger
-                prompts that stream output more gradually.
+                Увеличьте таймауты для медленных локальных моделей или длинных
+                задач, где ответ идёт постепенно.
               </p>
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="space-y-1.5">
                 <span className="text-xs font-medium uppercase tracking-[0.12em] text-primary-600">
-                  Stream Stale Timeout
+                  Таймаут простоя потока
                 </span>
                 <Input
                   type="number"
@@ -1202,12 +1201,12 @@ function ActiveModelCard({
                     }))
                   }}
                 />
-                <p className="text-xs text-primary-500">Default: 90s</p>
+                <p className="text-xs text-primary-500">По умолчанию: 90 сек.</p>
               </label>
 
               <label className="space-y-1.5">
                 <span className="text-xs font-medium uppercase tracking-[0.12em] text-primary-600">
-                  Stream Read Timeout
+                  Таймаут чтения потока
                 </span>
                 <Input
                   type="number"
@@ -1221,13 +1220,14 @@ function ActiveModelCard({
                     }))
                   }}
                 />
-                <p className="text-xs text-primary-500">Default: 60s</p>
+                <p className="text-xs text-primary-500">По умолчанию: 60 сек.</p>
               </label>
             </div>
 
             <p className="mt-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] px-3 py-2 text-sm text-primary-600">
-              Slow local runners such as Ollama and `llama-server` often need
-              more headroom before Hermes Agent decides a stream has stalled.
+              Медленным локальным серверам вроде Ollama и `llama-server` часто
+              нужен больший запас времени, иначе Hermes Agent решит, что поток
+              завис.
             </p>
           </section>
         </div>
@@ -1266,16 +1266,16 @@ function ProviderManagementSection(props: {
       <header className="flex flex-col gap-4 rounded-xl border border-primary-200 bg-primary-50/80 px-5 py-4 shadow-sm md:flex-row md:items-center md:justify-between">
         <div className="space-y-1.5">
           <h2 className="text-base font-semibold text-primary-900">
-            Provider Setup
+            Настройка провайдеров
           </h2>
           <p className="text-sm text-primary-600">
-            View configured providers and walk through safe setup instructions
-            for new providers.
+            Проверьте подключённые провайдеры и добавьте новые без ручного
+            редактирования конфига.
           </p>
         </div>
         <Button size="sm" onClick={onAddProvider}>
           <HugeiconsIcon icon={Add01Icon} size={20} strokeWidth={1.5} />
-          Add Provider
+          Добавить провайдера
         </Button>
       </header>
 
@@ -1283,36 +1283,35 @@ function ProviderManagementSection(props: {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div>
             <h3 className="text-base font-medium text-primary-900">
-              Configured Providers
+              Подключённые провайдеры
             </h3>
             <p className="mt-1 text-xs text-primary-600">
-              API keys stay in your local Hermes config and are never sent to
-              Studio.
+              API-ключи остаются в локальном конфиге Hermes и не отправляются
+              в COMANDOS.
             </p>
           </div>
           <p className="text-xs text-primary-600 tabular-nums">
-            {providerSummaries.length} provider
-            {providerSummaries.length === 1 ? '' : 's'}
+            {providerSummaries.length} пров.
           </p>
         </div>
 
         {modelsQuery.isPending ? (
           <p className="rounded-xl border border-primary-200 bg-white px-3 py-2 text-sm text-primary-600">
-            Loading providers from Hermes Agent...
+            Загружаю провайдеры из Hermes Agent...
           </p>
         ) : null}
 
         {modelsQuery.error ? (
           <div className="rounded-xl border border-primary-200 bg-white px-4 py-3">
             <p className="mb-2 text-sm text-primary-700">
-              Unable to load providers right now. Check your Hermes Agent connection.
+              Сейчас не удалось загрузить провайдеры. Проверьте подключение Hermes Agent.
             </p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => modelsQuery.refetch()}
             >
-              Retry
+              Повторить
             </Button>
           </div>
         ) : null}
@@ -1322,8 +1321,8 @@ function ProviderManagementSection(props: {
         providerSummaries.length === 0 ? (
           <div className="rounded-xl border border-primary-200 bg-white px-4 py-4">
             <p className="text-sm text-primary-700">
-              No providers are configured yet. Use Add Provider to open setup
-              instructions.
+              Провайдеры пока не настроены. Нажмите «Добавить провайдера»,
+              чтобы открыть мастер настройки.
             </p>
           </div>
         ) : null}
@@ -1357,7 +1356,7 @@ function ProviderManagementSection(props: {
 
                   <div className="mt-3 flex items-center justify-between rounded-xl border border-primary-200 bg-primary-50 px-2.5 py-2">
                     <span className="text-xs text-primary-600">
-                      Available models
+                      Доступные модели
                     </span>
                     <span className="text-sm font-medium text-primary-900 tabular-nums">
                       {provider.modelCount}
@@ -1373,14 +1372,14 @@ function ProviderManagementSection(props: {
                         onEdit(provider)
                       }}
                       disabled={isDeleting}
-                      aria-label={`Edit ${provider.name}`}
+                      aria-label={`Настроить ${provider.name}`}
                     >
                       <HugeiconsIcon
                         icon={Edit01Icon}
                         size={14}
                         strokeWidth={1.5}
                       />
-                      Edit
+                      Настроить
                     </Button>
                     <Button
                       variant="outline"
@@ -1390,14 +1389,14 @@ function ProviderManagementSection(props: {
                         onDelete(provider)
                       }}
                       disabled={isDeleting}
-                      aria-label={`Delete ${provider.name}`}
+                      aria-label={`Удалить ${provider.name}`}
                     >
                       <HugeiconsIcon
                         icon={Delete02Icon}
                         size={14}
                         strokeWidth={1.5}
                       />
-                      {isDeleting ? 'Removing…' : 'Delete'}
+                      {isDeleting ? 'Удаляю...' : 'Удалить'}
                     </Button>
                   </div>
                 </article>
@@ -1461,10 +1460,10 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['claude', 'config'] })
-      toast(`${variables.label} saved`, { type: 'success' })
+      toast(`${variables.label} сохранено`, { type: 'success' })
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to save setting', {
+      toast(error instanceof Error ? error.message : 'Не удалось сохранить настройку', {
         type: 'error',
       })
     },
@@ -1551,17 +1550,17 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
       })
       const data = (await res.json()) as { ok: boolean; error?: string }
       if (!data.ok) {
-        toast(`Failed to remove provider: ${data.error ?? 'Unknown error'}`, {
+        toast(`Не удалось удалить провайдера: ${data.error ?? 'неизвестная ошибка'}`, {
           type: 'error',
         })
       } else {
         await queryClient.invalidateQueries({
           queryKey: ['claude', 'providers', 'models'],
         })
-        toast(`Provider "${provider.name}" removed`, { type: 'success' })
+        toast(`Провайдер "${provider.name}" удалён`, { type: 'success' })
       }
     } catch {
-      toast('Network error — could not remove provider.', { type: 'error' })
+      toast('Сетевая ошибка — не удалось удалить провайдера.', { type: 'error' })
     } finally {
       setDeletingId(null)
     }
@@ -1588,7 +1587,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
         )}
       >
         <BackendUnavailableState
-          feature="Provider Setup"
+          feature="настройки провайдеров"
           description={getUnavailableReason('config')}
         />
       </div>
@@ -1611,10 +1610,10 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
           <header className="flex flex-col gap-4 rounded-xl border border-primary-200 bg-primary-50/80 px-5 py-4 shadow-sm">
             <div className="space-y-1">
               <h1 className="hidden md:block text-lg font-semibold text-primary-900">
-                Settings
+                Настройки
               </h1>
               <p className="text-sm text-primary-600">
-                Configure providers plus Hermes Agent defaults in one place.
+                Настройте провайдеры и значения Hermes Agent по умолчанию.
               </p>
             </div>
 
@@ -1630,7 +1629,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
                 <Input
                   value={search}
                   type="search"
-                  placeholder="Search settings, paths, or descriptions"
+                  placeholder="Поиск по настройкам, путям и описаниям"
                   className="pl-10"
                   onChange={(event) => {
                     setSearch(event.target.value)
@@ -1640,8 +1639,8 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
 
               <div className="text-sm text-primary-600">
                 {searchQuery
-                  ? `${totalSearchMatches} matching setting${totalSearchMatches === 1 ? '' : 's'}`
-                  : `${SETTINGS.length} configurable defaults`}
+                  ? `Найдено настроек: ${totalSearchMatches}`
+                  : `Настроек: ${SETTINGS.length}`}
               </div>
             </div>
           </header>
@@ -1698,14 +1697,14 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
                 <TabsContent key={tab.id} value={tab.id} className="space-y-4">
                   {configQuery.isPending ? (
                     <div className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-600">
-                      Loading current configuration...
+                      Загружаю текущую конфигурацию...
                     </div>
                   ) : null}
 
                   {configQuery.error ? (
                     <div className="rounded-xl border border-primary-200 bg-white px-4 py-3">
                       <p className="text-sm text-primary-700">
-                        Unable to load configuration right now.
+                        Сейчас не удалось загрузить конфигурацию.
                       </p>
                       <Button
                         variant="outline"
@@ -1713,7 +1712,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
                         className="mt-3"
                         onClick={() => configQuery.refetch()}
                       >
-                        Retry
+                        Повторить
                       </Button>
                     </div>
                   ) : null}
@@ -1722,7 +1721,7 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
                   !configQuery.error &&
                   items.length === 0 ? (
                     <div className="rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 text-sm text-primary-600">
-                      No settings in this tab match your current search.
+                      В этой вкладке нет настроек по текущему поиску.
                     </div>
                   ) : null}
 

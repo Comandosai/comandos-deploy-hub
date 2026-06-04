@@ -436,7 +436,7 @@ export function KnowledgeBrowserScreen() {
               <input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Search knowledge"
+                placeholder="Поиск по базе знаний"
                 className="w-full rounded-xl py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-accent-500"
                 style={{
                   border: '1px solid var(--theme-border)',
@@ -469,10 +469,10 @@ export function KnowledgeBrowserScreen() {
                 backgroundColor: 'var(--theme-card)',
                 color: 'var(--theme-text)',
               }}
-              title="Knowledge base settings"
+              title="Настройки базы знаний"
             >
               <HugeiconsIcon icon={Settings01Icon} size={16} strokeWidth={1.7} />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="hidden sm:inline">Настройки</span>
             </DialogTrigger>
             <DialogContent
               className="sm:max-w-md"
@@ -485,10 +485,10 @@ export function KnowledgeBrowserScreen() {
               <div className="space-y-4">
                 <div>
                   <DialogTitle className="text-base font-semibold">
-                    Knowledge Base Settings
+                    Настройки базы знаний
                   </DialogTitle>
                   <DialogDescription className="mt-1 text-sm" style={{ color: 'var(--theme-muted)' }}>
-                    Choose where your knowledge base is located. Changes take effect immediately.
+                    Выберите, где лежит база знаний. Изменения применяются сразу.
                   </DialogDescription>
                 </div>
 
@@ -758,13 +758,13 @@ export function KnowledgeBrowserScreen() {
           ) : searchTerm ? (
             <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
               <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-primary-400 dark:text-neutral-500">
-                Search Results
+                Результаты поиска
               </div>
               <div className="space-y-1">
                 {searchQuery.isLoading ? (
-                  <StateBox label="Searching knowledge..." />
+                  <StateBox label="Ищу по базе знаний..." />
                 ) : searchResults.length === 0 ? (
-                  <StateBox label="No matches found" />
+                  <StateBox label="Совпадений нет" />
                 ) : (
                   searchResults.map((result, index) => (
                     <button
@@ -809,11 +809,11 @@ export function KnowledgeBrowserScreen() {
               <div className="space-y-3 overflow-y-auto pr-1 md:h-full">
                 <section className="rounded-xl border border-primary-200 bg-primary-50/80 p-2 dark:border-neutral-800 dark:bg-neutral-900/60">
                   <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-primary-400 dark:text-neutral-500">
-                    Tags
+                    Теги
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     <TagPill
-                      label="All"
+                      label="Все"
                       count={pages.length}
                       active={selectedTag == null}
                       onClick={() => setSelectedTag(null)}
@@ -832,15 +832,15 @@ export function KnowledgeBrowserScreen() {
 
                 <section className="rounded-xl border border-primary-200 bg-primary-50/80 p-1 dark:border-neutral-800 dark:bg-neutral-900/60">
                   {listQuery.isLoading ? (
-                    <StateBox label="Loading knowledge pages..." />
+                    <StateBox label="Загружаю страницы базы знаний..." />
                   ) : listQuery.error instanceof Error ? (
                     <StateBox label={listQuery.error.message} error />
                   ) : filteredPages.length === 0 ? (
                     <StateBox
                       label={
                         selectedTag
-                          ? 'No pages match this tag'
-                          : 'No markdown pages found'
+                          ? 'Для этого тега страниц нет'
+                          : 'Markdown-страницы не найдены'
                       }
                     />
                   ) : (
@@ -860,7 +860,7 @@ export function KnowledgeBrowserScreen() {
           <div className="flex items-center justify-between border-b border-primary-200 px-3 py-2 dark:border-neutral-800">
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-primary-900 dark:text-neutral-100">
-                {page?.title || selectedPath || 'Select a page'}
+                {page?.title || selectedPath || 'Выберите страницу'}
               </div>
               {page ? (
                 <div className="text-xs text-primary-400 dark:text-neutral-500">
@@ -879,26 +879,26 @@ export function KnowledgeBrowserScreen() {
                   size={14}
                   strokeWidth={1.7}
                 />
-                Ask agent about this
+                Спросить агента об этом
               </a>
             ) : null}
           </div>
 
           <div className="h-full overflow-auto p-2 md:p-3">
             {listQuery.isLoading ? (
-              <StateBox label="Loading knowledge base..." />
+              <StateBox label="Загружаю базу знаний..." />
             ) : listQuery.error instanceof Error ? (
               <StateBox label={listQuery.error.message} error />
             ) : !knowledgeExists ? (
               <EmptyKnowledgeState knowledgeRoot={knowledgeRoot} />
             ) : !selectedPath ? (
-              <StateBox label="Select a page to start browsing" />
+              <StateBox label="Выберите страницу, чтобы начать просмотр" />
             ) : readQuery.isLoading ? (
-              <StateBox label="Loading page..." />
+              <StateBox label="Загружаю страницу..." />
             ) : readQuery.error instanceof Error ? (
               <StateBox label={readQuery.error.message} error />
             ) : !page ? (
-              <StateBox label="Page not found" error />
+              <StateBox label="Страница не найдена" error />
             ) : (
               <div
                 className="rounded-xl"
@@ -1083,17 +1083,17 @@ export function KnowledgeBrowserScreen() {
           <div className="border-b border-primary-200 px-5 py-4 dark:border-neutral-800">
             <DialogTitle>Knowledge graph</DialogTitle>
             <DialogDescription>
-              Page relationships from wiki links. Click any node to open that
-              page.
+              Связи страниц по wiki-ссылкам. Нажмите узел, чтобы открыть
+              страницу.
             </DialogDescription>
           </div>
           <div className="p-5">
             {graphQuery.isLoading ? (
-              <StateBox label="Loading graph..." />
+              <StateBox label="Загружаю граф..." />
             ) : graphQuery.error instanceof Error ? (
               <StateBox label={graphQuery.error.message} error />
             ) : (graphQuery.data?.nodes?.length ?? 0) === 0 ? (
-              <StateBox label="No graph data yet" />
+              <StateBox label="Данных для графа пока нет" />
             ) : (
               <GraphCanvas
                 nodes={graphQuery.data?.nodes ?? []}

@@ -206,7 +206,7 @@ function SessionItemComponent({
             className="gap-2"
           >
             <HugeiconsIcon icon={Pen01Icon} size={20} strokeWidth={1.5} />{' '}
-            Rename
+            Переименовать
           </MenuItem>
           <MenuItem
             onClick={(event) => {
@@ -217,7 +217,7 @@ function SessionItemComponent({
             className="text-red-700 gap-2 hover:bg-red-50 dark:hover:bg-red-900/30/80 data-highlighted:bg-red-50/80"
           >
             <HugeiconsIcon icon={Delete01Icon} size={20} strokeWidth={1.5} />{' '}
-            Delete
+            Удалить
           </MenuItem>
         </MenuContent>
       </MenuRoot>

@@ -152,7 +152,7 @@ export function WorkspaceSkillsScreen() {
         throw new Error(
           'error' in payload && typeof payload.error === 'string'
             ? payload.error
-            : 'Failed to load memory files',
+            : 'Не удалось загрузить файлы памяти',
         )
       }
 

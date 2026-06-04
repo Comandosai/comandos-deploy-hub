@@ -306,7 +306,7 @@ export function useMissionOrchestrator() {
       updateTasksForAgent(agentId, 'done')
       emitFeedEvent({
         type: 'agent_idle',
-        message: `${agentName} completed assigned work`,
+        message: `${agentName} завершил назначенную работу`,
         agentName,
       })
       maybeCompleteMission()
@@ -320,11 +320,11 @@ export function useMissionOrchestrator() {
       setAgentStatus(agentId, {
         status: 'error',
         lastSeen: Date.now(),
-        lastMessage: 'Live stream disconnected',
+        lastMessage: 'Живой поток отключился',
       })
       emitFeedEvent({
         type: 'system',
-        message: `${agentName} stream disconnected`,
+        message: `Поток ${agentName} отключился`,
         agentName,
       })
       streamMapRef.current.delete(sessionKey)
@@ -538,11 +538,11 @@ export function useMissionOrchestrator() {
 
     emitFeedEvent({
       type: 'mission_started',
-      message: `Mission started: ${mission.goal}`,
+      message: `Миссия запущена: ${mission.goal}`,
     })
     emitFeedEvent({
       type: 'system',
-      message: `Dispatching ${mission.team.length} agent session${mission.team.length === 1 ? '' : 's'}`,
+      message: `Запускаю сессии агентов: ${mission.team.length}`,
     })
 
     try {
@@ -564,7 +564,7 @@ export function useMissionOrchestrator() {
           if (!leadSessionKey) {
             emitFeedEvent({
               type: 'system',
-              message: `Skipping ${leadMember.name}: no session available`,
+              message: `Пропускаю ${leadMember.name}: сессия недоступна`,
               agentName: leadMember.name,
             })
             return
@@ -593,11 +593,11 @@ export function useMissionOrchestrator() {
           setAgentStatus(leadMember.id, {
             status: 'dispatching',
             lastSeen: Date.now(),
-            lastMessage: 'Sending assignment',
+            lastMessage: 'Отправляю задачу',
           })
           emitFeedEvent({
             type: 'system',
-            message: `Dispatching ${leadMember.name}: sending assignment`,
+            message: `Отправляю задачу агенту ${leadMember.name}`,
             agentName: leadMember.name,
           })
           try {
@@ -620,7 +620,7 @@ export function useMissionOrchestrator() {
           if (!workerSessionKey) {
             emitFeedEvent({
               type: 'system',
-              message: `Skipping ${worker.name}: no session available`,
+              message: `Пропускаю ${worker.name}: сессия недоступна`,
               agentName: worker.name,
             })
             continue
@@ -637,11 +637,11 @@ export function useMissionOrchestrator() {
           setAgentStatus(worker.id, {
             status: 'dispatching',
             lastSeen: Date.now(),
-            lastMessage: 'Sending assignment',
+            lastMessage: 'Отправляю задачу',
           })
           emitFeedEvent({
             type: 'system',
-            message: `Dispatching ${worker.name}: sending assignment`,
+            message: `Отправляю задачу агенту ${worker.name}`,
             agentName: worker.name,
           })
           try {
@@ -739,7 +739,7 @@ export function useMissionOrchestrator() {
     setAgentStatus(agentId, {
       status: 'active',
       lastSeen: Date.now(),
-      lastMessage: 'Retrying agent',
+      lastMessage: 'Перезапускаю агента',
     })
 
     const newSessionKey = await spawnAgentSession(member, {

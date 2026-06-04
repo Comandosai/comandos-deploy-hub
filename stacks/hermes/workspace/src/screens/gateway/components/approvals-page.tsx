@@ -244,14 +244,14 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
 
             <div className="h-full max-h-full overflow-y-auto p-3 sm:p-4">
               {loading && pendingRows.length === 0 ? (
-                <p className="py-10 text-center text-sm text-neutral-500">Loading approvals...</p>
+                <p className="py-10 text-center text-sm text-neutral-500">Загружаю согласования...</p>
               ) : null}
 
               {!loading && pendingRows.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-14 text-center">
                   <span className="text-3xl">✅</span>
-                  <p className="mt-2 text-sm font-medium text-neutral-700 dark:text-neutral-200">No pending approvals</p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">Agents can continue without intervention</p>
+                  <p className="mt-2 text-sm font-medium text-neutral-700 dark:text-neutral-200">Ожидающих согласований нет</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">Агенты могут продолжать без вмешательства</p>
                 </div>
               ) : null}
 
@@ -279,7 +279,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
                                 {row.toolName}
                               </span>
                               <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase', riskBadgeClass(row.risk))}>
-                                {row.risk} risk
+                                риск: {row.risk}
                               </span>
                               <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
                                 {row.source}
@@ -302,7 +302,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
                               disabled={isBusy}
                               className="min-h-10 flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-initial"
                             >
-                              {resolvingAction === 'approve' ? 'Approving...' : 'Approve'}
+                              {resolvingAction === 'approve' ? 'Согласую...' : 'Согласовать'}
                             </button>
                             <button
                               type="button"
@@ -310,7 +310,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
                               disabled={isBusy}
                               className="min-h-10 flex-1 rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-800/70 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-950/20 sm:flex-initial"
                             >
-                              {resolvingAction === 'deny' ? 'Denying...' : 'Deny'}
+                              {resolvingAction === 'deny' ? 'Отклоняю...' : 'Отклонить'}
                             </button>
                           </div>
                         </div>

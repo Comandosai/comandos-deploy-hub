@@ -10,12 +10,12 @@ type OrchestratorInfo = {
 }
 
 const LABELS: Record<AgentActivity, string> = {
-  idle: 'Idle',
-  reading: 'Reading...',
-  thinking: 'Thinking...',
-  responding: 'Responding...',
-  'tool-use': 'Using tools...',
-  orchestrating: 'Orchestrating agents...',
+  idle: 'Ожидает',
+  reading: 'Читает...',
+  thinking: 'Думает...',
+  responding: 'Отвечает...',
+  'tool-use': 'Использует инструменты...',
+  orchestrating: 'Оркестрирует агентов...',
 }
 
 export function useOrchestratorState(): OrchestratorInfo {

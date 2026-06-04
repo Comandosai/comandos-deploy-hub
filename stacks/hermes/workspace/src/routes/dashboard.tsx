@@ -8,6 +8,6 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function DashboardRoute() {
-  usePageTitle('Dashboard')
+  usePageTitle('Панель')
   return <DashboardScreen />
 }

@@ -93,7 +93,7 @@ export function AgentChatPanel({
         setError(res.error)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load history')
+      setError(e instanceof Error ? e.message : 'Не удалось загрузить историю')
     } finally {
       setLoading(false)
     }
@@ -227,11 +227,11 @@ export function AgentChatPanel({
             />
             <div>
               <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                Chat with {agentName}
+                Чат с агентом {agentName}
               </p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {isRunning ? 'Running — messages sent as directives' : 'Idle — direct conversation'}
-                {sessionKey ? ` · ${sessionKey.slice(0, 24)}…` : ' · No session'}
+                {isRunning ? 'В работе — сообщения идут как инструкции' : 'Ожидает — прямой диалог'}
+                {sessionKey ? ` · ${sessionKey.slice(0, 24)}…` : ' · сессии нет'}
               </p>
             </div>
           </div>
@@ -242,7 +242,7 @@ export function AgentChatPanel({
               disabled={loading}
               className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
             >
-              {loading ? '↻' : '↻ Refresh'}
+              {loading ? '↻' : '↻ Обновить'}
             </button>
             <button
               type="button"
@@ -325,10 +325,10 @@ export function AgentChatPanel({
               onChange={(e) => setDraft(e.target.value)}
               placeholder={
                 !sessionKey
-                  ? 'No session available…'
+                  ? 'Сессия недоступна…'
                   : isRunning
-                    ? 'Send a directive to the running agent…'
-                    : 'Send a message…'
+                    ? 'Отправьте инструкцию работающему агенту…'
+                    : 'Напишите сообщение…'
               }
               disabled={!sessionKey || sending}
               className="flex-1 resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:ring-1 focus:ring-accent-400 disabled:opacity-50 dark:border-neutral-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-neutral-500"

@@ -95,6 +95,10 @@ type ChatComposerProps = {
    * must stay inline instead of docking fixed to the viewport bottom. */
   embedded?: boolean
   hideModelSelector?: boolean
+  prefillPrompt?: {
+    id: number
+    value: string
+  } | null
 }
 
 type ChatComposerHelpers = {
@@ -602,13 +606,13 @@ async function compressImageToDataUrl(file: File): Promise<string> {
         resolve(dataUrl)
       } catch (error) {
         cleanup()
-        reject(error instanceof Error ? error : new Error('Compression failed'))
+        reject(error instanceof Error ? error : new Error('Не удалось сжать файл'))
       }
     }
 
     image.onerror = () => {
       cleanup()
-      reject(new Error('Failed to load image'))
+      reject(new Error('Не удалось загрузить изображение'))
     }
 
     image.src = objectUrl
@@ -768,6 +772,11 @@ function shortPathLabel(pathValue: string): string {
   return parts.at(-1) || pathValue
 }
 
+function displayWorkspaceName(name: string | null | undefined, pathValue: string): string {
+  if (!name || name === 'Home') return shortPathLabel(pathValue)
+  return name
+}
+
 function thinkingLabel(level: ThinkingLevel): string {
   if (level === 'off') return 'Нет'
   if (level === 'low') return 'Низкое'
@@ -807,6 +816,7 @@ function ChatComposerComponent({
   onAbort,
   embedded = false,
   hideModelSelector = false,
+  prefillPrompt = null,
 }: ChatComposerProps) {
   const queryClient = useQueryClient()
   const mobileKeyboardInset = useWorkspaceStore((s) => s.mobileKeyboardInset)
@@ -1103,7 +1113,7 @@ function ChatComposerComponent({
     (workspace) => workspace.path === detectedWorkspacePath,
   )
   const workspaceButtonLabel =
-    activeWorkspace?.name ||
+    displayWorkspaceName(activeWorkspace?.name, activeWorkspace?.path || detectedWorkspacePath) ||
     workspaceContextQuery.data?.folderName ||
     shortPathLabel(detectedWorkspacePath) ||
     'Рабочая папка'
@@ -1117,6 +1127,7 @@ function ChatComposerComponent({
 
   // When model switches to Claude 4.6 and thinking is 'off', auto-upgrade to medium effort
   const prevModelRef = useRef('')
+  const appliedPrefillPromptIdRef = useRef<number | null>(null)
   useEffect(() => {
     if (!currentModel || currentModel === prevModelRef.current) return
     prevModelRef.current = currentModel
@@ -1337,6 +1348,16 @@ function ChatComposerComponent({
       focusPrompt()
     },
     [focusPrompt, persistDraft],
+  )
+
+  useEffect(
+    function applyPrefillPrompt() {
+      if (!prefillPrompt) return
+      if (appliedPrefillPromptIdRef.current === prefillPrompt.id) return
+      appliedPrefillPromptIdRef.current = prefillPrompt.id
+      setComposerValue(prefillPrompt.value)
+    },
+    [prefillPrompt, setComposerValue],
   )
 
   const setComposerAttachments = useCallback(
@@ -2832,7 +2853,7 @@ function ChatComposerComponent({
                                         )}
                                       >
                                         <span className="flex min-w-0 items-center gap-2">
-                                          <span className="truncate font-medium">{workspace.name || shortPathLabel(workspace.path)}</span>
+                                          <span className="truncate font-medium">{displayWorkspaceName(workspace.name, workspace.path)}</span>
                                           {selected ? <span className="text-[10px] text-accent-500">активна</span> : null}
                                         </span>
                                         <span className="mt-0.5 max-w-[22rem] truncate text-[11px] text-neutral-500">{workspace.path}</span>

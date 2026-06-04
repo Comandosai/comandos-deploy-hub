@@ -69,12 +69,12 @@ async function fetchHealth(): Promise<HealthData> {
 }
 
 function relative(ts: number | null): string {
-  if (!ts) return 'never'
+  if (!ts) return 'никогда'
   const d = Date.now() - ts
-  if (d < 60_000) return `${Math.floor(d / 1000)}s ago`
-  if (d < 3_600_000) return `${Math.floor(d / 60_000)}m ago`
-  if (d < 86_400_000) return `${Math.floor(d / 3_600_000)}h ago`
-  return `${Math.floor(d / 86_400_000)}d ago`
+  if (d < 60_000) return `${Math.floor(d / 1000)} сек назад`
+  if (d < 3_600_000) return `${Math.floor(d / 60_000)} мин назад`
+  if (d < 86_400_000) return `${Math.floor(d / 3_600_000)} ч назад`
+  return `${Math.floor(d / 86_400_000)} дн назад`
 }
 
 function compactText(value: string | null | undefined, max = 42): string {
@@ -116,19 +116,19 @@ export function WidgetRail({
   const attentionItems = useMemo(() => {
     const items: Array<{ tone: 'warn' | 'good' | 'neutral'; text: string }> = []
     if (authErrors > 0) {
-      items.push({ tone: 'warn', text: `${authErrors} auth errors in 24h` })
+      items.push({ tone: 'warn', text: `Ошибки авторизации за 24ч: ${authErrors}` })
     }
     if (offlineCount > 0) {
-      items.push({ tone: 'warn', text: `${offlineCount} workers not online` })
+      items.push({ tone: 'warn', text: `Не в сети: ${offlineCount}` })
     }
     if (roomIds.length === 0) {
-      items.push({ tone: 'neutral', text: 'No active room selected' })
+      items.push({ tone: 'neutral', text: 'Комната не выбрана' })
     }
     if (runtimeQuery.isError) {
-      items.push({ tone: 'warn', text: 'Runtime API unavailable' })
+      items.push({ tone: 'warn', text: 'API среды выполнения недоступен' })
     }
     if (items.length === 0) {
-      items.push({ tone: 'good', text: 'No attention items' })
+      items.push({ tone: 'good', text: 'Внимание не требуется' })
     }
     return items
   }, [authErrors, offlineCount, roomIds.length, runtimeQuery.isError])
@@ -137,8 +137,8 @@ export function WidgetRail({
     <aside className="flex w-full flex-col gap-2.5 xl:sticky xl:top-20 xl:self-start">
       <RailPanel
         icon={AlertCircleIcon}
-        eyebrow="Attention"
-        title={attentionItems[0]?.text ?? 'No attention items'}
+        eyebrow="Внимание"
+        title={attentionItems[0]?.text ?? 'Внимание не требуется'}
         hot={attentionItems.some((item) => item.tone === 'warn')}
       >
         <div className="space-y-1.5">
@@ -162,22 +162,22 @@ export function WidgetRail({
 
       <RailPanel
         icon={UserGroupIcon}
-        eyebrow="Room"
-        title={`${roomIds.length}/${members.length} wired`}
+        eyebrow="Комната"
+        title={`выбрано ${roomIds.length}/${members.length}`}
         action={
           <button
             type="button"
             onClick={onOpenMission}
             className="rounded-full bg-emerald-400 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-black hover:bg-emerald-300"
           >
-            Dispatch
+            Отправить
           </button>
         }
       >
         {roomIds.length === 0 ? (
           <div className="rounded-xl border border-dashed border-emerald-400/18 px-3 py-3 text-xs text-emerald-100/45">
-            Add workers from the topology strip or cards. Room state controls
-            router chat and multi-terminal view.
+            Добавьте агентов из ленты топологии или карточек. Комната управляет
+            чатом роутера и режимом нескольких терминалов.
           </div>
         ) : (
           <div className="flex flex-wrap gap-1.5">
@@ -206,29 +206,29 @@ export function WidgetRail({
 
       <RailPanel
         icon={ComputerTerminal01Icon}
-        eyebrow="Selected runtime"
+        eyebrow="Выбранная среда"
         title={
           selectedId
             ? compactText(
                 selectedRuntime?.currentTask ??
                   selectedMember?.lastSessionTitle ??
-                  `${selectedId} ready`,
+                  `${selectedId} готов`,
               )
-            : 'No worker selected'
+            : 'Агент не выбран'
         }
       >
         {selectedId ? (
           <div className="space-y-1.5">
             <Stat
-              label="Mode"
+              label="Режим"
               value={
                 selectedRuntime?.tmuxAttachable
-                  ? 'tmux attachable'
-                  : 'secondary'
+                  ? 'tmux доступен'
+                  : 'резервный'
               }
             />
             <Stat
-              label="Output"
+              label="Вывод"
               value={relative(selectedRuntime?.lastOutputAt ?? null)}
             />
             <Stat
@@ -237,12 +237,12 @@ export function WidgetRail({
                 selectedRuntime?.pid != null ? String(selectedRuntime.pid) : '—'
               }
             />
-            <Stat label="cwd" value={compactText(selectedRuntime?.cwd, 34)} />
+            <Stat label="Папка" value={compactText(selectedRuntime?.cwd, 34)} />
           </div>
         ) : (
           <div className="text-xs text-emerald-100/45">
-            Select a card for runtime metadata. Open Runtime only when you need
-            a live shell.
+            Выберите карточку, чтобы увидеть состояние среды. Открывайте среду
+            выполнения только когда нужен живой терминал.
           </div>
         )}
       </RailPanel>
@@ -250,24 +250,24 @@ export function WidgetRail({
       <div className="grid grid-cols-3 gap-2">
         <MiniStat
           icon={Activity01Icon}
-          label="Online"
+          label="В сети"
           value={`${onlineCount}/${members.length}`}
         />
         <MiniStat
           icon={CheckListIcon}
-          label="Tasks"
+          label="Задачи"
           value={String(taskTotal)}
         />
         <MiniStat
           icon={CpuIcon}
-          label="Runtime"
+          label="Среда"
           value={String(runtimeEntries.length)}
         />
       </div>
 
       <RailPanel
         icon={Flag01Icon}
-        eyebrow="Latest activity"
+        eyebrow="Последняя активность"
         title={compactText(
           members
             .filter((member) => member.lastSessionTitle)

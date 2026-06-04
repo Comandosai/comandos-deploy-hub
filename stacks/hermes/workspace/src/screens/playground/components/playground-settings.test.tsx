@@ -12,12 +12,12 @@ beforeEach(() => {
 })
 
 describe('HermesWorld keyboard shortcut handling', () => {
-  it('maps help, jump, crouch, and settings shortcuts', () => {
+  it('shows localized help, jump, crouch, and settings shortcut labels', () => {
     const entries = new Map(SHORTCUTS)
-    expect(entries.get('?')).toBe('help')
-    expect(entries.get('Space')).toBe('jump')
-    expect(entries.get('Ctrl')).toBe('crouch')
-    expect(entries.get('Esc')).toBe('settings')
+    expect(entries.get('?')).toBe('помощь')
+    expect(entries.get('Пробел')).toBe('прыжок')
+    expect(entries.get('Ctrl')).toBe('присесть')
+    expect(entries.get('Esc')).toBe('настройки')
   })
 
   it('toggles help on ? but ignores form fields', () => {

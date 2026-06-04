@@ -22,10 +22,10 @@ function tierColor(tier: string | null): string {
 function relativeTime(unlockedAtSeconds: number | null): string {
   if (!unlockedAtSeconds) return ''
   const diff = Date.now() / 1000 - unlockedAtSeconds
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86_400) return `${Math.floor(diff / 3600)}h ago`
-  return `${Math.floor(diff / 86_400)}d ago`
+  if (diff < 60) return 'только что'
+  if (diff < 3600) return `${Math.floor(diff / 60)} мин назад`
+  if (diff < 86_400) return `${Math.floor(diff / 3600)} ч назад`
+  return `${Math.floor(diff / 86_400)} дн назад`
 }
 
 function AchievementRow({
@@ -210,7 +210,7 @@ export function AchievementsCard({
               <button
                 type="button"
                 onClick={() => setShowAll(false)}
-                aria-label="Close"
+                aria-label="Закрыть"
                 className="rounded p-1 hover:bg-[var(--theme-card)]/80"
               >
                 <HugeiconsIcon

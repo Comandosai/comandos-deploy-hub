@@ -58,10 +58,10 @@ export function SettingsPanel({ open, onClose, signedInName, onSignOut }: Props)
         <div className="flex items-center justify-between border-b border-amber-200/15 px-5 py-4">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-200/65">HermesWorld</div>
-            <div className="text-2xl font-black text-[#F1C56D]">Settings</div>
+            <div className="text-2xl font-black text-[#F1C56D]">Настройки</div>
           </div>
           <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white/70 hover:bg-white/10">
-            Close
+            Закрыть
           </button>
         </div>
         <div className="grid max-h-[calc(92vh-84px)] gap-3 overflow-y-auto p-4 md:grid-cols-2 xl:grid-cols-3">
@@ -93,21 +93,21 @@ export function SettingsPanel({ open, onClose, signedInName, onSignOut }: Props)
 
           <Section title="Audio">
             <Range label="Master" value={settings.audio.master} min={0} max={100} onChange={onNumber(['audio', 'master'])} />
-            <Range label="Music" value={settings.audio.music} min={0} max={100} onChange={onNumber(['audio', 'music'])} />
-            <Range label="SFX" value={settings.audio.sfx} min={0} max={100} onChange={onNumber(['audio', 'sfx'])} />
-            <Range label="Ambient" value={settings.audio.ambient} min={0} max={100} onChange={onNumber(['audio', 'ambient'])} />
+            <Range label="Музыка" value={settings.audio.music} min={0} max={100} onChange={onNumber(['audio', 'music'])} />
+            <Range label="Эффекты" value={settings.audio.sfx} min={0} max={100} onChange={onNumber(['audio', 'sfx'])} />
+            <Range label="Фон" value={settings.audio.ambient} min={0} max={100} onChange={onNumber(['audio', 'ambient'])} />
           </Section>
 
-          <Section title="Display">
-            <Range label="UI scale" value={settings.display.uiScale} min={50} max={150} onChange={onNumber(['display', 'uiScale'])} suffix="%" />
-            <Range label="HUD opacity" value={settings.display.hudOpacity} min={30} max={100} onChange={onNumber(['display', 'hudOpacity'])} suffix="%" />
+          <Section title="Экран">
+            <Range label="Масштаб интерфейса" value={settings.display.uiScale} min={50} max={150} onChange={onNumber(['display', 'uiScale'])} suffix="%" />
+            <Range label="Прозрачность HUD" value={settings.display.hudOpacity} min={30} max={100} onChange={onNumber(['display', 'hudOpacity'])} suffix="%" />
             <button type="button" onClick={toggleFullscreen} className="rounded-xl border border-amber-200/25 bg-amber-200/10 px-3 py-2 text-sm font-bold text-amber-100 hover:bg-amber-200/15">
-              {settings.display.fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              {settings.display.fullscreen ? 'Выйти из полноэкранного режима' : 'Полный экран'}
             </button>
           </Section>
 
-          <Section title="Accessibility">
-            <Check label="Photosensitive Mode" checked={settings.accessibility.photosensitiveMode} onChange={onToggle(['accessibility', 'photosensitiveMode'])} />
+          <Section title="Доступность">
+            <Check label="Режим без вспышек" checked={settings.accessibility.photosensitiveMode} onChange={onToggle(['accessibility', 'photosensitiveMode'])} />
             <p className="text-xs leading-relaxed text-white/50">Disables rapid flashes, strobe-like pulses, sparkle bursts, and fast lighting loops. Flash animations are capped at 1.5Hz by default and stopped in this mode.</p>
           </Section>
 

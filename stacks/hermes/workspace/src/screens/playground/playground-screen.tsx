@@ -725,8 +725,8 @@ export function PlaygroundScreen() {
         <button
           type="button"
           onClick={() => setSettingsOpen(true)}
-          aria-label="Open settings"
-          title="Settings (Esc)"
+          aria-label="Открыть настройки"
+          title="Настройки (Esc)"
           className="pointer-events-auto fixed right-3 top-[314px] z-[71] hidden h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-[15px] text-white shadow-xl backdrop-blur-xl md:flex"
           style={{ boxShadow: '0 8px 22px rgba(0,0,0,.55)', borderColor: 'rgba(241,197,109,0.42)' }}
         >
@@ -735,8 +735,8 @@ export function PlaygroundScreen() {
         <button
           type="button"
           onClick={toggleAdminMode}
-          aria-label={adminMode ? 'Hide admin panel' : 'Show admin panel'}
-          title={adminMode ? 'Hide admin panel' : 'Show admin panel'}
+          aria-label={adminMode ? 'Скрыть админ-панель' : 'Показать админ-панель'}
+          title={adminMode ? 'Скрыть админ-панель' : 'Показать админ-панель'}
           className="pointer-events-auto fixed right-3 top-[314px] z-[71] hidden h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-[15px] text-white shadow-xl backdrop-blur-xl md:flex"
           style={{
             boxShadow: adminMode ? '0 0 14px rgba(251,191,36,0.55)' : '0 8px 22px rgba(0,0,0,.55)',
@@ -753,7 +753,7 @@ export function PlaygroundScreen() {
           onClick={() => setMobileMenuOpen(true)}
           className="pointer-events-auto fixed right-3 top-12 z-[72] rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white shadow-xl backdrop-blur-xl md:hidden"
           >
-          Menu
+          Меню
         </button>
         <KeyboardShortcutsOverlay />
         <MobileAbilityControls />
@@ -837,12 +837,12 @@ function PlaygroundRightRail({
 }: PlaygroundRightRailProps) {
   const hudAccent = accent === '#d9b35f' ? '#F1C56D' : accent
   const railItems: Array<{ label: string; glyph: string; onClick: () => void; active?: boolean }> = [
-    { label: focusMode ? 'Exit focus' : 'Sigil focus', glyph: '☤', onClick: onToggleFocus, active: focusMode },
-    { label: 'Inventory', glyph: '▣', onClick: onOpenInventory },
-    { label: 'Quest scroll', glyph: '?', onClick: onOpenJournal },
-    { label: 'Map', glyph: '◇', onClick: onOpenMap },
-    { label: 'Settings', glyph: '⚙', onClick: onOpenSettings },
-    { label: adminMode ? 'Hide admin' : 'Admin shield', glyph: '⌂', onClick: onToggleAdmin, active: adminMode },
+    { label: focusMode ? 'Выйти из фокуса' : 'Режим фокуса', glyph: '☤', onClick: onToggleFocus, active: focusMode },
+    { label: 'Инвентарь', glyph: '▣', onClick: onOpenInventory },
+    { label: 'Журнал заданий', glyph: '?', onClick: onOpenJournal },
+    { label: 'Карта', glyph: '◇', onClick: onOpenMap },
+    { label: 'Настройки', glyph: '⚙', onClick: onOpenSettings },
+    { label: adminMode ? 'Скрыть админку' : 'Админ-панель', glyph: '⌂', onClick: onToggleAdmin, active: adminMode },
   ]
   return (
     <div
@@ -1180,17 +1180,17 @@ function ArchiveBriefingModal({
   return (
     <div className="pointer-events-auto fixed inset-0 z-[120] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-[560px] rounded-3xl border border-violet-300/30 bg-[#070b14] p-5 text-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-200/80">Archive Podium</div>
-        <div className="mt-1 text-xl font-extrabold">Docs and Memory Loop</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-200/80">Архивная стойка</div>
+        <div className="mt-1 text-xl font-extrabold">Документы и память</div>
         <div className="mt-4 space-y-3 text-sm text-white/80">
-          <p><strong>Docs:</strong> `docs/playground/README.md` explains the worlds, systems, and multiplayer wiring.</p>
-          <p><strong>Memory:</strong> Hermes saves project intent in `memory/goals/...` so the next iteration starts with context, recall, and less drift.</p>
-          <p><strong>Builder habit:</strong> read the spec, inspect the state shape, ship the smallest slice, then verify with a clean build.</p>
+          <p><strong>Документы:</strong> `docs/playground/README.md` объясняет миры, системы и сетевую часть.</p>
+          <p><strong>Память:</strong> Hermes сохраняет цель проекта в `memory/goals/...`, чтобы следующая итерация начиналась с контекста.</p>
+          <p><strong>Привычка сборщика:</strong> прочитать описание, проверить состояние, сделать минимальный кусок и подтвердить чистой сборкой.</p>
         </div>
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/70 hover:bg-white/5">Close</button>
+          <button onClick={onClose} className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/70 hover:bg-white/5">Закрыть</button>
           <button onClick={onAcknowledge} className="rounded-xl border border-violet-300/40 bg-violet-400/15 px-4 py-2 text-sm font-bold text-violet-100 hover:bg-violet-400/25">
-            Mark Briefing Read
+            Пометить брифинг прочитанным
           </button>
         </div>
       </div>
@@ -1500,14 +1500,14 @@ function PlaygroundUtilityDock({
       <button
         onClick={toggleFullscreen}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        title={isFullscreen ? 'Выйти из полноэкранного режима' : 'Открыть полноэкранный режим'}
       >
         {isFullscreen ? '⤢' : '⛶'}
       </button>
       <button
         onClick={copyShareLink}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title="Copy share link"
+        title="Копировать ссылку"
       >
         🔗
       </button>
@@ -1548,9 +1548,10 @@ function RouteFallback() {
     <div className="flex min-h-screen items-center justify-center bg-[#050b12] p-6 text-white">
       <div className="max-w-[520px] rounded-3xl border border-amber-300/25 bg-[#070b14] p-5 shadow-2xl">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-200/80">HermesWorld</div>
-        <div className="mt-1 text-xl font-extrabold">Route fallback active</div>
+        <div className="mt-1 text-xl font-extrabold">Запущен запасной экран</div>
         <p className="mt-3 text-sm text-white/75">
-          The 3D route failed to render in this browser context. Reload the page or open `/agora` for the lightweight fallback.
+          3D-раздел не отрисовался в этом браузере. Обновите страницу или откройте
+          `/agora` для облегчённой версии.
         </p>
       </div>
     </div>

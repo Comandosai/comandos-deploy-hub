@@ -66,7 +66,13 @@ function summarizeTask(raw: string): string {
 
 function normalizeAgentTask(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ').toLowerCase()
-  if (!normalized || normalized === 'no task description') return ''
+  if (
+    !normalized ||
+    normalized === 'no task description' ||
+    normalized === 'описание задачи отсутствует'
+  ) {
+    return ''
+  }
   return normalized
 }
 
@@ -84,9 +90,72 @@ function formatRuntimeLabel(runtimeSeconds: number): string {
 }
 
 function getMiniAgentCardStatus(status: string): AgentCardStatus {
-  if (status === 'complete' || status === 'finished') return 'completed'
-  if (status === 'failed') return 'failed'
+  const normalized = status.toLowerCase()
+  if (
+    normalized === 'complete' ||
+    normalized === 'completed' ||
+    normalized === 'finished' ||
+    normalized === 'готово'
+  ) {
+    return 'completed'
+  }
+  if (normalized === 'failed' || normalized === 'ошибка') return 'failed'
   return 'running'
+}
+
+function formatAgentStatusLabel(status: string): string {
+  const normalized = status.toLowerCase()
+  if (normalized === 'thinking') return 'Думает'
+  if (normalized === 'queued') return 'В очереди'
+  if (
+    normalized === 'complete' ||
+    normalized === 'completed' ||
+    normalized === 'finished' ||
+    normalized === 'success' ||
+    normalized === 'succeeded' ||
+    normalized === 'done'
+  ) {
+    return 'Готово'
+  }
+  if (
+    normalized === 'failed' ||
+    normalized === 'error' ||
+    normalized === 'cancelled' ||
+    normalized === 'canceled' ||
+    normalized === 'killed'
+  ) {
+    return 'Ошибка'
+  }
+  if (!normalized || normalized === 'unknown') return 'Неизвестно'
+  return 'Работает'
+}
+
+function formatMissionStateLabel(status: string): string {
+  const normalized = status.toLowerCase()
+  if (normalized === 'running' || normalized === 'active') return 'работает'
+  if (normalized === 'queued') return 'в очереди'
+  if (normalized === 'thinking') return 'думает'
+  if (normalized === 'complete' || normalized === 'completed' || normalized === 'done') {
+    return 'готово'
+  }
+  if (normalized === 'failed' || normalized === 'error') return 'ошибка'
+  return status
+}
+
+function formatStatusCounts(counts: {
+  running: number
+  thinking: number
+  failed: number
+  complete: number
+}): string {
+  return [
+    counts.running > 0 && `${counts.running} работает`,
+    counts.thinking > 0 && `${counts.thinking} думает`,
+    counts.failed > 0 && `${counts.failed} ошибка`,
+    counts.complete > 0 && `${counts.complete} готово`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 }
 
 const AGENT_NAME_KEY = 'hermes-workspace-agent-name'
@@ -144,9 +213,22 @@ function ocFormatResetHint(resetsAt?: string): string | null {
   const hours = diff / 3_600_000
   if (hours >= 24) {
     const days = Math.ceil(hours / 24)
-    return `~${days}d`
+    return `~${days} дн.`
   }
-  return `~${Math.ceil(hours)}h`
+  return `~${Math.ceil(hours)} ч.`
+}
+
+function ocFormatUsageLabel(label: string): string {
+  const normalized = label.replace(/\s*\([^)]*\)\s*$/, '').trim()
+  const key = normalized.toLowerCase()
+  if (key === 'session' || key === 'sess') return 'Сессия'
+  if (key === 'weekly' || key === 'week') return 'Неделя'
+  if (key === 'daily' || key === 'day') return 'День'
+  if (key === 'monthly' || key === 'month') return 'Месяц'
+  if (key === 'context' || key === 'ctx') return 'Контекст'
+  if (key === 'tokens') return 'Токены'
+  if (key === 'cost') return 'Расход'
+  return normalized
 }
 
 function ocBarColor(pct: number): string {
@@ -242,7 +324,11 @@ function OrchestratorCard({
     const rows: OcUsageRow[] = primary.lines
       .filter((l) => l.type === 'progress' && l.used !== undefined)
       .slice(0, 2)
-      .map((l) => ({ label: l.label.replace(/\s*\([^)]*\)\s*$/, '').trim(), pct: Math.min(100, Math.round(l.used as number)), resetHint: ocFormatResetHint(l.resetsAt) }))
+      .map((l) => ({
+        label: ocFormatUsageLabel(l.label),
+        pct: Math.min(100, Math.round(l.used as number)),
+        resetHint: ocFormatResetHint(l.resetsAt),
+      }))
     setUsageRows(rows)
     const name = primary.displayName.split(' ')[0]
     const lbl = primary.plan ? `${name} ${primary.plan}` : name
@@ -307,7 +393,7 @@ function OrchestratorCard({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferredProvider])
 
-  const displayName = agentName || sessionName || 'Agent'
+  const displayName = agentName || sessionName || 'Агент'
 
   function startEdit() {
     setEditValue(agentName)
@@ -323,9 +409,9 @@ function OrchestratorCard({
   }
 
   // Build usage rows: provider rows if available, else synthetic context row
-  const ctxRow: OcUsageRow = { label: 'Ctx', pct: contextPct ?? 0, resetHint: null }
+  const ctxRow: OcUsageRow = { label: 'Контекст', pct: contextPct ?? 0, resetHint: null }
   const displayRows: OcUsageRow[] = usageRows.length > 0 ? usageRows : (contextPct !== null ? [ctxRow] : [])
-  const usageHeader = providerLabel ?? 'Usage'
+  const usageHeader = providerLabel ?? 'Использование'
 
   // Provider logo URLs (Simple Icons CDN)
   const PROVIDER_LOGO_URLS: Record<string, string> = {
@@ -399,7 +485,7 @@ function OrchestratorCard({
                   if (e.key === 'Enter') commitEdit()
                   if (e.key === 'Escape') setIsEditing(false)
                 }}
-                placeholder="Agent name..."
+                placeholder="Имя агента..."
                 className="w-24 rounded border border-primary-200/25 bg-primary-50 px-1.5 py-0.5 text-xs font-semibold text-primary-900 outline-none focus:border-accent-400"
                 maxLength={20}
               />
@@ -411,7 +497,7 @@ function OrchestratorCard({
                   'font-semibold text-primary-900 transition-colors hover:text-accent-600',
                   compact ? 'text-sm' : 'text-base',
                 )}
-                title="Click to rename"
+              title="Переименовать агента"
               >
                 {displayName}
               </button>
@@ -460,7 +546,7 @@ function OrchestratorCard({
                   : 'cursor-default text-primary-400',
                 providerFlash && 'text-emerald-500',
               )}
-              title={canCycleOc ? 'Click to switch provider' : undefined}
+              title={canCycleOc ? 'Переключить провайдера' : undefined}
             >
               {providerLogoUrl ? (
                 <img
@@ -489,7 +575,7 @@ function OrchestratorCard({
 
           {usageExpanded && (
             <div className="space-y-1.5">
-              {displayRows.filter(row => !(row.label === 'Ctx' && row.pct === 0) && row.pct > 0).map((row) => (
+              {displayRows.filter(row => !(row.label === 'Контекст' && row.pct === 0) && row.pct > 0).map((row) => (
                 <div key={row.label} className="space-y-0.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] font-medium text-primary-500 leading-none">{row.label}</span>
@@ -520,11 +606,11 @@ function OrchestratorCard({
 
 
 function getStatusLabel(status: AgentNodeStatus): string {
-  if (status === 'failed') return 'failed'
-  if (status === 'thinking') return 'thinking'
-  if (status === 'complete') return 'complete'
-  if (status === 'queued') return 'queued'
-  return 'running'
+  if (status === 'failed') return 'Ошибка'
+  if (status === 'thinking') return 'Думает'
+  if (status === 'complete') return 'Готово'
+  if (status === 'queued') return 'В очереди'
+  return 'Работает'
 }
 
 function getAgentStatus(agent: ActiveAgent): AgentNodeStatus {
@@ -549,19 +635,19 @@ function getStatusBubble(
   progress: number,
 ): AgentStatusBubble {
   if (status === 'thinking') {
-    return { type: 'thinking', text: 'Reasoning through next step' }
+    return { type: 'thinking', text: 'Обдумывает следующий шаг' }
   }
   if (status === 'failed') {
-    return { type: 'error', text: 'Execution failed, awaiting retry' }
+    return { type: 'error', text: 'Ошибка выполнения, ждёт повтора' }
   }
   if (status === 'complete') {
-    return { type: 'checkpoint', text: 'Checkpoint complete' }
+    return { type: 'checkpoint', text: 'Шаг завершён' }
   }
   if (status === 'queued') {
-    return { type: 'question', text: 'Queued for dispatch' }
+    return { type: 'question', text: 'Ждёт запуска' }
   }
   const clampedProgress = Math.max(0, Math.min(100, Math.round(progress)))
-  return { type: 'checkpoint', text: `${clampedProgress}% complete` }
+  return { type: 'checkpoint', text: `${clampedProgress}% готово` }
 }
 
 export function AgentViewPanel() {
@@ -700,7 +786,7 @@ export function AgentViewPanel() {
     [activeAgents, missionSessionIds, nowMs],
   )
   const missionStateLabel = activeMissionState
-    ? activeMissionState.charAt(0).toUpperCase() + activeMissionState.slice(1)
+    ? formatMissionStateLabel(activeMissionState)
     : ''
 
   const queuedNodes = useMemo(
@@ -710,7 +796,7 @@ export function AgentViewPanel() {
           id: task.id,
           name: task.name,
           task: task.description,
-          model: 'queued',
+          model: 'В очереди',
           progress: 5 + index * 7,
           runtimeSeconds: 0,
           tokenCount: 0,
@@ -856,7 +942,7 @@ export function AgentViewPanel() {
                       ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-700'
                       : 'border-primary-300/35 bg-primary-200/35 text-primary-700',
                   )}
-                  title={`${activeCount} agent${activeCount !== 1 ? 's' : ''} running · ${historyAgents.length} in history · ${queuedAgents.length} queued`}
+                  title={`${activeCount} работает · ${historyAgents.length} в истории · ${queuedAgents.length} в очереди`}
                 >
                   {isLiveConnected ? (
                     <motion.span
@@ -930,29 +1016,18 @@ export function AgentViewPanel() {
                     <div>
                       {activeMissionName ? (
                         <p className="mb-0.5 text-[10px] font-medium text-accent-400 tabular-nums">
-                          Mission: {activeMissionName} · {missionStateLabel}
+                          Миссия: {activeMissionName} · {missionStateLabel}
                         </p>
                       ) : null}
                       <p className="text-[10px] text-primary-600 tabular-nums">
                         {isLoading
-                          ? 'syncing...'
+                          ? 'синхронизация...'
                           : statusCounts.running === 0 &&
                               statusCounts.thinking === 0 &&
                               statusCounts.failed === 0 &&
                               statusCounts.complete === 0
                             ? ''
-                            : [
-                                statusCounts.running > 0 &&
-                                  `${statusCounts.running} running`,
-                                statusCounts.thinking > 0 &&
-                                  `${statusCounts.thinking} thinking`,
-                                statusCounts.failed > 0 &&
-                                  `${statusCounts.failed} failed`,
-                                statusCounts.complete > 0 &&
-                                  `${statusCounts.complete} complete`,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
+                            : formatStatusCounts(statusCounts)}
                       </p>
                       {errorMessage ? (
                         <p className="line-clamp-1 text-[10px] text-red-300 tabular-nums">
@@ -1212,7 +1287,7 @@ export function AgentViewPanel() {
                                       } catch { /* noop */ }
                                     }}
                                     className="shrink-0 rounded px-1 py-0.5 text-[9px] text-primary-400 hover:bg-red-100 hover:text-red-500 transition-colors"
-                                    title="Kill agent"
+                                    title="Остановить агента"
                                   >
                                     ✕
                                   </button>
@@ -1223,7 +1298,9 @@ export function AgentViewPanel() {
                                   </p>
                                 ) : (
                                   <p className="mt-0.5 pl-3 text-[10px] text-primary-400 italic">
-                                    {agent.runtimeSeconds > 7200 ? '⚠ stale — no task' : 'no task description'}
+                                    {agent.runtimeSeconds > 7200
+                                      ? '⚠ давно работает без описания задачи'
+                                      : 'описание задачи отсутствует'}
                                   </p>
                                 )}
                                 <div className="mt-1 ml-3 h-1 overflow-hidden rounded-full bg-primary-200">
@@ -1325,39 +1402,39 @@ export function AgentViewPanel() {
                     <div className="mb-1 flex items-center justify-between px-1">
                       <p className="text-[10px] text-primary-600 tabular-nums">
                         {isLoading
-                          ? 'syncing...'
+                          ? 'синхронизация...'
                           : activeNodes.length === 0 && queuedNodes.length === 0
                             ? ''
-                            : `${activeNodes.length} active · ${queuedNodes.length} queued`}
+                            : `${activeNodes.length} активно · ${queuedNodes.length} в очереди`}
                       </p>
                     </div>
                     {activeNodes.length > 0 ? (
                       <div className="space-y-1.5 p-1">
                         {missionActiveAgents.length > 0 ? (
                           <p className="px-1 text-[10px] font-medium uppercase tracking-[0.16em] text-accent-400">
-                            {activeMissionName || 'Mission'} · {missionActiveAgents.length} session{missionActiveAgents.length === 1 ? '' : 's'}
+                            {activeMissionName || 'Миссия'} · {missionActiveAgents.length} сессий
                           </p>
                         ) : null}
                         {activeNodes.map((node) => (
                           <MiniAgentCard
                             key={node.id}
                             sessionLabel={node.name}
-                            model={node.task || 'unknown'}
-                            status={getMiniAgentCardStatus(node.statusBubble.text)}
+                            model={node.task || 'Задача не указана'}
+                            status={getMiniAgentCardStatus(node.status)}
                             runtimeSeconds={node.runtimeSeconds}
                             footer={
                               <div className="flex items-center justify-between">
                                 {missionSessionIds.has(node.id) ? (
-                                  <span className="text-[10px] text-accent-400">Active mission</span>
+                                  <span className="text-[10px] text-accent-400">Активная миссия</span>
                                 ) : nonMissionActiveAgents.length > 0 ? (
-                                  <span className="text-[10px] text-primary-500">Outside mission</span>
+                                  <span className="text-[10px] text-primary-500">Вне миссии</span>
                                 ) : <span />}
                                 <button
                                   type="button"
                                   onClick={() => killAgent(node.id)}
                                   className="text-[10px] text-red-500 hover:text-red-700 font-medium"
                                 >
-                                  Kill
+                                  Остановить
                                 </button>
                               </div>
                             }
@@ -1373,7 +1450,7 @@ export function AgentViewPanel() {
                         onClick={() => setHistoryOpen(!historyOpen)}
                         className="flex w-full items-center justify-between text-[11px] font-medium text-primary-700"
                       >
-                        <span>History ({historyAgents.length})</span>
+                        <span>История ({historyAgents.length})</span>
                         <span>{historyOpen ? '▾' : '▸'}</span>
                       </button>
                       {historyOpen ? (
@@ -1382,7 +1459,7 @@ export function AgentViewPanel() {
                             <MiniAgentCard
                               key={agent.id}
                               sessionLabel={agent.name}
-                              model={agent.status || 'unknown'}
+                              model={formatAgentStatusLabel(agent.status)}
                               status={getMiniAgentCardStatus(agent.status)}
                               footer={
                                 <div className="flex justify-end">
@@ -1391,7 +1468,7 @@ export function AgentViewPanel() {
                                     onClick={() => setSelectedAgentChat({ sessionKey: agent.id, agentName: agent.name, statusLabel: agent.status })}
                                     className="text-[10px] text-accent-600 hover:text-accent-800 font-medium"
                                   >
-                                    View
+                                    Открыть
                                   </button>
                                 </div>
                               }
@@ -1420,7 +1497,7 @@ export function AgentViewPanel() {
               setOpen(true)
             }}
             className="fixed right-4 bottom-4 z-30 inline-flex size-12 items-center justify-center rounded-full bg-linear-to-br from-accent-500 to-accent-600 text-primary-50 shadow-lg"
-            aria-label="Open Agent View"
+            aria-label="Открыть панель агента"
           >
             <motion.span
               animate={
@@ -1450,8 +1527,8 @@ export function AgentViewPanel() {
       <AgentChatModal
         open={selectedAgentChat !== null}
         sessionKey={selectedAgentChat?.sessionKey ?? ''}
-        agentName={selectedAgentChat?.agentName ?? 'Agent'}
-        statusLabel={selectedAgentChat?.statusLabel ?? 'running'}
+        agentName={selectedAgentChat?.agentName ?? 'Агент'}
+        statusLabel={selectedAgentChat?.statusLabel ?? 'Работает'}
         onOpenChange={function handleAgentChatOpenChange(nextOpen) {
           if (!nextOpen) {
             setSelectedAgentChat(null)

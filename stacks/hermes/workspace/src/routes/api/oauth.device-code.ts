@@ -54,7 +54,7 @@ export const Route = createFileRoute('/api/oauth/device-code')({
 
         return json(
           {
-            error: `OAuth device flow not supported for provider: ${provider}`,
+            error: `OAuth-подключение для провайдера ${provider} пока не поддерживается`,
           },
           { status: 400 },
         )

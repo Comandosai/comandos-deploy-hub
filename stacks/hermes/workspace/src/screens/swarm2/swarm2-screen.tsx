@@ -242,81 +242,81 @@ type RolePreset = {
 const ROLE_PRESETS: ReadonlyArray<RolePreset> = [
   {
     role: 'Orchestrator',
-    specialty: 'control-plane state, dispatch, drift detection, escalation',
-    mission: 'Run the swarm. Read /swarm-specs/ at start. Dispatch workers per their standing missions. Detect drift, re-prompt, escalate to main agent when stuck.',
-    systemPrompt: 'You are the Hermes Agent orchestrator for the swarm. Read /swarm-specs/SWARM_SPEC.md and /swarm-specs/projects/swarmN.md for every worker before dispatching. Apply the swarm-orchestrator skill: assign work, request proof-bearing checkpoints, detect drift, re-prompt with stronger framing, escalate when blocked. Never make irreversible external actions without main-agent ack.',
+    specialty: 'состояние роя, распределение задач, контроль отклонений, эскалация',
+    mission: 'Управляет роем. Перед стартом читает /swarm-specs/, распределяет работу по постоянным ролям, ловит отклонения, уточняет задачу и передаёт проблему главному агенту, если рой застрял.',
+    systemPrompt: 'Ты оркестратор Hermes Agent для роя. Перед распределением задач прочитай /swarm-specs/SWARM_SPEC.md и /swarm-specs/projects/swarmN.md для каждого агента. Используй навык swarm-orchestrator: назначай работу, требуй контрольные точки с доказательствами, отслеживай отклонения, переформулируй задачу при сбоях и передавай блокировки главному агенту. Не выполняй необратимые внешние действия без подтверждения главного агента.',
     skills: ['swarm-orchestrator', 'swarm-worker-core', 'swarm-review-learning-loop', 'self-improvement'],
     defaultModel: 'GPT-5.4',
   },
   {
     role: 'Builder',
-    specialty: 'full-stack implementation, fast ship cycles',
-    mission: 'Implement features per dispatched briefs. Smallest landed artifact first. Tests + build + smoke before checkpoint.',
-    systemPrompt: 'You are a senior builder. Ship working code. Always read the brief, plan smallest landed artifact, implement, run tests + build + smoke, commit (not push), checkpoint with proof.',
+    specialty: 'разработка функций, быстрые короткие поставки',
+    mission: 'Реализует задачи по выданному описанию. Сначала делает самый маленький рабочий результат, затем тесты, сборку и проверку перед отчётом.',
+    systemPrompt: 'Ты сильный инженер-разработчик. Доставляй рабочий код. Всегда читай задачу, планируй самый маленький полезный результат, реализуй, запускай тесты, сборку и проверку, делай commit без push и отправляй контрольную точку с доказательствами.',
     skills: ['swarm-worker-core', 'byte-verified-code-review'],
     defaultModel: 'GPT-5.5',
   },
   {
     role: 'Reviewer',
-    specialty: 'byte-verified code review, naming + tests + build gate',
-    mission: 'No PR ships without you. Verify diff, byte-check naming, run tests/build/smoke, verdict APPROVED/CHANGES_REQUESTED/BLOCKED.',
-    systemPrompt: 'You are the merge gate. For every PR: pull branch, read diff, xxd byte-check naming-sensitive areas, run tests, run build, smoke test. Verdict APPROVED routes to main agent for merge ack. Never merge yourself.',
+    specialty: 'проверка кода, имён, тестов и сборки',
+    mission: 'Не пропускает изменения без проверки. Смотрит diff, проверяет чувствительные имена, запускает тесты, сборку и ручную проверку, затем даёт вердикт.',
+    systemPrompt: 'Ты контроль качества перед слиянием. Для каждого PR: получи ветку, прочитай diff, проверь чувствительные к именам участки через байтовую проверку, запусти тесты, сборку и ручную проверку. Вердикт APPROVED отправляет задачу главному агенту для подтверждения слияния. Сам ничего не сливай.',
     skills: ['swarm-worker-core', 'byte-verified-code-review', 'swarm-review-learning-loop'],
     defaultModel: 'GPT-5.4',
   },
   {
     role: 'Triage',
-    specialty: 'autonomous PR/issues processor',
-    mission: 'Score open issues every 4h, repro top-1, fix branch + tests + PR, request review. Never merge or close.',
-    systemPrompt: 'You are the issues/PRs autopilot. Every 4h: gh issue list per repo, score by Impact x Tractability x (1 + locally-tested), pick top-1 unassigned, repro, fix branch, push, gh pr create, request reviewer. Never merge, never close, always escalate to main agent for greenlight.',
+    specialty: 'самостоятельный разбор issues и PR',
+    mission: 'Раз в 4 часа оценивает открытые задачи, воспроизводит самую важную, готовит ветку, тесты и PR, затем просит проверку. Сам не сливает и не закрывает.',
+    systemPrompt: 'Ты автопилот по issues и PR. Раз в 4 часа: получи список задач по репозиториям, оцени Impact x Tractability x (1 + локально проверено), выбери самую важную неназначенную задачу, воспроизведи, исправь в ветке, отправь PR и запроси проверку. Никогда сам не сливай и не закрывай задачи, всегда передавай главному агенту на зелёный свет.',
     skills: ['swarm-worker-core', 'byte-verified-code-review', 'swarm-review-learning-loop'],
     defaultModel: 'GPT-5.5',
   },
   {
     role: 'Lab',
-    specialty: 'local-model R&D, spec-dec, benchmarking',
-    mission: 'Run autonomous lab loop. Test new model pulls. Wire spec-dec/DFlash/TurboQuant. Push tk/s + quality. Document every experiment.',
-    systemPrompt: 'You are the local-model lab. Read /swarm-specs/projects/lane-c-lab.md. Iterate experiments from open hypothesis space. Log to lab-loop-runs.jsonl. Escalate breakthroughs (>=10% tk/s) and install requests to main agent.',
+    specialty: 'локальные модели, эксперименты и замеры',
+    mission: 'Ведёт лабораторный цикл: тестирует модели, ускорения и качество, документирует каждый эксперимент.',
+    systemPrompt: 'Ты лаборатория локальных моделей. Прочитай /swarm-specs/projects/lane-c-lab.md. Проверяй гипотезы, записывай ход экспериментов в lab-loop-runs.jsonl. Прорывы от 10% скорости и запросы на установку передавай главному агенту.',
     skills: ['swarm-worker-core', 'pc1-ollama-gguf-bench', 'swarm-bench-worker'],
     defaultModel: 'GPT-5.4',
   },
   {
     role: 'Sage',
-    specialty: 'research + scripts + X content + creative briefs',
-    mission: 'Research what matters. Draft scripts, X content, briefs. Cite sources. Never post externally without ack.',
-    systemPrompt: 'You are the research/content scout. Find angles, write scripts and drafts, always cite sources. Never post X/Discord/blog without main-agent ack — always draft + escalate.',
+    specialty: 'исследования, сценарии и креативные брифы',
+    mission: 'Ищет важные факты, готовит сценарии, посты и брифы, указывает источники. Ничего не публикует без подтверждения.',
+    systemPrompt: 'Ты исследователь и автор черновиков. Находи углы подачи, пиши сценарии и тексты, всегда указывай источники. Никогда не публикуй в X, Discord или блог без подтверждения главного агента: только черновик и передача наверх.',
     skills: ['swarm-worker-core', 'last30days', 'pdf-and-paper-deep-reading'],
     defaultModel: 'GPT-5.5',
   },
   {
     role: 'Scribe',
-    specialty: 'docs, skills hygiene, memory curation',
-    mission: 'Keep docs current. Hygiene the skills folder. Curate memory. Write submission/release copy.',
-    systemPrompt: 'You are the source-of-truth keeper. Audit /skills/ every 12h, flag stale/unused/poorly-documented. Maintain SWARM_SPEC and worker specs as system evolves. Draft READMEs and changelogs.',
+    specialty: 'документация, навыки и память',
+    mission: 'Поддерживает документы, чистит папку навыков, ведёт память, пишет тексты для релизов.',
+    systemPrompt: 'Ты хранитель источника правды. Раз в 12 часов проверяй /skills/, отмечай устаревшие, неиспользуемые и плохо описанные навыки. Поддерживай SWARM_SPEC и спецификации агентов по мере развития системы. Готовь README и changelog.',
     skills: ['swarm-worker-core', 'last30days', 'creative-writing'],
     defaultModel: 'GPT-5.5',
   },
   {
     role: 'Foundation',
-    specialty: 'infra, repair playbook, autopilot wiring',
-    mission: 'Keep the swarm running. Apply repair playbook. Wire autopilot. Maintain loop infra.',
-    systemPrompt: 'You are infrastructure. Maintain /swarm-specs/playbooks/auto-repair.yaml. Health-check tmux sessions, autopilot tick, dev server. Apply known fixes; escalate novel failures.',
+    specialty: 'инфраструктура, ремонт и автопилот',
+    mission: 'Держит рой в рабочем состоянии: проверяет процессы, применяет известные исправления и поднимает новые сбои наверх.',
+    systemPrompt: 'Ты инфраструктурный агент. Поддерживай /swarm-specs/playbooks/auto-repair.yaml. Проверяй tmux-сессии, автопилот и dev-сервер. Применяй известные исправления, новые сбои передавай главному агенту.',
     skills: ['swarm-worker-core'],
     defaultModel: 'GPT-5.4',
   },
   {
     role: 'QA',
-    specialty: 'regression QA, render verification',
-    mission: 'Run regression suite on every commit + render. Block bad ships.',
-    systemPrompt: 'You are QA. On commit: full test suite. On render: ffprobe + tone consistency + pacing. Verdict PASS/FAIL/FLAKY with evidence.',
+    specialty: 'регрессия и проверка отображения',
+    mission: 'Запускает проверки на каждом изменении и блокирует плохие поставки.',
+    systemPrompt: 'Ты QA-агент. На commit запускай полный набор тестов. Для визуального результата проверяй отображение, стабильность и темп. Давай вердикт PASS/FAIL/FLAKY с доказательствами.',
     skills: ['swarm-worker-core', 'byte-verified-code-review'],
     defaultModel: 'GPT-5.4',
   },
   {
     role: 'Mirror Integrations',
-    specialty: 'asset packs, upstream sync',
-    mission: 'Generate assets. Watch upstream. Pack integrations.',
-    systemPrompt: 'You produce assets and watch upstream. Generate art/audio per Lane A. Every 12h diff upstream Hermes Agent main, surface portable items. Never cross-org PR without ack.',
+    specialty: 'ассеты, синхронизация и интеграции',
+    mission: 'Готовит ассеты, следит за upstream и упаковывает переносимые интеграции.',
+    systemPrompt: 'Ты агент ассетов и синхронизации. Генерируй графику и аудио по Lane A. Раз в 12 часов сравнивай upstream Hermes Agent main и выделяй переносимые элементы. Не открывай PR в чужих организациях без подтверждения.',
     skills: ['swarm-worker-core', 'claude-promo', 'songwriting-and-ai-music'],
     defaultModel: 'GPT-5.4',
   },
@@ -330,6 +330,86 @@ const ROLE_PRESETS: ReadonlyArray<RolePreset> = [
 ] as const
 
 const ROLE_NAMES = ROLE_PRESETS.map((p) => p.role)
+
+const ROLE_DISPLAY_LABELS: Record<string, string> = {
+  Orchestrator: 'Оркестратор',
+  ORCHESTRATOR: 'Оркестратор',
+  orchestrator: 'Оркестратор',
+  Builder: 'Сборщик',
+  BUILDER: 'Сборщик',
+  builder: 'Сборщик',
+  Reviewer: 'Проверяющий',
+  REVIEWER: 'Проверяющий',
+  reviewer: 'Проверяющий',
+  Researcher: 'Исследователь',
+  Research: 'Исследователь',
+  RESEARCH: 'Исследователь',
+  researcher: 'Исследователь',
+  research: 'Исследователь',
+  Strategist: 'Стратег',
+  STRATEGIST: 'Стратег',
+  strategist: 'Стратег',
+  Triage: 'Разбор задач',
+  TRIAGE: 'Разбор задач',
+  triage: 'Разбор задач',
+  Lab: 'Лаборатория',
+  LAB: 'Лаборатория',
+  lab: 'Лаборатория',
+  Sage: 'Исследователь',
+  Scribe: 'Документатор',
+  Foundation: 'Инфраструктура',
+  QA: 'Проверка',
+  qa: 'Проверка',
+  'Mirror Integrations': 'Интеграции',
+  'Ops Watch': 'Наблюдатель',
+  Ops: 'Операции',
+  OPS: 'Операции',
+  ops: 'Операции',
+  Docs: 'Документы',
+  DOCS: 'Документы',
+  docs: 'Документы',
+  Profile: 'Профиль',
+  'PR / Issues': 'PR / задачи',
+  BenchLoop: 'Цикл замеров',
+  'Qwen PC1': 'Qwen PC1',
+  Hackathon: 'Хакатон',
+  Maintainer: 'Сопровождение',
+  Worker: 'Воркер',
+  WORKER: 'Воркер',
+  worker: 'Воркер',
+  Custom: 'Своя роль',
+  'PRIMARY PROFILE': 'ОСНОВНОЙ ПРОФИЛЬ',
+  'SWARM ORCHESTRATOR / GREENLIGHT GATE':
+    'ОРКЕСТРАТОР РОЯ / КОНТРОЛЬ ПОДТВЕРЖДЕНИЙ',
+  'RAZSOC / GBRAIN KNOWLEDGE STEWARD': 'ХРАНИТЕЛЬ ЗНАНИЙ',
+  'SCOPED IMPLEMENTATION AGENT': 'АГЕНТ СБОРКИ',
+  'INDEPENDENT REVIEW / MERGE GATE': 'НЕЗАВИСИМАЯ ПРОВЕРКА',
+  'BROWSER / WORKFLOW / CLI SMOKE VERIFICATION':
+    'ПРОВЕРКА БРАУЗЕРА / СЦЕНАРИЕВ / CLI',
+  'BRAIN-FIRST RESEARCH / BOUNDED AUTORESEARCH': 'ИССЛЕДОВАНИЕ И ПОИСК ФАКТОВ',
+  'LOCAL INFRA / RUNTIME HEALTH WATCH': 'КОНТРОЛЬ ЛОКАЛЬНОЙ ИНФРЫ',
+  'UPSTREAM DEPENDENCY / PATCH HYGIENE': 'ЗАВИСИМОСТИ И АККУРАТНОСТЬ ПРАВОК',
+  'WEDGES / BETS / KILL CRITERIA': 'СТРАТЕГИЯ И КРИТЕРИИ ОСТАНОВКИ',
+  'CAPTURE / DISCARD / ROUTE / TASK TRIAGE':
+    'РАЗБОР, ОТБОР И НАПРАВЛЕНИЕ ВХОДЯЩИХ',
+}
+
+const SPECIALTY_DISPLAY_LABELS: Record<string, string> = {
+  'INDEPENDENT REVIEW / MERGE GATE': 'НЕЗАВИСИМАЯ ПРОВЕРКА',
+  'BROWSER / WORKFLOW / CLI SMOKE VERIFICATION': 'ПРОВЕРКА БРАУЗЕРА / СЦЕНАРИЕВ / CLI',
+  'LOCAL INFRA / RUNTIME HEALTH WATCH': 'КОНТРОЛЬ ЛОКАЛЬНОЙ ИНФРЫ',
+  'UPSTREAM DEPENDENCY / PATCH HYGIENE': 'ЗАВИСИМОСТИ И АККУРАТНОСТЬ ПРАВОК',
+}
+
+function displayRoleLabel(role: string | null | undefined): string {
+  const value = String(role || 'Worker')
+  return ROLE_DISPLAY_LABELS[value] ?? value
+}
+
+function displaySpecialtyLabel(specialty: string | null | undefined): string | undefined {
+  if (!specialty) return undefined
+  return SPECIALTY_DISPLAY_LABELS[specialty] ?? specialty
+}
 
 async function fetchAvailableModels(): Promise<Array<{ id: string; name: string; provider: string }>> {
   try {
@@ -385,9 +465,9 @@ function useUpdatedAgo(fetchedAt: number | null): string {
         return
       }
       const diff = Math.floor((Date.now() - fetchedAt) / 1000)
-      if (diff < 5) setLabel('just now')
-      else if (diff < 60) setLabel(`${diff}s ago`)
-      else setLabel(`${Math.floor(diff / 60)}m ago`)
+      if (diff < 5) setLabel('только что')
+      else if (diff < 60) setLabel(`${diff} сек назад`)
+      else setLabel(`${Math.floor(diff / 60)} мин назад`)
     }
 
     update()
@@ -423,14 +503,14 @@ export function commandForRuntime(
   const shellCommand = (): RuntimeCommand => ({
     command: ['zsh', '-lc', cwd ? `cd "${cwd}" && exec zsh -l` : 'exec zsh -l'],
     kind: 'shell',
-    label: cwd ? 'shell @ cwd' : 'shell',
+    label: cwd ? 'оболочка в рабочей папке' : 'оболочка',
   })
   const logCommand = (): RuntimeCommand | null =>
     runtime?.logPath
       ? {
           command: ['tail', '-n', '200', '-F', runtime.logPath],
           kind: 'log-tail',
-          label: 'tail -F agent.log',
+          label: 'живой лог agent.log',
         }
       : null
 
@@ -591,12 +671,12 @@ function scheduleScrollContextToTop(anchor: HTMLElement | null) {
 }
 
 function relativeTime(ts: number | null | undefined): string {
-  if (!ts) return 'never'
+  if (!ts) return 'никогда'
   const diff = Date.now() - ts
-  if (diff < 60_000) return `${Math.max(1, Math.floor(diff / 1000))}s ago`
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
-  return `${Math.floor(diff / 86_400_000)}d ago`
+  if (diff < 60_000) return `${Math.max(1, Math.floor(diff / 1000))} сек назад`
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} мин назад`
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} ч назад`
+  return `${Math.floor(diff / 86_400_000)} дн назад`
 }
 
 function progressForRuntime(runtime: RuntimeEntry | undefined): number {
@@ -612,7 +692,7 @@ function progressForRuntime(runtime: RuntimeEntry | undefined): number {
   return 58
 }
 
-function cleanSwarmLabel(rawValue: string, fallback = 'Ready for task', maxLength = 64): string {
+function cleanSwarmLabel(rawValue: string, fallback = 'Готов к задаче', maxLength = 64): string {
   const raw = rawValue.trim()
   if (!raw) return fallback
   const lines = raw.split('\n').map((line) => line.trim()).filter(Boolean)
@@ -636,7 +716,7 @@ function cleanSwarmLabel(rawValue: string, fallback = 'Ready for task', maxLengt
 function displayTaskTitle(runtime: RuntimeEntry | undefined, fallback: string): string {
   const realSummary = runtime?.lastRealSummary ?? null
   const realResult = runtime?.lastRealResult ?? null
-  return cleanSwarmLabel(runtime?.blockedReason || runtime?.currentTask || realSummary || runtime?.lastSummary || realResult || runtime?.lastResult || fallback || '', 'Ready for task', 64)
+  return cleanSwarmLabel(runtime?.blockedReason || runtime?.currentTask || realSummary || runtime?.lastSummary || realResult || runtime?.lastResult || fallback || '', 'Готов к задаче', 64)
 }
 
 
@@ -649,7 +729,7 @@ function formatAssignedModel(model?: string | null, provider?: string | null): s
   if (value.includes('gpt-5.3')) return 'GPT-5.3'
   if (model && model !== 'unknown') return model
   if (provider && provider !== 'unknown') return provider.replace(/^custom:/, '').replace(/[-_]/g, ' ')
-  return 'Worker'
+  return 'Агент'
 }
 
 type ControlPlaneStageProps = {
@@ -915,7 +995,7 @@ function ControlPlaneStage({
                             <>
                               <button type="button" onClick={() => onScrollTmuxSession(member.id, 'up', runtime.tmuxSession)} className="rounded-full border border-transparent px-1.5 py-0.5 text-[12px] text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-border)] hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]" title={`Scroll up in ${runtime.tmuxSession ?? `swarm-${member.id}`}`}>↑</button>
                               <button type="button" onClick={() => onScrollTmuxSession(member.id, 'down', runtime.tmuxSession)} className="rounded-full border border-transparent px-1.5 py-0.5 text-[12px] text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-border)] hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]" title={`Scroll down in ${runtime.tmuxSession ?? `swarm-${member.id}`}`}>↓</button>
-                              <button type="button" onClick={() => onToggleFocusedRuntimeWorker(member.id)} className="rounded-full border border-transparent px-1.5 py-0.5 text-[12px] text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-border)] hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]" title={focusedRuntimeWorkerId === member.id ? `Exit focus for swarm-${member.id}` : `Focus swarm-${member.id}`}>
+                              <button type="button" onClick={() => onToggleFocusedRuntimeWorker(member.id)} className="rounded-full border border-transparent px-1.5 py-0.5 text-[12px] text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-border)] hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]" title={focusedRuntimeWorkerId === member.id ? `Выйти из фокуса ${member.id}` : `Сфокусироваться на ${member.id}`}>
                                 {focusedRuntimeWorkerId === member.id ? '⛶' : '⤢'}
                               </button>
                             </>
@@ -1148,8 +1228,8 @@ export function Swarm2Screen() {
       return {
         ...member,
         displayName: runtime?.displayName || roster?.name || member.displayName,
-        role: roster?.role || runtime?.role || member.role,
-        specialty: roster?.specialty,
+        role: displayRoleLabel(roster?.role || runtime?.role || member.role),
+        specialty: displaySpecialtyLabel(roster?.specialty),
         mission: roster?.mission,
         skills: roster?.skills ?? [],
         capabilities: roster?.capabilities ?? [],
@@ -1162,14 +1242,14 @@ export function Swarm2Screen() {
       .map((worker) => ({
         id: worker.id,
         displayName: worker.name || worker.id,
-        role: worker.role || 'Worker',
+        role: displayRoleLabel(worker.role),
         profileFound: false,
         gatewayState: 'unknown',
         processAlive: false,
         platforms: {},
         model: worker.model || 'unknown',
         provider: 'roster-only',
-        specialty: worker.specialty,
+        specialty: displaySpecialtyLabel(worker.specialty),
         mission: worker.mission,
         skills: worker.skills ?? [],
         capabilities: worker.capabilities ?? [],
@@ -1253,7 +1333,7 @@ export function Swarm2Screen() {
   const rosterLanes = useMemo(() => {
     const map = new Map<string, { role: string; count: number; active: number }>()
     for (const member of members) {
-      const role = member.role || 'Worker'
+      const role = displayRoleLabel(member.role || 'Worker')
       const existing = map.get(role) ?? { role, count: 0, active: 0 }
       existing.count += 1
       if (isRuntimeActive(runtimeByWorker.get(member.id))) existing.active += 1
@@ -1295,8 +1375,8 @@ export function Swarm2Screen() {
         return {
           workerId: member.id,
           workerName: member.displayName || member.id,
-          role: member.role || runtime?.role || 'Worker',
-          task: displayTaskTitle(runtime, 'Awaiting checkpoint'),
+          role: displayRoleLabel(member.role || runtime?.role || 'Worker'),
+          task: displayTaskTitle(runtime, 'Ожидает контрольную точку'),
           progress: progressForRuntime(runtime),
           state,
           age: relativeTime(ts),
@@ -1341,11 +1421,11 @@ export function Swarm2Screen() {
       prompt: [
         `Проверь результат агента ${item.workerId} по миссии ${item.missionId ?? 'неизвестная миссия'}. Не расширяй задачу. Верни короткий вывод и проблемные места.`,
         '',
-        `Task: ${item.title}`,
-        `Summary: ${item.summary}`,
-        `Checkpoint: ${item.checkpointStatus ?? item.stateLabel}`,
-        `Blocker: ${item.blocker ?? 'none'}`,
-        `Next action: ${item.nextAction ?? 'none'}`,
+        `Задача: ${item.title}`,
+        `Кратко: ${item.summary}`,
+        `Контрольная точка: ${item.checkpointStatus ?? item.stateLabel}`,
+        `Блокировка: ${item.blocker ?? 'нет'}`,
+        `Следующее действие: ${item.nextAction ?? 'нет'}`,
       ].join('\n'),
     })
     setRouterOpen(true)
@@ -1398,7 +1478,7 @@ export function Swarm2Screen() {
       .map((member) => {
         const runtime = runtimeByWorker.get(member.id)
         const ts = runtime?.lastOutputAt ?? runtime?.lastSessionStartedAt ?? member.lastSessionAt ?? null
-        const rawText = runtime?.lastRealSummary ?? runtime?.lastRealResult ?? runtime?.lastSummary ?? runtime?.lastResult ?? runtime?.blockedReason ?? runtime?.currentTask ?? member.lastSessionTitle ?? `Готов в роли ${member.role || 'агент'}`
+        const rawText = runtime?.lastRealSummary ?? runtime?.lastRealResult ?? runtime?.lastSummary ?? runtime?.lastResult ?? runtime?.blockedReason ?? runtime?.currentTask ?? member.lastSessionTitle ?? `Готов в роли ${displayRoleLabel(member.role || 'агент')}`
         const state = (runtime?.phase || runtime?.currentTask || '').toLowerCase()
         const tone: 'idle' | 'active' | 'warning' = runtime?.blockedReason
           ? 'warning'
@@ -1688,7 +1768,7 @@ export function Swarm2Screen() {
                   className="w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-text)] outline-none"
                 >
                   {ROLE_NAMES.map((r) => (
-                    <option key={r} value={r}>{r}</option>
+                    <option key={r} value={r}>{displayRoleLabel(r)}</option>
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-[var(--theme-muted-2)]">

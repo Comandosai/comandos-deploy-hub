@@ -197,11 +197,11 @@ export function ProviderSelectStep({
       {/* Header */}
       <div className="mb-6 text-center">
         <h2 className="mb-2 text-2xl font-semibold text-primary-900">
-          Choose AI Provider
+          Выберите AI-провайдера
         </h2>
         <p className="text-sm text-primary-600">
-          Pick the AI provider you want to start with. You can switch or add
-          more providers later.
+          Выберите провайдера, с которого хотите начать. Переключиться или
+          добавить другие провайдеры можно позже.
         </p>
       </div>
 

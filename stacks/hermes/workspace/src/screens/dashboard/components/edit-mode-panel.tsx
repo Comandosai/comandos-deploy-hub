@@ -42,13 +42,13 @@ export function EditModePanel({ layout }: { layout: DashboardLayout }) {
               color: 'var(--theme-accent)',
             }}
           >
-            Edit mode
+            Настройка панели
           </span>
           <span
             className="font-mono text-[10px] uppercase tracking-[0.15em]"
             style={{ color: 'var(--theme-muted)' }}
           >
-            {layout.counts.visible} of {layout.counts.total} widgets shown
+            показано {layout.counts.visible} из {layout.counts.total} виджетов
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -61,9 +61,9 @@ export function EditModePanel({ layout }: { layout: DashboardLayout }) {
               borderColor: 'var(--theme-border)',
               color: 'var(--theme-text)',
             }}
-            title="Show every widget again"
+            title="Показать все виджеты"
           >
-            Reset
+            Сбросить
           </button>
           <button
             type="button"
@@ -74,16 +74,16 @@ export function EditModePanel({ layout }: { layout: DashboardLayout }) {
                 'linear-gradient(135deg, var(--theme-accent), color-mix(in srgb, var(--theme-accent) 60%, transparent))',
               color: 'var(--theme-on-accent, white)',
             }}
-            title="Exit edit mode"
+            title="Выйти из настройки панели"
           >
-            Done
+            Готово
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <Group title="Main column" layout={layout} widgets={main} />
-        <Group title="Side rail" layout={layout} widgets={rail} />
+        <Group title="Основная колонка" layout={layout} widgets={main} />
+        <Group title="Правая колонка" layout={layout} widgets={rail} />
       </div>
     </div>
   )

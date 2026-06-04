@@ -94,55 +94,55 @@ export function getConnectionErrorMessage(
   switch (kind) {
     case 'clawsuite_auth_required':
       return {
-        title: 'ClawSuite Login Required',
-        description: 'This instance requires a password to access.',
-        action: 'Enter your password to continue',
+        title: 'Нужен пароль',
+        description: 'Для доступа к этой установке требуется пароль.',
+        action: 'Введите пароль, чтобы продолжить.',
       }
     case 'gateway_auth_rejected':
       return {
-        title: 'Gateway rejected this device',
+        title: 'Gateway отклонил это устройство',
         description:
-          "The gateway is reachable, but it refused this device's auth token. The token is missing, invalid, or expired.",
+          'Gateway доступен, но не принял токен этого устройства. Токен отсутствует, неверный или устарел.',
         action:
-          'Re-pair this device with the gateway, or check that the gateway auth token is configured correctly.',
+          'Подключите устройство к gateway заново или проверьте настройку токена.',
       }
     case 'gateway_pairing_required':
       return {
-        title: 'Pair this device first',
-        description: 'This device is not paired with the gateway yet.',
-        action: 'Run `claude pair` on the gateway machine, then reconnect.',
+        title: 'Сначала подключите устройство',
+        description: 'Это устройство ещё не связано с gateway.',
+        action: 'Запустите команду подключения на сервере gateway, затем повторите вход.',
       }
     case 'gateway_unreachable':
       return {
-        title: 'Gateway unreachable',
-        description: 'Claude cannot reach the configured gateway.',
-        action: 'Check that the gateway is running and the URL is correct.',
+        title: 'Gateway недоступен',
+        description: 'Панель не может подключиться к настроенному gateway.',
+        action: 'Проверьте, что gateway запущен и адрес указан правильно.',
       }
     case 'handshake_failed':
       return {
-        title: 'Connection could not be verified',
+        title: 'Не удалось проверить соединение',
         description:
-          'The gateway responded, but the secure connection handshake did not complete.',
+          'Gateway ответил, но безопасное подключение не завершилось.',
         action:
-          'Try reconnecting. If it keeps failing, check gateway pairing and auth.',
+          'Попробуйте подключиться снова. Если ошибка повторяется, проверьте привязку и авторизацию gateway.',
       }
     case 'handshake_timeout':
       return {
-        title: 'Connection timed out',
-        description: 'The gateway did not respond in time.',
-        action: 'Check your network and try again.',
+        title: 'Gateway не ответил вовремя',
+        description: 'Ожидание ответа от gateway истекло.',
+        action: 'Проверьте сеть и повторите попытку.',
       }
     case 'disconnected':
       return {
-        title: 'Connection lost',
-        description: 'The connection to the gateway was interrupted.',
-        action: 'Wait a moment, then retry if it does not reconnect.',
+        title: 'Соединение потеряно',
+        description: 'Подключение к gateway было прервано.',
+        action: 'Подождите немного и повторите попытку, если связь не восстановится.',
       }
     case 'unknown':
       return {
-        title: 'Connection error',
-        description: 'Something went wrong while connecting to the gateway.',
-        action: 'Try again, or review the gateway settings.',
+        title: 'Ошибка подключения',
+        description: 'Во время подключения к gateway произошла ошибка.',
+        action: 'Повторите попытку или проверьте настройки gateway.',
       }
   }
 }

@@ -340,7 +340,7 @@ export function PlaygroundDialog({
             onClick={handleNextLore}
             className="block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-[12px] text-white/70 transition hover:border-white/30 hover:bg-white/10"
           >
-            <span className="opacity-60">›</span> Tell me more {showLore ? `(${loreIdx % npc.lore.length + 1}/${npc.lore.length})` : ''}
+            <span className="opacity-60">›</span> Расскажи подробнее {showLore ? `(${loreIdx % npc.lore.length + 1}/${npc.lore.length})` : ''}
           </button>
           <button
             onClick={onClose}

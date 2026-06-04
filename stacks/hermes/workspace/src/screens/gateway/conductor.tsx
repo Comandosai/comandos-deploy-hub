@@ -122,14 +122,14 @@ const QUICK_ACTIONS: Array<{
 ]
 
 const AGENT_NAMES = [
-  'Nova',
-  'Pixel',
-  'Blaze',
-  'Echo',
-  'Sage',
-  'Drift',
-  'Flux',
-  'Volt',
+  'Агент 1',
+  'Агент 2',
+  'Агент 3',
+  'Агент 4',
+  'Агент 5',
+  'Агент 6',
+  'Агент 7',
+  'Агент 8',
 ]
 const AGENT_EMOJIS = ['🤖', '⚡', '🔥', '🌊', '🌿', '💫', '🔮', '⭐']
 const BLENDED_COST_PER_MILLION_TOKENS = 5
@@ -1197,7 +1197,7 @@ export function Conductor() {
       })),
     [selectedHistoryEntry],
   )
-  const OFFICE_NAMES = ['Nova', 'Pixel', 'Blaze', 'Echo', 'Sage', 'Drift']
+  const OFFICE_NAMES = ['Агент 1', 'Агент 2', 'Агент 3', 'Агент 4', 'Агент 5', 'Агент 6']
   const homeOfficeRows = useMemo<AgentWorkingRow[]>(() => {
     const sessions = conductor.recentSessions
     if (sessions.length === 0) {
@@ -1286,13 +1286,13 @@ export function Conductor() {
     return [
       {
         id: 'conductor-placeholder-agent',
-        name: 'Nova',
+        name: 'Агент 1',
         modelId: conductor.conductorSettings.workerModel || 'auto',
         roleDescription: 'Ожидание агентов',
         status: 'spawning',
-        lastLine: conductor.goal || 'Preparing the office…',
+        lastLine: conductor.goal || 'Готовлю офис…',
         taskCount: 0,
-        currentTask: conductor.goal || 'Preparing the office…',
+        currentTask: conductor.goal || 'Готовлю офис…',
         sessionKey: 'conductor-placeholder-agent',
       },
     ]
@@ -2505,8 +2505,8 @@ export function Conductor() {
                 {conductor.goal}
               </h1>
               <p className="text-sm text-[var(--theme-muted-2)]">
-                The agent is breaking the mission into workers. Once they spawn,
-                this view flips into the active board.
+                Агент разбивает миссию на задачи и подбирает исполнителей.
+                После запуска здесь появится рабочая доска.
               </p>
             </div>
 
@@ -2517,7 +2517,7 @@ export function Conductor() {
                     Планирование миссии
                   </p>
                   <p className="mt-1 text-xs text-[var(--theme-muted-2)]">
-                    Analyzing your request and preparing agents
+                    Анализирую запрос и готовлю агентов
                   </p>
                 </div>
                 <span className="rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 animate-pulse">
@@ -3284,7 +3284,7 @@ export function Conductor() {
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex items-center justify-center gap-3">
                         <div className="size-4 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
-                        <span>Spawning workers...</span>
+                        <span>Запускаю агентов...</span>
                       </div>
                       {conductor.planText ? (
                         <p className="max-w-xl text-xs text-[var(--theme-muted-2)]">

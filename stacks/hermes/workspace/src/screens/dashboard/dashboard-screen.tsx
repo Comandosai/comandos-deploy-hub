@@ -60,10 +60,10 @@ type HugeIcon = typeof Settings02Icon
 
 function timeAgo(ts: number): string {
   const diff = Date.now() / 1000 - ts
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return `${Math.floor(diff / 86400)}d ago`
+  if (diff < 60) return 'только что'
+  if (diff < 3600) return `${Math.floor(diff / 60)} мин назад`
+  if (diff < 86400) return `${Math.floor(diff / 3600)} ч назад`
+  return `${Math.floor(diff / 86400)} дн назад`
 }
 
 function formatNumber(n: number): string {
@@ -944,12 +944,12 @@ export function DashboardScreen() {
             <span>Новый чат</span>
           </button>
           <SecondaryAction
-            label="Terminal"
+            label="Терминал"
             icon={ConsoleIcon}
             onClick={() => navigate({ to: '/terminal' })}
           />
           <SecondaryAction
-            label="Skills"
+            label="Навыки"
             icon={PuzzleIcon}
             onClick={() => navigate({ to: '/skills' })}
             disabled={!skillsAvailable}
@@ -959,8 +959,8 @@ export function DashboardScreen() {
               hidden widgets. Persisted to localStorage. */}
           <button
             type="button"
-            aria-label={layout.editMode ? 'Done editing layout' : 'Edit layout'}
-            title={layout.editMode ? 'Done editing layout' : 'Edit layout'}
+            aria-label={layout.editMode ? 'Завершить настройку панели' : 'Настроить панель'}
+            title={layout.editMode ? 'Завершить настройку панели' : 'Настроить панель'}
             onClick={layout.toggleEdit}
             className="inline-flex size-9 items-center justify-center rounded-lg border transition-all hover:scale-[1.05] hover:bg-[var(--theme-card)]/70"
             style={{
@@ -983,8 +983,8 @@ export function DashboardScreen() {
           </button>
           <button
             type="button"
-            aria-label="Settings"
-            title="Settings"
+            aria-label="Настройки"
+            title="Настройки"
             onClick={() => navigate({ to: '/settings', search: {} })}
             className="inline-flex size-9 items-center justify-center rounded-lg border transition-all hover:scale-[1.05] hover:bg-[var(--theme-card)]/70 hover:text-[var(--theme-text)]"
             style={{

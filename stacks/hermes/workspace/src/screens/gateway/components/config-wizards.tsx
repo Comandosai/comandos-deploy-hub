@@ -488,7 +488,7 @@ export function AgentWizardModal({
             onChange={(e) => { onUpdate({ backstory: e.target.value }) }}
             className="mt-2 w-full resize-none rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 px-3 py-2.5 text-xs text-neutral-900 dark:text-white outline-none ring-accent-400 focus:ring-1 font-mono leading-relaxed overflow-auto"
             style={{ minHeight: 100, maxHeight: 400 }}
-            placeholder="Persona, instructions, and context for this agent..."
+            placeholder="Роль, инструкции и контекст для этого агента..."
           />
         </div>
       </div>
@@ -506,14 +506,14 @@ export function AgentWizardModal({
           )}
         >
           {addMode ? null : <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M5 3V2h2v1M4 3v7h4V3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-          {addMode ? 'Cancel' : 'Remove Agent'}
+          {addMode ? 'Отмена' : 'Удалить агента'}
         </button>
         <button
           type="button"
           onClick={onClose}
           className="rounded-lg bg-accent-500 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-600 transition-colors"
         >
-          {addMode ? '+ Add Agent' : 'Save Changes'}
+          {addMode ? '+ Добавить агента' : 'Сохранить изменения'}
         </button>
       </div>
     </WizardModal>
@@ -711,7 +711,7 @@ export function TeamWizardModal({
             ))}
           </div>
           {notInTeam.length > 0 && localMembers.length > 0 ? (
-            <p className="mt-1 text-center text-[9px] text-neutral-400">↓ scroll to add more agents</p>
+            <p className="mt-1 text-center text-[9px] text-neutral-400">↓ прокрутите, чтобы добавить ещё агентов</p>
           ) : null}
         </div>
 
@@ -751,7 +751,7 @@ export function TeamWizardModal({
           className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-800/50 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M5 3V2h2v1M4 3v7h4V3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          Delete Team
+          Удалить команду
         </button>
         <button
           type="button"
@@ -1130,13 +1130,13 @@ export function ProviderEditModal({ provider, currentModels, availableModels, on
           return (
             <div>
               <FieldLabel>
-                Default Model{' '}
+                Модель по умолчанию{' '}
                 {availableModels.length === 0 ? (
-                  <span className="font-normal normal-case text-neutral-300 dark:text-neutral-600">— common models</span>
+                  <span className="font-normal normal-case text-neutral-300 dark:text-neutral-600">— популярные модели</span>
                 ) : null}
               </FieldLabel>
               <select value={defaultModel} onChange={(e) => setDefaultModel(e.target.value)} className={SELECT_CLS}>
-                <option value="">Use gateway default</option>
+                <option value="">Использовать модель шлюза</option>
                 {combined.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
             </div>
@@ -1167,14 +1167,14 @@ export function ProviderEditModal({ provider, currentModels, availableModels, on
               onClick={() => void onDelete()}
               className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 transition-colors"
             >
-              Remove Provider
+              Удалить провайдера
             </button>
           ) : null}
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={onClose}
             className="rounded-lg border border-neutral-200 dark:border-neutral-700 px-4 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
-            Cancel
+            Отмена
           </button>
           <button
             type="button"

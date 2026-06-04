@@ -17,9 +17,9 @@ type SuggestionChip = {
 
 const SUGGESTIONS: Array<SuggestionChip> = [
   {
-    label: 'Аудит workspace',
+    label: 'Аудит рабочей папки',
     prompt:
-      'Проанализируй текущую папку workspace и дай 3 инженерных риска. Используй инструменты и отвечай кратко.',
+      'Проанализируй текущую рабочую папку и дай 3 инженерных риска. Используй инструменты и отвечай кратко.',
     icon: CodeIcon,
   },
   {
@@ -38,6 +38,10 @@ const SUGGESTIONS: Array<SuggestionChip> = [
 type ChatEmptyStateProps = {
   onSuggestionClick?: (prompt: string) => void
   compact?: boolean
+}
+
+function formatProfileName(name: string): string {
+  return name === 'default' ? 'по умолчанию' : name
 }
 
 export function ChatEmptyState({
@@ -99,7 +103,7 @@ export function ChatEmptyState({
 
         {activeProfile && (
           <span className="mt-2 text-xs" style={{ color: 'var(--theme-accent)' }}>
-            {activeProfile.name}
+            {formatProfileName(activeProfile.name)}
             {activeProfile.model ? ` · ${activeProfile.model}` : ''}
           </span>
         )}
@@ -107,7 +111,7 @@ export function ChatEmptyState({
         {!compact && (
           <>
             <p className="mt-3 text-sm" style={{ color: 'var(--theme-muted)' }}>
-              Чат с агентом · live tools · память · наблюдаемость
+              Чат с агентом · живые инструменты · память · наблюдаемость
             </p>
           </>
         )}

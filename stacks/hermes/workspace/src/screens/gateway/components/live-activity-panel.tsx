@@ -124,10 +124,10 @@ function AgentCard({
         {agent.currentTask
           ? agent.currentTask
           : agent.status === 'none'
-            ? 'No session'
+            ? 'Сессии нет'
             : agent.status === 'spawning'
-              ? 'Spawning…'
-              : 'Waiting for mission…'}
+              ? 'Запускается…'
+              : 'Ждёт миссию…'}
       </p>
 
       {/* Row 3: most recent output line (dimmed, monospace) */}
@@ -325,7 +325,7 @@ export function LiveActivityPanel({
       <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 bg-white/80 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-neutral-950/70">
         <div className="flex items-center gap-2">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-            Agents Working
+            Агенты в работе
           </h3>
           {missionRunning && activeCount > 0 ? (
             <span className="relative flex size-1.5 shrink-0">
@@ -409,16 +409,16 @@ export function LiveActivityPanel({
               {/* Status legend */}
               <div className="mt-1 flex flex-wrap items-center justify-end gap-3 px-1 pt-1">
                 <span className="flex items-center gap-1 text-[9px] text-neutral-400 dark:text-neutral-600">
-                  <span className="size-1.5 rounded-full bg-emerald-500" /> Active
+                  <span className="size-1.5 rounded-full bg-emerald-500" /> Активен
                 </span>
                 <span className="flex items-center gap-1 text-[9px] text-neutral-400 dark:text-neutral-600">
-                  <span className="size-1.5 rounded-full bg-amber-500" /> Idle
+                  <span className="size-1.5 rounded-full bg-amber-500" /> Ожидает
                 </span>
                 <span className="flex items-center gap-1 text-[9px] text-neutral-400 dark:text-neutral-600">
-                  <span className="size-1.5 rounded-full bg-neutral-400" /> No session
+                  <span className="size-1.5 rounded-full bg-neutral-400" /> Нет сессии
                 </span>
                 <span className="flex items-center gap-1 text-[9px] text-neutral-400 dark:text-neutral-600">
-                  <span className="size-1.5 rounded-full bg-red-500" /> Error
+                  <span className="size-1.5 rounded-full bg-red-500" /> Ошибка
                 </span>
               </div>
             </div>
@@ -459,7 +459,7 @@ export function LiveActivityPanel({
                 type="button"
                 onClick={handleCloseOutput}
                 className="rounded p-1 text-[11px] text-neutral-400 transition-colors hover:text-neutral-700 dark:hover:text-neutral-300"
-                aria-label="Close output"
+                aria-label="Закрыть вывод"
               >
                 ✕
               </button>

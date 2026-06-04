@@ -91,8 +91,8 @@ const PERSONAS: Record<string, NpcPersona> = {
 
 const FALLBACK = (npcId: string, _msg: string): string => {
   const p = PERSONAS[npcId]
-  if (!p) return 'The world is quiet for a moment. Try again later.'
-  return `*${p.name} considers your words carefully* — "I'd like to answer that, but the chronicle is offline. Speak through the scripted scrolls, or try again in a moment."`
+  if (!p) return 'Мир на секунду затих. Попробуйте ещё раз чуть позже.'
+  return `*${p.name} внимательно слушает* — "Я бы ответил, но хроника сейчас недоступна. Используй готовые реплики или попробуй ещё раз через минуту."`
 }
 
 /**

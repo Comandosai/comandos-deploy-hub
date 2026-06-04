@@ -55,10 +55,10 @@ type AuthTypeMeta = {
 }
 
 const WIZARD_STEPS: Array<StepItem> = [
-  { id: 'provider', label: 'Choose Provider' },
-  { id: 'auth', label: 'Choose Auth' },
-  { id: 'instructions', label: 'Config Instructions' },
-  { id: 'verify', label: 'Verify' },
+  { id: 'provider', label: 'Провайдер' },
+  { id: 'auth', label: 'Вход' },
+  { id: 'instructions', label: 'Настройка' },
+  { id: 'verify', label: 'Проверка' },
 ]
 
 const AUTH_TYPE_ORDER: Array<ProviderAuthType> = [
@@ -72,28 +72,28 @@ function getAuthTypeMeta(authType: ProviderAuthType): AuthTypeMeta {
   if (authType === 'api-key') {
     return {
       title: 'API Key',
-      description: 'Paste your API key — saved directly to local config',
+      description: 'Вставьте API-ключ — он сохранится только в локальном конфиге',
     }
   }
 
   if (authType === 'cli-token') {
     return {
-      title: 'CLI Token',
+      title: 'CLI-вход',
       description:
-        'Use your existing Hermes CLI auth token (from Claude Code / claude.ai)',
+        'Используйте уже авторизованный CLI на сервере, без ввода ключа в панели',
     }
   }
 
   if (authType === 'oauth') {
     return {
       title: 'OAuth',
-      description: 'Sign in via browser — launches OAuth flow automatically',
+      description: 'Вход через браузер, если провайдер реально поддерживает OAuth',
     }
   }
 
   return {
-    title: 'Local',
-    description: 'No auth needed for local backends like Ollama or Atomic Chat',
+    title: 'Локально',
+    description: 'Для локальных серверов вроде Ollama или Atomic Chat ключ не нужен',
   }
 }
 
@@ -268,7 +268,7 @@ export function ProviderWizard({
       const data = (await res.json()) as { ok: boolean; error?: string }
 
       if (!data.ok) {
-        throw new Error(data.error || 'Failed to save config')
+        throw new Error(data.error || 'Не удалось сохранить конфиг')
       }
     }
 
@@ -277,7 +277,7 @@ export function ProviderWizard({
       setSaveState('saved')
       setVerifyState('checking')
       setVerificationMessage(
-        `${providerName} API key saved. Hermes Agent is restarting…`,
+        `${providerName}: ключ сохранён. Перезапускаю Hermes Agent...`,
       )
       setStep('verify')
 
@@ -288,7 +288,7 @@ export function ProviderWizard({
       if (!pollingRef.current) {
         pollingRef.current = true
         setVerificationMessage(
-          `Checking if ${providerName} models are available…`,
+          `Проверяю, появились ли модели ${providerName}...`,
         )
 
         const found = await pollForProvider(providerId)
@@ -296,20 +296,20 @@ export function ProviderWizard({
         if (found) {
           setVerifyState('success')
           setVerificationMessage(
-            `${providerName} is connected and models are available.`,
+            `${providerName} подключён, модели доступны.`,
           )
         } else {
           setVerifyState('warning')
           setVerificationMessage(
-            `Hermes Agent restarted, but ${providerName} models haven't appeared yet. ` +
-              `Check your API key or wait a moment and refresh.`,
+            `Hermes Agent перезапущен, но модели ${providerName} пока не появились. ` +
+              `Проверьте ключ, подождите немного и обновите страницу.`,
           )
         }
         pollingRef.current = false
       }
     } catch (err) {
       setSaveState('error')
-      setSaveError(err instanceof Error ? err.message : 'Network error')
+      setSaveError(err instanceof Error ? err.message : 'Ошибка сети')
     }
   }
 
@@ -334,10 +334,10 @@ export function ProviderWizard({
 
   const verifyTitle =
     verifyState === 'success'
-      ? 'Connection Verified ✓'
+      ? 'Подключение проверено'
       : verifyState === 'warning'
-        ? 'Connected (models pending)'
-        : 'Checking connection…'
+        ? 'Подключено, модели ещё проверяются'
+        : 'Проверяю подключение...'
 
   return (
     <DialogRoot open={open} onOpenChange={handleDialogOpenChange}>
@@ -348,12 +348,12 @@ export function ProviderWizard({
               <div className="space-y-1">
                 <DialogTitle className="text-balance">
                   {editProvider
-                    ? `Edit Provider: ${editProvider.name}`
-                    : 'Provider Setup Wizard'}
+                    ? `Настройка провайдера: ${editProvider.name}`
+                    : 'Мастер настройки провайдера'}
                 </DialogTitle>
                 <DialogDescription className="text-pretty">
-                  Add provider credentials safely. API keys stay local in your
-                  Hermes config file and are never sent to Studio.
+                  Добавьте доступ к модели. API-ключи остаются в локальном
+                  конфиге Hermes и не отправляются в COMANDOS.
                 </DialogDescription>
               </div>
               <Button
@@ -362,7 +362,7 @@ export function ProviderWizard({
                 onClick={function onClose() {
                   handleDialogOpenChange(false)
                 }}
-                aria-label="Close provider setup wizard"
+                aria-label="Закрыть мастер настройки провайдера"
               >
                 <HugeiconsIcon
                   icon={Cancel01Icon}
@@ -416,10 +416,10 @@ export function ProviderWizard({
             {step === 'provider' ? (
               <section className="mt-5">
                 <h3 className="text-base font-medium text-primary-900 text-balance">
-                  Step 1: Choose Provider
+                  Шаг 1: выберите провайдера
                 </h3>
                 <p className="mt-1 text-sm text-primary-600 text-pretty">
-                  Select the provider you want to configure.
+                  Выберите провайдера, которого нужно настроить.
                 </p>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -468,7 +468,7 @@ export function ProviderWizard({
             {step === 'auth' && selectedProvider ? (
               <section className="mt-5">
                 <h3 className="text-base font-medium text-primary-900 text-balance">
-                  Step 2: Choose Auth Type
+                  Шаг 2: выберите способ входа
                 </h3>
                 <p className="mt-1 text-sm text-primary-600 text-pretty">
                   {selectedProvider.name} supports{' '}
@@ -482,7 +482,7 @@ export function ProviderWizard({
 
                 <div className="mt-3 rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                   <p className="text-xs text-primary-700 text-pretty">
-                    Config file path:{' '}
+                    Файл конфигурации:{' '}
                     <code className="font-mono">{CLAUDE_CONFIG_PATH}</code>
                   </p>
                 </div>
@@ -516,7 +516,7 @@ export function ProviderWizard({
                         </p>
                         {!supported ? (
                           <p className="mt-2 text-xs text-primary-500 text-pretty">
-                            Not supported by {selectedProvider.name}.
+                            Недоступно для {selectedProvider.name}.
                           </p>
                         ) : null}
                       </button>
@@ -542,7 +542,7 @@ export function ProviderWizard({
                       size={20}
                       strokeWidth={1.5}
                     />
-                    Back
+                    Назад
                   </Button>
                 </div>
               </section>
@@ -551,18 +551,18 @@ export function ProviderWizard({
             {step === 'instructions' && selectedProvider && selectedAuthType ? (
               <section className="mt-5">
                 <h3 className="text-base font-medium text-primary-900 text-balance">
-                  Step 3: Add API Key
+                  Шаг 3: настройка доступа
                 </h3>
 
                 {selectedAuthType === 'oauth' ? (
                   <>
                     <p className="mt-1 text-sm text-primary-600 text-pretty">
-                      This will run{' '}
+                      Откройте терминал и выполните{' '}
                       <code className="font-mono text-primary-800">
                         hermes setup
                       </code>{' '}
-                      in the terminal to start the OAuth flow. A browser window
-                      will open for you to sign in with Google.
+                      чтобы запустить OAuth. Браузер откроет страницу входа
+                      Google.
                     </p>
 
                     <div className="mt-4 flex flex-col gap-3">
@@ -571,42 +571,41 @@ export function ProviderWizard({
                         onClick={function onLaunchOAuth() {
                           window.open('/terminal', '_blank')
                           setVerificationMessage(
-                            'Run "hermes setup" in the terminal and select Google OAuth when prompted. ' +
-                              'A browser window will open for sign-in. Once complete, Hermes Agent will restart automatically.',
+                            'В терминале выполните "hermes setup" и выберите Google OAuth. ' +
+                              'После входа Hermes Agent перезапустится автоматически.',
                           )
                           setVerifyState('warning')
                           setStep('verify')
                         }}
                       >
-                        Open Terminal
+                        Открыть терминал
                       </Button>
 
                       <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                         <p className="text-xs text-primary-700 text-pretty">
-                          In the terminal, run:
+                          В терминале выполните:
                         </p>
                         <pre className="mt-1 rounded-lg bg-primary-200/60 px-2 py-1.5 text-xs font-mono text-primary-900">
                           hermes setup
                         </pre>
                         <p className="mt-1.5 text-xs text-primary-600 text-pretty">
-                          Select <strong>Google Antigravity</strong> →{' '}
-                          <strong>OAuth</strong>. A browser tab will open for
-                          Google sign-in.
+                          Выберите <strong>Google Antigravity</strong> →{' '}
+                          <strong>OAuth</strong>. Откроется вход через Google.
                         </p>
                       </div>
 
                       <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                         <p className="text-xs text-primary-700 text-pretty">
-                          No terminal access?{' '}
+                          Нет доступа к терминалу?{' '}
                           <a
                             href="https://github.com/NousResearch/hermes-agent"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-800 underline decoration-primary-400 hover:text-primary-900"
                           >
-                            See the Hermes Agent docs
+                            Откройте документацию Hermes Agent
                           </a>{' '}
-                          for setup instructions.
+                          для ручной настройки.
                         </p>
                       </div>
                     </div>
@@ -614,9 +613,9 @@ export function ProviderWizard({
                 ) : selectedAuthType === 'cli-token' ? (
                   <>
                     <p className="mt-1 text-sm text-primary-600 text-pretty">
-                      If you have Claude Code or the Hermes CLI installed,
-                      Hermes Agent can use the same auth token. Run the configure
-                      command to detect and import it automatically.
+                      {selectedProvider.id === 'openai-codex'
+                        ? 'OpenAI Codex подключается через Codex CLI на сервере. Сначала выполните вход командой codex login, затем нажмите проверку в панели.'
+                        : 'Если Hermes CLI или совместимый CLI уже авторизован, Hermes Agent сможет использовать этот вход. Откройте терминал и выполните настройку.'}
                     </p>
 
                     <div className="mt-4 flex flex-col gap-3">
@@ -625,52 +624,66 @@ export function ProviderWizard({
                         onClick={function onLaunchCLI() {
                           window.open('/terminal', '_blank')
                           setVerificationMessage(
-                            'Run "hermes setup" in the terminal and select Anthropic → CLI Token. ' +
-                              'It will detect compatible local credentials and import them automatically.',
+                            selectedProvider.id === 'openai-codex'
+                              ? 'В терминале выполните "codex login". После успешного входа панель увидит ~/.codex/auth.json.'
+                              : 'В терминале выполните "hermes setup" и выберите CLI-вход для нужного провайдера.',
                           )
                           setVerifyState('warning')
                           setStep('verify')
                         }}
                       >
-                        Open Terminal
+                        Открыть терминал
                       </Button>
 
                       <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                         <p className="text-xs text-primary-700 text-pretty">
-                          In the terminal, run:
+                          В терминале выполните:
                         </p>
                         <pre className="mt-1 rounded-lg bg-primary-200/60 px-2 py-1.5 text-xs font-mono text-primary-900">
-                          hermes setup
+                          {selectedProvider.id === 'openai-codex'
+                            ? 'codex login'
+                            : 'hermes setup'}
                         </pre>
                         <p className="mt-1.5 text-xs text-primary-600 text-pretty">
-                          Select <strong>Anthropic</strong> →{' '}
-                          <strong>Setup Token (Hermes CLI)</strong>. It will
-                          detect your existing Claude credentials from{' '}
-                          <code className="font-mono">~/.hermes/</code>.
+                          {selectedProvider.id === 'openai-codex' ? (
+                            <>
+                              После входа должен появиться файл{' '}
+                              <code className="font-mono">
+                                ~/.codex/auth.json
+                              </code>
+                              . Панель читает его на сервере.
+                            </>
+                          ) : (
+                            <>
+                              Выберите нужного провайдера и CLI-вход. Hermes
+                              попробует найти существующие локальные учётные
+                              данные.
+                            </>
+                          )}
                         </p>
                       </div>
 
                       <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2">
                         <p className="text-xs text-amber-800 text-pretty">
-                          <strong>Requires:</strong> Claude Code or Hermes CLI
-                          must be installed and authenticated first. Run{' '}
-                          <code className="font-mono">hermes</code> in terminal
-                          to verify.
+                          <strong>Нужно:</strong>{' '}
+                          {selectedProvider.id === 'openai-codex'
+                            ? 'Codex CLI должен быть установлен и авторизован на этом сервере.'
+                            : 'CLI должен быть установлен и авторизован на этом сервере.'}
                         </p>
                       </div>
 
                       <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                         <p className="text-xs text-primary-700 text-pretty">
-                          No terminal access?{' '}
+                          Нет доступа к терминалу?{' '}
                           <a
                             href="https://github.com/NousResearch/hermes-agent"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-800 underline decoration-primary-400 hover:text-primary-900"
                           >
-                            See the Hermes Agent docs
+                            Откройте документацию Hermes Agent
                           </a>{' '}
-                          for CLI token setup instructions.
+                          для ручной настройки CLI-входа.
                         </p>
                       </div>
                     </div>
@@ -678,8 +691,8 @@ export function ProviderWizard({
                 ) : selectedAuthType === 'api-key' ? (
                   <>
                     <p className="mt-1 text-sm text-primary-600 text-pretty">
-                      Paste your {selectedProvider.name} API key below. It will
-                      be saved directly to your local config file.
+                      Вставьте API-ключ {selectedProvider.name}. Он сохранится
+                      только в локальном файле конфигурации.
                     </p>
 
                     <div className="mt-4 flex flex-col gap-3">
@@ -690,7 +703,7 @@ export function ProviderWizard({
                           onChange={function onInputChange(e) {
                             setApiKeyInput(e.target.value)
                           }}
-                          placeholder={`sk-... or your ${selectedProvider.name} API key`}
+                          placeholder={`sk-... или API-ключ ${selectedProvider.name}`}
                           className="flex-1 rounded-xl border border-primary-300 bg-white px-3 py-2 text-sm text-primary-900 placeholder:text-primary-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400/50"
                           autoFocus
                         />
@@ -704,10 +717,10 @@ export function ProviderWizard({
                           }}
                         >
                           {saveState === 'saving'
-                            ? 'Saving…'
+                            ? 'Сохраняю...'
                             : saveState === 'saved'
-                              ? 'Saved ✓'
-                              : 'Save & Connect'}
+                              ? 'Сохранено'
+                              : 'Сохранить и подключить'}
                         </Button>
                       </div>
 
@@ -723,7 +736,7 @@ export function ProviderWizard({
                             strokeWidth={1.5}
                             className="inline mr-1"
                           />
-                          Key saved! Hermes Agent is restarting to apply changes.
+                          Ключ сохранён. Hermes Agent перезапускается.
                         </p>
                       ) : null}
                     </div>
@@ -739,14 +752,14 @@ export function ProviderWizard({
                         size={20}
                         strokeWidth={1.5}
                       />
-                      Get your {selectedProvider.name} API key
+                      Получить API-ключ {selectedProvider.name}
                     </a>
 
                     <div className="mt-4 rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                       <p className="text-xs text-primary-700 text-pretty">
                         API keys are stored locally in{' '}
                         <code className="font-mono">{CLAUDE_CONFIG_PATH}</code>,
-                        never sent to Studio.
+                        и не отправляются в COMANDOS.
                       </p>
                     </div>
 
@@ -777,7 +790,7 @@ export function ProviderWizard({
                               size={20}
                               strokeWidth={1.5}
                             />
-                            Copy snippet
+                            Скопировать фрагмент
                           </Button>
                           {copyState === 'copied' ? (
                             <span className="inline-flex items-center gap-1 text-xs text-green-600">
@@ -786,7 +799,7 @@ export function ProviderWizard({
                                 size={20}
                                 strokeWidth={1.5}
                               />
-                              Copied
+                              Скопировано
                             </span>
                           ) : null}
                         </div>
@@ -801,8 +814,8 @@ export function ProviderWizard({
                 ) : (
                   <>
                     <p className="mt-1 text-sm text-primary-600 text-pretty">
-                      No additional configuration needed. Just ensure the
-                      service is running locally.
+                      Дополнительная настройка не нужна. Убедитесь, что
+                      локальный сервис запущен.
                     </p>
                   </>
                 )}
@@ -820,7 +833,7 @@ export function ProviderWizard({
                       size={20}
                       strokeWidth={1.5}
                     />
-                    Back
+                    Назад
                   </Button>
                   {selectedAuthType === 'local' ? (
                     <Button
@@ -829,7 +842,7 @@ export function ProviderWizard({
                         handleDone()
                       }}
                     >
-                      Done
+                      Готово
                     </Button>
                   ) : null}
                 </div>
@@ -839,7 +852,7 @@ export function ProviderWizard({
             {step === 'verify' ? (
               <section className="mt-5">
                 <h3 className="text-base font-medium text-primary-900 text-balance">
-                  Step 4: Verify
+                  Шаг 4: проверка
                 </h3>
                 <div
                   className={cn(
@@ -856,7 +869,7 @@ export function ProviderWizard({
                     {verifyTitle}
                   </p>
                   <p className="mt-1 text-sm text-primary-600 text-pretty">
-                    {verificationMessage || 'Waiting for Hermes Agent to respond…'}
+                    {verificationMessage || 'Жду ответа Hermes Agent...'}
                   </p>
                 </div>
 
@@ -873,7 +886,7 @@ export function ProviderWizard({
                       size={20}
                       strokeWidth={1.5}
                     />
-                    Back
+                    Назад
                   </Button>
                   <Button
                     size="sm"
@@ -881,7 +894,7 @@ export function ProviderWizard({
                       handleDone()
                     }}
                   >
-                    Done
+                    Готово
                   </Button>
                 </div>
               </section>

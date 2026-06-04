@@ -196,12 +196,12 @@ export function ApprovalsPanel({
             </span>
           ) : (
             <span className="rounded-full border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
-              All clear
+              Всё чисто
             </span>
           )}
         </div>
         {pendingCount > 0 && (
-          <span className="text-[10px] text-amber-500 dark:text-amber-400">⚠ Review required</span>
+          <span className="text-[10px] text-amber-500 dark:text-amber-400">⚠ Нужна проверка</span>
         )}
       </div>
 
@@ -216,7 +216,7 @@ export function ApprovalsPanel({
         <div className="min-h-0 flex-1 overflow-y-auto">
           {loading && pending.length === 0 ? (
             <div className="flex h-full items-center justify-center p-8">
-              <p className="text-sm text-neutral-500">Loading approvals...</p>
+              <p className="text-sm text-neutral-500">Загружаю согласования...</p>
             </div>
           ) : null}
 
@@ -227,10 +227,10 @@ export function ApprovalsPanel({
                 <span className="text-2xl">✅</span>
               </div>
               <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                No pending approvals
+                Ожидающих согласований нет
               </p>
               <p className="mt-1 text-xs text-neutral-400">
-                Agents are running autonomously
+                Агенты работают без ручного вмешательства
               </p>
             </div>
           </div>
@@ -366,7 +366,7 @@ function ApprovalCard({
               disabled={disabled}
               className="flex-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-all duration-200 hover:bg-emerald-700"
             >
-              ✓ Approve
+              ✓ Согласовать
             </button>
             <button
               type="button"
@@ -374,7 +374,7 @@ function ApprovalCard({
               disabled={disabled}
               className="flex-1 rounded-lg border border-red-400 px-3 py-1.5 text-[11px] font-semibold text-red-600 transition-all duration-200 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/20"
             >
-              ✕ Deny
+              ✕ Отклонить
             </button>
           </div>
         ) : (
@@ -386,7 +386,7 @@ function ApprovalCard({
                 : 'text-red-500 dark:text-red-400',
             )}
           >
-            {approval.status === 'approved' ? '✓ Approved' : '✕ Denied'}
+            {approval.status === 'approved' ? '✓ Согласовано' : '✕ Отклонено'}
           </p>
         )}
       </div>

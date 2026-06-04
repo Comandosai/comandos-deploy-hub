@@ -318,12 +318,12 @@ export function AgentOutputPanel({
   }, [messages])
 
   const streamStatus = sessionEnded
-    ? 'Completed'
+    ? 'Завершено'
     : streamDisconnected
-      ? 'Disconnected'
+      ? 'Связь потеряна'
       : sessionKey
-        ? 'Streaming'
-        : 'Idle'
+        ? 'Идёт поток'
+        : 'Ожидает'
   const headerStatus = statusLabel || streamStatus
   const handleReconnect = useCallback(() => {
     setStreamDisconnected(false)
@@ -466,10 +466,10 @@ export function AgentOutputPanel({
               </div>
               <p className={cn('mt-1 text-[10px]', compact ? 'text-[var(--theme-muted)]' : 'text-[var(--theme-muted)]')}>
                 {task.status === 'in_progress'
-                  ? 'Working...'
+                  ? 'В работе...'
                   : task.status === 'done'
-                    ? '✓ Completed'
-                    : 'Queued'}
+                    ? '✓ Готово'
+                    : 'В очереди'}
               </p>
             </div>
           ))}
@@ -689,11 +689,11 @@ export function AgentOutputPanel({
           <span
             className={cn(
               'shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold',
-              headerStatus === 'Completed'
+              headerStatus === 'Завершено'
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : headerStatus === 'Disconnected'
+                : headerStatus === 'Связь потеряна'
                   ? 'border-amber-200 bg-amber-50 text-amber-700'
-                : headerStatus === 'Streaming'
+                : headerStatus === 'Идёт поток'
                     ? 'border-sky-200 bg-sky-50 text-sky-700'
                     : 'border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)]',
             )}
@@ -710,7 +710,7 @@ export function AgentOutputPanel({
           type="button"
           onClick={onClose}
           className="flex size-8 shrink-0 items-center justify-center rounded-md border border-[var(--theme-border)] text-sm text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]"
-          aria-label="Close agent output"
+          aria-label="Закрыть вывод агента"
         >
           ✕
         </button>

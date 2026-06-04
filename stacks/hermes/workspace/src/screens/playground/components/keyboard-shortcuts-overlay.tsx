@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react'
 
 export const SHORTCUTS = [
-  ['WASD/arrows', 'move'],
-  ['Shift', 'run'],
-  ['Space', 'jump'],
-  ['Ctrl', 'crouch'],
-  ['E', 'interact / talk'],
-  ['Tab', 'party'],
-  ['I', 'inventory'],
-  ['M', 'map'],
-  ['K', 'skills'],
-  ['N', 'noticeboard / quests'],
-  ['C', 'character'],
-  ['Esc', 'settings'],
-  ['Enter', 'chat'],
-  ['/', 'commands'],
-  ['?', 'help'],
+  ['WASD/стрелки', 'движение'],
+  ['Shift', 'бег'],
+  ['Пробел', 'прыжок'],
+  ['Ctrl', 'присесть'],
+  ['E', 'действие / разговор'],
+  ['Tab', 'команда'],
+  ['I', 'инвентарь'],
+  ['M', 'карта'],
+  ['K', 'навыки'],
+  ['N', 'доска / задания'],
+  ['C', 'персонаж'],
+  ['Esc', 'настройки'],
+  ['Enter', 'чат'],
+  ['/', 'команды'],
+  ['?', 'помощь'],
 ] as const
 
 export function isTypingTarget(target: EventTarget | null) {
@@ -51,7 +51,7 @@ export function KeyboardShortcutsOverlay() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Keyboard shortcuts"
+        aria-label="Горячие клавиши"
         className="w-[min(92vw,520px)] rounded-3xl border-2 p-5 text-white shadow-2xl"
         style={{
           borderColor: 'rgba(241,197,109,.7)',
@@ -62,7 +62,7 @@ export function KeyboardShortcutsOverlay() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-200/70">HermesWorld</div>
-            <h2 className="text-xl font-black text-[#F1C56D]">Keyboard Shortcuts</h2>
+            <h2 className="text-xl font-black text-[#F1C56D]">Горячие клавиши</h2>
           </div>
           <button
             type="button"

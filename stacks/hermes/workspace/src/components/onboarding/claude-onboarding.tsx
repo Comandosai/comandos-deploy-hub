@@ -64,21 +64,21 @@ const PROVIDERS = [
     id: 'nous',
     name: 'Nous Portal',
     logo: '/providers/nous.png',
-    desc: 'Free via OAuth',
+    desc: 'Вход через OAuth',
     authType: 'oauth',
   },
   {
     id: 'openai-codex',
     name: 'OpenAI Codex',
     logo: '/providers/openai.png',
-    desc: 'Free via ChatGPT Pro',
-    authType: 'oauth',
+    desc: 'Вход через Codex CLI на сервере',
+    authType: 'cli_token',
   },
   {
     id: 'anthropic',
     name: 'Anthropic',
     logo: '/providers/anthropic.png',
-    desc: 'API key required',
+    desc: 'Нужен API-ключ',
     authType: 'api_key',
     envKey: 'ANTHROPIC_API_KEY',
   },
@@ -86,7 +86,7 @@ const PROVIDERS = [
     id: 'openrouter',
     name: 'OpenRouter',
     logo: '/providers/openrouter.png',
-    desc: 'API key required',
+    desc: 'Нужен API-ключ',
     authType: 'api_key',
     envKey: 'OPENROUTER_API_KEY',
   },
@@ -94,14 +94,14 @@ const PROVIDERS = [
     id: 'ollama',
     name: 'Ollama',
     logo: '/providers/ollama.png',
-    desc: 'Local models, no key needed',
+    desc: 'Локальные модели без ключа',
     authType: 'none',
   },
   {
     id: 'atomic-chat',
     name: 'Atomic Chat',
     logo: '/providers/atomic-chat.png',
-    desc: 'Local LLMs via Atomic Chat desktop app',
+    desc: 'Локальные модели через Atomic Chat',
     authType: 'none',
   },
   {
@@ -172,6 +172,12 @@ export function ClaudeOnboarding() {
     provider?.id === 'atomic-chat' ||
     provider?.authType === 'custom'
   const isOAuth = provider?.authType === 'oauth'
+  const needsCliLogin = provider?.authType === 'cli_token'
+  const cliProviderConfigured = needsCliLogin
+    ? discoveredProviders.some(
+        (p) => p.id === selectedProvider && p.configured === true,
+      )
+    : true
   const capabilities = backendInfo?.capabilities
   const canEditConfig = Boolean(capabilities?.config)
   const enhancedFeatures = getEnhancedFeatureNames(capabilities)
@@ -262,7 +268,7 @@ export function ClaudeOnboarding() {
       setBackendInfo(null)
       setBackendStatus('error')
       setBackendMessage(
-        err instanceof Error ? err.message : 'Connection check failed',
+        err instanceof Error ? err.message : 'Проверка соединения не удалась',
       )
     }
   }, [])
@@ -300,7 +306,7 @@ export function ClaudeOnboarding() {
       await loadModels()
       return true
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save')
+      setSaveError(err instanceof Error ? err.message : 'Не удалось сохранить')
       return false
     } finally {
       setSaving(false)
@@ -335,7 +341,9 @@ export function ClaudeOnboarding() {
       if (!res.ok) throw new Error(`Save failed: ${res.status}`)
       return true
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save model')
+      setSaveError(
+        err instanceof Error ? err.message : 'Не удалось сохранить модель',
+      )
       return false
     }
   }, [canEditConfig, configuredModel, selectedModel, selectedProvider])
@@ -403,7 +411,7 @@ export function ClaudeOnboarding() {
       }
 
       if (!res.ok || data.error) {
-        setOauthError(data.error || 'Failed to start OAuth')
+        setOauthError(data.error || 'Не удалось запустить OAuth-вход')
         setOauthStep('error')
         return
       }
@@ -442,14 +450,14 @@ export function ClaudeOnboarding() {
 
           if (pollData.status === 'error') {
             if (oauthPollRef.current) clearInterval(oauthPollRef.current)
-            setOauthError(pollData.message || 'Authentication failed')
+            setOauthError(pollData.message || 'OAuth-вход не удался')
             setOauthStep('error')
           }
         } catch {}
       }, intervalMs)
     } catch (err) {
       setOauthError(
-        err instanceof Error ? err.message : 'Failed to start OAuth',
+        err instanceof Error ? err.message : 'Не удалось запустить OAuth-вход',
       )
       setOauthStep('error')
     }
@@ -740,7 +748,7 @@ export function ClaudeOnboarding() {
                         onClick={startNousOAuth}
                         className="w-full rounded-lg bg-accent-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                       >
-                        Connect with Nous Portal
+                        Подключить Nous Portal
                       </button>
                     )}
                     {oauthStep === 'loading' && (
@@ -749,7 +757,7 @@ export function ClaudeOnboarding() {
                         style={mutedStyle}
                       >
                         <span className="size-2 animate-pulse rounded-full bg-accent-500" />
-                        Starting OAuth flow...
+                        Запускаю OAuth-вход...
                       </div>
                     )}
                     {oauthStep === 'waiting' && (
@@ -764,7 +772,7 @@ export function ClaudeOnboarding() {
                         {oauthUserCode ? (
                           <div className="space-y-1 text-center">
                             <p className="text-xs" style={mutedStyle}>
-                              Your code
+                              Код пользователя
                             </p>
                             <p className="text-2xl font-mono font-bold tracking-widest">
                               {oauthUserCode}
@@ -779,7 +787,7 @@ export function ClaudeOnboarding() {
                             className="w-full rounded-lg border py-2 text-xs font-medium"
                             style={{ borderColor: 'var(--theme-border)' }}
                           >
-                            Open Nous Portal ↗
+                            Открыть Nous Portal ↗
                           </button>
                         ) : null}
                       </div>
@@ -787,13 +795,13 @@ export function ClaudeOnboarding() {
                     {oauthStep === 'success' && (
                       <div className="flex items-center gap-2 text-sm text-green-500">
                         <span>✓</span>
-                        <span>Authenticated successfully.</span>
+                        <span>Вход выполнен.</span>
                       </div>
                     )}
                     {oauthStep === 'error' && (
                       <div className="space-y-2">
                         <p className="text-xs text-red-400">
-                          {oauthError || 'Authentication failed'}
+                          {oauthError || 'OAuth-вход не удался'}
                         </p>
                         <button
                           onClick={startNousOAuth}
@@ -807,33 +815,42 @@ export function ClaudeOnboarding() {
                 )}
 
               {selectedProvider &&
-                isOAuth &&
-                selectedProvider === 'openai-codex' &&
+                needsCliLogin &&
                 canEditConfig && (
                   <div
                     className="space-y-2 rounded-xl p-4 text-left"
                     style={{ ...cardStyle, borderColor: 'var(--theme-border)' }}
                   >
-                    <p className="text-sm font-medium">Run in your terminal</p>
+                    <p className="text-sm font-medium">
+                      Войдите в Codex CLI на сервере
+                    </p>
                     <div
                       className="rounded-lg px-3 py-2 font-mono text-xs"
                       style={{ background: 'rgba(0,0,0,0.2)' }}
                     >
-                      claude auth login openai-codex
+                      codex login
                     </div>
                     <p className="text-xs" style={mutedStyle}>
-                      After the login flow completes, click below to refresh
-                      provider settings.
+                      Панель не запускает OAuth для Codex. Она проверяет
+                      серверный файл ~/.codex/auth.json, который создаёт Codex
+                      CLI после входа.
                     </p>
                     <button
                       onClick={async () => {
-                        await saveProviderConfig()
+                        await loadCurrentConfig()
                         await loadModels()
                       }}
                       className="w-full rounded-lg bg-accent-500 py-2 text-xs font-medium text-white"
                     >
-                      I&apos;ve authenticated
+                      Проверить подключение
                     </button>
+                    {!cliProviderConfigured ? (
+                      <p className="text-xs text-yellow-300">
+                        Продолжить можно после того, как Codex CLI будет найден
+                        на сервере. Пока используйте DeepSeek, MiniMax или
+                        провайдера с API-ключом.
+                      </p>
+                    ) : null}
                   </div>
                 )}
 
@@ -959,7 +976,8 @@ export function ClaudeOnboarding() {
                     if (
                       selectedProvider &&
                       canEditConfig &&
-                      (!isOAuth || oauthStep === 'success')
+                      (!isOAuth || oauthStep === 'success') &&
+                      (!needsCliLogin || cliProviderConfigured)
                     ) {
                       ok = await saveProviderConfig()
                     }
@@ -972,7 +990,10 @@ export function ClaudeOnboarding() {
                       setTestMessage('')
                     }
                   }}
-                  disabled={!backendSupportsChat}
+                  disabled={
+                    !backendSupportsChat ||
+                    (needsCliLogin && !cliProviderConfigured)
+                  }
                   className="flex-1 rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
                 >
                   Продолжить →

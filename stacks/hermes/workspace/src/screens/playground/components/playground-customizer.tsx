@@ -61,8 +61,8 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-cyan-500/15 via-transparent to-violet-500/15 px-5 py-3">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Customize your agent</div>
-            <div className="text-base font-extrabold">Builder Workshop</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Настройка агента</div>
+            <div className="text-base font-extrabold">Мастерская сборки</div>
           </div>
           <button onClick={onClose} className="text-white/55 hover:text-white">✕</button>
         </div>
@@ -123,7 +123,7 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-black/40 px-5 py-3">
-          <div className="text-[10px] uppercase tracking-[0.16em] text-white/45">Saved automatically</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-white/45">Сохраняется автоматически</div>
           <div className="flex gap-2">
             <button
               onClick={() => {

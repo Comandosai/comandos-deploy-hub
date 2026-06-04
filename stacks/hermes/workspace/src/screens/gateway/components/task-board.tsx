@@ -30,21 +30,21 @@ type TaskBoardProps = {
 }
 const STORAGE_KEY = 'clawsuite:hub-tasks'
 const COLUMNS: Array<{ key: TaskStatus; label: string }> = [
-  { key: 'inbox', label: 'Inbox' },
-  { key: 'assigned', label: 'Assigned' },
-  { key: 'in_progress', label: 'In Progress' },
-  { key: 'review', label: 'Review' },
-  { key: 'done', label: 'Done' },
+  { key: 'inbox', label: 'Входящие' },
+  { key: 'assigned', label: 'Назначено' },
+  { key: 'in_progress', label: 'В работе' },
+  { key: 'review', label: 'Проверка' },
+  { key: 'done', label: 'Готово' },
 ]
 const PRIORITIES: Array<{
   key: TaskPriority
   label: string
   badge: string
 }> = [
-  { key: 'urgent', label: 'Urgent', badge: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' },
-  { key: 'high', label: 'High', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' },
-  { key: 'normal', label: 'Normal', badge: 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200' },
-  { key: 'low', label: 'Low', badge: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200' },
+  { key: 'urgent', label: 'Срочно', badge: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' },
+  { key: 'high', label: 'Высокий', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' },
+  { key: 'normal', label: 'Обычный', badge: 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200' },
+  { key: 'low', label: 'Низкий', badge: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200' },
 ]
 function isTaskStatus(value: unknown): value is TaskStatus {
   return COLUMNS.some((column) => column.key === value)
@@ -346,7 +346,7 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                             : 'bg-emerald-600 text-white hover:bg-emerald-500',
                         )}
                       >
-                        {isCreating ? 'Cancel' : '+ New Task'}
+                        {isCreating ? 'Отмена' : '+ Новая задача'}
                       </button>
                     ) : null}
                     <span className="rounded-full bg-neutral-800 px-1.5 text-[10px] text-neutral-300">
@@ -386,14 +386,14 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                         type="text"
                         value={form.title}
                         onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                        placeholder="Task title"
+                        placeholder="Название задачи"
                         className="w-full rounded-md border border-primary-200 bg-white px-2 py-1.5 text-xs text-primary-900 outline-none ring-accent-400 focus:ring-1 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
                         required
                       />
                       <textarea
                         value={form.description}
                         onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                        placeholder="Description (optional)"
+                        placeholder="Описание, если нужно"
                         rows={3}
                         className="w-full resize-none rounded-md border border-primary-200 bg-white px-2 py-1.5 text-xs text-primary-900 outline-none ring-accent-400 focus:ring-1 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
                       />
@@ -419,7 +419,7 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                         onChange={(event) => setForm((prev) => ({ ...prev, agentId: event.target.value }))}
                         className="w-full rounded-md border border-primary-200 bg-white px-2 py-1.5 text-xs text-primary-900 outline-none ring-accent-400 focus:ring-1 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100"
                       >
-                        <option value="">Unassigned</option>
+                        <option value="">Без исполнителя</option>
                         {agents.map((agent) => (
                           <option key={agent.id} value={agent.id}>{agent.name}</option>
                         ))}
@@ -430,24 +430,24 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                           onClick={closeCreateForm}
                           className="rounded-md px-2 py-1 text-[11px] font-medium text-primary-500 hover:bg-primary-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                         >
-                          Cancel
+                          Отмена
                         </button>
                         <button
                           type="submit"
                           disabled={!form.title.trim()}
                           className="rounded-md bg-accent-500 px-2 py-1 text-[11px] font-medium text-white transition-colors hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Create
+                          Создать
                         </button>
                       </div>
                     </form>
                   ) : null}
                   {columnTasks.length === 0 ? (
-                    <p className="py-8 text-center text-[11px] text-neutral-500">Drop tasks here</p>
+                    <p className="py-8 text-center text-[11px] text-neutral-500">Перетащите задачи сюда</p>
                   ) : null}
                   {columnTasks.map((task) => {
                     const priority = PRIORITIES.find((item) => item.key === task.priority)
-                    const assignee = task.agentId ? agentNameById.get(task.agentId) ?? task.agentId : 'Unassigned'
+                    const assignee = task.agentId ? agentNameById.get(task.agentId) ?? task.agentId : 'Без исполнителя'
                     const dimmed = Boolean(selectedAgentId && task.agentId !== selectedAgentId)
                     const isExpanded = expandedTaskId === task.id
                     return (
@@ -487,7 +487,7 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                         ) : null}
                         <div className="mt-2 flex items-center justify-between gap-2">
                           <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', priority?.badge)}>
-                            {priority?.label ?? 'Normal'}
+                            {priority?.label ?? 'Обычный'}
                           </span>
                           <span className="truncate text-[10px] text-neutral-400">{assignee}</span>
                         </div>
@@ -500,7 +500,7 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                           >
                             <div>
                               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                                Title
+                                Название
                               </label>
                               <input
                                 type="text"
@@ -515,7 +515,7 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                             </div>
                             <div>
                               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                                Description
+                                Описание
                               </label>
                               <textarea
                                 value={taskEditDraft.description}
@@ -530,12 +530,12 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                               />
                             </div>
                             <p className="text-[11px] text-neutral-400">
-                              <span className="font-semibold uppercase tracking-wide">Agent:</span>{' '}
+                              <span className="font-semibold uppercase tracking-wide">Агент:</span>{' '}
                               {assignee}
                             </p>
                             <div>
                               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                                Priority
+                                Приоритет
                               </label>
                               <select
                                 value={taskEditDraft.priority}
@@ -557,7 +557,7 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                             </div>
                             <div>
                               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                                Status
+                                Статус
                               </label>
                               <select
                                 value={taskEditDraft.status}
@@ -583,14 +583,14 @@ export function TaskBoard({ agents, initialTasks, selectedAgentId, onRef, onTask
                                 onClick={() => saveTaskDetail(task.id)}
                                 className="rounded-md bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-500"
                               >
-                                Save
+                                Сохранить
                               </button>
                               <button
                                 type="button"
                                 onClick={closeTaskDetail}
                                 className="rounded-md px-2 py-1 text-[11px] font-medium text-neutral-300 transition-colors hover:bg-neutral-800"
                               >
-                                Cancel
+                                Отмена
                               </button>
                             </div>
                           </div>

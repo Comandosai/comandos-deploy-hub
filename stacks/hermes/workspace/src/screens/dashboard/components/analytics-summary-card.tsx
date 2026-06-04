@@ -50,7 +50,7 @@ export function AnalyticsSummaryCard({
             className="text-[10px] font-semibold uppercase tracking-[0.15em]"
             style={{ color: 'var(--theme-muted)' }}
           >
-            Top Models · {analytics.windowDays}d
+            Главные модели · {analytics.windowDays} дн.
           </h3>
         </div>
         <div className="text-right">
@@ -58,7 +58,7 @@ export function AnalyticsSummaryCard({
             className="text-[11px] font-mono"
             style={{ color: 'var(--theme-text)' }}
           >
-            {formatTokens(analytics.totalTokens)} tok
+            {formatTokens(analytics.totalTokens)} ток.
           </div>
           {analytics.estimatedCostUsd !== null ? (
             <div
@@ -75,7 +75,7 @@ export function AnalyticsSummaryCard({
           className="flex items-center justify-center py-3 text-[11px]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          No usage in the last {analytics.windowDays}d.
+          За последние {analytics.windowDays} дн. использования не было.
         </div>
       ) : null}
       <div className="space-y-1.5">
@@ -94,7 +94,7 @@ export function AnalyticsSummaryCard({
                   className="font-mono text-[10px]"
                   style={{ color: 'var(--theme-muted)' }}
                 >
-                  {formatTokens(m.tokens)} · {m.calls.toLocaleString()} calls
+                  {formatTokens(m.tokens)} · {m.calls.toLocaleString()} вызовов
                 </span>
               </div>
               <div

@@ -46,30 +46,61 @@ function roleFromId(id: string): string {
   const n = m ? m[1] : ''
   switch (n) {
     case '1':
-      return 'PR / Issues'
+      return 'PR / задачи'
     case '2':
       return 'Qwen PC1'
     case '3':
-      return 'BenchLoop'
+      return 'Цикл замеров'
     case '4':
-      return 'Research'
+      return 'Исследователь'
     case '5':
     case '10':
-      return 'Builder'
+      return 'Сборщик'
     case '6':
     case '11':
       return 'Проверяющий'
     case '7':
-      return 'Docs'
+      return 'Документы'
     case '8':
-      return 'Ops'
+      return 'Операции'
     case '9':
-      return 'Hackathon'
+      return 'Хакатон'
     case '12':
-      return 'PR / Issues'
+      return 'PR / задачи'
     default:
       return 'Агент'
   }
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  Profile: 'Профиль',
+  'PR / Issues': 'PR / задачи',
+  Builder: 'Сборщик',
+  BUILDER: 'Сборщик',
+  builder: 'Сборщик',
+  Reviewer: 'Проверяющий',
+  REVIEWER: 'Проверяющий',
+  reviewer: 'Проверяющий',
+  BenchLoop: 'Цикл замеров',
+  Research: 'Исследователь',
+  RESEARCH: 'Исследователь',
+  research: 'Исследователь',
+  Docs: 'Документы',
+  DOCS: 'Документы',
+  docs: 'Документы',
+  Ops: 'Операции',
+  OPS: 'Операции',
+  ops: 'Операции',
+  'Qwen PC1': 'Qwen PC1',
+  Hackathon: 'Хакатон',
+  Worker: 'Воркер',
+  WORKER: 'Воркер',
+  worker: 'Воркер',
+}
+
+function displayRoleLabel(role: string | null | undefined): string {
+  const value = String(role || 'Worker')
+  return ROLE_LABELS[value] ?? value
 }
 
 function deriveWorkerState(member: CrewMember, currentTask: string | null): WorkerState {
@@ -230,7 +261,8 @@ export function OperationalWorkerCard({
   const [taskComposerOpen, setTaskComposerOpen] = useState(false)
   const state = deriveWorkerState(member, currentTask)
   const status = statusStyles(state)
-  const role = settings.role || member.role || roleFromId(member.id)
+  const rawRole = settings.role || member.role || roleFromId(member.id)
+  const role = displayRoleLabel(rawRole)
   const displayName = settings.displayName || member.displayName || member.id
 
   // Reuse the project endpoint so artifacts can fall back to git-changed files
@@ -356,7 +388,7 @@ export function OperationalWorkerCard({
             {modelLabel}
           </span>
           <span className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-1.5 py-0.5">
-            {projectBranch || projectName || (hasPreview ? 'preview' : 'main')}
+            {projectBranch || projectName || (hasPreview ? 'превью' : 'основная')}
           </span>
         </div>
         <div className="flex w-full justify-center px-28">
@@ -376,10 +408,10 @@ export function OperationalWorkerCard({
               {livePulse ? (
                 <span
                   className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-[0.16em] text-emerald-200"
-                  title="Output within the last 90 seconds"
+                  title="Вывод был за последние 90 секунд"
                 >
                   <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
-                  live
+                  живой
                 </span>
               ) : null}
             </span>
@@ -461,15 +493,15 @@ export function OperationalWorkerCard({
           <div className="mb-2 flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]">
             <button
               type="button"
-              aria-label="Previous panel"
-              title="Previous panel"
+              aria-label="Предыдущая панель"
+              title="Предыдущая панель"
               onClick={() => cycleFocusPanel(-1)}
               className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={11} />
             </button>
             <div className="min-w-0 flex-1 text-center">
-              <div className="truncate">{activeFocusPanel?.label ?? 'Panel'}</div>
+              <div className="truncate">{activeFocusPanel?.label ?? 'Панель'}</div>
               <div className="truncate text-[10px] font-medium normal-case tracking-normal text-[var(--theme-muted)]/80">
                 {activeFocusPanel?.meta ?? outputFreshness}
               </div>
@@ -488,8 +520,8 @@ export function OperationalWorkerCard({
               ) : null}
               <button
                 type="button"
-                aria-label="Next panel"
-                title="Next panel"
+                aria-label="Следующая панель"
+                title="Следующая панель"
                 onClick={() => cycleFocusPanel(1)}
                 className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
               >
@@ -613,7 +645,7 @@ export function OperationalWorkerCard({
                   <option value="">Не выбрано</option>
                   {AVATAR_OPTIONS.filter(Boolean).map((option) => (
                     <option key={option} value={option}>
-                      {option}
+                      {displayRoleLabel(option)}
                     </option>
                   ))}
                 </select>

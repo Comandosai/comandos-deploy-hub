@@ -19,6 +19,19 @@ function readBoolCap(
   return caps[key] === true
 }
 
+function formatOpsFlag(flag: string): string {
+  switch (flag) {
+    case 'tools':
+      return 'инструменты'
+    case 'reasoning':
+      return 'рассуждение'
+    case 'vision':
+      return 'зрение'
+    default:
+      return flag
+  }
+}
+
 type Palette = {
   accent: string
   success: string
@@ -71,7 +84,7 @@ export function ModelInfoCard({
       )
       if (match) {
         const pct = Math.round((match.calls / analytics.totalApiCalls) * 100)
-        return `${pct}% of calls · ${match.sessions.toLocaleString()} sessions · ${analytics.windowDays}d`
+        return `${pct}% вызовов · ${match.sessions.toLocaleString()} сессий · ${analytics.windowDays} д`
       }
     }
     const flags: Array<string> = []
@@ -79,8 +92,8 @@ export function ModelInfoCard({
     if (supportsReasoning) flags.push('reasoning')
     if (supportsVision) flags.push('vision')
     return flags.length > 0
-      ? `default routing · ${flags.join(' + ')}`
-      : 'default routing target'
+      ? `маршрут по умолчанию · ${flags.map(formatOpsFlag).join(' + ')}`
+      : 'цель маршрута по умолчанию'
   }, [analytics, modelInfo, supportsReasoning, supportsTools, supportsVision])
 
   return (
@@ -106,7 +119,7 @@ export function ModelInfoCard({
             className="text-[10px] font-semibold uppercase tracking-[0.18em]"
             style={{ color: palette.muted }}
           >
-            Active Model
+            Активная модель
           </h3>
           <span
             className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -123,7 +136,7 @@ export function ModelInfoCard({
                 background: connected ? palette.success : palette.danger,
               }}
             />
-            {connected ? 'Online' : 'Offline'}
+            {connected ? 'Онлайн' : 'Офлайн'}
           </span>
         </div>
         <div className="flex flex-1 flex-col gap-2 px-4 pb-3 pt-2">
@@ -159,24 +172,24 @@ export function ModelInfoCard({
             />
             {family ? (
               <CapabilityChip
-                label="family"
+                label="семья"
                 value={family}
                 tone={palette.muted}
               />
             ) : null}
             {supportsTools ? (
-              <CapabilityChip label="tools" value="✓" tone={palette.success} />
+              <CapabilityChip label="инстр." value="✓" tone={palette.success} />
             ) : null}
             {supportsVision ? (
               <CapabilityChip
-                label="vision"
+                label="зрение"
                 value="✓"
                 tone={palette.success}
               />
             ) : null}
             {supportsReasoning ? (
               <CapabilityChip
-                label="reason"
+                label="мысли"
                 value="✓"
                 tone={palette.success}
               />
@@ -192,7 +205,7 @@ export function ModelInfoCard({
               color: palette.muted,
             }}
           >
-            Inventory →
+            Список моделей →
           </button>
         </div>
       </div>
@@ -344,7 +357,7 @@ function ModelInventoryModal({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label="Закрыть"
               className="rounded p-1 hover:bg-[var(--theme-card)]/80"
             >
               <HugeiconsIcon

@@ -35,11 +35,15 @@ type TerminalPanelState = {
 function createDefaultTab(counter: number, cwd = '~'): TerminalTab {
   return {
     id: crypto.randomUUID(),
-    title: `Terminal ${counter}`,
+    title: `Терминал ${counter}`,
     cwd,
     sessionId: null,
     status: 'idle',
   }
+}
+
+function normalizeTerminalTitle(title: string): string {
+  return title.replace(/^Terminal\b/i, 'Терминал')
 }
 
 export const useTerminalPanelStore = create<TerminalPanelState>()(
@@ -142,7 +146,10 @@ export const useTerminalPanelStore = create<TerminalPanelState>()(
         return {
           isPanelOpen: state.isPanelOpen,
           panelHeight: state.panelHeight,
-          tabs: state.tabs,
+          tabs: state.tabs.map((tab) => ({
+            ...tab,
+            title: normalizeTerminalTitle(tab.title),
+          })),
           activeTabId: state.activeTabId,
           terminalCounter: state.terminalCounter,
         }
@@ -160,6 +167,10 @@ export const useTerminalPanelStore = create<TerminalPanelState>()(
           const activeExists = state.tabs.some(
             (tab) => tab.id === state.activeTabId,
           )
+          state.tabs = state.tabs.map((tab) => ({
+            ...tab,
+            title: normalizeTerminalTitle(tab.title),
+          }))
           if (!activeExists) {
             state.activeTabId = state.tabs[0].id
           }

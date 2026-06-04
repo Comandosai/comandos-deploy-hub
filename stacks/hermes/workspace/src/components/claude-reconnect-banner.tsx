@@ -260,7 +260,7 @@ export function ClaudeReconnectBanner({
           />
           <div className="min-w-0">
             <p className="text-sm font-semibold">
-              {isDisconnected ? 'Hermes Agent not connected' : 'Connected'}
+              {isDisconnected ? 'Hermes Agent не подключён' : 'Подключено'}
             </p>
             {message ? (
               <p className="truncate text-xs opacity-80">{message}</p>
@@ -281,7 +281,7 @@ export function ClaudeReconnectBanner({
                 color: 'inherit',
               }}
             >
-              {isChecking ? 'Retrying…' : 'Retry'}
+              {isChecking ? 'Проверяю…' : 'Повторить'}
             </button>
             <button
               type="button"

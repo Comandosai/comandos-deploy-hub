@@ -120,12 +120,12 @@ export function CodeBlock({
                 setShowLineNumbers((current) => !current)
               }}
             >
-              {showLineNumbers ? 'Hide lines' : 'Show lines'}
+              {showLineNumbers ? 'Скрыть строки' : 'Показать строки'}
             </Button>
           ) : null}
           <Button
             variant="ghost"
-            aria-label={ariaLabel ?? 'Copy code'}
+            aria-label={ariaLabel ?? 'Копировать код'}
             className="h-auto px-0 text-xs font-medium text-primary-500 hover:text-primary-800 hover:bg-transparent"
             onClick={() => {
               handleCopy().catch(() => {})
@@ -136,7 +136,7 @@ export function CodeBlock({
               size={20}
               strokeWidth={1.5}
             />
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? 'Скопировано' : 'Копировать'}
           </Button>
         </div>
       </div>

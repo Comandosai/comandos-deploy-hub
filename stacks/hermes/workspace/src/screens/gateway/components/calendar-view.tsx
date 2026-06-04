@@ -409,7 +409,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
                         </button>
                       ))}
                       {dayEvents.length > 3 ? (
-                        <div className="px-1.5 text-[11px] font-medium text-primary-400">+{dayEvents.length - 3} more</div>
+                        <div className="px-1.5 text-[11px] font-medium text-primary-400">ещё: {dayEvents.length - 3}</div>
                       ) : null}
                     </div>
                   </div>
@@ -430,7 +430,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
           >
             <div className="min-w-[760px] rounded-lg border border-primary-800">
               <div className="grid grid-cols-[64px_repeat(7,minmax(0,1fr))] border-b border-primary-800 bg-primary-900/50">
-                <div className="border-r border-primary-800 p-2 text-[11px] font-semibold uppercase tracking-wide text-primary-400">Time</div>
+                <div className="border-r border-primary-800 p-2 text-[11px] font-semibold uppercase tracking-wide text-primary-400">Время</div>
                 {weekRange.days.map((day) => (
                   <div key={getDayKey(day)} className={cn('border-r border-primary-800 p-2 text-center text-xs font-semibold last:border-r-0', isSameDay(day, today) ? 'text-accent-300' : 'text-primary-200')}>
                     {WEEKDAY_LABELS[day.getDay()]} {day.getDate()}
@@ -464,7 +464,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
                                 {event.title}
                               </button>
                             ))}
-                            {dayEvents.length > 2 ? <div className="text-[10px] text-primary-400">+{dayEvents.length - 2} more</div> : null}
+                            {dayEvents.length > 2 ? <div className="text-[10px] text-primary-400">ещё: {dayEvents.length - 2}</div> : null}
                           </div>
                         </div>
                       )

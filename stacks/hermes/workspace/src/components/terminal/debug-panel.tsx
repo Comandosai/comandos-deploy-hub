@@ -42,7 +42,7 @@ export function DebugPanel({
             Debug Analyzer
           </h3>
           <p className="text-xs text-primary-400 text-pretty">
-            AI-assisted issue diagnosis for the active terminal
+            Диагностика проблем активного терминала с помощью агента
           </p>
         </div>
         <Button
@@ -50,7 +50,7 @@ export function DebugPanel({
           variant="ghost"
           className="text-primary-300 hover:bg-primary-900 hover:text-primary-100"
           onClick={onClose}
-          aria-label="Close debug analyzer panel"
+          aria-label="Закрыть панель диагностики"
         >
           <HugeiconsIcon icon={Cancel01Icon} size={20} strokeWidth={1.5} />
         </Button>

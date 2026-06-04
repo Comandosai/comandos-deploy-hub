@@ -126,7 +126,7 @@ function ActivityFeedItem({
 }) {
   const displayName = getSwarmSessionDisplayName(session)
   const task =
-    session.task ?? session.initialMessage ?? session.label ?? 'Working...'
+    session.task ?? session.initialMessage ?? session.label ?? 'В работе...'
 
   return (
     <motion.div

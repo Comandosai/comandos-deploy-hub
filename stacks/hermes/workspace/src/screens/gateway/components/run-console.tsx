@@ -408,7 +408,7 @@ export function RunConsole({
                 disabled={isStopping}
                 className="inline-flex h-8 items-center gap-1 rounded-md border border-red-500/40 bg-red-500/15 px-3 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/25 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isStopping ? 'Stopping...' : '■ Stop'}
+                {isStopping ? 'Останавливаю...' : '■ Остановить'}
               </button>
             ) : null}
             {onClose ? (
@@ -417,7 +417,7 @@ export function RunConsole({
                 onClick={onClose}
                 className="inline-flex h-8 items-center rounded-md border border-primary-700 bg-primary-900/70 px-3 text-xs font-medium text-primary-200 transition-colors hover:border-primary-600 hover:bg-primary-800"
               >
-                Close
+                Закрыть
               </button>
             ) : null}
           </div>
@@ -624,7 +624,7 @@ export function RunConsole({
                             disabled={!onApprove}
                             className="rounded-md border border-amber-500/50 bg-amber-500/20 px-2.5 py-1 text-xs font-medium text-amber-100 transition-colors hover:bg-amber-500/30"
                           >
-                            Approve
+                            Согласовать
                           </button>
                           <button
                             type="button"
@@ -632,7 +632,7 @@ export function RunConsole({
                             disabled={!onDeny}
                             className="rounded-md border border-primary-700 bg-primary-900/80 px-2.5 py-1 text-xs font-medium text-primary-200 transition-colors hover:bg-primary-800"
                           >
-                            Deny
+                            Отклонить
                           </button>
                         </div>
                       </div>
@@ -877,7 +877,7 @@ export function RunConsole({
         {activeTab === 'artifacts' ? (
           <div className="rounded-xl border border-primary-800/80 bg-primary-950/50 p-4 sm:p-5">
             {!artifacts || artifacts.length === 0 ? (
-              <p className="text-sm text-primary-300">No artifacts collected yet</p>
+              <p className="text-sm text-primary-300">Артефакты пока не собраны</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {artifacts
@@ -886,7 +886,7 @@ export function RunConsole({
                   .map((artifact) => {
                     const isExpanded = expandedArtifactId === artifact.id
                     const commitHash = artifact.name.split(' ')[0] || artifact.name
-                    const commitMessage = artifact.content || artifact.name.slice(commitHash.length).trim() || 'No commit message'
+                    const commitMessage = artifact.content || artifact.name.slice(commitHash.length).trim() || 'Сообщение коммита не найдено'
                     return (
                       <article key={artifact.id} className="rounded-lg border border-primary-800/80 bg-primary-900/60 p-3">
                         <div className="mb-2 flex items-start justify-between gap-2">
@@ -900,24 +900,24 @@ export function RunConsole({
                             className="inline-flex items-center gap-1 rounded-md border border-primary-700 bg-primary-900/80 px-2 py-1 text-[11px] text-primary-200 transition-colors hover:bg-primary-800"
                           >
                             <HugeiconsIcon icon={Copy01Icon} size={12} strokeWidth={1.8} />
-                            {copiedArtifactId === artifact.id ? 'Copied' : 'Copy'}
+                            {copiedArtifactId === artifact.id ? 'Скопировано' : 'Копировать'}
                           </button>
                         </div>
 
                         {artifact.type === 'file' ? (
                           <div className="space-y-2 text-xs text-primary-300">
-                            <p className="truncate text-primary-200">Path: {artifact.path || 'Unknown path'}</p>
+                            <p className="truncate text-primary-200">Путь: {artifact.path || 'путь неизвестен'}</p>
                             <button
                               type="button"
                               onClick={() => setExpandedArtifactId(isExpanded ? null : artifact.id)}
                               className="inline-flex items-center gap-1 rounded-md border border-primary-700 bg-primary-900/80 px-2 py-1 text-[11px] font-medium text-primary-200 transition-colors hover:bg-primary-800"
                             >
                               <HugeiconsIcon icon={ViewIcon} size={12} strokeWidth={1.8} />
-                              View
+                              Показать
                             </button>
                             {isExpanded ? (
                               <pre className="max-h-32 overflow-auto rounded-md border border-primary-800 bg-primary-950/80 p-2 text-[11px] text-primary-200">
-                                {artifact.content || artifact.path || 'No file preview available'}
+                                {artifact.content || artifact.path || 'Предпросмотр файла недоступен'}
                               </pre>
                             ) : null}
                           </div>
@@ -925,14 +925,14 @@ export function RunConsole({
 
                         {artifact.type === 'output' ? (
                           <pre className="max-h-32 overflow-auto rounded-md border border-primary-800 bg-primary-950/80 p-2 text-[11px] text-primary-200">
-                            {(artifact.content || 'No output content').slice(0, 200)}
+                            {(artifact.content || 'Вывода пока нет').slice(0, 200)}
                             {(artifact.content || '').length > 200 ? '...' : ''}
                           </pre>
                         ) : null}
 
                         {artifact.type === 'commit' ? (
                           <div className="space-y-1.5 text-xs text-primary-300">
-                            <p className="font-mono text-primary-200">Hash: {commitHash}</p>
+                            <p className="font-mono text-primary-200">Хеш: {commitHash}</p>
                             <p className="line-clamp-3 break-words">{commitMessage}</p>
                           </div>
                         ) : null}

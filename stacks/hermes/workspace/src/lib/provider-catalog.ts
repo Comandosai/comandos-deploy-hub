@@ -15,7 +15,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'anthropic',
     name: 'Anthropic',
-    description: 'Claude models — Haiku, Sonnet, and Opus.',
+    description: 'Модели Claude: Haiku, Sonnet и Opus.',
     authTypes: ['api-key', 'cli-token'],
     docsUrl: 'https://console.anthropic.com/settings/keys',
     configExample: JSON.stringify(
@@ -36,7 +36,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'openai',
     name: 'OpenAI',
-    description: 'GPT and reasoning models for chat and tools.',
+    description: 'GPT-модели и reasoning-модели для чата и инструментов.',
     authTypes: ['api-key'],
     docsUrl: 'https://platform.openai.com/api-keys',
     configExample: JSON.stringify(
@@ -57,7 +57,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'deepseek',
     name: 'DeepSeek',
-    description: 'DeepSeek chat and reasoning models.',
+    description: 'DeepSeek chat и reasoning-модели.',
     authTypes: ['api-key'],
     docsUrl: 'https://platform.deepseek.com/api_keys',
     configExample: JSON.stringify(
@@ -78,7 +78,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'google',
     name: 'Google',
-    description: 'Gemini models with API key or OAuth.',
+    description: 'Модели Gemini через API-ключ или OAuth.',
     authTypes: ['api-key', 'oauth'],
     docsUrl: 'https://aistudio.google.com/app/apikey',
     configExample: JSON.stringify(
@@ -99,7 +99,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'openrouter',
     name: 'OpenRouter',
-    description: 'Unified access to many providers through one API.',
+    description: 'Доступ к разным провайдерам через один API.',
     authTypes: ['api-key'],
     docsUrl: 'https://openrouter.ai/keys',
     configExample: JSON.stringify(
@@ -120,7 +120,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'minimax',
     name: 'MiniMax',
-    description: 'MiniMax foundation models and multimodal APIs.',
+    description: 'Модели MiniMax и мультимодальные API.',
     authTypes: ['api-key'],
     docsUrl: 'https://www.minimax.io/platform',
     configExample: JSON.stringify(
@@ -141,7 +141,7 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'ollama',
     name: 'Ollama',
-    description: 'Local models running on your machine via Ollama.',
+    description: 'Локальные модели на вашей машине через Ollama.',
     authTypes: ['local'],
     docsUrl: 'https://ollama.com/download',
     configExample: JSON.stringify(
@@ -161,7 +161,8 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
   {
     id: 'atomic-chat',
     name: 'Atomic Chat',
-    description: 'Local LLMs via Atomic Chat — run Llama, Gemma, Qwen and more on your machine.',
+    description:
+      'Локальные модели через Atomic Chat: Llama, Gemma, Qwen и другие.',
     authTypes: ['local'],
     docsUrl: 'https://atomic.chat',
     configExample: JSON.stringify(
@@ -170,6 +171,28 @@ export const PROVIDER_CATALOG: Array<ProviderInfo> = [
           profiles: {
             'atomic-chat:local': {
               provider: 'atomic-chat',
+            },
+          },
+        },
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    id: 'openai-codex',
+    name: 'OpenAI Codex',
+    description:
+      'Подключение через авторизованный Codex CLI на сервере, без ложного OAuth в панели.',
+    authTypes: ['cli-token'],
+    docsUrl: 'https://developers.openai.com/codex/cli',
+    configExample: JSON.stringify(
+      {
+        auth: {
+          profiles: {
+            'openai-codex:cli': {
+              provider: 'openai-codex',
+              source: 'codex-cli',
             },
           },
         },
@@ -197,7 +220,7 @@ export function getProviderDisplayName(providerId: string): string {
   if (provider) return provider.name
 
   const normalized = normalizeProviderId(providerId)
-  if (!normalized) return 'Unknown Provider'
+  if (!normalized) return 'Неизвестный провайдер'
 
   return normalized
     .split(/[-_\s]+/)
@@ -209,10 +232,10 @@ export function getProviderDisplayName(providerId: string): string {
 }
 
 export function getAuthTypeLabel(authType: ProviderAuthType): string {
-  if (authType === 'api-key') return 'API Key'
+  if (authType === 'api-key') return 'API-ключ'
   if (authType === 'oauth') return 'OAuth'
-  if (authType === 'cli-token') return 'CLI Token'
-  return 'Local'
+  if (authType === 'cli-token') return 'CLI-вход'
+  return 'Локально'
 }
 
 export function buildConfigExample(

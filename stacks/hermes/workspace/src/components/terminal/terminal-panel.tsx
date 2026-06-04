@@ -38,6 +38,17 @@ type TerminalPanelProps = {
   isMobile?: boolean
 }
 
+function createTerminalTabTitle(index: number): string {
+  return `Терминал ${index}`
+}
+
+function normalizeTerminalTab(tab: TerminalTabState): TerminalTabState {
+  return {
+    ...tab,
+    title: tab.title.replace(/^Terminal\b/i, 'Терминал'),
+  }
+}
+
 export function TerminalPanel({ isMobile }: TerminalPanelProps) {
   const [isOpen, setIsOpen] = useState(() => {
     const stored = window.localStorage.getItem(PANEL_OPEN_KEY)
@@ -51,15 +62,15 @@ export function TerminalPanel({ isMobile }: TerminalPanelProps) {
   const [tabs, setTabs] = useState<Array<TerminalTabState>>(() => {
     const stored = window.localStorage.getItem(TABS_KEY)
     if (!stored) {
-      return [{ id: crypto.randomUUID(), title: 'Terminal 1' }]
+      return [{ id: crypto.randomUUID(), title: createTerminalTabTitle(1) }]
     }
     try {
       const parsed = JSON.parse(stored) as Array<TerminalTabState>
       return parsed.length
-        ? parsed
-        : [{ id: crypto.randomUUID(), title: 'Terminal 1' }]
+        ? parsed.map(normalizeTerminalTab)
+        : [{ id: crypto.randomUUID(), title: createTerminalTabTitle(1) }]
     } catch {
-      return [{ id: crypto.randomUUID(), title: 'Terminal 1' }]
+      return [{ id: crypto.randomUUID(), title: createTerminalTabTitle(1) }]
     }
   })
   const [activeTabId, setActiveTabId] = useState(() => {
@@ -106,7 +117,7 @@ export function TerminalPanel({ isMobile }: TerminalPanelProps) {
   const handleAddTab = useCallback(() => {
     const newTab: TerminalTabState = {
       id: crypto.randomUUID(),
-      title: `Terminal ${tabs.length + 1}`,
+      title: createTerminalTabTitle(tabs.length + 1),
     }
     setTabs((prev) => [...prev, newTab])
     setActiveTabId(newTab.id)
@@ -383,7 +394,7 @@ export function TerminalPanel({ isMobile }: TerminalPanelProps) {
             size={18}
             strokeWidth={1.4}
           />
-          Terminal
+          Терминал
         </div>
         <Button
           size="sm"

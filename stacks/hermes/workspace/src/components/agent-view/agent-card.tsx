@@ -111,11 +111,11 @@ function getStatusTextClassName(status: AgentNodeStatus): string {
 }
 
 function getStatusLabel(status: AgentNodeStatus): string {
-  if (status === 'failed') return 'failed'
-  if (status === 'thinking') return 'thinking'
-  if (status === 'complete') return 'complete'
-  if (status === 'queued') return 'queued'
-  return 'running'
+  if (status === 'failed') return 'Ошибка'
+  if (status === 'thinking') return 'Думает'
+  if (status === 'complete') return 'Готово'
+  if (status === 'queued') return 'В очереди'
+  return 'Работает'
 }
 
 function shouldPulse(status: AgentNodeStatus): boolean {
@@ -412,7 +412,7 @@ export function AgentCard({
                 onClick={() => setKillConfirmOpen(true)}
               >
                 <HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={1.5} />
-                Kill
+                Остановить
               </Button>
             ) : null}
             {node.status === 'queued' ? (
@@ -423,7 +423,7 @@ export function AgentCard({
                 onClick={() => onCancel?.(node.id)}
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
-                Cancel
+                Отмена
               </Button>
             ) : null}
           </div>
@@ -687,7 +687,7 @@ export function AgentCard({
                     onClick={handleViewClick}
                   >
                     <HugeiconsIcon icon={EyeIcon} size={14} strokeWidth={1.5} />
-                    View
+                    Открыть
                   </Button>
                 ) : null}
                 {node.status === 'queued' ? (
@@ -698,7 +698,7 @@ export function AgentCard({
                     onClick={function handleCancelClick() {
                       onCancel?.(node.id)
                     }}
-                    title="Cancel"
+                    title="Отмена"
                   >
                     <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={1.5} />
                   </Button>

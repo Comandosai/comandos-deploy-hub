@@ -472,19 +472,19 @@ function fileNameFromPath(value: string): string {
 }
 
 const TOOL_DISPLAY_LABELS: Record<string, string> = {
-  browser_click: '🖱 Click Element',
-  browser_type: '⌨ Type Text',
-  browser_press: '⏎ Press Key',
-  browser_scroll: '↕ Scroll',
-  browser_back: '← Back',
-  browser_get_images: '🖼 Get Images',
-  browser_vision: '👁 Vision Capture',
-  browser_close: '✕ Close Browser',
-  execute_code: '🐍 Execute Code',
-  process: '⚙ Process',
-  'multi_tool_use.parallel': '⚡ Parallel Tools',
-  todo: '☑ Todo',
-  cronjob: '⏰ Cron Job',
+  browser_click: '🖱 Клик по элементу',
+  browser_type: '⌨ Ввод текста',
+  browser_press: '⏎ Нажатие клавиши',
+  browser_scroll: '↕ Прокрутка',
+  browser_back: '← Назад',
+  browser_get_images: '🖼 Получение изображений',
+  browser_vision: '👁 Снимок экрана',
+  browser_close: '✕ Закрыть браузер',
+  execute_code: '🐍 Выполнение кода',
+  process: '⚙ Процесс',
+  'multi_tool_use.parallel': '⚡ Параллельные инструменты',
+  todo: '☑ Задачи',
+  cronjob: '⏰ Задание по расписанию',
   delegate_task: '👥 Delegate Task',
   mixture_of_agents: '🧠 Mixture of Agents',
   session_search: '🔍 Search Sessions',
@@ -976,12 +976,12 @@ function ToolCallPill({ toolCall }: { toolCall: StreamToolCall }) {
             toolCall.name.includes('Edit')
           ? 'Writing'
           : toolCall.name.includes('exec') || toolCall.name.includes('terminal')
-            ? 'Executing'
+            ? 'Выполняю'
             : toolCall.name.includes('memory')
-              ? 'Remembering'
+              ? 'Запоминаю'
               : toolCall.name.includes('browser')
-                ? 'Browsing'
-                : 'Working')
+                ? 'Работаю в браузере'
+                : 'Работаю')
   const displayName = formatToolDisplayLabel(
     toolCall.name,
     toolCall.args as Record<string, unknown> | undefined,
@@ -1088,7 +1088,7 @@ function ToolCallPill({ toolCall }: { toolCall: StreamToolCall }) {
               style={{ borderColor: 'var(--theme-border)' }}
             >
               <div className="text-[9px] uppercase tracking-widest opacity-40 mb-0.5">
-                Output
+                Вывод
               </div>
               <pre className="text-[10px] font-mono whitespace-pre-wrap break-words max-h-48 overflow-y-auto text-ink opacity-80">
                 {showMore ? result : detail}
@@ -1101,7 +1101,7 @@ function ToolCallPill({ toolCall }: { toolCall: StreamToolCall }) {
                       setShowMore(true)
                     }}
                   >
-                    Show more
+                    Показать полностью
                   </button>
                 )}
               </pre>
@@ -1511,7 +1511,7 @@ function InlineArtifactCard({ artifact }: { artifact: InlineArtifact }) {
               <DialogTitle className="truncate text-base">{artifact.title}</DialogTitle>
               <div className="text-xs uppercase tracking-wide opacity-70">{artifact.type}</div>
             </div>
-            <DialogClose>Close</DialogClose>
+            <DialogClose>Закрыть</DialogClose>
           </div>
           <div className="p-4">
             <ArtifactPreviewBody artifact={artifact} />
@@ -1623,10 +1623,10 @@ function InlineToolSectionItem({
         ? 'Writing'
         : toolSection.type.includes('exec') ||
             toolSection.type.includes('terminal')
-          ? 'Executing'
+          ? 'Выполняю'
           : toolSection.type.includes('memory')
-            ? 'Remembering'
-            : 'Working'
+            ? 'Запоминаю'
+            : 'Работаю'
 
   const previewLabel = toolSection.preview || headerArgTruncated
   const hasInputData =
@@ -1848,7 +1848,7 @@ function InlineToolSectionItem({
                   }}
                   className="text-[9px] text-primary-500 hover:text-primary-700"
                 >
-                  {showFullOutput ? 'less' : 'more'}
+                  {showFullOutput ? 'свернуть' : 'ещё'}
                 </button>
               )}
               <button
@@ -1909,7 +1909,7 @@ function ToolCallGroup({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--theme-muted)]">
-                Tool calls
+                Инструменты
               </span>
               <span className="rounded-md border border-[var(--theme-border)] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[var(--theme-muted)]">
                 {summary.countLabel}

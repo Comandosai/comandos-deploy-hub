@@ -25,19 +25,19 @@ function getSetupSteps(
   return [
     {
       title: 'Подключите OpenAI-совместимый сервер',
-      command: 'Set HERMES_API_URL to your backend base URL',
+      command: 'HERMES_API_URL=http://127.0.0.1:8642 pnpm dev',
       note: 'Переносимый чат работает с любым сервером, где есть /v1/chat/completions: Ollama, LiteLLM, vLLM и другие.',
     },
     {
       title: 'Опционально установите Hermes Agent локально',
       command:
         'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash',
-      note: 'Vanilla hermes-agent открывает sessions, skills, memory, jobs и config автоматически.',
+      note: 'Hermes Agent открывает сессии, навыки, память, задания и настройки автоматически.',
     },
     {
       title: 'Настройте агента',
       command: 'hermes setup',
-      note: 'Выберите providers один раз; Hermes Agent сохранит конфиг в ~/.hermes.',
+      note: 'Выберите провайдеры один раз; Hermes Agent сохранит конфиг в ~/.hermes.',
     },
     {
       title: 'Запустите gateway',
@@ -367,7 +367,7 @@ export function ConnectionStartupScreen({ onConnected }: Props) {
                   на любой OpenAI-совместимый сервер:
                 </p>
                 <pre className="mt-2 overflow-x-auto font-mono text-xs" style={{ color: 'var(--theme-muted)' }}>
-                  HERMES_API_URL=http://your-server:8642 pnpm dev
+                  HERMES_API_URL=http://127.0.0.1:8642 pnpm dev
                 </pre>
               </div>
             </div>

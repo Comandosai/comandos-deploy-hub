@@ -244,12 +244,12 @@ export function HeroMetrics({
     ? analytics!.totalApiCalls
     : fallback.toolCalls
 
-  const window = useAnalytics ? `${analytics!.windowDays}d` : 'all time'
+  const window = useAnalytics ? `${analytics!.windowDays} дн.` : 'всё время'
 
   const tiles: Array<HeroTileProps> = useMemo(
     () => [
       {
-        label: 'Sessions',
+        label: 'Сессии',
         value: formatCount(sessionsTotal),
         sub: window,
         delta: useAnalytics ? deltaPct(sessCurr, sessPrev) : null,
@@ -258,20 +258,20 @@ export function HeroMetrics({
         icon: '💬',
       },
       {
-        label: 'Tokens',
+        label: 'Токены',
         value: formatTokens(tokensTotal),
         sub: useAnalytics
-          ? `${formatTokens(analytics!.cacheReadTokens)} cached`
-          : 'Hermes ledger',
+          ? `${formatTokens(analytics!.cacheReadTokens)} из кэша`
+          : 'журнал Hermes',
         delta: useAnalytics ? deltaPct(tokCurr, tokPrev) : null,
         spark: useAnalytics ? dailyTokens : undefined,
         tone: 'var(--theme-accent-secondary)',
         icon: '⚡',
       },
       {
-        label: 'API Calls',
+        label: 'API-вызовы',
         value: formatCount(apiCalls),
-        sub: useAnalytics ? `${window} window` : 'tool calls',
+        sub: useAnalytics ? `окно ${window}` : 'вызовы инструментов',
         delta: null,
         spark: useAnalytics ? dailyCalls : undefined,
         tone: 'var(--theme-success)',

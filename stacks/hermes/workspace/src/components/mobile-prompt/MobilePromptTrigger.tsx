@@ -223,7 +223,7 @@ export function MobilePromptTrigger() {
                     background: 'var(--theme-card2)',
                   }}
                 />
-                <span>Don&apos;t show this again</span>
+                <span>Больше не показывать</span>
               </label>
             </div>
           </motion.div>

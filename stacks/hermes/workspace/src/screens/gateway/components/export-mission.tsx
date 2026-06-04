@@ -120,7 +120,7 @@ export function ExportMissionButton({ report }: { report: ExportableMissionRepor
           'hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors',
         )}
       >
-        📄 Export .md
+        📄 Экспорт .md
       </button>
       <button
         type="button"
@@ -133,7 +133,7 @@ export function ExportMissionButton({ report }: { report: ExportableMissionRepor
             : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800',
         )}
       >
-        {copied ? '✓ Copied' : '📋 Copy MD'}
+        {copied ? '✓ Скопировано' : '📋 Копировать MD'}
       </button>
     </div>
   )

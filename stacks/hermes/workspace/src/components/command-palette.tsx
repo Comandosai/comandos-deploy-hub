@@ -223,10 +223,10 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
       },
       {
         id: 'screen-settings',
-        group: 'Screens',
-        label: 'Settings',
-        keywords: 'preferences configuration',
-        shortcut: 'Go',
+        group: 'Разделы',
+        label: 'Настройки',
+        keywords: 'preferences configuration настройки параметры',
+        shortcut: 'Открыть',
         icon: Settings01Icon,
         onSelect: () => void navigate({ to: '/settings', search: {} }),
       },
@@ -241,7 +241,7 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
         .slice(0, 5)
         .map((session) => ({
           id: `session-${session.key}`,
-          group: 'Recent Sessions',
+          group: 'Недавние сессии',
           label: getSessionLabel(session),
           keywords: `${session.key} ${session.friendlyId} ${session.title ?? ''} ${session.derivedTitle ?? ''}`,
           shortcut: 'Open',

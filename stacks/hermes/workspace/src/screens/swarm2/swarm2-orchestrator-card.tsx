@@ -337,7 +337,7 @@ export function Swarm2OrchestratorCard({
                   onClick={() => cycleAgentPage(1)}
                   disabled={filteredAgents.length <= AGENT_PAGE_SIZE}
                   className="inline-flex size-7 items-center justify-center rounded-lg text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] disabled:cursor-not-allowed disabled:opacity-35"
-                  aria-label="Next agent page"
+                  aria-label="Следующая страница агентов"
                 >
                   →
                 </button>

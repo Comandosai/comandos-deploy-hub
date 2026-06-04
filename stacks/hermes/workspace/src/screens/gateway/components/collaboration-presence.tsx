@@ -195,13 +195,13 @@ export function CollaborationPresence() {
               style={{ backgroundColor: user.color }}
               title={label}
             >
-              {isSelf ? 'Y' : 'U'}
+              {isSelf ? 'Я' : 'У'}
             </div>
           )
         })}
       </div>
-      {overflowCount > 0 ? <span className="text-primary-400">+{overflowCount} more</span> : null}
-      <span className="hidden sm:inline text-primary-300">{isSolo ? 'Only you' : `${users.length} viewing`}</span>
+      {overflowCount > 0 ? <span className="text-primary-400">ещё: {overflowCount}</span> : null}
+      <span className="hidden sm:inline text-primary-300">{isSolo ? 'Только вы' : `смотрят: ${users.length}`}</span>
     </div>
   )
 }

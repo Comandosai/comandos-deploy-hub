@@ -40,7 +40,7 @@ function ReserveRoute() {
     fetch('/api/hermesworld/reservations', { cache: 'no-store' })
       .then(async (response) => {
         const payload = await response.json()
-        if (!response.ok) throw new Error(payload.error || 'Failed to load counter')
+        if (!response.ok) throw new Error(payload.error || 'Не удалось загрузить счётчик')
         if (!cancelled) {
           setCounter({ loading: false, count: payload.count || 0, error: null })
         }

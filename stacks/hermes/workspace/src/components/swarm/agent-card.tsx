@@ -40,31 +40,31 @@ function roleFromId(id: string): string {
   const n = m ? m[1] : ''
   switch (n) {
     case '1':
-      return 'PR / Issues'
+      return 'PR / задачи'
     case '2':
       return 'Qwen PC1'
     case '3':
-      return 'BenchLoop'
+      return 'Цикл замеров'
     case '4':
-      return 'Research'
+      return 'Исследователь'
     case '5':
-      return 'Builder'
+      return 'Сборщик'
     case '6':
-      return 'Reviewer'
+      return 'Проверяющий'
     case '7':
-      return 'Docs'
+      return 'Документы'
     case '8':
-      return 'Ops'
+      return 'Операции'
     case '9':
-      return 'Hackathon'
+      return 'Хакатон'
     case '10':
-      return 'Builder'
+      return 'Сборщик'
     case '11':
-      return 'Reviewer'
+      return 'Проверяющий'
     case '12':
       return 'PR / Issues'
     default:
-      return 'Worker'
+      return 'Агент'
   }
 }
 
@@ -72,20 +72,32 @@ function roleAccent(role: string): string {
   if (role.includes('PR')) return 'from-amber-500/18 via-[#17150f] to-[#0f120f]'
   if (role.includes('Qwen'))
     return 'from-violet-500/18 via-[#12101a] to-[#0f1114]'
-  if (role.includes('BenchLoop'))
+  if (role.includes('Цикл замеров'))
     return 'from-cyan-500/18 via-[#0d1719] to-[#0d1112]'
-  if (role.includes('Research'))
+  if (role.includes('Исследователь'))
     return 'from-sky-500/16 via-[#0c1418] to-[#0e1112]'
-  if (role.includes('Builder'))
+  if (role.includes('Сборщик'))
     return 'from-emerald-500/18 via-[#101913] to-[#0d110e]'
-  if (role.includes('Reviewer'))
+  if (role.includes('Проверяющий'))
     return 'from-fuchsia-500/16 via-[#171118] to-[#110f12]'
-  if (role.includes('Docs'))
+  if (role.includes('Документы'))
     return 'from-orange-500/18 via-[#1a140f] to-[#110f0d]'
-  if (role.includes('Ops')) return 'from-lime-500/16 via-[#12180f] to-[#0e110d]'
-  if (role.includes('Hackathon'))
+  if (role.includes('Операции')) return 'from-lime-500/16 via-[#12180f] to-[#0e110d]'
+  if (role.includes('Хакатон'))
     return 'from-pink-500/18 via-[#1a1117] to-[#110d10]'
   return 'from-emerald-500/14 via-[#151d17] to-[#101713]'
+}
+
+function formatAgentState(state: AgentState): string {
+  if (state === 'executing') return 'выполняет'
+  if (state === 'thinking') return 'думает'
+  if (state === 'writing') return 'пишет'
+  if (state === 'waiting') return 'ждёт'
+  if (state === 'blocked') return 'блокировка'
+  if (state === 'syncing') return 'синхронизация'
+  if (state === 'reviewing') return 'проверяет'
+  if (state === 'offline') return 'не в сети'
+  return 'ожидает'
 }
 
 function deriveAgentState(
@@ -211,16 +223,16 @@ export function AgentCard({
               {isGenerating ? (
                 <span className="inline-block size-1.5 animate-pulse rounded-full bg-current" />
               ) : null}
-              {state}
+              {formatAgentState(state)}
             </span>
             {inRoom ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/40 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
-                wired
+                в комнате
               </span>
             ) : null}
             {selected ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/35 bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-100">
-                selected
+                выбран
               </span>
             ) : null}
           </div>
@@ -230,16 +242,16 @@ export function AgentCard({
       <div className="rounded-2xl border border-white/8 bg-black/22 px-3 py-2 text-xs">
         <div className="flex items-center justify-between gap-2">
           <div className="text-[10px] uppercase tracking-[0.18em] text-emerald-200/50">
-            Now
+            Сейчас
           </div>
           {member.assignedTaskCount > 0 || member.cronJobCount > 0 ? (
             <div className="text-[10px] text-emerald-100/45">
-              {member.assignedTaskCount} tasks · {member.cronJobCount} cron
+              задач: {member.assignedTaskCount} · расписание: {member.cronJobCount}
             </div>
           ) : null}
         </div>
         <div className="mt-1 line-clamp-2 text-emerald-50/90">
-          {currentTask ?? 'Ready for orchestration'}
+          {currentTask ?? 'Готов к оркестрации'}
         </div>
         {recentLines.length > 0 ? (
           <div className="mt-1.5 truncate text-[11px] text-emerald-100/45">
@@ -251,8 +263,8 @@ export function AgentCard({
       {compactSignalOnly ? (
         <div className="min-h-[12rem] flex-1 rounded-2xl border border-emerald-400/10 bg-black/18 p-3 text-[11px] text-emerald-100/55">
           <div className="mb-2 flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.18em] text-emerald-200/45">
-            <span>Signal</span>
-            <span>{selected ? 'focused' : 'click card to focus'}</span>
+            <span>Сигнал</span>
+            <span>{selected ? 'в фокусе' : 'нажмите карточку'}</span>
           </div>
           {recentLines.length > 0 ? (
             <div className="space-y-1">
@@ -264,7 +276,7 @@ export function AgentCard({
             </div>
           ) : (
             <div className="text-emerald-100/40">
-              No runtime tail yet. Use Router for orchestration or Terminal for live tmux.
+              Логов среды пока нет. Используйте роутер для оркестрации или терминал для живого tmux.
             </div>
           )}
         </div>
@@ -298,7 +310,7 @@ export function AgentCard({
             icon={inRoom ? CheckmarkCircle02Icon : Add01Icon}
             size={11}
           />
-          {inRoom ? 'Room' : '+ Room'}
+          {inRoom ? 'В комнате' : '+ В комнату'}
         </button>
         <div className="flex items-center gap-2">
           <button
@@ -307,7 +319,7 @@ export function AgentCard({
             className="inline-flex items-center gap-1 rounded-full border border-emerald-400/15 bg-transparent px-2.5 py-1 text-emerald-200/70 hover:text-white"
           >
             <HugeiconsIcon icon={CheckListIcon} size={11} />
-            Tasks
+            Задачи
           </button>
           <button
             type="button"
@@ -315,7 +327,7 @@ export function AgentCard({
             className="inline-flex items-center gap-1 rounded-full border border-emerald-400/15 bg-transparent px-2.5 py-1 text-emerald-200/70 hover:text-white"
           >
             <HugeiconsIcon icon={ComputerTerminal01Icon} size={11} />
-            Terminal
+            Терминал
           </button>
         </div>
       </div>

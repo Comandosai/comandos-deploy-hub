@@ -104,7 +104,7 @@ function SectionHeader({
   return (
     <div className="mb-2">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
-        Settings
+        Настройки
       </p>
       <h3 className="text-base font-semibold text-primary-900 dark:text-neutral-100">
         {title}
@@ -475,11 +475,11 @@ function HermesContent() {
         body: JSON.stringify(updates),
       })
       const r = (await res.json()) as { message?: string }
-      setMsg(r.message || 'Saved')
+      setMsg(r.message || 'Сохранено')
       await refreshConfig()
       setTimeout(() => setMsg(null), 3000)
     } catch {
-      setMsg('Failed to save')
+      setMsg('Не удалось сохранить')
     }
     setSaving(false)
   }
@@ -660,7 +660,7 @@ function HermesContent() {
   if (!configAvailable) {
     return (
       <BackendUnavailableState
-        feature="Hermes Agent Settings"
+        feature="настройки Hermes Agent"
         description={getUnavailableReason('config')}
       />
     )
@@ -679,7 +679,7 @@ function HermesContent() {
         <div
           className={cn(
             'rounded-lg px-3 py-2 text-sm font-medium',
-            msg.includes('Failed')
+            msg.includes('Failed') || msg.includes('Не удалось')
               ? 'bg-red-500/15 text-red-400'
               : 'bg-green-500/15 text-green-400',
           )}
@@ -821,10 +821,10 @@ function HermesContent() {
                 </div>
 
                 <div className="rounded-lg border border-primary-200 bg-primary-50/80 px-3 py-2 text-xs text-primary-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
-                  {oauthMessage || 'Start the browser-based OAuth flow.'}
+                  {oauthMessage || 'Запустите вход через браузер.'}
                   {oauthUserCode ? (
                     <div className="mt-2">
-                      User code:{' '}
+                      Код пользователя:{' '}
                       <code className="rounded bg-black/10 px-1 py-0.5 font-mono dark:bg-white/10">
                         {oauthUserCode}
                       </code>
@@ -837,7 +837,7 @@ function HermesContent() {
                       rel="noopener noreferrer"
                       className="mt-2 inline-block font-medium underline underline-offset-2"
                     >
-                      Open authorization page
+                      Открыть страницу входа
                     </a>
                   ) : null}
                 </div>
@@ -933,20 +933,18 @@ function HermesContent() {
                 <div className="rounded-lg border border-primary-200 bg-primary-50/80 px-3 py-2 text-xs text-primary-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
                   {disc?.online ? (
                     <>
-                      Detected {disc.modelCount} model
-                      {disc.modelCount === 1 ? '' : 's'} at{' '}
+                      Найдено моделей: {disc.modelCount}. Адрес:{' '}
                       <code className="rounded bg-black/10 px-1 py-0.5 font-mono dark:bg-white/10">
                         {setup.baseUrl}
                       </code>
-                      .
                     </>
                   ) : (
                     setup.unavailableMessage
                   )}
                   {disc?.needsRestart ? (
                     <div className="mt-2 text-yellow-700 dark:text-yellow-200">
-                      Gateway restart may be needed after adding this provider to
-                      config.
+                      После добавления провайдера в настройки может понадобиться
+                      перезапуск шлюза.
                     </div>
                   ) : null}
                 </div>
@@ -954,7 +952,7 @@ function HermesContent() {
                 {models.length > 0 ? (
                   <div>
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wider" style={mutedStyle}>
-                      Detected Models
+                      Найденные модели
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {models.map((model) => (
@@ -981,7 +979,7 @@ function HermesContent() {
                           {model.id}
                           {defaultProvider === provider.id &&
                           defaultModelId === model.id
-                            ? ' · default'
+                            ? ' · по умолчанию'
                             : ''}
                         </button>
                       ))}
@@ -995,7 +993,7 @@ function HermesContent() {
                           size="sm"
                           onClick={() => setDefaultModel(provider.id, activeModel)}
                         >
-                          Set as default: {provider.id} · {activeModel}
+                          Сделать основной: {provider.id} · {activeModel}
                         </Button>
                       </div>
                     ) : null}
@@ -1047,7 +1045,7 @@ function HermesContent() {
               >
                 {model}
                 {defaultProvider === activeProvider && defaultModelId === model
-                  ? ' · default'
+                  ? ' · по умолчанию'
                   : ''}
               </button>
             ))}
@@ -1059,18 +1057,18 @@ function HermesContent() {
                 size="sm"
                 onClick={() => setDefaultModel(activeProvider, activeModel)}
               >
-                Set as default: {activeProvider} · {activeModel}
+                Сделать основной: {activeProvider} · {activeModel}
               </Button>
             </div>
           ) : null}
         </div>
       )}
 
-      {/* Custom OpenAI-compatible endpoint fields — Base URL only; API key lives in API Keys section */}
+      {/* Custom OpenAI-compatible endpoint fields: Base URL here, API key below. */}
       {activeProvider === 'custom' && (
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider" style={mutedStyle}>
-            Custom Endpoint
+            Свой endpoint
           </p>
           <div className="space-y-1.5">
             {(() => {
@@ -1079,7 +1077,7 @@ function HermesContent() {
               return (
                 <div className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={cardStyle}>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium">Base URL</div>
+                    <div className="text-sm font-medium">Базовый URL</div>
                     <div className="text-[11px] font-mono" style={mutedStyle}>
                       {isEditing ? (
                         <input
@@ -1098,19 +1096,19 @@ function HermesContent() {
                             if (e.key === 'Escape') setEditingKey(null)
                           }}
                         />
-                      ) : hasValue ? customBaseUrl : 'Not configured'}
+                      ) : hasValue ? customBaseUrl : 'Не настроено'}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={cn('size-2 rounded-full', hasValue ? 'bg-green-500' : 'bg-neutral-500')} />
                     {isEditing ? (
                       <>
-                        <button type="button" onClick={() => { save({ config: { model: { provider: 'manifest' }, providers: { manifest: { type: 'openai', base_url: customBaseUrl, key_env: 'CUSTOM_API_KEY' } } } }).then(() => setEditingKey(null)) }} className="text-xs font-medium text-green-400">Save</button>
-                        <button type="button" onClick={() => setEditingKey(null)} className="text-xs" style={mutedStyle}>Cancel</button>
+                        <button type="button" onClick={() => { save({ config: { model: { provider: 'manifest' }, providers: { manifest: { type: 'openai', base_url: customBaseUrl, key_env: 'CUSTOM_API_KEY' } } } }).then(() => setEditingKey(null)) }} className="text-xs font-medium text-green-400">Сохранить</button>
+                        <button type="button" onClick={() => setEditingKey(null)} className="text-xs" style={mutedStyle}>Отмена</button>
                       </>
                     ) : (
                       <button type="button" onClick={() => setEditingKey('custom_base_url')} className="text-xs font-medium" style={{ color: 'var(--theme-accent)' }}>
-                        {hasValue ? 'Edit' : 'Add'}
+                        {hasValue ? 'Изменить' : 'Добавить'}
                       </button>
                     )}
                   </div>
@@ -1126,7 +1124,7 @@ function HermesContent() {
                   style={cardStyle}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium">Model</div>
+                    <div className="text-sm font-medium">Модель</div>
                     <div
                       className="text-[11px] font-mono"
                       style={mutedStyle}
@@ -1136,7 +1134,7 @@ function HermesContent() {
                           type="text"
                           value={customModel}
                           onChange={(e) => setCustomModel(e.target.value)}
-                          placeholder="e.g. gpt-4o-mini, llama3:8b"
+                          placeholder="например gpt-4o-mini, llama3:8b"
                           className="w-full rounded border-0 bg-transparent py-0.5 text-[11px] outline-none"
                           style={{ color: 'var(--theme-text)' }}
                           autoFocus
@@ -1148,7 +1146,7 @@ function HermesContent() {
                       ) : hasValue ? (
                         customModel
                       ) : (
-                        'Not configured'
+                        'Не настроено'
                       )}
                     </div>
                   </div>
@@ -1165,7 +1163,7 @@ function HermesContent() {
                         onClick={() => setEditingKey(null)}
                         className="text-xs font-medium text-green-400"
                       >
-                        Done
+                        Готово
                       </button>
                     ) : (
                       <button
@@ -1174,7 +1172,7 @@ function HermesContent() {
                         className="text-xs font-medium"
                         style={{ color: 'var(--theme-accent)' }}
                       >
-                        {hasValue ? 'Edit' : 'Add'}
+                        {hasValue ? 'Изменить' : 'Добавить'}
                       </button>
                     )}
                   </div>
@@ -1190,7 +1188,7 @@ function HermesContent() {
                 size="sm"
                 onClick={() => setDefaultModel('custom', customModel)}
               >
-                Set as default: custom · {customModel}
+                Сделать основной: custom · {customModel}
               </Button>
             </div>
           ) : null}
@@ -1204,11 +1202,11 @@ function HermesContent() {
         if (!disc || !disc.needsRestart) return null
         return (
           <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-200">
-            ⚠️ Gateway restart needed to use {disc.name}. Run{' '}
+            ⚠️ Чтобы использовать {disc.name}, перезапустите gateway:{' '}
             <code className="rounded bg-black/30 px-1">
               hermes gateway restart
             </code>{' '}
-            in your terminal.
+            в терминале.
           </div>
         )
       })()}
@@ -1219,7 +1217,7 @@ function HermesContent() {
           className="mb-1 text-xs font-semibold uppercase tracking-wider"
           style={mutedStyle}
         >
-          API Keys
+          API-ключи
         </p>
         <div className="space-y-1.5">
           {PROVIDER_CARDS.filter((p) => p.envKey).map((p) => {
@@ -1245,7 +1243,7 @@ function HermesContent() {
                         type="password"
                         value={keyInput}
                         onChange={(e) => setKeyInput(e.target.value)}
-                        placeholder={`Paste ${key}`}
+                        placeholder={`Вставьте ${key}`}
                         className="w-full rounded border-0 bg-transparent py-0.5 text-[11px] outline-none"
                         style={{ color: 'var(--theme-text)' }}
                         autoFocus
@@ -1264,7 +1262,7 @@ function HermesContent() {
                     ) : hasKey ? (
                       configuredKeys[key]
                     ) : (
-                      'Not configured'
+                      'Не настроено'
                     )}
                   </div>
                 </div>
@@ -1288,7 +1286,7 @@ function HermesContent() {
                         }}
                         className="rounded-lg px-2 py-1 text-[11px] font-medium bg-accent-500 text-white"
                       >
-                        Save
+                        Сохранить
                       </button>
                       <button
                         type="button"
@@ -1299,7 +1297,7 @@ function HermesContent() {
                         className="rounded-lg px-2 py-1 text-[11px] font-medium"
                         style={{ color: 'var(--theme-muted)' }}
                       >
-                        Cancel
+                        Отмена
                       </button>
                     </>
                   ) : (
@@ -1314,7 +1312,7 @@ function HermesContent() {
                         color: 'var(--theme-accent, var(--theme-text))',
                       }}
                     >
-                      {hasKey ? 'Update' : 'Add'}
+                      {hasKey ? 'Обновить' : 'Добавить'}
                     </button>
                   )}
                 </div>
@@ -1330,7 +1328,7 @@ function HermesContent() {
           className="mb-1 text-xs font-semibold uppercase tracking-wider"
           style={mutedStyle}
         >
-          Memory
+          Память
         </p>
         <div className="space-y-1.5">
           <div
@@ -1338,9 +1336,9 @@ function HermesContent() {
             style={cardStyle}
           >
             <div>
-              <div className="text-sm font-medium">Memory</div>
+              <div className="text-sm font-medium">Память</div>
               <div className="text-[11px]" style={mutedStyle}>
-                Store & recall memories across sessions
+                Сохраняет и вспоминает контекст между сессиями
               </div>
             </div>
             <Switch
@@ -1356,9 +1354,9 @@ function HermesContent() {
             style={cardStyle}
           >
             <div>
-              <div className="text-sm font-medium">User Profile</div>
+              <div className="text-sm font-medium">Профиль пользователя</div>
               <div className="text-[11px]" style={mutedStyle}>
-                Remember preferences & context
+                Запоминает предпочтения и рабочий контекст
               </div>
             </div>
             <Switch
@@ -1372,7 +1370,7 @@ function HermesContent() {
         </div>
       </div>
 
-      {/* Runtime Info */}
+      {/* Runtime info */}
       <div className="rounded-xl px-3 py-2.5" style={cardStyle}>
         <div className="flex items-center gap-2 mb-2">
           <span className="size-2 rounded-full bg-green-500 animate-pulse" />
@@ -1380,19 +1378,19 @@ function HermesContent() {
             className="text-xs font-semibold uppercase tracking-wider"
             style={mutedStyle}
           >
-            Runtime
+            Во время работы
           </span>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-          <span style={mutedStyle}>Model</span>
+          <span style={mutedStyle}>Модель</span>
           <span className="font-mono font-medium">{activeModel || '—'}</span>
-          <span style={mutedStyle}>Provider</span>
+          <span style={mutedStyle}>Провайдер</span>
           <span className="font-mono font-medium">
             {PROVIDER_CARDS.find((p) => p.id === activeProvider)?.name ||
               activeProvider ||
               '—'}
           </span>
-          <span style={mutedStyle}>Config</span>
+          <span style={mutedStyle}>Конфиг</span>
           <span className="font-mono font-medium">~/.hermes/config.yaml</span>
         </div>
       </div>
@@ -1409,7 +1407,7 @@ function _ProfileContent() {
 
   function handleNameChange(value: string) {
     if (value.length > 50) {
-      setNameError('Display name too long (max 50 characters)')
+      setNameError('Имя слишком длинное: максимум 50 символов')
       return
     }
     setNameError(null)
@@ -1421,11 +1419,11 @@ function _ProfileContent() {
     e.target.value = ''
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      setProfileError('Unsupported file type.')
+      setProfileError('Неподдерживаемый тип файла.')
       return
     }
     if (file.size > 10 * 1024 * 1024) {
-      setProfileError('Image too large (max 10MB).')
+      setProfileError('Изображение слишком большое: максимум 10 МБ.')
       return
     }
     setProfileError(null)
@@ -1435,7 +1433,7 @@ function _ProfileContent() {
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const i = new Image()
         i.onload = () => resolve(i)
-        i.onerror = () => reject(new Error('Failed'))
+        i.onerror = () => reject(new Error('Не удалось загрузить изображение'))
         i.src = url
       })
       const max = 128,
@@ -1456,7 +1454,7 @@ function _ProfileContent() {
         ),
       })
     } catch {
-      setProfileError('Failed to process image.')
+      setProfileError('Не удалось обработать изображение.')
     } finally {
       setProcessing(false)
     }
@@ -1478,21 +1476,21 @@ function _ProfileContent() {
               {displayName}
             </p>
             <p className="text-xs text-primary-500 dark:text-neutral-400">
-              No email connected
+              Почта не подключена
             </p>
           </div>
         </div>
       </div>
       <div className={SETTINGS_CARD_CLASS}>
-        <Row label="Display name" description="Shown in chat and sidebar">
+        <Row label="Имя пользователя" description="Показывается в чате и боковом меню.">
           <div className="w-full max-w-xs">
             <Input
               value={cs.displayName}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="User"
+              placeholder="Пользователь"
               className="h-8 w-full rounded-lg border-primary-200 text-sm"
               maxLength={50}
-              aria-label="Display name"
+              aria-label="Имя пользователя"
               aria-invalid={!!nameError}
               aria-describedby={nameError ? errorId : undefined}
             />
@@ -1507,7 +1505,7 @@ function _ProfileContent() {
             )}
           </div>
         </Row>
-        <Row label="Avatar">
+        <Row label="Аватар">
           <div className="flex items-center gap-2">
             <label className="block">
               <input
@@ -1515,7 +1513,7 @@ function _ProfileContent() {
                 accept="image/*"
                 onChange={handleAvatarUpload}
                 disabled={processing}
-                aria-label="Upload profile picture"
+                aria-label="Загрузить изображение профиля"
                 className="block max-w-[13rem] cursor-pointer text-xs text-primary-700 dark:text-neutral-300 file:mr-2 file:cursor-pointer file:rounded-lg file:border file:border-primary-200 file:bg-primary-100 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-primary-900 file:transition-colors hover:file:bg-primary-200 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
@@ -1578,9 +1576,9 @@ function AppearanceContent() {
         </p>
         <div className="inline-flex rounded-lg border border-primary-200 p-1">
           {[
-            { value: 'light', label: 'Light', icon: Sun01Icon },
-            { value: 'dark', label: 'Dark', icon: Moon01Icon },
-            { value: 'system', label: 'System', icon: ComputerIcon },
+            { value: 'light', label: 'Светлая', icon: Sun01Icon },
+            { value: 'dark', label: 'Тёмная', icon: Moon01Icon },
+            { value: 'system', label: 'Как в системе', icon: ComputerIcon },
           ].map((option) => (
             <button
               key={option.value}
@@ -1602,21 +1600,21 @@ function AppearanceContent() {
       {/* Accent color removed — themes control accent */}
       <div className={SETTINGS_CARD_CLASS}>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
-          COMANDOS Theme
+          Тема COMANDOS
         </p>
         <EnterpriseThemePicker />
       </div>
       <div className={SETTINGS_CARD_CLASS}>
         <Row
-          label="System metrics footer"
-          description="Show a persistent footer with CPU, RAM, disk, and Hermes Agent status."
+          label="Системные показатели внизу"
+          description="Показывать постоянную нижнюю строку с CPU, RAM, диском и статусом Hermes Agent."
         >
           <Switch
             checked={settings.showSystemMetricsFooter}
             onCheckedChange={(c) =>
               updateSettings({ showSystemMetricsFooter: c })
             }
-            aria-label="Show system metrics footer"
+            aria-label="Показывать системные показатели внизу"
           />
         </Row>
 
@@ -1853,46 +1851,46 @@ function ChatContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Chat"
-        description="Message visibility and response loader style."
+        title="Чат"
+        description="Видимость служебных сообщений и поведение ввода."
       />
       <div className={SETTINGS_CARD_CLASS}>
         <Row
-          label="Show tool messages"
-          description="Display tool call details in assistant responses."
+          label="Показывать вызовы инструментов"
+          description="Показывать подробности работы инструментов в ответах агента."
         >
           <Switch
             checked={cs.showToolMessages}
             onCheckedChange={(c) => updateCS({ showToolMessages: c })}
-            aria-label="Show tool messages"
+            aria-label="Показывать вызовы инструментов"
           />
         </Row>
         <Row
-          label="Show reasoning blocks"
-          description="Display model reasoning blocks when available."
+          label="Показывать рассуждения"
+          description="Показывать блоки рассуждений модели, если они доступны."
         >
           <Switch
             checked={cs.showReasoningBlocks}
             onCheckedChange={(c) => updateCS({ showReasoningBlocks: c })}
-            aria-label="Show reasoning blocks"
+            aria-label="Показывать рассуждения"
           />
         </Row>
         <Row
-          label="Sound on response complete"
-          description="Play a short sound in the browser when the agent finishes replying."
+          label="Звук после ответа"
+          description="Проигрывать короткий звук в браузере, когда агент закончил отвечать."
         >
           <Switch
             checked={cs.soundOnChatComplete}
             onCheckedChange={(c) => updateCS({ soundOnChatComplete: c })}
-            aria-label="Sound on response complete"
+            aria-label="Звук после ответа"
           />
         </Row>
         <Row
-          label="Enter key behavior"
+          label="Поведение Enter"
           description={
             cs.enterBehavior === 'newline'
-              ? 'Enter inserts a newline. Use ⌘/Ctrl+Enter to send.'
-              : 'Enter sends the message. Use Shift+Enter for a newline.'
+              ? 'Enter добавляет новую строку. Для отправки используйте ⌘/Ctrl+Enter.'
+              : 'Enter отправляет сообщение. Для новой строки используйте Shift+Enter.'
           }
         >
           <Switch
@@ -1900,12 +1898,12 @@ function ChatContent() {
             onCheckedChange={(c) =>
               updateCS({ enterBehavior: c ? 'newline' : 'send' })
             }
-            aria-label="Enter inserts newline instead of sending"
+            aria-label="Enter добавляет новую строку вместо отправки"
           />
         </Row>
         <Row
-          label="Chat content width"
-          description="Max-width of the message column on wide screens."
+          label="Ширина чата"
+          description="Максимальная ширина колонки сообщений на больших экранах."
         >
           <select
             value={cs.chatWidth}
@@ -1915,25 +1913,25 @@ function ChatContent() {
               })
             }
             className="h-8 rounded-md border border-primary-200 bg-primary-50 px-2 text-sm text-primary-900 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400"
-            aria-label="Chat content width"
+            aria-label="Ширина чата"
           >
-            <option value="comfortable">Comfortable (900px)</option>
-            <option value="wide">Wide (1200px)</option>
-            <option value="full">Full width</option>
+            <option value="comfortable">Удобная (900px)</option>
+            <option value="wide">Широкая (1200px)</option>
+            <option value="full">На всю ширину</option>
           </select>
         </Row>
         <Row
-          label="Expand sidebar on hover"
+          label="Раскрывать меню при наведении"
           description={
             cs.sidebarHoverExpand
-              ? 'Collapsed sidebar expands temporarily on hover.'
-              : 'Collapsed sidebar stays at 48px until you click the toggle.'
+              ? 'Свёрнутое меню временно раскрывается при наведении.'
+              : 'Свёрнутое меню остаётся узким, пока вы не нажмёте переключатель.'
           }
         >
           <Switch
             checked={cs.sidebarHoverExpand}
             onCheckedChange={(c) => updateCS({ sidebarHoverExpand: c })}
-            aria-label="Expand sidebar on hover"
+            aria-label="Раскрывать меню при наведении"
           />
         </Row>
       </div>
@@ -1947,18 +1945,18 @@ function NotificationsContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Notifications"
-        description="Simple alerts and threshold controls."
+        title="Сигналы"
+        description="Простые уведомления и пороги предупреждений."
       />
       <div className={SETTINGS_CARD_CLASS}>
-        <Row label="Enable alerts">
+        <Row label="Включить сигналы">
           <Switch
             checked={settings.notificationsEnabled}
             onCheckedChange={(c) => updateSettings({ notificationsEnabled: c })}
-            aria-label="Enable alerts"
+            aria-label="Включить сигналы"
           />
         </Row>
-        <Row label="Usage threshold">
+        <Row label="Порог использования">
           <div className="flex w-full max-w-[14rem] items-center gap-2">
             <input
               type="range"
@@ -1970,7 +1968,7 @@ function NotificationsContent() {
               }
               className="w-full accent-primary-900 dark:accent-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!settings.notificationsEnabled}
-              aria-label={`Usage threshold: ${settings.usageThreshold} percent`}
+              aria-label={`Порог использования: ${settings.usageThreshold} процентов`}
               aria-valuemin={50}
               aria-valuemax={100}
               aria-valuenow={settings.usageThreshold}
@@ -1998,7 +1996,7 @@ function _AdvancedContent() {
         new URL(value)
         setUrlError(null)
       } catch {
-        setUrlError('Invalid URL format')
+        setUrlError('Неверный формат URL')
       }
     } else {
       setUrlError(null)
@@ -2011,7 +2009,8 @@ function _AdvancedContent() {
     setConnectionStatus('testing')
     try {
       const r = await fetch('/api/ping')
-      setConnectionStatus(r.ok ? 'connected' : 'failed')
+      const data = (await r.json()) as { ok?: boolean }
+      setConnectionStatus(r.ok && data.ok ? 'connected' : 'failed')
     } catch {
       setConnectionStatus('failed')
     }
@@ -2022,13 +2021,13 @@ function _AdvancedContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Advanced"
-        description="Hermes Agent endpoint and connectivity."
+        title="Подключение"
+        description="Адрес Hermes Agent и проверка связи."
       />
       <div className={SETTINGS_CARD_CLASS}>
         <Row
-          label="Hermes Agent URL"
-          description="Used for API requests from Studio"
+          label="URL Hermes Agent"
+          description="Используется для API-запросов из панели."
         >
           <div className="w-full max-w-sm">
             <Input
@@ -2037,7 +2036,7 @@ function _AdvancedContent() {
               value={settings.claudeUrl}
               onChange={(e) => validateAndUpdateUrl(e.target.value)}
               className="h-8 w-full rounded-lg border-primary-200 text-sm"
-              aria-label="Hermes Agent URL"
+              aria-label="URL Hermes Agent"
               aria-invalid={!!urlError}
               aria-describedby={urlError ? urlErrorId : undefined}
             />
@@ -2052,7 +2051,7 @@ function _AdvancedContent() {
             )}
           </div>
         </Row>
-        <Row label="Connection status">
+        <Row label="Статус подключения">
           <span
             className={cn(
               'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium',
@@ -2067,12 +2066,12 @@ function _AdvancedContent() {
             )}
           >
             {connectionStatus === 'idle'
-              ? 'Not tested'
+              ? 'Не проверялось'
               : connectionStatus === 'testing'
-                ? 'Testing...'
+                ? 'Проверяю...'
                 : connectionStatus === 'connected'
-                  ? 'Connected'
-                  : 'Failed'}
+                  ? 'Подключено'
+                  : 'Ошибка'}
           </span>
           <Button
             variant="outline"
@@ -2086,7 +2085,7 @@ function _AdvancedContent() {
               size={16}
               strokeWidth={1.5}
             />
-            Test
+            Проверить
           </Button>
         </Row>
       </div>
@@ -2112,13 +2111,13 @@ class SettingsErrorBoundary extends Component<
         <div className="flex h-full items-center justify-center p-8 text-center">
           <div>
             <p className="mb-2 text-sm font-medium text-red-500">
-              Settings failed to load
+              Настройки не загрузились
             </p>
             <button
               onClick={() => this.setState({ error: null })}
               className="text-xs text-primary-600 underline hover:text-primary-900"
             >
-              Try again
+              Повторить
             </button>
           </div>
         </div>
@@ -2152,24 +2151,24 @@ function AgentBehaviorContent() {
         body: JSON.stringify({ config: { agent: { [key]: value } } }),
       })
       setConfig((prev) => ({ ...prev, [key]: value }))
-      setMsg('Saved')
+      setMsg('Сохранено')
       setTimeout(() => setMsg(null), 2000)
     } catch {
-      setMsg('Failed')
+      setMsg('Не удалось сохранить')
     }
   }
 
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Agent Behavior"
-        description="Execution limits and tool access."
+        title="Поведение агента"
+        description="Ограничения выполнения и доступ к инструментам."
       />
       {msg && (
         <div
           className={cn(
             'rounded-lg px-3 py-1.5 text-xs font-medium',
-            msg === 'Saved'
+            msg === 'Сохранено'
               ? 'bg-green-500/15 text-green-400'
               : 'bg-red-500/15 text-red-400',
           )}
@@ -2179,8 +2178,8 @@ function AgentBehaviorContent() {
       )}
       <div className={SETTINGS_CARD_CLASS}>
         <Row
-          label="Max turns"
-          description="Maximum agent turns per request (1-100)"
+          label="Максимум шагов"
+          description="Максимальное число шагов агента на один запрос (1-100)."
         >
           <input
             type="number"
@@ -2191,7 +2190,7 @@ function AgentBehaviorContent() {
             className="h-8 w-20 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-center text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           />
         </Row>
-        <Row label="Gateway timeout" description="Seconds before timeout">
+        <Row label="Таймаут шлюза" description="Сколько секунд ждать до остановки.">
           <input
             type="number"
             min={10}
@@ -2201,15 +2200,15 @@ function AgentBehaviorContent() {
             className="h-8 w-20 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-center text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           />
         </Row>
-        <Row label="Tool enforcement" description="When agent must use tools">
+        <Row label="Использование инструментов" description="Когда агент обязан использовать инструменты.">
           <select
             value={String(config.tool_use_enforcement || 'auto')}
             onChange={(e) => save('tool_use_enforcement', e.target.value)}
             className="h-8 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
-            <option value="auto">Auto</option>
-            <option value="required">Required</option>
-            <option value="none">None</option>
+            <option value="auto">Авто</option>
+            <option value="required">Обязательно</option>
+            <option value="none">Не требовать</option>
           </select>
         </Row>
       </div>
@@ -2243,10 +2242,10 @@ function VoiceContent() {
         body: JSON.stringify({ config: { tts: { [key]: value } } }),
       })
       setTts((prev) => ({ ...prev, [key]: value }))
-      setMsg('Saved')
+      setMsg('Сохранено')
       setTimeout(() => setMsg(null), 2000)
     } catch {
-      setMsg('Failed')
+      setMsg('Не удалось сохранить')
     }
   }
 
@@ -2259,10 +2258,10 @@ function VoiceContent() {
         body: JSON.stringify({ config: { stt: { [key]: value } } }),
       })
       setStt((prev) => ({ ...prev, [key]: value }))
-      setMsg('Saved')
+      setMsg('Сохранено')
       setTimeout(() => setMsg(null), 2000)
     } catch {
-      setMsg('Failed')
+      setMsg('Не удалось сохранить')
     }
   }
 
@@ -2274,14 +2273,14 @@ function VoiceContent() {
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Voice"
-        description="Text-to-speech and speech-to-text."
+        title="Голос"
+        description="Озвучивание текста и распознавание речи."
       />
       {msg && (
         <div
           className={cn(
             'rounded-lg px-3 py-1.5 text-xs font-medium',
-            msg === 'Saved'
+            msg === 'Сохранено'
               ? 'bg-green-500/15 text-green-400'
               : 'bg-red-500/15 text-red-400',
           )}
@@ -2291,9 +2290,9 @@ function VoiceContent() {
       )}
       <div className={SETTINGS_CARD_CLASS}>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
-          Text-to-Speech
+          Озвучивание текста
         </p>
-        <Row label="TTS Provider">
+        <Row label="Провайдер озвучивания">
           <select
             value={ttsProvider}
             onChange={(e) => saveTts('provider', e.target.value)}
@@ -2306,7 +2305,7 @@ function VoiceContent() {
           </select>
         </Row>
         {ttsProvider === 'openai' && (
-          <Row label="Voice">
+          <Row label="Голос">
             <select
               value={String(
                 (tts.openai as Record<string, unknown>)?.voice || 'nova',
@@ -2332,15 +2331,15 @@ function VoiceContent() {
       </div>
       <div className={SETTINGS_CARD_CLASS}>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary-500">
-          Speech-to-Text
+          Распознавание речи
         </p>
-        <Row label="Enable STT">
+        <Row label="Включить распознавание">
           <Switch
             checked={stt.enabled !== false}
             onCheckedChange={(c) => saveStt('enabled', c)}
           />
         </Row>
-        <Row label="STT Provider">
+        <Row label="Провайдер распознавания">
           <select
             value={sttProvider}
             onChange={(e) => saveStt('provider', e.target.value)}
@@ -2355,7 +2354,7 @@ function VoiceContent() {
         </Row>
         {sttProvider === 'groq' && (
           <>
-            <Row label="Groq model">
+            <Row label="Модель Groq">
               <select
                 value={String(sttGroq.model || GROQ_STT_MODELS[0])}
                 onChange={(e) =>
@@ -2373,7 +2372,7 @@ function VoiceContent() {
                 ))}
               </select>
             </Row>
-            <Row label="Language" description="Optional BCP-47 code, e.g. en or en-US.">
+            <Row label="Язык" description="Необязательный код языка, например ru или en-US.">
               <Input
                 value={String(stt.language || '')}
                 onChange={(e) => saveStt('language', e.target.value)}
@@ -2412,24 +2411,24 @@ function DisplayContent() {
         body: JSON.stringify({ config: { display: { [key]: value } } }),
       })
       setConfig((prev) => ({ ...prev, [key]: value }))
-      setMsg('Saved')
+      setMsg('Сохранено')
       setTimeout(() => setMsg(null), 2000)
     } catch {
-      setMsg('Failed')
+      setMsg('Не удалось сохранить')
     }
   }
 
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Display"
-        description="Agent response style and output preferences."
+        title="Экран"
+        description="Стиль ответа агента и параметры вывода."
       />
       {msg && (
         <div
           className={cn(
             'rounded-lg px-3 py-1.5 text-xs font-medium',
-            msg === 'Saved'
+            msg === 'Сохранено'
               ? 'bg-green-500/15 text-green-400'
               : 'bg-red-500/15 text-red-400',
           )}
@@ -2438,40 +2437,40 @@ function DisplayContent() {
         </div>
       )}
       <div className={SETTINGS_CARD_CLASS}>
-        <Row label="Personality" description="Agent response style">
+        <Row label="Стиль ответа" description="Как агент формулирует ответы.">
           <select
             value={String(config.personality || 'default')}
             onChange={(e) => save('personality', e.target.value)}
             className="h-8 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
-            <option value="default">Default</option>
-            <option value="concise">Concise</option>
-            <option value="verbose">Verbose</option>
-            <option value="creative">Creative</option>
+            <option value="default">Обычный</option>
+            <option value="concise">Коротко</option>
+            <option value="verbose">Подробно</option>
+            <option value="creative">Творчески</option>
           </select>
         </Row>
-        <Row label="Streaming" description="Stream responses in real-time">
+        <Row label="Потоковый ответ" description="Показывать ответ сразу по мере генерации.">
           <Switch
             checked={config.streaming !== false}
             onCheckedChange={(c) => save('streaming', c)}
           />
         </Row>
         <Row
-          label="Show reasoning"
-          description="Display model thinking process"
+          label="Показывать рассуждения"
+          description="Показывать ход рассуждений модели."
         >
           <Switch
             checked={config.show_reasoning !== false}
             onCheckedChange={(c) => save('show_reasoning', c)}
           />
         </Row>
-        <Row label="Show cost" description="Display token cost per response">
+        <Row label="Показывать стоимость" description="Показывать стоимость токенов у ответа.">
           <Switch
             checked={config.show_cost === true}
             onCheckedChange={(c) => save('show_cost', c)}
           />
         </Row>
-        <Row label="Compact mode" description="Reduce spacing in responses">
+        <Row label="Компактный режим" description="Уменьшить отступы в ответах.">
           <Switch
             checked={config.compact === true}
             onCheckedChange={(c) => save('compact', c)}
@@ -2561,10 +2560,10 @@ export function SettingsDialog({
           <div className="flex items-center justify-between border-b border-primary-200 bg-primary-50/80 px-4 py-4 md:rounded-t-2xl md:px-5">
             <div>
               <DialogTitle className="text-base font-semibold text-primary-900 dark:text-neutral-100">
-                Settings
+                Настройки
               </DialogTitle>
               <DialogDescription className="sr-only">
-                Configure COMANDOS AI Workspace
+                Настройте COMANDOS AI Workspace
               </DialogDescription>
             </div>
             <DialogClose
@@ -2573,7 +2572,7 @@ export function SettingsDialog({
                   size="icon-sm"
                   variant="ghost"
                   className="rounded-full text-primary-500 hover:bg-primary-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                  aria-label="Close"
+                  aria-label="Закрыть"
                 >
                   <HugeiconsIcon
                     icon={Cancel01Icon}
@@ -2634,7 +2633,7 @@ export function SettingsDialog({
                       size={16}
                       strokeWidth={1.5}
                     />
-                    Back
+                    Назад
                   </Button>
                 </div>
                 <ActiveContent />
@@ -2643,12 +2642,12 @@ export function SettingsDialog({
           </SettingsErrorBoundary>
 
           <div className="sticky bottom-0 z-10 border-t border-primary-200 bg-primary-50/60 px-4 py-3 text-xs text-primary-500 dark:text-neutral-400 md:rounded-b-2xl md:px-5">
-            Most changes save automatically; the default model commits only when you click Set as default.{' '}
+            Большинство настроек сохраняется автоматически. Основная модель меняется только после нажатия «Сделать основной».{' '}
             <a
               href="/settings"
               className="ml-2 font-medium underline underline-offset-2 hover:text-primary-700 dark:hover:text-neutral-200"
             >
-              All settings →
+              Все настройки →
             </a>
           </div>
         </div>

@@ -393,7 +393,7 @@ export async function fetchClaudeUsage(): Promise<ProviderUsageResult> {
     if (used !== undefined && limit !== undefined && limit > 0) {
       lines.push({
         type: 'progress',
-        label: 'Extra Usage',
+        label: 'Дополнительное использование',
         used,
         limit,
         format: 'dollars',
@@ -401,7 +401,7 @@ export async function fetchClaudeUsage(): Promise<ProviderUsageResult> {
     } else if (used !== undefined && used > 0) {
       lines.push({
         type: 'text',
-        label: 'Extra Usage',
+        label: 'Дополнительное использование',
         value: `$${used.toFixed(2)}`,
       })
     }
@@ -410,8 +410,8 @@ export async function fetchClaudeUsage(): Promise<ProviderUsageResult> {
   if (lines.length === 0) {
     lines.push({
       type: 'badge',
-      label: 'Status',
-      value: 'No usage data',
+      label: 'Статус',
+      value: 'Нет данных об использовании',
       color: '#a3a3a3',
     })
   }
@@ -749,8 +749,8 @@ export async function fetchCodexUsage(): Promise<ProviderUsageResult> {
   if (lines.length === 0) {
     lines.push({
       type: 'badge',
-      label: 'Status',
-      value: 'No usage data',
+      label: 'Статус',
+      value: 'Нет данных об использовании',
       color: '#a3a3a3',
     })
   }
@@ -801,8 +801,8 @@ export async function fetchOpenAIUsage(): Promise<ProviderUsageResult> {
         lines: [
           {
             type: 'badge',
-            label: 'Status',
-            value: 'API key active',
+            label: 'Статус',
+            value: 'API-ключ активен',
             color: '#10b981',
           },
         ],
@@ -846,13 +846,13 @@ export async function fetchOpenAIUsage(): Promise<ProviderUsageResult> {
       if (totalInputTokens > 0 || totalOutputTokens > 0) {
         lines.push({
           type: 'text',
-          label: 'Input (30d)',
-          value: `${(totalInputTokens / 1_000_000).toFixed(2)}M tokens`,
+          label: 'Входящие токены за 30 дней',
+          value: `${(totalInputTokens / 1_000_000).toFixed(2)} млн токенов`,
         })
         lines.push({
           type: 'text',
-          label: 'Output (30d)',
-          value: `${(totalOutputTokens / 1_000_000).toFixed(2)}M tokens`,
+          label: 'Исходящие токены за 30 дней',
+          value: `${(totalOutputTokens / 1_000_000).toFixed(2)} млн токенов`,
         })
       }
     }
@@ -860,8 +860,8 @@ export async function fetchOpenAIUsage(): Promise<ProviderUsageResult> {
     if (lines.length === 0) {
       lines.push({
         type: 'badge',
-        label: 'Status',
-        value: 'Connected',
+        label: 'Статус',
+        value: 'Подключено',
         color: '#10b981',
       })
     }

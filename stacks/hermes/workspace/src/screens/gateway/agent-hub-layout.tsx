@@ -33,7 +33,7 @@ function readTimestamp(value: unknown): number {
 }
 
 function getSessionLabel(session: GatewaySession): string {
-  return readText(session.label) || readText(session.title) || readText(session.friendlyId) || readText(session.key) || 'Untitled'
+  return readText(session.label) || readText(session.title) || readText(session.friendlyId) || readText(session.key) || 'Без названия'
 }
 
 function deriveAgentRows(agents: AgentHubLayoutProps['agents'], sessions: GatewaySession[]): AgentWorkingRow[] {
@@ -55,7 +55,7 @@ function deriveAgentRows(agents: AgentHubLayoutProps['agents'], sessions: Gatewa
         name: agent.name,
         modelId: readText(session?.model) || 'auto',
         status,
-        lastLine: readText(session?.task) || 'Waiting for work…',
+        lastLine: readText(session?.task) || 'Ожидает задачу…',
         lastAt: updatedAt || undefined,
         taskCount: 0,
         roleDescription: agent.role,
@@ -71,13 +71,13 @@ function deriveAgentRows(agents: AgentHubLayoutProps['agents'], sessions: Gatewa
 
   if (recent.length === 0) {
     return [
-      { id: 'placeholder-1', name: 'Nova', modelId: 'auto', status: 'idle' as const, lastLine: 'Waiting for first mission…', taskCount: 0, roleDescription: 'Worker' },
-      { id: 'placeholder-2', name: 'Pixel', modelId: 'auto', status: 'idle' as const, lastLine: 'Standing by…', taskCount: 0, roleDescription: 'Worker' },
-      { id: 'placeholder-3', name: 'Blaze', modelId: 'auto', status: 'idle' as const, lastLine: 'Ready to build.', taskCount: 0, roleDescription: 'Worker' },
+      { id: 'placeholder-1', name: 'Агент 1', modelId: 'auto', status: 'idle' as const, lastLine: 'Ожидает первую задачу…', taskCount: 0, roleDescription: 'Агент' },
+      { id: 'placeholder-2', name: 'Агент 2', modelId: 'auto', status: 'idle' as const, lastLine: 'На связи…', taskCount: 0, roleDescription: 'Агент' },
+      { id: 'placeholder-3', name: 'Агент 3', modelId: 'auto', status: 'idle' as const, lastLine: 'Готов к работе.', taskCount: 0, roleDescription: 'Агент' },
     ]
   }
 
-  const NAMES = ['Nova', 'Pixel', 'Blaze', 'Echo', 'Sage', 'Drift']
+  const NAMES = ['Агент 1', 'Агент 2', 'Агент 3', 'Агент 4', 'Агент 5', 'Агент 6']
   return recent.map((session, i) => {
     const updatedAt = readTimestamp(session.updatedAt)
     const statusText = `${readText(session.status)} ${readText(session.kind)}`.toLowerCase()
@@ -93,7 +93,7 @@ function deriveAgentRows(agents: AgentHubLayoutProps['agents'], sessions: Gatewa
       lastLine: readText(session.task) || getSessionLabel(session),
       lastAt: updatedAt || undefined,
       taskCount: 0,
-      roleDescription: readText(session.label) || 'Worker',
+      roleDescription: readText(session.label) || 'Агент',
       sessionKey: readText(session.key) || undefined,
     }
   })
@@ -122,7 +122,7 @@ export function AgentHubLayout({ agents }: AgentHubLayoutProps) {
             onViewOutput={() => void navigate({ to: '/conductor' })}
             onNewMission={() => void navigate({ to: '/conductor' })}
             processType="parallel"
-            companyName="Agent Office"
+            companyName="Офис агентов"
             containerHeight={520}
           />
         </section>

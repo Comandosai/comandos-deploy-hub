@@ -68,7 +68,7 @@ export function SwarmCompose({ members, roomIds, className }: SwarmComposeProps)
         <div>
           <div className="text-sm font-semibold text-[var(--theme-text)]">Compose orchestration</div>
           <div className="mt-1 text-xs text-[var(--theme-muted)]">
-            Dispatched in parallel against each agent profile with the configured worker runtime.
+            Задача уходит параллельно каждому выбранному профилю агента.
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-[var(--theme-muted)]">
@@ -89,7 +89,7 @@ export function SwarmCompose({ members, roomIds, className }: SwarmComposeProps)
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[var(--theme-muted)]">
         <span className="text-[10px] uppercase tracking-[0.18em]">Targets</span>
         {roomMembers.length === 0 ? (
-          <span className="italic">No agents selected. Tap "+" on a node to add.</span>
+          <span className="italic">Агенты не выбраны. Нажмите «+» на карточке агента.</span>
         ) : (
           roomMembers.map((member) => (
             <span
@@ -107,7 +107,7 @@ export function SwarmCompose({ members, roomIds, className }: SwarmComposeProps)
         value={prompt}
         onChange={(event) => setPrompt(event.target.value)}
         disabled={busy}
-        placeholder="Type a single prompt that goes out to every agent in the room…"
+        placeholder="Напишите одну задачу, которую получат все выбранные агенты…"
         className="mt-3 w-full rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-hover)] px-3 py-2 text-sm text-[var(--theme-text)] focus:border-[#B87333]/60 focus:outline-none"
       />
 
@@ -127,7 +127,7 @@ export function SwarmCompose({ members, roomIds, className }: SwarmComposeProps)
           )}
         >
           <HugeiconsIcon icon={Rocket01Icon} size={14} />
-          {busy ? 'Dispatching…' : `Dispatch to ${roomIds.length}`}
+          {busy ? 'Отправляю…' : `Отправить ${roomIds.length} агентам`}
         </button>
       </div>
 

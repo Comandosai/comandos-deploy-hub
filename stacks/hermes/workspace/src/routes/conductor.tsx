@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { usePageTitle } from '@/hooks/use-page-title'
 import { Conductor } from '@/screens/gateway/conductor'
 
 function ConductorRoute() {
+  usePageTitle('Оркестратор')
   return <Conductor />
 }
 

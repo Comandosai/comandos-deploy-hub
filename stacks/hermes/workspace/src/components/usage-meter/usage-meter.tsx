@@ -409,6 +409,17 @@ function formatCurrency(value: number): string {
   }).format(value)
 }
 
+function formatProviderProgressLabel(label: string): string {
+  return label
+    .replace('Session (5h)', 'Сессия')
+    .replace('Session', 'Сессия')
+    .replace('Weekly', 'Неделя')
+    .replace('Daily', 'День')
+    .replace('Monthly', 'Месяц')
+    .replace('Context', 'Контекст')
+    .replace('Sonnet', 'Sonnet')
+}
+
 function getAlertState() {
   if (typeof window === 'undefined') {
     return { date: getTodayKey(), sent: {} as Record<number, boolean> }
@@ -777,10 +788,7 @@ export function UsageMeter({ visible = true }: { visible?: boolean }) {
                   className="flex items-center gap-1"
                 >
                   <span className="text-[10px] uppercase tracking-wide text-primary-600">
-                    {line.label
-                      .replace('Session (5h)', 'Sess')
-                      .replace('Weekly', 'Wk')
-                      .replace('Sonnet', 'Son')}
+                    {formatProviderProgressLabel(line.label)}
                   </span>
                   <span>
                     {line.format === 'dollars' && line.used !== undefined

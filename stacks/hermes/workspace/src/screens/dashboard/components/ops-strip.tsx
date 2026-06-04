@@ -7,11 +7,11 @@ function formatPulse(iso: string | null): string {
   const ms = Date.parse(iso)
   if (!Number.isFinite(ms)) return '—'
   const diff = Date.now() - ms
-  if (diff < 0) return 'just now'
-  if (diff < 60_000) return '<1m ago'
-  if (diff < 3_600_000) return `${Math.round(diff / 60_000)}m ago`
-  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)}h ago`
-  return `${Math.round(diff / 86_400_000)}d ago`
+  if (diff < 0) return 'только что'
+  if (diff < 60_000) return '<1 мин'
+  if (diff < 3_600_000) return `${Math.round(diff / 60_000)} мин`
+  if (diff < 86_400_000) return `${Math.round(diff / 3_600_000)} ч`
+  return `${Math.round(diff / 86_400_000)} дн`
 }
 
 const PLATFORM_GLYPH: Record<string, string> = {
@@ -54,20 +54,20 @@ function formatNextRun(iso: string | null): {
   text: string
   tone: string
 } {
-  if (!iso) return { text: 'no schedule', tone: 'var(--theme-muted)' }
+  if (!iso) return { text: 'нет расписания', tone: 'var(--theme-muted)' }
   const ms = Date.parse(iso)
-  if (!Number.isFinite(ms)) return { text: 'no schedule', tone: 'var(--theme-muted)' }
+  if (!Number.isFinite(ms)) return { text: 'нет расписания', tone: 'var(--theme-muted)' }
   const diff = ms - Date.now()
   if (diff < -7 * 86_400_000) {
-    return { text: 'stale', tone: 'var(--theme-muted)' }
+    return { text: 'устарело', tone: 'var(--theme-muted)' }
   }
-  if (diff < 0) return { text: 'overdue', tone: 'var(--theme-warning)' }
-  if (diff < 60_000) return { text: '<1m', tone: 'var(--theme-text)' }
+  if (diff < 0) return { text: 'просрочено', tone: 'var(--theme-warning)' }
+  if (diff < 60_000) return { text: '<1 мин', tone: 'var(--theme-text)' }
   if (diff < 3_600_000)
-    return { text: `${Math.round(diff / 60_000)}m`, tone: 'var(--theme-text)' }
+    return { text: `${Math.round(diff / 60_000)} мин`, tone: 'var(--theme-text)' }
   if (diff < 86_400_000)
-    return { text: `${Math.round(diff / 3_600_000)}h`, tone: 'var(--theme-text)' }
-  return { text: `${Math.round(diff / 86_400_000)}d`, tone: 'var(--theme-text)' }
+    return { text: `${Math.round(diff / 3_600_000)} ч`, tone: 'var(--theme-text)' }
+  return { text: `${Math.round(diff / 86_400_000)} дн`, tone: 'var(--theme-text)' }
 }
 
 /**
@@ -130,7 +130,7 @@ export function OpsStrip({
             className="font-mono uppercase tracking-[0.15em]"
             style={{ color: 'var(--theme-muted)' }}
           >
-            {ok ? 'gateway' : `gateway ${status.gatewayState}`}
+            {ok ? 'шлюз' : `шлюз ${status.gatewayState}`}
           </span>
         </span>
         {status.version ? (
@@ -145,16 +145,15 @@ export function OpsStrip({
           className="font-mono uppercase tracking-[0.15em]"
           style={{ color: 'var(--theme-muted)' }}
         >
-          · {status.activeAgents} active{' '}
-          {status.activeAgents === 1 ? 'run' : 'runs'}
+          · активных запусков: {status.activeAgents}
         </span>
         {status.lastHeartbeatAt ? (
           <span
             className="font-mono text-[9px] uppercase tracking-[0.15em]"
             style={{ color: 'var(--theme-muted)' }}
-            title={`Last gateway heartbeat: ${status.lastHeartbeatAt}`}
+            title={`Последний сигнал шлюза: ${status.lastHeartbeatAt}`}
           >
-            · pulse {formatPulse(status.lastHeartbeatAt)}
+            · сигнал {formatPulse(status.lastHeartbeatAt)}
           </span>
         ) : null}
         {status.restartRequested ? (
@@ -168,7 +167,7 @@ export function OpsStrip({
                 '1px solid color-mix(in srgb, var(--theme-warning) 35%, transparent)',
             }}
           >
-            restart pending
+            ждёт перезапуск
           </span>
         ) : null}
         {drift > 0 ? (
@@ -183,9 +182,9 @@ export function OpsStrip({
               border:
                 '1px solid color-mix(in srgb, var(--theme-warning) 30%, transparent)',
             }}
-            title={`Local config v${status.configVersion} · latest v${status.latestConfigVersion}`}
+            title={`Локальная конфигурация v${status.configVersion} · свежая v${status.latestConfigVersion}`}
           >
-            {drift} config diff{drift === 1 ? '' : 's'}
+            расхождение конфигурации: {drift}
           </button>
         ) : null}
       </div>
@@ -218,8 +217,8 @@ export function OpsStrip({
         ) : null}
 
         {cron ? (() => {
-          const isStale = next?.text === 'stale'
-          const isWarn = next?.text === 'overdue' || isStale
+          const isStale = next?.text === 'устарело'
+          const isWarn = next?.text === 'просрочено' || isStale
           return (
             <button
               type="button"
@@ -236,20 +235,20 @@ export function OpsStrip({
               }}
               title={
                 isStale
-                  ? 'Cron next-run is more than 7 days overdue'
-                  : 'Open cron jobs'
+                  ? 'Следующий запуск задания просрочен больше чем на 7 дней'
+                  : 'Открыть задания по расписанию'
               }
             >
-              <span>cron</span>
+              <span>расписание</span>
               <span style={{ color: 'var(--theme-text)' }}>{cron.total}</span>
               {cron.paused > 0 ? (
                 <span style={{ color: 'var(--theme-warning)' }}>
-                  · {cron.paused} paused
+                  · пауза: {cron.paused}
                 </span>
               ) : null}
               {cron.running > 0 ? (
                 <span style={{ color: 'var(--theme-success)' }}>
-                  · {cron.running} running
+                  · работает: {cron.running}
                 </span>
               ) : null}
               {next ? (

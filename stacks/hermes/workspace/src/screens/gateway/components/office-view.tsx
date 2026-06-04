@@ -67,7 +67,7 @@ export function getOfficeModelBadge(modelId: string): string {
 }
 
 export function getOfficeModelLabel(modelId: string): string {
-  if (!modelId) return 'Unknown'
+  if (!modelId) return 'Неизвестно'
   return OFFICE_MODEL_LABEL[modelId as ModelPresetId] ?? modelId.split('/')[1] ?? modelId
 }
 
@@ -78,13 +78,13 @@ export function getAgentStatusMeta(status: AgentWorkingStatus): {
   pulse?: boolean
 } {
   switch (status) {
-    case 'active': return { label: 'Active', className: 'text-emerald-600', dotClassName: 'bg-emerald-500', pulse: true }
+    case 'active': return { label: 'Работает', className: 'text-emerald-600', dotClassName: 'bg-emerald-500', pulse: true }
     case 'ready':
-    case 'idle': return { label: 'Idle', className: 'text-neutral-600', dotClassName: 'bg-neutral-400' }
-    case 'error': return { label: 'Error', className: 'text-red-600', dotClassName: 'bg-red-500' }
-    case 'none': return { label: 'Offline', className: 'text-neutral-400', dotClassName: 'bg-neutral-400' }
-    case 'spawning': return { label: 'Starting', className: 'text-blue-600', dotClassName: 'bg-blue-500', pulse: true }
-    case 'paused': return { label: 'Paused', className: 'text-amber-700', dotClassName: 'bg-amber-500' }
+    case 'idle': return { label: 'Ожидает', className: 'text-neutral-600', dotClassName: 'bg-neutral-400' }
+    case 'error': return { label: 'Ошибка', className: 'text-red-600', dotClassName: 'bg-red-500' }
+    case 'none': return { label: 'Не подключён', className: 'text-neutral-400', dotClassName: 'bg-neutral-400' }
+    case 'spawning': return { label: 'Запускается', className: 'text-blue-600', dotClassName: 'bg-blue-500', pulse: true }
+    case 'paused': return { label: 'На паузе', className: 'text-amber-700', dotClassName: 'bg-amber-500' }
     default: return { label: String(status), className: 'text-neutral-600', dotClassName: 'bg-neutral-400' }
   }
 }
@@ -147,9 +147,9 @@ const SOCIAL_SPOTS_BY_TEMPLATE: Record<OfficeLayoutTemplate, SocialSpot[]> = {
 }
 
 const LAYOUT_TEMPLATE_OPTIONS: Array<{ key: OfficeLayoutTemplate; label: string }> = [
-  { key: 'grid', label: '⊞ Grid' },
-  { key: 'roundtable', label: '○ Roundtable' },
-  { key: 'warroom', label: '▬▬ War Room' },
+  { key: 'grid', label: '⊞ Сетка' },
+  { key: 'roundtable', label: '○ Круглый стол' },
+  { key: 'warroom', label: '▬▬ Штаб' },
 ]
 
 function truncateSpeech(text: string, max = 64): string {
@@ -160,12 +160,12 @@ function truncateSpeech(text: string, max = 64): string {
 
 function getSpeechLine(agent: AgentWorkingRow, phase: number): string {
   if (agent.status === 'active' && agent.lastLine) return truncateSpeech(agent.lastLine, 60)
-  if (agent.currentTask) return `Working on ${truncateSpeech(agent.currentTask, 48)}`
-  if (agent.status === 'spawning') return 'Booting up...'
-  if (agent.status === 'paused') return 'On break ☕'
-  if (agent.status === 'error') return 'Need help!'
+  if (agent.currentTask) return `Работает над: ${truncateSpeech(agent.currentTask, 48)}`
+  if (agent.status === 'spawning') return 'Запускается...'
+  if (agent.status === 'paused') return 'Перерыв ☕'
+  if (agent.status === 'error') return 'Нужна помощь'
   // Idle agents cycle through social activities
-  const socialLines = ['Grabbing coffee ☕', 'Checking messages 📱', 'Stretching 🙆', 'Chatting with team 💬', 'Reading docs 📖', 'Getting water 💧']
+  const socialLines = ['Берёт кофе ☕', 'Проверяет сообщения 📱', 'Разминается 🙆', 'Общается с командой 💬', 'Читает документы 📖', 'Берёт воду 💧']
   if (agent.status === 'idle' || agent.status === 'ready') {
     return socialLines[Math.floor(phase / 4) % socialLines.length]
   }
@@ -297,7 +297,7 @@ function CoffeeMachineSVG({ x, y }: { x: number; y: number }) {
       <circle cx="0" cy="-14" r="6" fill="#dc2626" opacity="0.8" />
       <text x="0" y="-11" fontSize="6" fill="white" textAnchor="middle">☕</text>
       <rect x="-16" y="20" width="32" height="6" rx="2" fill="#a8a29e" />
-      <text x="0" y="38" fontSize="8" fill="#78716c" textAnchor="middle">Coffee</text>
+      <text x="0" y="38" fontSize="8" fill="#78716c" textAnchor="middle">Кофе</text>
     </g>
   )
 }
@@ -309,7 +309,7 @@ function WaterCoolerSVG({ x, y }: { x: number; y: number }) {
       <circle cx="0" cy="-26" r="10" fill="#bfdbfe" stroke="#93c5fd" strokeWidth="1.5" />
       <circle cx="-5" cy="0" r="2" fill="#0ea5e9" />
       <circle cx="5" cy="0" r="2" fill="#ef4444" />
-      <text x="0" y="32" fontSize="8" fill="#64748b" textAnchor="middle">Water</text>
+      <text x="0" y="32" fontSize="8" fill="#64748b" textAnchor="middle">Вода</text>
     </g>
   )
 }
@@ -319,7 +319,7 @@ function SnackBarSVG({ x, y }: { x: number; y: number }) {
     <g transform={`translate(${x} ${y})`}>
       <rect x="-24" y="-16" width="48" height="28" rx="4" fill="#fef3c7" stroke="#fbbf24" strokeWidth="1" />
       <text x="0" y="2" fontSize="14" textAnchor="middle">🍪</text>
-      <text x="0" y="24" fontSize="8" fill="#92400e" textAnchor="middle">Snacks</text>
+      <text x="0" y="24" fontSize="8" fill="#92400e" textAnchor="middle">Перекус</text>
     </g>
   )
 }
@@ -445,10 +445,10 @@ export function OfficeView({
   const deskPositions = DESK_POSITIONS_BY_TEMPLATE[layoutTemplate]
   const socialSpots = SOCIAL_SPOTS_BY_TEMPLATE[layoutTemplate]
   const socialLabelPosition = layoutTemplate === 'roundtable'
-    ? { x: 450, y: 108, text: 'Collaboration Ring' }
+    ? { x: 450, y: 108, text: 'Круг совместной работы' }
     : layoutTemplate === 'warroom'
-      ? { x: 480, y: 112, text: 'Briefing Lounge' }
-      : { x: 840, y: 110, text: 'Break Area' }
+      ? { x: 480, y: 112, text: 'Зона брифинга' }
+      : { x: 840, y: 110, text: 'Зона отдыха' }
 
   const changeLayout = (nextTemplate: OfficeLayoutTemplate) => {
     setLayoutTemplate(nextTemplate)
@@ -555,11 +555,11 @@ export function OfficeView({
       {/* Header bar */}
       {hideHeader ? null : <div className="flex shrink-0 flex-wrap items-start justify-between gap-2 border-b border-neutral-200 bg-white/80 px-5 py-3 backdrop-blur dark:border-slate-700 dark:bg-slate-800/80">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-base font-bold text-neutral-900 dark:text-white">ClawSuite Office</span>
+          <span className="text-base font-bold text-neutral-900 dark:text-white">Офис агентов</span>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:text-neutral-400 tabular-nums">{agentRows.length} agents</span>
-            <span className="rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 tabular-nums">{activeCount} working</span>
-            <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400 tabular-nums">{sessionCount} sessions</span>
+            <span className="rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:text-neutral-400 tabular-nums">{agentRows.length} агентов</span>
+            <span className="rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 tabular-nums">{activeCount} работают</span>
+            <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400 tabular-nums">{sessionCount} сессий</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -621,7 +621,8 @@ export function OfficeView({
             type="button"
             onClick={() => setLayoutPickerOpen((v) => !v)}
             className="inline-flex min-h-11 items-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-slate-700 dark:bg-slate-800 dark:text-neutral-300 dark:hover:bg-slate-700 sm:px-4 sm:py-2 sm:text-sm"
-            title="Change office layout"
+            title="Изменить схему офиса"
+            aria-label="Изменить схему офиса"
           >
             <span>✏️</span>
           </button>
@@ -847,11 +848,11 @@ export function OfficeView({
                   <span className="size-1 animate-pulse rounded-full bg-emerald-500" />
                   <span className="size-1 animate-pulse rounded-full bg-emerald-500 [animation-delay:120ms]" />
                   <span className="size-1 animate-pulse rounded-full bg-emerald-500 [animation-delay:240ms]" />
-                  <span className="ml-0.5">Working</span>
+                  <span className="ml-0.5">Работает</span>
                 </span>
               ) : isIdle && !pos.atDesk && !compact ? (
                 <span className="mt-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">
-                  On break
+                  Перерыв
                 </span>
               ) : null}
 
@@ -894,12 +895,12 @@ export function OfficeView({
       {/* Footer — hidden in compact mode */}
       {!compact ? (
         <div className="hidden items-center justify-between border-t border-neutral-200 bg-white/80 px-4 py-2 text-xs text-neutral-500 backdrop-blur dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-400 md:flex">
-          <span>{agentRows.length}/{deskPositions.length} desks occupied</span>
+          <span>{agentRows.length}/{deskPositions.length} мест занято</span>
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-emerald-500" /> Working</span>
-            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-neutral-400" /> Idle</span>
-            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-red-500" /> Error</span>
-            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-neutral-400" /> Empty</span>
+            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-emerald-500" /> Работает</span>
+            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-neutral-400" /> Ждёт</span>
+            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-red-500" /> Ошибка</span>
+            <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-neutral-400" /> Пусто</span>
           </div>
         </div>
       ) : null}

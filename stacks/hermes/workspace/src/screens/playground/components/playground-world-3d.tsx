@@ -3121,13 +3121,13 @@ function PerfDebugOverlay() {
   return (
     <Html fullscreen prepend>
       <div style={{ position: 'fixed', left: 12, top: 12, zIndex: 1000, width: 190, border: '1px solid rgba(94,234,212,.35)', borderRadius: 14, background: 'rgba(2,8,13,.78)', color: '#dffcff', padding: '10px 12px', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11, lineHeight: 1.55, pointerEvents: 'none', boxShadow: '0 14px 40px rgba(0,0,0,.35)', backdropFilter: 'blur(10px)' }}>
-        <div style={{ color: '#facc15', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Perf debug</div>
+        <div style={{ color: '#facc15', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: 4 }}>Отладка</div>
         <div>FPS: {stats.fps}</div>
-        <div>Frame: {stats.frameMs}ms</div>
-        <div>Max: {stats.maxFrameMs}ms</div>
-        <div>Draw calls: {stats.calls}</div>
-        <div>Triangles: {stats.triangles}</div>
-        <div>Heap: {stats.heap} MB</div>
+        <div>Кадр: {stats.frameMs}ms</div>
+        <div>Макс.: {stats.maxFrameMs}ms</div>
+        <div>Вызовы отрисовки: {stats.calls}</div>
+        <div>Треугольники: {stats.triangles}</div>
+        <div>Память: {stats.heap} MB</div>
       </div>
     </Html>
   )

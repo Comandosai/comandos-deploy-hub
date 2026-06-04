@@ -151,14 +151,14 @@ async function compressImage(file: File): Promise<string> {
       } catch (err) {
         cleanup()
         reject(
-          err instanceof Error ? err : new Error('Image compression failed'),
+          err instanceof Error ? err : new Error('Не удалось сжать изображение'),
         )
       }
     }
 
     img.onerror = () => {
       cleanup()
-      reject(new Error('Failed to load image'))
+      reject(new Error('Не удалось загрузить изображение'))
     }
 
     img.src = objectUrl

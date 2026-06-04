@@ -81,7 +81,7 @@ export function PlaygroundAdminPanel() {
           setError(null)
         }
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Failed to load admin stats')
+        if (!cancelled) setError(e?.message || 'Не удалось загрузить статистику администратора')
       }
     }
     load()

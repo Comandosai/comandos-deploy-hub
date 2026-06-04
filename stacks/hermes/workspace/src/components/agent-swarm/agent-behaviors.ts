@@ -99,18 +99,18 @@ export const CHAT_MESSAGES = {
     'Almost there!',
   ],
   complete: [
-    'Done! 🎉',
-    'Ship it!',
-    'All green ✅',
-    'Nailed it!',
-    'Task complete!',
+    'Готово!',
+    'Можно запускать',
+    'Всё зелёное',
+    'Сработало',
+    'Задача завершена',
   ],
   failed: [
-    'Hmm...',
-    'Thats broken',
-    'Need help...',
-    'Something went wrong',
-    'Debugging...',
+    'Нужна проверка',
+    'Что-то сломалось',
+    'Нужна помощь',
+    'Произошла ошибка',
+    'Разбираюсь',
   ],
 } as const
 

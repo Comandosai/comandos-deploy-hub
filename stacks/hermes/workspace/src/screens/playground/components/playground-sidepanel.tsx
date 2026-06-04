@@ -30,18 +30,18 @@ type Props = {
 }
 
 const TABS: Array<{ id: TabId; label: string; icon: string }> = [
-  { id: 'inventory', label: 'Inventory', icon: '🎒' },
-  { id: 'skills', label: 'Skills', icon: '✨' },
-  { id: 'quests', label: 'Quests', icon: '📜' },
-  { id: 'worlds', label: 'Worlds', icon: '🗺️' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
+  { id: 'inventory', label: 'Инвентарь', icon: '🎒' },
+  { id: 'skills', label: 'Навыки', icon: '✨' },
+  { id: 'quests', label: 'Задания', icon: '📜' },
+  { id: 'worlds', label: 'Миры', icon: '🗺️' },
+  { id: 'settings', label: 'Настройки', icon: '⚙️' },
 ]
 
 const SLOT_LABELS: Array<{ slot: EquipmentSlot; label: string }> = [
-  { slot: 'weapon', label: 'Weapon' },
-  { slot: 'cloak', label: 'Cloak' },
-  { slot: 'head', label: 'Head' },
-  { slot: 'artifact', label: 'Artifact' },
+  { slot: 'weapon', label: 'Оружие' },
+  { slot: 'cloak', label: 'Плащ' },
+  { slot: 'head', label: 'Голова' },
+  { slot: 'artifact', label: 'Артефакт' },
 ]
 
 const EMPTY_SLOT_ICONS: Record<EquipmentSlot, string> = {
@@ -185,14 +185,14 @@ export function PlaygroundSidePanel({
         >
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 md:hidden">
             <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">
-              HermesWorld Menu
+              Меню HermesWorld
             </div>
             <button
               type="button"
               onClick={() => onOpenChange?.(false)}
               className="rounded-md border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/60"
             >
-              Close
+              Закрыть
             </button>
           </div>
           <div className="flex items-center justify-between gap-1 border-b border-white/10 px-1.5 py-1.5">

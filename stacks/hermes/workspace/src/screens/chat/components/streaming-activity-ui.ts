@@ -95,15 +95,15 @@ export function buildHermesActivitySummary(
     ),
   )
   const visibleLabels = labels.slice(0, 3).join(', ')
-  const overflowLabel = labels.length > 3 ? ` +${labels.length - 3} more` : ''
+  const overflowLabel = labels.length > 3 ? `, ещё: ${labels.length - 3}` : ''
   const statusLabel =
     runningCount > 0
-      ? `${runningCount} running`
+      ? `в работе: ${runningCount}`
       : errorCount > 0
-        ? `${errorCount} failed`
-        : `${doneCount} done`
+        ? `ошибок: ${errorCount}`
+        : `готово: ${doneCount}`
 
-  const countLabel = `${sections.length} ${sections.length === 1 ? 'call' : 'calls'}`
+  const countLabel = `вызовов: ${sections.length}`
   const visibleLabel = `${visibleLabels}${overflowLabel}`
 
   return {

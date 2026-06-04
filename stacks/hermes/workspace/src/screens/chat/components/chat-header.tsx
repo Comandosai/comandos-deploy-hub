@@ -163,6 +163,7 @@ function ChatHeaderComponent({
 
   const isStale = dataUpdatedAt > 0 && Date.now() - dataUpdatedAt > 15000
   const mobileTitle = formatMobileSessionTitle(activeTitle)
+  const displayTitle = formatMobileSessionTitle(activeTitle)
   void _agentModel
   void agentConnected
   void statusMode
@@ -319,7 +320,7 @@ function ChatHeaderComponent({
                     variant="ghost"
                     className="mr-2 text-primary-800 hover:bg-primary-100 dark:hover:bg-primary-800"
                     aria-label={
-                      fileExplorerCollapsed ? 'Show files' : 'Hide files'
+                      fileExplorerCollapsed ? 'Показать файлы' : 'Скрыть файлы'
                     }
                   >
                     <HugeiconsIcon
@@ -331,7 +332,7 @@ function ChatHeaderComponent({
                 }
               />
               <TooltipContent side="bottom">
-                {fileExplorerCollapsed ? 'Show files' : 'Hide files'}
+                {fileExplorerCollapsed ? 'Показать файлы' : 'Скрыть файлы'}
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -358,7 +359,7 @@ function ChatHeaderComponent({
                 }
               }}
               className="h-7 w-full min-w-0 border-b border-transparent bg-transparent px-0 text-sm font-medium text-balance text-ink outline-none transition-colors focus:border-primary-300"
-              aria-label="Session name"
+                aria-label="Название сессии"
             />
           ) : (
             <div
@@ -369,16 +370,16 @@ function ChatHeaderComponent({
                 type="button"
                 onClick={() => setSessionPopoverOpen((p) => !p)}
                 className="min-w-0 truncate text-sm font-medium text-balance hover:text-accent-600 transition-colors rounded-sm text-left"
-                title="Click to switch session"
+                title="Переключить сессию"
               >
-                {activeTitle}
+                {displayTitle}
               </button>
               {canRenameTitle && !renamingTitle && (
                 <button
                   type="button"
                   onClick={startTitleEdit}
                   className="text-xs text-primary-400 opacity-0 group-hover:opacity-100 hover:text-primary-600 transition-opacity shrink-0"
-                  title="Rename session"
+                  title="Переименовать сессию"
                 >
                   ✏️
                 </button>
@@ -507,7 +508,7 @@ function ChatHeaderComponent({
                 }
               />
               <TooltipContent side="bottom">
-                Thinking: Adaptive — Hermes reasons before responding
+                Мышление: адаптивное — Hermes обдумывает ответ перед отправкой
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
@@ -520,7 +521,7 @@ function ChatHeaderComponent({
                 render={
                   <button
                     type="button"
-                    aria-label={isStale ? 'Stale — click to sync' : 'Live'}
+                    aria-label={isStale ? 'Нужно обновить — нажмите для синхронизации' : 'На связи'}
                     className={cn(
                       'mr-2 inline-flex items-center justify-center rounded-full transition-colors',
                       isRefreshing && 'animate-pulse',
@@ -539,7 +540,7 @@ function ChatHeaderComponent({
                 }
               />
               <TooltipContent side="bottom">
-                {isStale ? 'Stale — click to sync' : 'Live'}
+                {isStale ? 'Нужно обновить — нажмите для синхронизации' : 'На связи'}
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>

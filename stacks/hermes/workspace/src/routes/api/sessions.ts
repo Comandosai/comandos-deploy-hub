@@ -209,7 +209,7 @@ export const Route = createFileRoute('/api/sessions')({
 
           if (!sessionKey) {
             return json(
-              { ok: false, error: 'sessionKey required' },
+              { ok: false, error: 'Не указан ID сессии' },
               { status: 400 },
             )
           }
@@ -284,7 +284,7 @@ export const Route = createFileRoute('/api/sessions')({
 
         if (!sessionKey) {
           return json(
-            { ok: false, error: 'sessionKey required' },
+            { ok: false, error: 'Не указан ID сессии' },
             { status: 400 },
           )
         }

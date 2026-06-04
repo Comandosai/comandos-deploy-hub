@@ -24,11 +24,11 @@ export function LoginScreen() {
         // Success! Reload to trigger auth check
         window.location.reload()
       } else {
-        setError(data.error || 'Invalid password')
+        setError(data.error || 'Неверный пароль')
         setLoading(false)
       }
     } catch (err) {
-      setError('Authentication failed. Please try again.')
+      setError('Вход не выполнен. Попробуйте ещё раз.')
       setLoading(false)
     }
   }

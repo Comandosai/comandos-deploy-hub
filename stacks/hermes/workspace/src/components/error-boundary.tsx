@@ -38,10 +38,10 @@ export class ErrorBoundary extends Component<
   render() {
     if (!this.state.error) return this.props.children
 
-    const title = this.props.title ?? 'Something went wrong'
+    const title = this.props.title ?? 'Что-то пошло не так'
     const description =
       this.props.description ??
-      'The chat encountered an unexpected issue. Reload to try again.'
+      'Интерфейс столкнулся с ошибкой. Обновите страницу и попробуйте ещё раз.'
 
     return (
       <div
@@ -65,7 +65,7 @@ export class ErrorBoundary extends Component<
             </pre>
           ) : null}
           <div className="mt-5 flex justify-center">
-            <Button onClick={() => this.reloadPage()}>Reload</Button>
+            <Button onClick={() => this.reloadPage()}>Обновить страницу</Button>
           </div>
         </div>
       </div>

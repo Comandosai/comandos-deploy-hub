@@ -244,7 +244,7 @@ export async function fetchModels(): Promise<GatewayModelsResponse> {
 
     const payload = (await response.json()) as GatewayModelsResponse
     if (payload.ok === false) {
-      throw new Error(payload.error || 'Failed to load models')
+      throw new Error(payload.error || 'Не удалось загрузить модели')
     }
 
     return {
@@ -256,7 +256,7 @@ export async function fetchModels(): Promise<GatewayModelsResponse> {
     }
   } catch (error) {
     if (isAbortError(error)) {
-      throw new Error('Gateway disconnected')
+      throw new Error('Шлюз Hermes отключен')
     }
     throw error
   } finally {

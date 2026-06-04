@@ -90,19 +90,19 @@ function getModelBadgeClass(modelId: string): string {
 }
 
 function getModelLabel(modelId: string): string {
-  if (!modelId) return 'Unknown'
+  if (!modelId) return 'Неизвестно'
   return MODEL_LABEL[modelId] ?? (modelId.split('/')[1] || modelId)
 }
 
 const STATUS_TEXT: Record<AgentWorkingStatus, string> = {
-  active:            '● working',
-  spawning:          '◌ spawning...',
-  ready:             '○ ready',
-  idle:              '○ idle',
-  paused:            '⏸ paused',
-  error:             '✕ error',
-  none:              '— no session',
-  waiting_for_input: '⏳ waiting for input',
+  active:            '● работает',
+  spawning:          '◌ запускается...',
+  ready:             '○ готов',
+  idle:              '○ ждёт',
+  paused:            '⏸ пауза',
+  error:             '✕ ошибка',
+  none:              '— нет сессии',
+  waiting_for_input: '⏳ ждёт ввода',
 }
 
 function SpinnerIcon({ className }: { className?: string }) {
@@ -388,13 +388,13 @@ export function AgentsWorkingPanel({
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
           <h3 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500" style={{ fontVariant: 'small-caps' }}>
-            Agents Working
+            Агенты в работе
           </h3>
           {activeCount > 0 ? (
             <div className="flex items-center gap-1">
               <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
               <span className="font-mono text-[10px] font-medium text-emerald-600">
-                {activeCount} live
+                {activeCount} активн.
               </span>
             </div>
           ) : null}

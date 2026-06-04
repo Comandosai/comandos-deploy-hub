@@ -38,7 +38,7 @@ describe('Swarm2 reports view model', () => {
       kind: 'checkpoint',
       workerId: 'swarm5',
       state: 'needs_review',
-      stateLabel: 'Needs review',
+      stateLabel: 'Нужна проверка',
       summary: 'Page is implemented.',
     })
     expect(rows[0].artifacts[0].path).toBe('src/screens/swarm2/swarm2-reports-view.tsx')
@@ -90,10 +90,10 @@ describe('Swarm2 reports view model', () => {
     expect(rows[0]).toMatchObject({
       workerId: 'swarm4',
       state: 'needs_review',
-      stateLabel: 'Needs review',
+      stateLabel: 'Нужна проверка',
       summary: 'Reviewer inbox is ready for Eric handoff',
     })
-    expect(rows[0].details.find((detail) => detail.label === 'Result')?.value).toBe('Reviewer inbox is ready for Eric handoff')
+    expect(rows[0].details.find((detail) => detail.label === 'Результат')?.value).toBe('Reviewer inbox is ready for Eric handoff')
   })
 
   it('prioritizes blocked affordances from checkpoints and runtime state', () => {
@@ -120,7 +120,7 @@ describe('Swarm2 reports view model', () => {
     })
 
     expect(rows[0].state).toBe('blocked')
-    expect(rows[0].stateLabel).toBe('Blocked')
+    expect(rows[0].stateLabel).toBe('Проблема')
     expect(rows[0].summary).toBe('Missing token')
   })
 
@@ -153,7 +153,7 @@ describe('Swarm2 reports view model', () => {
     })
 
     expect(rows[0].state).toBe('ready')
-    expect(rows[0].stateLabel).toBe('Ready')
+    expect(rows[0].stateLabel).toBe('Готово')
     expect(rows[0].summary).toBe('Patch shipped')
   })
 })

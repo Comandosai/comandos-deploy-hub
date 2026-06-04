@@ -66,18 +66,18 @@ type Props = {
 }
 
 function roleForMember(members: Array<CrewMember>, id: string): string {
-  return members.find((member) => member.id === id)?.role || 'Worker'
+  return members.find((member) => member.id === id)?.role || 'Агент'
 }
 
 
 const QUICK_ROUTES = [
-  'Research',
-  'Builder',
-  'Reviewer',
-  'Docs',
-  'Ops',
-  'Best match',
-  'Auto',
+  'Исследователь',
+  'Сборщик',
+  'Проверяющий',
+  'Документы',
+  'Операции',
+  'Лучший агент',
+  'Авто',
 ]
 
 export function RouterChat({
@@ -128,7 +128,7 @@ export function RouterChat({
         {
           workerId: selectedId,
           task: prompt.trim(),
-          rationale: 'Manual target.',
+          rationale: 'Выбран вручную.',
         },
       ])
     }
@@ -140,8 +140,8 @@ export function RouterChat({
     const targetLabel = selectedId
       ? selectedId
       : roomIds.length
-        ? `${roomIds.length} in room`
-        : `${members.length} workers`
+        ? `в комнате: ${roomIds.length}`
+        : `агентов: ${members.length}`
 
     return (
       <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-xl px-4 pb-3">
@@ -189,13 +189,13 @@ export function RouterChat({
         unassigned?: Array<string>
         error?: string
       }
-      if (!data.ok) throw new Error(data.error || 'decompose failed')
+      if (!data.ok) throw new Error(data.error || 'не удалось построить маршрут')
       const nextAssignments = data.assignments ?? []
       setAssignments(nextAssignments)
       setUnassigned(data.unassigned ?? [])
       return nextAssignments
     } catch (err) {
-      setDecomposeError(err instanceof Error ? err.message : 'decompose failed')
+      setDecomposeError(err instanceof Error ? err.message : 'не удалось построить маршрут')
       return null
     } finally {
       setDecomposing(false)
@@ -218,7 +218,7 @@ export function RouterChat({
         {
           workerId: selectedId,
           task: prompt.trim(),
-          rationale: 'Manual single-target.',
+          rationale: 'Один агент выбран вручную.',
         },
       ]
     } else {
@@ -226,7 +226,7 @@ export function RouterChat({
       plan = targets.map((id) => ({
         workerId: id,
         task: prompt.trim(),
-        rationale: 'Broadcast.',
+        rationale: 'Отправка всем агентам.',
       }))
     }
     if (plan.length === 0) return
@@ -269,7 +269,7 @@ export function RouterChat({
         if (followData) setFollowUp(followData)
       }
     } catch (err) {
-      setDispatchError(err instanceof Error ? err.message : 'dispatch failed')
+      setDispatchError(err instanceof Error ? err.message : 'не удалось отправить задачу')
     } finally {
       setDispatching(false)
     }
@@ -353,7 +353,7 @@ export function RouterChat({
                       setPrompt((cur) =>
                         cur
                           ? cur
-                          : `Use the ${quick.toLowerCase()} specialist for this:`,
+                          : `Используй маршрут «${quick}» для задачи:`,
                       )
                     }}
                     className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--theme-muted)] hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
@@ -513,7 +513,7 @@ export function RouterChat({
                 {((results.completedAt - results.dispatchedAt) / 1000).toFixed(
                   1,
                 )}
-                s
+                сек
               </span>
             </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -548,7 +548,7 @@ export function RouterChat({
                   {r.checkpoint ? (
                     <div className="mt-2 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-2">
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--theme-muted)]">
-                        Checkpoint · {r.checkpoint.stateLabel}
+                        Контрольная точка · {r.checkpoint.stateLabel}
                       </div>
                       {r.checkpoint.result ? (
                         <div className="mt-1 line-clamp-4 text-[11px] text-[var(--theme-text)]">
@@ -569,7 +569,7 @@ export function RouterChat({
                   {r.output ? (
                     <pre className="mt-2 max-h-44 overflow-auto whitespace-pre-wrap text-[var(--theme-text)]">
                       {r.output.length > 1800
-                        ? `${r.output.slice(0, 1800)}…\n[truncated]`
+                        ? `${r.output.slice(0, 1800)}…\n[обрезано]`
                         : r.output}
                     </pre>
                   ) : null}
@@ -617,7 +617,7 @@ function RouterClosedDock({
             Маршрут
           </span>
           <span className="block truncate text-sm text-[var(--theme-text)]">
-            {mode} · {targetLabel}
+            {mode === 'auto' ? 'авто' : mode === 'manual' ? 'один агент' : 'всем'} · {targetLabel}
           </span>
         </span>
       </span>

@@ -75,7 +75,7 @@ export const Route = createFileRoute('/api/session-history')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to load history',
+                  : 'Не удалось загрузить историю',
             },
             { status: 500 },
           )

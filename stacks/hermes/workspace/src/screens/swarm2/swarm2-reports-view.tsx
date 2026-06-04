@@ -123,12 +123,12 @@ type WorkerReportCard = {
 }
 
 const STATE_FILTERS: Array<{ id: ReportState; label: string }> = [
-  { id: 'all', label: 'All' },
-  { id: 'needs_review', label: 'Needs review' },
-  { id: 'ready', label: 'Ready' },
-  { id: 'blocked', label: 'Blocked' },
-  { id: 'artifact', label: 'Artifacts' },
-  { id: 'in_progress', label: 'In progress' },
+  { id: 'all', label: 'Все' },
+  { id: 'needs_review', label: 'Нужна проверка' },
+  { id: 'ready', label: 'Готово' },
+  { id: 'blocked', label: 'Проблема' },
+  { id: 'artifact', label: 'Артефакты' },
+  { id: 'in_progress', label: 'В работе' },
 ]
 
 function clean(value: string | null | undefined, fallback = '—'): string {
@@ -184,15 +184,15 @@ function stateForRuntime(entry: RuntimeReportEntry): Exclude<ReportState, 'all'>
 function stateLabel(state: Exclude<ReportState, 'all'>): string {
   switch (state) {
     case 'needs_review':
-      return 'Needs review'
+      return 'Нужна проверка'
     case 'ready':
-      return 'Ready'
+      return 'Готово'
     case 'blocked':
-      return 'Blocked'
+      return 'Проблема'
     case 'artifact':
-      return 'Artifact'
+      return 'Артефакт'
     case 'in_progress':
-      return 'In progress'
+      return 'В работе'
   }
 }
 
@@ -264,7 +264,7 @@ export function buildSwarm2ReportRows({
     rows.push({
       id: `runtime:${runtime.workerId}:${runtime.lastOutputAt ?? runtime.lastSessionStartedAt ?? 'latest'}`,
       kind: (runtime.artifacts?.length ?? 0) > 0 || (runtime.previews?.length ?? 0) > 0 ? 'artifact' : 'runtime',
-      title: clean(runtime.currentTask ?? runtime.lastRealSummary ?? runtime.lastSummary ?? runtime.lastRealResult ?? runtime.lastResult, 'Runtime output'),
+      title: clean(runtime.currentTask ?? runtime.lastRealSummary ?? runtime.lastSummary ?? runtime.lastRealResult ?? runtime.lastResult, 'Вывод агента'),
       missionId: null,
       missionTitle: null,
       assignmentId: null,
@@ -281,14 +281,14 @@ export function buildSwarm2ReportRows({
       reviewedAt: null,
       reviewedBy: null,
       details: [
-        { label: 'Current task', value: clean(runtime.currentTask) },
-        { label: 'Summary', value: clean(runtime.lastSummary) },
-        { label: 'Real summary', value: clean(runtime.lastRealSummary) },
-        { label: 'Result', value: clean(runtime.lastResult) },
-        { label: 'Real result', value: clean(runtime.lastRealResult) },
-        { label: 'Blocked reason', value: clean(runtime.blockedReason) },
-        { label: 'Checkpoint status', value: clean(runtime.checkpointStatus) },
-        { label: 'Recent log tail', value: compact(runtime.recentLogTail, 900) },
+        { label: 'Текущая задача', value: clean(runtime.currentTask) },
+        { label: 'Краткое описание', value: clean(runtime.lastSummary) },
+        { label: 'Фактическое описание', value: clean(runtime.lastRealSummary) },
+        { label: 'Результат', value: clean(runtime.lastResult) },
+        { label: 'Фактический результат', value: clean(runtime.lastRealResult) },
+        { label: 'Причина блокировки', value: clean(runtime.blockedReason) },
+        { label: 'Статус контрольной точки', value: clean(runtime.checkpointStatus) },
+        { label: 'Последние строки лога', value: compact(runtime.recentLogTail, 900) },
       ],
       artifacts: runtime.artifacts ?? [],
       previews: runtime.previews ?? [],
@@ -319,14 +319,14 @@ export function buildSwarm2InboxLanes({
 }
 
 function formatAge(value: number | null): string {
-  if (!value) return 'unknown age'
+  if (!value) return 'возраст неизвестен'
   const diff = Math.max(0, Date.now() - value)
   const minutes = Math.floor(diff / 60_000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 1) return 'только что'
+  if (minutes < 60) return `${minutes} мин назад`
   const hours = Math.floor(minutes / 60)
-  if (hours < 48) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 48) return `${hours} ч назад`
+  return `${Math.floor(hours / 24)} дн назад`
 }
 
 function toneClass(state: Exclude<ReportState, 'all'>): string {
@@ -369,17 +369,17 @@ function roleFromWorkerId(workerId: string): string {
   const number = workerId.replace(/\D/g, '')
   switch (number) {
     case '4':
-      return 'Research'
+      return 'Исследователь'
     case '5':
     case '10':
-      return 'Builder'
+      return 'Сборщик'
     case '6':
     case '11':
-      return 'Reviewer'
+      return 'Проверяющий'
     case '9':
-      return 'Lab'
+      return 'Лаборатория'
     default:
-      return 'Worker'
+      return 'Воркер'
   }
 }
 
@@ -431,25 +431,25 @@ export function buildBlockedGuidanceTask(row: Swarm2InboxItem, guidance: string)
   return [
     guidance.trim(),
     '',
-    `Prior blocker: ${cleanDetail(row.blocker) ?? 'none'}`,
-    `Latest next action: ${cleanDetail(row.nextAction) ?? 'none'}`,
+    `Предыдущая блокировка: ${cleanDetail(row.blocker) ?? 'нет'}`,
+    `Следующее действие: ${cleanDetail(row.nextAction) ?? 'нет'}`,
     '',
-    'Resume: address the blocker and continue.',
+    'Продолжи: разбери блокировку и двигай задачу дальше.',
   ].join('\n')
 }
 
 export function buildReviewerDispatchTask(row: Swarm2InboxItem): string {
-  return `Review ${row.workerId} checkpoint at ${row.checkpointStatus ?? row.stateLabel}. Read the swarm6 review spec from the configured swarm-specs workspace. Verify, byte-check, return APPROVED/CHANGES_REQUESTED/BLOCKED.`
+  return `Проверь контрольную точку ${row.workerId}: ${row.checkpointStatus ?? row.stateLabel}. Прочитай review-спеку swarm6 из настроенной папки swarm-specs. Проверь изменения, сделай байтовую проверку чувствительных мест и верни вердикт APPROVED/CHANGES_REQUESTED/BLOCKED.`
 }
 
 export function extractPullRequestUrl(row: Swarm2ReportRow): string | null {
   const sources = [
     row.summary,
     row.title,
-    cleanDetail(detailValue(row, 'Result')),
-    cleanDetail(detailValue(row, 'Real result')),
-    cleanDetail(detailValue(row, 'Summary')),
-    cleanDetail(detailValue(row, 'Real summary')),
+    cleanDetail(detailValue(row, 'Результат')),
+    cleanDetail(detailValue(row, 'Фактический результат')),
+    cleanDetail(detailValue(row, 'Краткое описание')),
+    cleanDetail(detailValue(row, 'Фактическое описание')),
   ].filter(Boolean) as Array<string>
   for (const source of sources) {
     const match = source.match(/https?:\/\/\S+\/pull\/\d+\S*/i)
@@ -484,9 +484,9 @@ export async function markInboxItemReadyForEric(input: { missionId: string; assi
 
 function buildReplyPrefill(row: Swarm2InboxItem): string {
   return [
-    `Worker: ${row.workerId}`,
-    `Prior blocker: ${cleanDetail(row.blocker) ?? 'none'}`,
-    `Latest next action: ${cleanDetail(row.nextAction) ?? 'none'}`,
+    `Агент: ${row.workerId}`,
+    `Предыдущая блокировка: ${cleanDetail(row.blocker) ?? 'нет'}`,
+    `Следующее действие: ${cleanDetail(row.nextAction) ?? 'нет'}`,
     '',
   ].join('\n')
 }

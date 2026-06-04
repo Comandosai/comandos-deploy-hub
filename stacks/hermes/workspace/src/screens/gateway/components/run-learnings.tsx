@@ -22,19 +22,19 @@ type LearningCategory = RunLearningsProps['learnings'][number]['category']
 type CategoryFilter = 'all' | LearningCategory
 
 const FILTER_OPTIONS: Array<{ key: CategoryFilter; label: string; className?: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'success', label: 'Success', className: 'border-emerald-700/60 bg-emerald-900/30 text-emerald-300' },
-  { key: 'failure', label: 'Failure', className: 'border-red-700/60 bg-red-900/30 text-red-300' },
-  { key: 'optimization', label: 'Optimization', className: 'border-sky-700/60 bg-sky-900/30 text-sky-300' },
+  { key: 'all', label: 'Все' },
+  { key: 'success', label: 'Успехи', className: 'border-emerald-700/60 bg-emerald-900/30 text-emerald-300' },
+  { key: 'failure', label: 'Ошибки', className: 'border-red-700/60 bg-red-900/30 text-red-300' },
+  { key: 'optimization', label: 'Оптимизация', className: 'border-sky-700/60 bg-sky-900/30 text-sky-300' },
 ]
 
 function relativeTime(ts: number, now: number): string {
   const seconds = Math.max(0, Math.floor((now - ts) / 1000))
-  if (seconds < 5) return 'just now'
-  if (seconds < 60) return `${seconds}s ago`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
+  if (seconds < 5) return 'только что'
+  if (seconds < 60) return `${seconds} сек назад`
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} мин назад`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} ч назад`
+  return `${Math.floor(seconds / 86400)} дн назад`
 }
 
 function categoryBadgeClass(category: LearningCategory): string {
@@ -105,14 +105,14 @@ export function RunLearnings({ runId, runTitle, learnings, onAddLearning, onClos
     >
       <header className="flex items-center justify-between border-b border-primary-800 px-4 py-3">
         <h2 className="truncate pr-3 text-sm font-semibold text-primary-100">
-          📝 Learnings from: {runTitle}
+          📝 Выводы по запуску: {runTitle}
         </h2>
         <button
           type="button"
           onClick={onClose}
           className="rounded-lg border border-primary-700 px-2.5 py-1 text-xs font-medium text-primary-300 transition-colors hover:bg-primary-900 hover:text-primary-100"
         >
-          Close
+          Закрыть
         </button>
       </header>
 
@@ -175,7 +175,7 @@ export function RunLearnings({ runId, runTitle, learnings, onAddLearning, onClos
                       onClick={() => void handleCopy(learning.id, learning.text)}
                       className="shrink-0 rounded-lg border border-primary-700 px-2 py-1 text-[11px] font-medium text-primary-300 transition-colors hover:bg-primary-800 hover:text-primary-100"
                     >
-                      {copiedId === learning.id ? 'Copied' : 'Copy'}
+                      {copiedId === learning.id ? 'Скопировано' : 'Копировать'}
                     </button>
                   </div>
                 </motion.li>

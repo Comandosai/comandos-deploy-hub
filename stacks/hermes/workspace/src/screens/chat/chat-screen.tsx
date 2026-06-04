@@ -530,6 +530,10 @@ export function ChatScreen({
 
   const pendingStartRef = useRef(false)
   const composerHandleRef = useRef<ChatComposerHandle | null>(null)
+  const [prefillPrompt, setPrefillPrompt] = useState<{
+    id: number
+    value: string
+  } | null>(null)
   // Idempotency guard prevents duplicate sends on paste/attach double-fire.
   const lastSendKeyRef = useRef('')
   const lastSendAtRef = useRef(0)
@@ -571,6 +575,10 @@ export function ChatScreen({
     sessionsFetching: _sessionsFetching,
     refetchSessions: _refetchSessions,
   } = useChatSessions({ activeFriendlyId, isNewChat, forcedSessionKey })
+  const visibleActiveTitle =
+    isNewChat || activeTitle.trim().toLowerCase() === 'new'
+      ? 'Новый чат'
+      : activeTitle
   const {
     historyQuery,
     historyMessages,
@@ -671,7 +679,7 @@ export function ChatScreen({
           ? actionValue
           : actionValue
             ? JSON.stringify(actionValue)
-            : 'Tool call requires approval'
+            : 'Вызов инструмента требует подтверждения'
       const contextValue = payload.context ?? payload.input ?? payload.args
       const context =
         typeof contextValue === 'string'
@@ -684,7 +692,7 @@ export function ChatScreen({
       const agentName =
         typeof agentNameValue === 'string' && agentNameValue.trim().length > 0
           ? agentNameValue
-          : 'Agent'
+          : 'Агент'
       const agentIdValue =
         payload.agentId ?? payload.sessionKey ?? payload.source
       const agentId =
@@ -1526,7 +1534,7 @@ export function ChatScreen({
           }
         : statusQuery.data && !statusQuery.data.ok
           ? {
-              message: statusQuery.data.error || 'Hermes Agent unavailable',
+              message: statusQuery.data.error || 'Hermes Agent недоступен',
               status: statusQuery.data.status,
             }
           : null
@@ -1649,11 +1657,11 @@ export function ChatScreen({
       navigate({ to: '/', replace: true })
     }
     const message = sessionsError
-      ? `Failed to load sessions. ${sessionsError}`
+      ? `Не удалось загрузить сессии. ${sessionsError}`
       : historyError
-        ? `Failed to load history. ${historyError}`
+        ? `Не удалось загрузить историю. ${historyError}`
         : statusError
-          ? `Hermes Agent unavailable. ${statusError.message}`
+          ? `Hermes Agent недоступен. ${statusError.message}`
           : null
     if (message) setError(message)
   }, [
@@ -2603,7 +2611,7 @@ export function ChatScreen({
         >
           {!compact && (
             <ChatHeader
-              activeTitle={activeTitle}
+              activeTitle={visibleActiveTitle}
               onRenameTitle={handleRenameActiveSessionTitle}
               renamingTitle={renamingSessionTitle}
               wrapperRef={headerRef}
@@ -2648,8 +2656,8 @@ export function ChatScreen({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-                        {'\uD83D\uDD10'} Approval Required -{' '}
-                        {approval.agentName || 'Agent'}
+                        {'\uD83D\uDD10'} Нужно подтверждение -{' '}
+                        {approval.agentName || 'Агент'}
                       </p>
                       <p className="mt-0.5 truncate text-xs text-amber-600 dark:text-amber-500">
                         {approval.action}
@@ -2668,7 +2676,7 @@ export function ChatScreen({
                         }}
                         className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600"
                       >
-                        Approve
+                        Согласовать
                       </button>
                       <button
                         type="button"
@@ -2677,7 +2685,7 @@ export function ChatScreen({
                         }}
                         className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 dark:border-red-800/50 dark:bg-red-900/10 dark:text-red-400"
                       >
-                        Deny
+                        Отклонить
                       </button>
                     </div>
                   </div>
@@ -2708,7 +2716,12 @@ export function ChatScreen({
                 <ChatEmptyState
                   compact={compact}
                   onSuggestionClick={(prompt) => {
-                    composerHandleRef.current?.setValue(prompt + ' ')
+                    const value = `${prompt.trim()} `
+                    setPrefillPrompt((previous) => ({
+                      id: (previous?.id ?? 0) + 1,
+                      value,
+                    }))
+                    composerHandleRef.current?.setValue(value)
                   }}
                 />
               }
@@ -2760,6 +2773,7 @@ export function ChatScreen({
               }
               wrapperRef={composerRef}
               composerRef={composerHandleRef}
+              prefillPrompt={prefillPrompt}
               embedded={embedded}
               // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
               focusKey={`${isNewChat ? 'new' : activeFriendlyId}:${activeCanonicalKey ?? ''}`}

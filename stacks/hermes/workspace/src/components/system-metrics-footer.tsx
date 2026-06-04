@@ -57,11 +57,18 @@ function metricTone(percent: number): 'normal' | 'warn' | 'critical' {
 
 function formatCheckedAt(checkedAt: number): string {
   const ageSeconds = Math.max(0, Math.round((Date.now() - checkedAt) / 1000))
-  if (ageSeconds < 5) return 'now'
-  if (ageSeconds < 60) return `${ageSeconds}s ago`
+  if (ageSeconds < 5) return 'сейчас'
+  if (ageSeconds < 60) return `${ageSeconds} сек назад`
 
   const ageMinutes = Math.round(ageSeconds / 60)
-  return `${ageMinutes}m ago`
+  return `${ageMinutes} мин назад`
+}
+
+function formatHermesStatus(status: SystemMetrics['hermes']['status']): string {
+  if (status === 'connected') return 'подключён'
+  if (status === 'enhanced') return 'расширенный режим'
+  if (status === 'partial') return 'частично'
+  return 'отключён'
 }
 
 function MetricItem({
@@ -127,7 +134,7 @@ export function SystemMetricsFooter({ leftOffsetPx = 0 }: { leftOffsetPx?: numbe
     <footer
       className="fixed bottom-0 right-0 z-40 hidden h-7 items-center border-t border-[var(--theme-border)] bg-[var(--theme-card)] px-4 text-[11px] leading-none text-[var(--theme-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] md:flex"
       data-testid="system-metrics-footer"
-      aria-label="System metrics footer"
+      aria-label="Системные показатели"
       style={{ left: leftOffsetPx }}
     >
       <div className="flex max-w-full items-center justify-center gap-3 overflow-hidden opacity-85">
@@ -146,18 +153,18 @@ export function SystemMetricsFooter({ leftOffsetPx = 0 }: { leftOffsetPx?: numbe
             />
             <Separator />
             <MetricItem
-              label="Disk"
+              label="Диск"
               value={`${data.disk.usedPercent}%`}
               tone={metricTone(data.disk.usedPercent)}
             />
             <Separator />
             <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
               <StatusDot tone={hermesDotTone} />
-              <MetricItem label="Hermes" value={data.hermes.status} tone={hermesTone} />
+              <MetricItem label="Hermes" value={formatHermesStatus(data.hermes.status)} tone={hermesTone} />
             </span>
             <Separator />
             <MetricItem
-              label="Updated"
+              label="Обновлено"
               value={formatCheckedAt(data.checkedAt)}
               tone="muted"
             />
@@ -166,8 +173,8 @@ export function SystemMetricsFooter({ leftOffsetPx = 0 }: { leftOffsetPx?: numbe
           <span className="inline-flex items-center gap-2 whitespace-nowrap text-[var(--theme-muted)]">
             <StatusDot tone={isError ? 'warn' : 'muted'} />
             <MetricItem
-              label="Metrics"
-              value={isError ? 'unavailable' : 'loading'}
+              label="Показатели"
+              value={isError ? 'недоступны' : 'загрузка'}
               tone={isError ? 'warn' : 'muted'}
             />
           </span>

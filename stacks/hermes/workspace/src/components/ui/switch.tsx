@@ -5,11 +5,11 @@ import { Switch as SwitchPrimitive } from '@base-ui/react/switch'
 import { cn } from '@/lib/utils'
 
 /**
- * Switch with explicit ON/OFF text inside the track.
+ * Switch with explicit ВКЛ/ВЫКЛ text inside the track.
  *
  * The plain dark/light pill version (#284) made it ambiguous which side
- * was the 'on' state, especially in dark themes where the unchecked grey
- * and checked dark-blue tones read similarly. The visible ON/OFF labels
+ * was the checked state, especially in dark themes where the unchecked grey
+ * and checked dark-blue tones read similarly. The visible labels
  * remove the ambiguity without breaking the existing API.
  *
  * The thumb sits over the active label and hides it; the inactive label
@@ -26,22 +26,22 @@ function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
       data-slot="switch"
       {...props}
     >
-      {/* ON label — visible only when the switch is checked, on the left of
+      {/* Checked label — visible only when the switch is checked, on the left of
           the thumb. Tiny so it never reflows the layout, white on accent
           for contrast. */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute left-1 select-none text-[8px] font-bold uppercase tracking-wide text-white opacity-0 transition-opacity duration-150 in-data-checked:opacity-100"
       >
-        ON
+        ВКЛ
       </span>
-      {/* OFF label — visible only when the switch is unchecked, on the right
+      {/* Unchecked label — visible only when the switch is unchecked, on the right
           of the thumb. Muted so it doesn't shout. */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute right-1 select-none text-[8px] font-bold uppercase tracking-wide text-primary-700 opacity-100 transition-opacity duration-150 dark:text-neutral-300 in-data-checked:opacity-0"
       >
-        OFF
+        ВЫКЛ
       </span>
       <SwitchPrimitive.Thumb
         className={cn(

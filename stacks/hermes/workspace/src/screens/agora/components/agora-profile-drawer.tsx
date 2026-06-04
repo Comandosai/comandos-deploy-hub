@@ -89,7 +89,7 @@ export function AgoraProfileDrawer({
                 type="button"
                 onClick={onClose}
                 className="opacity-60 hover:opacity-100 text-lg leading-none"
-                aria-label="Close"
+                aria-label="Закрыть"
               >
                 ×
               </button>

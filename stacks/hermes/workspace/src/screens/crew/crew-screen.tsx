@@ -38,23 +38,49 @@ function formatCost(n: number | null): string {
 }
 
 function formatRelativeTime(unixSeconds: number | null): string {
-  if (!unixSeconds) return 'Never'
+  if (!unixSeconds) return 'Никогда'
   const diffMs = Date.now() - unixSeconds * 1000
   const diffMins = Math.floor(diffMs / 60_000)
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffMins < 1) return 'Только что'
+  if (diffMins < 60) return `${diffMins} мин назад`
   const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffHours < 24) return `${diffHours} ч назад`
   const diffDays = Math.floor(diffHours / 24)
-  return `${diffDays}d ago`
+  return `${diffDays} дн назад`
 }
 
 function formatUpdatedAgo(fetchedAt: number | null): string {
   if (!fetchedAt) return ''
   const diffSec = Math.floor((Date.now() - fetchedAt) / 1000)
-  if (diffSec < 5) return 'just now'
-  if (diffSec < 60) return `${diffSec}s ago`
-  return `${Math.floor(diffSec / 60)}m ago`
+  if (diffSec < 5) return 'только что'
+  if (diffSec < 60) return `${diffSec} сек назад`
+  return `${Math.floor(diffSec / 60)} мин назад`
+}
+
+function formatCrewStatus(status: CrewOnlineStatus): string {
+  if (status === 'online') return 'В сети'
+  if (status === 'offline') return 'Не в сети'
+  return 'Неизвестно'
+}
+
+function formatPlatformState(state: string): string {
+  if (state === 'connected') return 'подключён'
+  if (state === 'disconnected') return 'отключён'
+  if (state === 'error') return 'ошибка'
+  if (state === 'starting') return 'запускается'
+  return state || 'неизвестно'
+}
+
+function formatCrewRole(role: string): string {
+  const normalized = role.trim().toLowerCase()
+  if (!normalized) return 'Агент'
+  if (normalized === 'worker') return 'Агент'
+  if (normalized === 'builder') return 'Сборщик'
+  if (normalized === 'reviewer') return 'Проверяющий'
+  if (normalized === 'research') return 'Исследователь'
+  if (normalized === 'docs') return 'Документы'
+  if (normalized === 'ops') return 'Операции'
+  return role
 }
 
 // ── Status dot ──────────────────────────────────────────────────────
@@ -78,7 +104,7 @@ function StatusDot({ status }: { status: CrewOnlineStatus }) {
           status === 'unknown' && 'text-gray-500',
         )}
       >
-        {status}
+        {formatCrewStatus(status)}
       </span>
     </div>
   )
@@ -146,7 +172,7 @@ function AgentCard({ member }: { member: CrewMember }) {
         <div className="flex items-start justify-between gap-2">
           <StatusDot status={status} />
           <span className="text-[9px] font-medium text-[var(--theme-muted)] uppercase tracking-wider text-right bg-[var(--theme-hover)] border border-[var(--theme-border)] px-1.5 py-0.5 rounded-sm">
-            {member.role}
+            {formatCrewRole(member.role)}
           </span>
         </div>
         {/* Agent name + model */}
@@ -167,7 +193,7 @@ function AgentCard({ member }: { member: CrewMember }) {
                 )}
               />
               <span className="text-[10px] text-[var(--theme-muted)]">
-                Telegram: {telegramPlatform.state}
+                Telegram: {formatPlatformState(telegramPlatform.state)}
               </span>
             </div>
           )}
@@ -176,7 +202,7 @@ function AgentCard({ member }: { member: CrewMember }) {
         {/* Last active */}
         <div>
           <p className="text-[11px] text-[var(--theme-muted)]">
-            Last active: <span className="text-[var(--theme-text)]">{formatRelativeTime(member.lastSessionAt)}</span>
+            Последняя активность: <span className="text-[var(--theme-text)]">{formatRelativeTime(member.lastSessionAt)}</span>
           </p>
           {member.lastSessionTitle && (
             <p className="text-[11px] text-[var(--theme-muted)] italic truncate mt-0.5">
@@ -188,9 +214,9 @@ function AgentCard({ member }: { member: CrewMember }) {
         {/* Stats grid */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: 'Sessions', value: formatNumber(member.sessionCount) },
-            { label: 'Messages', value: formatNumber(member.messageCount) },
-            { label: 'Tools',    value: formatNumber(member.toolCallCount) },
+            { label: 'Сессии', value: formatNumber(member.sessionCount) },
+            { label: 'Сообщения', value: formatNumber(member.messageCount) },
+            { label: 'Инструменты', value: formatNumber(member.toolCallCount) },
           ].map(({ label, value }) => (
             <div
               key={label}
@@ -205,20 +231,20 @@ function AgentCard({ member }: { member: CrewMember }) {
         {/* Tokens + cost */}
         <div className="flex justify-between text-[11px]">
           <span className="text-[var(--theme-muted)]">
-            Tokens: <span className="text-[var(--theme-text)]">{formatTokens(member.totalTokens)}</span>
+            Токены: <span className="text-[var(--theme-text)]">{formatTokens(member.totalTokens)}</span>
           </span>
           <span className="text-[var(--theme-muted)]">
-            Est. cost: <span className="text-[var(--theme-text)]">{formatCost(member.estimatedCostUsd)}</span>
+            Оценка: <span className="text-[var(--theme-text)]">{formatCost(member.estimatedCostUsd)}</span>
           </span>
         </div>
 
         {/* Cron + tasks */}
         <div className="flex justify-between text-[11px]">
           <span className="text-[var(--theme-muted)]">
-            Crons: <span className="text-[var(--theme-text)]">{member.cronJobCount}</span>
+            Задания: <span className="text-[var(--theme-text)]">{member.cronJobCount}</span>
           </span>
           <span className="text-[var(--theme-muted)]">
-            Tasks: <span className="text-[var(--theme-text)]">{member.assignedTaskCount} assigned</span>
+            Задачи: <span className="text-[var(--theme-text)]">{member.assignedTaskCount} назначено</span>
           </span>
         </div>
 
@@ -233,7 +259,7 @@ function AgentCard({ member }: { member: CrewMember }) {
             className="flex items-center gap-1 text-[11px] text-[var(--theme-muted)] hover:text-[#B87333] hover:bg-[var(--theme-hover)] px-2 py-1 rounded transition-colors -ml-2"
           >
             <HugeiconsIcon icon={CheckListIcon} size={12} />
-            Tasks
+            Задачи
           </button>
           <button
             type="button"
@@ -241,7 +267,7 @@ function AgentCard({ member }: { member: CrewMember }) {
             className="flex items-center gap-1 text-[11px] text-[var(--theme-muted)] hover:text-[#B87333] hover:bg-[var(--theme-hover)] px-2 py-1 rounded transition-colors -mr-2"
           >
             <HugeiconsIcon icon={Clock01Icon} size={12} />
-            Cron Jobs
+            Расписание
           </button>
         </div>
       </div>
@@ -303,28 +329,28 @@ export function CrewScreen() {
                 className="text-2xl font-bold tracking-[0.18em] uppercase"
                 style={{ color: '#f59e0b' }}
               >
-                Crew Status
+                Статус команды
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--theme-muted)]">
-                Live agent health across profiles, recent session activity, assigned tasks, and cron coverage.
+                Живое состояние агентов: профили, последние сессии, назначенные задачи и задания по расписанию.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.18em]">
               <span className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-1 text-[var(--theme-muted)]">
-                <span className="text-[var(--theme-text)]">{displayCrew.length}</span> crew
+                <span className="text-[var(--theme-text)]">{displayCrew.length}</span> агентов
               </span>
               <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">
-                {onlineCount} online
+                {onlineCount} в сети
               </span>
               <span className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-1 text-[var(--theme-muted)]">
-                {assignedTaskCount} assigned tasks
+                {assignedTaskCount} задач назначено
               </span>
               <span className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-1 text-[var(--theme-muted)]">
-                {runningCronCount} cron jobs
+                {runningCronCount} заданий по расписанию
               </span>
               {updatedAgo ? (
                 <span className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-card)] px-3 py-1 text-[var(--theme-muted)]">
-                  Updated {updatedAgo}
+                  Обновлено {updatedAgo}
                 </span>
               ) : null}
             </div>
@@ -344,7 +370,7 @@ export function CrewScreen() {
               size={13}
               className={isLoading ? 'animate-spin' : ''}
             />
-            Refresh manifest
+            Обновить список
           </button>
         </div>
         <div className="h-px" style={{ background: 'linear-gradient(to right, #B87333, transparent)' }} />
@@ -353,13 +379,13 @@ export function CrewScreen() {
       {/* ── Error state ── */}
       {isError && !isLoading && (
         <div className="rounded-lg border border-red-800/40 bg-red-900/10 p-4 text-sm text-red-400">
-          Failed to load crew status.{' '}
+          Не удалось загрузить статус команды.{' '}
           <button
             type="button"
             onClick={handleRefresh}
             className="underline hover:text-red-300"
           >
-            Retry
+            Повторить
           </button>
         </div>
       )}
