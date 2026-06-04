@@ -54,6 +54,7 @@
 | Задачи | На чистом VPS может отсутствовать системный `sqlite3`, из-за чего backend задач пишет `spawnSync sqlite3 ENOENT` | Workspace поднят до `2.3.0-comandos.15`; `deploy.sh` ставит `sqlite3`, update script доставляет его на уже установленной панели, а backend временно уходит на локальную доску, если зависимость ещё отсутствует | `bash -n` для install/update scripts OK; `kanban-backend` тест добавлен для fallback без `sqlite3`; `clawd` обновлён до `.15`, tasks API не падает | FIXED |
 | Панель агента | Справа показывался пустой и ложный `OpenAI`, хотя активная модель — `deepseek-chat` | Workspace поднят до `2.3.0-comandos.16`; панель агента теперь берёт модель из `/api/claude-config`, а провайдер расхода выбирает только при наличии реальных progress-строк | Тест `agent-usage-helpers` проверяет, что badge-only OpenAI не выбирается; `pnpm build` OK | FIXED |
 | Обновления | Модалка показывала урезанную версию `2.3.0-c → main` и могла всплывать от старых pending notes при обычном открытии | Workspace поднят до `2.3.0-comandos.16`; версии больше не режутся как SHA, managed release notes пишут версию вместо `main`, старые notes нормализуются и не открываются сами на routine status poll | Тесты `update-center-notifier` и `update-system` проверяют формат версий и нормализацию `main → 2.3.0-comandos.*`; `pnpm build` OK | FIXED |
+| Навыки | Кнопки `Установить`, `Удалить` и toggle выглядели активными, хотя текущий managed/zero-fork API не поддерживал эти действия; прямой вызов установки мог вернуть техническую ошибку JSON-парсинга | Workspace поднят до `2.3.0-comandos.20`; `/api/skills` отдаёт `actions`, UI отключает недоступные действия с русским объяснением, direct install/uninstall/toggle возвращают управляемые русские 501 | `clawd` обновлён до `.20`; `/api/skills` вернул `install/uninstall/toggle=false`; прямые install/toggle вернули русские 501; Playwright `/skills` не нашёл активных `Установить/Удалить`, console/network чистые | FIXED |
 
 ## Проверенные маршруты
 
@@ -71,6 +72,7 @@
 | Рой | `/swarm` | Вкладки, настройки, добавление агента и навигация панелей работают | OK |
 | Память | `/memory` | Вкладки `Память` и `База знаний` работают, пустое состояние понятно | OK |
 | Навыки | `/skills` | Вкладки, фильтры и pagination-состояния работают | OK |
+| Навыки | `/skills` | Недоступные install/uninstall/toggle действия честно disabled с русским объяснением | FIXED |
 | MCP | `/mcp` | При недоступном gateway показывает русское disabled-состояние | DISABLED |
 | Профили | `/profiles` | Импорт, создание, детали, ограничения default-профиля проверены | FIXED |
 | Настройки | `/settings` | Вкладки и основные действия открываются без пользовательского английского мусора | FIXED |
@@ -104,6 +106,7 @@
 | Settings | `Показать запасную модель`, `Сохранить модель`, добавление ключа, custom provider validation | Не падают, показывают понятное состояние | OK |
 | Providers | `Добавить провайдера` -> `OpenAI Codex` | Показывать только CLI-вход, без ложного OAuth | FIXED |
 | Providers | `OpenAI Codex` -> `CLI-вход` -> `Перейти к проверке` | Перевести пользователя к проверке CLI-входа без OAuth и английских ошибок | FIXED |
+| Skills | `Установить`, `Удалить`, toggle включения | В managed/zero-fork режиме действия недоступны и не должны выглядеть рабочими | FIXED |
 | Updates | `Скрыть обновление Hermes Agent` | Убрать карточку обновления | OK |
 
 ## Автоматические проверки
@@ -124,6 +127,7 @@
 | Live Playwright: `/settings/providers` -> `OpenAI Codex` -> `CLI-вход` -> `Перейти к проверке` на `.17` | OK | Нет `Start OAuth`, `OAuth device flow not supported`, `Key required`, старых английских подсказок, console errors и HTTP 4xx/5xx |
 | Live API: stale `/api/terminal-resize` и `/api/terminal-input` на `.17` | OK | Оба endpoint вернули HTTP 200; resize `ok=true`, input `ok=false`, оба `attached=false` |
 | Live Playwright: `/terminal` -> 14 пунктов бокового меню на `.19` | OK | Все клики сработали; пустых/аварийных экранов нет; terminal API не дал 4xx/5xx; browser console чистая; systemd-логи без новых terminal ошибок и `MaxListenersExceededWarning` |
+| Live API + Playwright: `/skills` на `.20` | OK | `/api/skills` отдаёт `actions`; direct install/toggle дают русские 501; UI показывает предупреждение и disabled-кнопки `Недоступно`/`Удаление недоступно`; активных install/uninstall кнопок, console errors и HTTP 4xx/5xx в UI-проходе нет |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
