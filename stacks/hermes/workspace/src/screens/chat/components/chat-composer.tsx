@@ -49,6 +49,7 @@ import { Button } from '@/components/ui/button'
 import { usePinnedModels } from '@/hooks/use-pinned-models'
 // import { ModeSelector } from '@/components/mode-selector'
 import { cn } from '@/lib/utils'
+import { normalizeVoiceError } from '@/lib/voice-errors'
 import { useVoiceInput } from '@/hooks/use-voice-input'
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder'
 import { toast } from '@/components/ui/toast'
@@ -1686,7 +1687,9 @@ function ChatComposerComponent({
   const transcribeVoiceBlob = useCallback(
     async (blob: Blob) => {
       if (!useRemoteStt) {
-        throw new Error('Remote STT is not enabled for this profile.')
+        throw new Error(
+          'Удалённое распознавание голоса не включено для этого профиля. В настройках голоса выберите OpenAI или Groq и добавьте ключ.',
+        )
       }
 
       const form = new FormData()
@@ -1703,7 +1706,12 @@ function ChatComposerComponent({
         error?: string
       }
       if (!response.ok || payload.ok === false) {
-        throw new Error(payload.error || `Transcription failed (${response.status})`)
+        throw new Error(
+          normalizeVoiceError(
+            payload.error || `Transcription failed (${response.status})`,
+            'Не удалось распознать голос. Проверьте настройки голоса и повторите.',
+          ),
+        )
       }
       return typeof payload.text === 'string' ? payload.text : ''
     },
@@ -1721,7 +1729,10 @@ function ChatComposerComponent({
     ),
     onError: useCallback(
       (error: string) => {
-        toast(error || 'Voice transcription failed', { type: 'error' })
+        toast(
+          normalizeVoiceError(error, 'Не удалось распознать голос. Попробуйте ещё раз.'),
+          { type: 'error' },
+        )
       },
       [],
     ),
@@ -1759,9 +1770,10 @@ function ChatComposerComponent({
               })
               .catch((error) => {
                 toast(
-                  error instanceof Error
-                    ? error.message
-                    : 'Voice note transcription failed',
+                  normalizeVoiceError(
+                    error,
+                    'Голосовое сообщение добавлено, но расшифровать его не удалось.',
+                  ),
                   { type: 'error' },
                 )
               })

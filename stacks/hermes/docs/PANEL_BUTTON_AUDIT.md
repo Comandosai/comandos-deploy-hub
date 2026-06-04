@@ -94,6 +94,7 @@
 | Chat | `Создать файл` | Подставить готовый промпт в composer | OK |
 | Chat | `Настройки чата` | Открыть настройки текущей сессии | OK |
 | Chat | `Голосовой ввод` | Не падать без микрофона/разрешения браузера | OK |
+| Chat | `Голосовой ввод` / длинное нажатие микрофона | Ошибки микрофона/STT показываются по-русски без сырого ответа провайдера | FIXED |
 | Agent panel | Индикатор модели и расхода | Не показывать пустой `OpenAI`, если у него нет данных расхода | FIXED |
 | Files | `Новый файл`, `Загрузить`, сохранить, preview, context menu, удалить | Работа с временным файлом | OK |
 | Terminal | `Новая вкладка терминала` | Создать вкладку | OK |
@@ -128,6 +129,8 @@
 | Live API: stale `/api/terminal-resize` и `/api/terminal-input` на `.17` | OK | Оба endpoint вернули HTTP 200; resize `ok=true`, input `ok=false`, оба `attached=false` |
 | Live Playwright: `/terminal` -> 14 пунктов бокового меню на `.19` | OK | Все клики сработали; пустых/аварийных экранов нет; terminal API не дал 4xx/5xx; browser console чистая; systemd-логи без новых terminal ошибок и `MaxListenersExceededWarning` |
 | Live API + Playwright: `/skills` на `.20` | OK | `/api/skills` отдаёт `actions`; direct install/toggle дают русские 501; UI показывает предупреждение и disabled-кнопки `Недоступно`/`Удаление недоступно`; активных install/uninstall кнопок, console errors и HTTP 4xx/5xx в UI-проходе нет |
+| `pnpm exec vitest run src/server/stt-transcription.test.ts` | OK | 4 теста прошли; проверены STT-настройки и русская ошибка отсутствующего ключа Groq |
+| `pnpm exec eslint src/lib/voice-errors.ts src/hooks/use-voice-input.ts src/hooks/use-voice-recorder.ts src/screens/chat/components/chat-composer.tsx src/routes/api/transcribe.ts src/server/stt-transcription.ts src/server/stt-transcription.test.ts` | OK | Ошибок нет; остались старые `no-shadow` warnings в `chat-composer.tsx` |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки

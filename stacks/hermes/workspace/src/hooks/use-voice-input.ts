@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { normalizeVoiceError } from '@/lib/voice-errors'
 
 type VoiceInputState = 'idle' | 'listening' | 'processing' | 'error'
 
@@ -114,7 +115,9 @@ export function useVoiceInput(
   const start = useCallback(async () => {
     if (callbacksRef.current.transcribe) {
       if (!supportsRecorderTranscription()) {
-        callbacksRef.current.onError?.('Audio recording not supported in this browser')
+        callbacksRef.current.onError?.(
+          normalizeVoiceError('Audio recording not supported in this browser'),
+        )
         setState('error')
         return
       }
@@ -145,7 +148,7 @@ export function useVoiceInput(
         recorder.onerror = () => {
           cleanupRecorder()
           setState('error')
-          callbacksRef.current.onError?.('Recording failed')
+          callbacksRef.current.onError?.(normalizeVoiceError('Recording failed'))
         }
 
         recorder.onstop = async () => {
@@ -171,7 +174,7 @@ export function useVoiceInput(
           } catch (error) {
             setState('error')
             callbacksRef.current.onError?.(
-              error instanceof Error ? error.message : 'Transcription failed',
+              normalizeVoiceError(error, 'Не удалось распознать голос. Попробуйте ещё раз.'),
             )
           }
         }
@@ -182,7 +185,7 @@ export function useVoiceInput(
       } catch (error) {
         setState('error')
         callbacksRef.current.onError?.(
-          error instanceof Error ? error.message : 'Microphone access denied',
+          normalizeVoiceError(error, 'Нет доступа к микрофону. Разрешите доступ в браузере и повторите.'),
         )
         return
       }
@@ -191,7 +194,7 @@ export function useVoiceInput(
     const SpeechRecognition = getSpeechRecognition()
     if (!SpeechRecognition) {
       callbacksRef.current.onError?.(
-        'Speech recognition not supported in this browser',
+        normalizeVoiceError('Speech recognition not supported in this browser'),
       )
       setState('error')
       return
@@ -247,7 +250,7 @@ export function useVoiceInput(
         return
       }
       setState('error')
-      callbacksRef.current.onError?.(event.error)
+      callbacksRef.current.onError?.(normalizeVoiceError(event.error))
     }
 
     recognition.onend = () => {

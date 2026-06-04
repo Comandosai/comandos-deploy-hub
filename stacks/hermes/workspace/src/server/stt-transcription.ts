@@ -81,7 +81,7 @@ export function resolveTranscriptionTarget(
     const apiKey =
       readString(runtimeEnv.GROQ_API_KEY) || readString(hermesEnv.GROQ_API_KEY)
     if (!apiKey) {
-      return { ok: false, error: 'Groq STT is configured but GROQ_API_KEY is missing.' }
+      return { ok: false, error: 'Для распознавания через Groq не найден GROQ_API_KEY.' }
     }
     return {
       ok: true,
@@ -106,7 +106,7 @@ export function resolveTranscriptionTarget(
     if (!apiKey) {
       return {
         ok: false,
-        error: 'OpenAI STT is configured but VOICE_TOOLS_OPENAI_KEY or OPENAI_API_KEY is missing.',
+        error: 'Для распознавания через OpenAI не найден VOICE_TOOLS_OPENAI_KEY или OPENAI_API_KEY.',
       }
     }
     return {
@@ -128,7 +128,7 @@ export function resolveTranscriptionTarget(
 
   return {
     ok: false,
-    error: `Configured STT provider "${provider}" is not available through Workspace remote transcription.`,
+    error: `Провайдер распознавания "${provider}" не поддерживается в Workspace. Выберите OpenAI или Groq.`,
   }
 }
 

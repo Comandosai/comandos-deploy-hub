@@ -45,7 +45,7 @@ describe('stt transcription helpers', () => {
       ),
     ).toEqual({
       ok: false,
-      error: 'Groq STT is configured but GROQ_API_KEY is missing.',
+      error: 'Для распознавания через Groq не найден GROQ_API_KEY.',
     })
   })
 

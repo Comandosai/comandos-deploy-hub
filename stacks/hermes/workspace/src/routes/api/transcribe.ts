@@ -4,7 +4,6 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import {
   getClientIp,
   rateLimit,
-  rateLimitResponse,
   safeErrorMessage,
 } from '../../server/rate-limit'
 import { getConfig } from '../../server/claude-api'
@@ -12,6 +11,7 @@ import {
   extractTranscriptionText,
   resolveTranscriptionTarget,
 } from '../../server/stt-transcription'
+import { normalizeVoiceError } from '../../lib/voice-errors'
 
 const MAX_AUDIO_UPLOAD_BYTES = 25 * 1024 * 1024
 
@@ -20,19 +20,28 @@ export const Route = createFileRoute('/api/transcribe')({
     handlers: {
       POST: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+          return json(
+            { ok: false, error: 'Нужно войти в панель, чтобы распознавать голос.' },
+            { status: 401 },
+          )
         }
 
         const ip = getClientIp(request)
         if (!rateLimit(`transcribe:${ip}`, 20, 60_000)) {
-          return rateLimitResponse()
+          return json(
+            {
+              ok: false,
+              error: 'Слишком много попыток распознавания подряд. Подождите минуту и повторите.',
+            },
+            { status: 429 },
+          )
         }
 
         try {
           const contentType = request.headers.get('content-type') || ''
           if (!contentType.includes('multipart/form-data')) {
             return json(
-              { ok: false, error: 'Expected multipart/form-data upload.' },
+              { ok: false, error: 'Аудио не пришло в нужном формате. Попробуйте записать ещё раз.' },
               { status: 400 },
             )
           }
@@ -40,14 +49,20 @@ export const Route = createFileRoute('/api/transcribe')({
           const form = await request.formData()
           const file = form.get('file')
           if (!(file instanceof File)) {
-            return json({ ok: false, error: 'Missing audio file.' }, { status: 400 })
+            return json(
+              { ok: false, error: 'Аудиофайл не найден. Попробуйте записать голос ещё раз.' },
+              { status: 400 },
+            )
           }
           if (file.size <= 0) {
-            return json({ ok: false, error: 'Audio file is empty.' }, { status: 400 })
+            return json(
+              { ok: false, error: 'Запись получилась пустой. Повторите фразу ближе к микрофону.' },
+              { status: 400 },
+            )
           }
           if (file.size > MAX_AUDIO_UPLOAD_BYTES) {
             return json(
-              { ok: false, error: 'Audio file exceeds 25 MB limit.' },
+              { ok: false, error: 'Запись слишком большая. Максимум для распознавания — 25 МБ.' },
               { status: 413 },
             )
           }
@@ -55,7 +70,7 @@ export const Route = createFileRoute('/api/transcribe')({
           const config = await getConfig()
           const target = resolveTranscriptionTarget(config)
           if (target.ok === false) {
-            return json({ ok: false, error: target.error }, { status: 400 })
+            return json({ ok: false, error: normalizeVoiceError(target.error) }, { status: 400 })
           }
 
           const upstreamForm = new FormData()
@@ -78,7 +93,7 @@ export const Route = createFileRoute('/api/transcribe')({
             return json(
               {
                 ok: false,
-                error: raw || `Transcription request failed (${upstream.status}).`,
+                error: `Провайдер распознавания отклонил аудио (${upstream.status}). Проверьте ключ, модель STT и формат записи.`,
               },
               { status: upstream.status },
             )
@@ -94,7 +109,10 @@ export const Route = createFileRoute('/api/transcribe')({
           const text = extractTranscriptionText(parsed)
           if (!text) {
             return json(
-              { ok: false, error: 'Transcription provider returned no text.' },
+              {
+                ok: false,
+                error: 'Сервис распознавания не вернул текст. Повторите фразу громче или ближе к микрофону.',
+              },
               { status: 502 },
             )
           }
@@ -108,7 +126,7 @@ export const Route = createFileRoute('/api/transcribe')({
           })
         } catch (error) {
           return json(
-            { ok: false, error: safeErrorMessage(error) },
+            { ok: false, error: normalizeVoiceError(safeErrorMessage(error)) },
             { status: 500 },
           )
         }

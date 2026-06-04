@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { normalizeVoiceError } from '@/lib/voice-errors'
 
 type RecorderState = 'idle' | 'recording' | 'processing'
 
@@ -39,7 +40,8 @@ export function useVoiceRecorder(
   const isSupported =
     typeof window !== 'undefined' &&
     typeof navigator !== 'undefined' &&
-    Boolean(navigator.mediaDevices?.getUserMedia) &&
+    'mediaDevices' in navigator &&
+    typeof navigator.mediaDevices.getUserMedia === 'function' &&
     typeof MediaRecorder !== 'undefined'
 
   const cleanup = useCallback(() => {
@@ -67,7 +69,7 @@ export function useVoiceRecorder(
 
   const start = useCallback(async () => {
     if (!isSupported) {
-      callbacksRef.current.onError?.('Audio recording not supported')
+      callbacksRef.current.onError?.(normalizeVoiceError('Audio recording not supported'))
       return
     }
 
@@ -113,7 +115,7 @@ export function useVoiceRecorder(
       }
 
       recorder.onerror = () => {
-        callbacksRef.current.onError?.('Recording failed')
+        callbacksRef.current.onError?.(normalizeVoiceError('Recording failed'))
         setState('idle')
         cleanup()
       }
@@ -132,9 +134,9 @@ export function useVoiceRecorder(
         stop()
       }, maxDurationMs)
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Microphone access denied'
-      callbacksRef.current.onError?.(msg)
+      callbacksRef.current.onError?.(
+        normalizeVoiceError(err, 'Нет доступа к микрофону. Разрешите доступ в браузере и повторите.'),
+      )
       setState('idle')
     }
   }, [isSupported, cleanup, stop, maxDurationMs])
