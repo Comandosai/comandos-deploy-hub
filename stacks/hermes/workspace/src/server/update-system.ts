@@ -330,7 +330,7 @@ function managedWorkspaceStatus(manifest: ComandosUpdateManifest): ProductUpdate
     canUpdate,
     state: updateAvailable ? (canUpdate ? 'available' : 'blocked') : 'current',
     reason: updateAvailable && !canUpdate
-      ? 'COMANDOS update script is not configured or is not executable.'
+      ? 'Скрипт обновления COMANDOS не настроен или не имеет права на запуск.'
       : null,
     manifestUrl: comandosManifestUrl(),
     updateMode: 'comandos-managed',
@@ -363,7 +363,7 @@ function managedAgentStatus(
     canUpdate,
     state: updateAvailable ? (canUpdate ? 'available' : 'blocked') : 'current',
     reason: updateAvailable && !canUpdate
-      ? 'COMANDOS update script is not configured or is not executable.'
+      ? 'Скрипт обновления COMANDOS не настроен или не имеет права на запуск.'
       : null,
     manifestUrl: comandosManifestUrl(),
     updateMode: 'comandos-managed',
@@ -472,7 +472,7 @@ function remoteRefExists(repoPath: string, remoteRef: string): boolean {
 function syncRepoToRemote(repoPath: string, remoteRef: string): string {
   if (!canFastForward(repoPath, remoteRef)) {
     throw new Error(
-      `Refusing non-fast-forward update to ${remoteRef}. Commit, stash, or rebase manually before using one-click update.`,
+      `Отказ от обновления ${remoteRef}: ветка не подтягивается напрямую. Сначала сохраните изменения и сверите ветки вручную.`,
     )
   }
   return execOrThrow('git', ['merge', '--ff-only', remoteRef], {
@@ -517,7 +517,7 @@ export function readWorkspaceUpdateStatus(
   if (installKind === 'desktop') {
     return {
       id: 'workspace',
-      label: 'Hermes Workspace',
+      label: 'COMANDOS AI Workspace',
       installKind,
       version,
       path: repoPath,
@@ -530,7 +530,7 @@ export function readWorkspaceUpdateStatus(
       canUpdate: false,
       state: 'unsupported',
       reason:
-        'Desktop auto-updater manifest is not wired yet. This path is reserved for DMG/EXE packaging.',
+        'Обновление настольного приложения пока не подключено. Этот режим зарезервирован для DMG/EXE-сборок.',
       updateMode: 'desktop-auto-updater',
     }
   }
@@ -538,7 +538,7 @@ export function readWorkspaceUpdateStatus(
   if (installKind === 'docker') {
     return {
       id: 'workspace',
-      label: 'Hermes Workspace',
+      label: 'COMANDOS AI Workspace',
       installKind,
       version,
       path: repoPath,
@@ -551,7 +551,7 @@ export function readWorkspaceUpdateStatus(
       canUpdate: false,
       state: 'unsupported',
       reason:
-        'Docker installs should update by pulling a newer image/tag, not by mutating the running container.',
+        'Docker-установка обновляется через новый image/tag, а не через изменение запущенного контейнера.',
       updateMode: 'docker-manual',
     }
   }
@@ -571,7 +571,7 @@ export function readWorkspaceUpdateStatus(
       updateAvailable: false,
       canUpdate: false,
       state: 'unsupported',
-      reason: 'Workspace install type could not be detected.',
+      reason: 'Не удалось определить тип установки Workspace.',
       updateMode: 'manual',
     }
   }
@@ -626,15 +626,15 @@ export function readWorkspaceUpdateStatus(
               : 'blocked'
             : 'current',
     reason: !repoMatches
-      ? 'Workspace origin remote does not look like comandos-workspace.'
+      ? 'Git remote Workspace не похож на репозиторий COMANDOS Workspace.'
       : !supportedBranch
-        ? 'Workspace one-click updates are only enabled on main/master branches.'
+        ? 'Обновление в один клик включено только для веток main/master.'
         : dirty
-          ? 'Workspace checkout has local changes. Commit, stash, or remove the listed files before updating.'
+          ? 'В Workspace есть локальные изменения. Перед обновлением сохраните, уберите или проверьте указанные файлы.'
           : updateAvailable && !remoteAvailable
-            ? 'Workspace update could not verify the remote branch ref.'
+            ? 'Workspace не смог проверить удалённую ветку обновления.'
             : updateAvailable && !ff
-              ? 'Workspace branch diverged from origin. One-click update only supports fast-forward updates; rebase or reset manually after backing up local work.'
+              ? 'Ветка Workspace разошлась с origin. Обновление в один клик поддерживает только прямое подтягивание без конфликта; сначала сделайте backup и ручную сверку.'
               : null,
     blockingFiles: dirty ? listDirtyFiles(gitRepo) : undefined,
     updateMode: 'git-ff',
@@ -681,7 +681,7 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
       canUpdate: false,
       state: 'unsupported',
       reason:
-        'Hermes Agent git checkout was not found. Bundled desktop installs will update through the app updater.',
+        'Git-копия Hermes Agent не найдена. Встроенные настольные установки обновляются через обновление приложения.',
       updateMode: 'manual',
     }
   }
@@ -728,13 +728,13 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
             ? 'blocked'
             : 'current',
     reason: !repoMatches
-      ? 'Hermes Agent origin remote does not look like hermes-agent.'
+      ? 'Git remote Hermes Agent не похож на репозиторий hermes-agent.'
       : dirty
-        ? 'Hermes Agent checkout has local changes. Commit, stash, or remove the listed files before updating.'
+        ? 'В Hermes Agent есть локальные изменения. Перед обновлением сохраните, уберите или проверьте указанные файлы.'
         : updateAvailable && !remoteAvailable
-          ? 'Hermes Agent update could not verify the remote branch ref.'
+          ? 'Hermes Agent не смог проверить удалённую ветку обновления.'
           : updateAvailable && !ff
-            ? 'Hermes Agent branch diverged from origin. One-click update only supports fast-forward updates; rebase or reset manually after backing up local work.'
+            ? 'Ветка Hermes Agent разошлась с origin. Обновление в один клик поддерживает только прямое подтягивание без конфликта; сначала сделайте backup и ручную сверку.'
             : null,
     blockingFiles: dirty ? listDirtyFiles(repoPath) : undefined,
     updateMode: 'hermes-update',
@@ -770,7 +770,7 @@ function applyManagedUpdate(product: ProductId, before: ProductUpdateStatus): Ap
       restartRequired: false,
       status: before,
       releaseNotes: [],
-      error: before.reason || 'COMANDOS managed update is not available.',
+      error: before.reason || 'Управляемое обновление COMANDOS недоступно.',
     }
   }
   try {
@@ -825,7 +825,7 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
       restartRequired: false,
       status: before,
       releaseNotes: [],
-      error: before.reason || 'Workspace update is not available.',
+      error: before.reason || 'Обновление Workspace недоступно.',
     }
   }
   const output: Array<string> = []
@@ -845,7 +845,7 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
       restartRequired: false,
       status,
       releaseNotes: [],
-      error: `${remoteRef} could not be verified.`,
+      error: `Не удалось проверить ${remoteRef}.`,
     }
   }
   if (!canFastForward(before.repoPath, remoteRef)) {
@@ -858,7 +858,7 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
       status,
       releaseNotes: [],
       error:
-        'Workspace branch diverged from origin. One-click update only supports fast-forward updates; rebase or reset manually after backing up local work.',
+        'Ветка Workspace разошлась с origin. Обновление в один клик поддерживает только прямое подтягивание без конфликта; сначала сделайте backup и ручную сверку.',
     }
   }
   output.push(syncRepoToRemote(before.repoPath, remoteRef))
@@ -905,7 +905,7 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
   const releaseNotes = [
     {
       product: 'workspace' as const,
-      label: 'Hermes Workspace',
+      label: 'COMANDOS AI Workspace',
       from: before.currentHead,
       to: after.currentHead,
       commits: readCommits(
@@ -941,7 +941,7 @@ export function applyAgentUpdate(): ApplyUpdateResult {
       restartRequired: false,
       status: before,
       releaseNotes: [],
-      error: before.reason || 'Hermes Agent update is not available.',
+      error: before.reason || 'Обновление Hermes Agent недоступно.',
     }
   }
 
@@ -962,7 +962,7 @@ export function applyAgentUpdate(): ApplyUpdateResult {
       restartRequired: false,
       status,
       releaseNotes: [],
-      error: `${remoteRef} could not be verified.`,
+      error: `Не удалось проверить ${remoteRef}.`,
     }
   }
   if (!canFastForward(before.repoPath, remoteRef)) {
@@ -975,7 +975,7 @@ export function applyAgentUpdate(): ApplyUpdateResult {
       status,
       releaseNotes: [],
       error:
-        'Hermes Agent branch diverged from origin. One-click update only supports fast-forward updates; rebase or reset manually after backing up local work.',
+        'Ветка Hermes Agent разошлась с origin. Обновление в один клик поддерживает только прямое подтягивание без конфликта; сначала сделайте backup и ручную сверку.',
     }
   }
   output.push(syncRepoToRemote(before.repoPath, remoteRef))
