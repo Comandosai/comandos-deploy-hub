@@ -3,11 +3,12 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.6",
+    "version": "2.3.0-comandos.7",
     "ref": "main",
     "notes": [
       "Исправлено создание новой сессии в переносимом режиме панели.",
-      "Проверка обновлений теперь обходит кэш GitHub Raw для ветки main."
+      "Проверка обновлений теперь обходит кэш GitHub Raw для ветки main.",
+      "OpenAI Codex больше не показывается как несуществующий OAuth-вход: панель честно проверяет Codex CLI на сервере."
     ]
   },
   "agent": {
