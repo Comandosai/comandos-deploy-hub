@@ -67,6 +67,11 @@ type Notes = {
   updatedAt: number
 }
 
+type DismissedUpdate = {
+  key: string
+  hiddenUntil: number
+}
+
 const DEFAULT_CHECK_INTERVAL_MS = 30 * 60 * 1000
 const envCheckIntervalMs = Number(import.meta.env.VITE_UPDATE_CHECK_INTERVAL_MS)
 const CHECK_INTERVAL_MS =
@@ -74,6 +79,7 @@ const CHECK_INTERVAL_MS =
     ? envCheckIntervalMs
     : DEFAULT_CHECK_INTERVAL_MS
 const DISMISS_PREFIX = 'hermes-update-v2-dismissed:'
+const DISMISS_TTL_MS = 24 * 60 * 60 * 1000
 const NOTES_KEY = 'hermes-update-v2-release-notes'
 const NOTES_SEEN_KEY = 'hermes-update-v2-release-notes-seen'
 
@@ -92,6 +98,39 @@ function productUpdateTitle(
 
 function productDismissKey(product: ProductUpdateStatus): string {
   return `${product.id}:${product.latestVersion ?? product.latestHead ?? product.version}`
+}
+
+export function serializeUpdateDismissal(
+  key: string,
+  now = Date.now(),
+): string {
+  const record: DismissedUpdate = {
+    key,
+    hiddenUntil: now + DISMISS_TTL_MS,
+  }
+  return JSON.stringify(record)
+}
+
+export function parseUpdateDismissal(
+  raw: string | null,
+  now = Date.now(),
+): string | null {
+  if (!raw) return null
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<DismissedUpdate>
+    if (
+      typeof parsed.key === 'string' &&
+      typeof parsed.hiddenUntil === 'number' &&
+      parsed.hiddenUntil > now
+    ) {
+      return parsed.key
+    }
+  } catch {
+    // Legacy plain-string values used to hide the same update forever.
+  }
+
+  return null
 }
 
 function notesId(sections: Array<ReleaseNoteSection>): string {
@@ -143,8 +182,13 @@ export function UpdateCenterNotifier() {
   useEffect(() => {
     const values = new Set<string>()
     for (const key of Object.keys(localStorage)) {
-      if (key.startsWith(DISMISS_PREFIX))
-        values.add(localStorage.getItem(key) || '')
+      if (!key.startsWith(DISMISS_PREFIX)) continue
+      const dismissedKey = parseUpdateDismissal(localStorage.getItem(key))
+      if (dismissedKey) {
+        values.add(dismissedKey)
+      } else {
+        localStorage.removeItem(key)
+      }
     }
     setDismissed(values)
     // Do not open historical release notes on startup. Successful in-app
@@ -186,7 +230,10 @@ export function UpdateCenterNotifier() {
 
   function dismiss(product: ProductUpdateStatus) {
     const key = productDismissKey(product)
-    localStorage.setItem(`${DISMISS_PREFIX}${product.id}`, key)
+    localStorage.setItem(
+      `${DISMISS_PREFIX}${product.id}`,
+      serializeUpdateDismissal(key),
+    )
     setDismissed((prev) => new Set([...prev, key]))
   }
 
@@ -421,7 +468,8 @@ function UpdateCard({
             onClick={onDismiss}
             className="rounded-lg p-1.5 transition-opacity hover:opacity-80"
             style={{ color: 'var(--theme-muted)' }}
-            aria-label={`Скрыть обновление ${product.label}`}
+            aria-label={`Скрыть обновление ${product.label} на 24 часа`}
+            title="Скрыть на 24 часа"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2} />
           </button>
