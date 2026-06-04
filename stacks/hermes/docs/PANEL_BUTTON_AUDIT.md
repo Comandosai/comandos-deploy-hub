@@ -41,6 +41,7 @@
 | Файлы | Нужно было проверить реальные действия файлов | Проверены новый файл, редактирование, сохранение, upload, context menu, download item, delete | Временный файл создан, сохранён и удалён, ошибок нет | OK |
 | Dashboard / Settings | Оставались английские пользовательские подписи | Русифицированы видимые подписи, tooltip и статусы провайдеров | Маршрутный обход не нашёл `Key required`, `Key set`, `Start OAuth`, `Usage trend`, `No analytics usage` | FIXED |
 | Gateway-зависимые разделы | Сообщения о недоступной серверной части были частично английскими | Русифицированы сообщения возможностей gateway | `/jobs`, `/mcp` показывают понятное объяснение, что нужен Hermes Agent gateway | FIXED |
+| Обновления | После пуша версия manifest могла не измениться или raw GitHub мог отдать старый кэш | Workspace поднят до `2.3.0-comandos.11`; update checker сначала превращает `main` в конкретный SHA через `git ls-remote` | Raw manifest по SHA отдаёт `.11`; `update-system` тесты проходят | FIXED |
 
 ## Проверенные маршруты
 
@@ -98,6 +99,7 @@
 | `git diff --check` | OK | Пробельных ошибок нет |
 | `pnpm exec vitest run src/server/license.test.ts src/server/update-system.test.ts src/server/claude-tasks-backend.test.ts src/server/kanban-backend.test.ts src/server/hermes-config-migration.test.ts src/components/settings-dialog/settings-dialog.test.ts` | OK | 23 теста прошли |
 | `pnpm build` | OK | Есть только предупреждения Vite про размер чанков и смешанные dynamic/static imports |
+| `pnpm exec vitest run src/server/update-system.test.ts` после bump/cache fix | OK | Проверка сравнения версий и настроек polling |
 | Маршрутный Playwright-обход 17 страниц | OK | Нет аварийных экранов, console errors, сетевых падений и проверяемых английских пользовательских фраз |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
