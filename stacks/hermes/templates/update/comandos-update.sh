@@ -150,9 +150,35 @@ PY
   fi
 }
 
+ensure_workspace_runtime_deps() {
+  if command -v sqlite3 >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! command -v apt-get >/dev/null 2>&1; then
+    log "sqlite3 не найден, а apt-get недоступен. Задачи могут работать не полностью."
+    return
+  fi
+
+  local sudo_cmd=()
+  if [[ "$(id -u)" -ne 0 ]]; then
+    if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+      sudo_cmd=(sudo -n)
+    else
+      log "sqlite3 не найден. Установите пакет sqlite3 от root, иначе задачи могут работать не полностью."
+      return
+    fi
+  fi
+
+  log "Ставлю системную зависимость sqlite3 для задач..."
+  "${sudo_cmd[@]}" apt-get update -qq
+  DEBIAN_FRONTEND=noninteractive "${sudo_cmd[@]}" apt-get install -y -qq sqlite3 >/dev/null
+}
+
 update_workspace() {
   log "Обновляю COMANDOS Workspace до $COMANDOS_WORKSPACE_VERSION"
   assert_workspace_not_downgrade
+  ensure_workspace_runtime_deps
   mkdir -p "$REMOTE_BASE_DIR/backups" "$REMOTE_WORKSPACE_DIR"
   if [[ -d "$REMOTE_WORKSPACE_DIR" ]]; then
     backup="$REMOTE_BASE_DIR/backups/workspace-update-$(date +%Y%m%d%H%M%S)"

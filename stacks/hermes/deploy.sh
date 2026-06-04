@@ -275,7 +275,7 @@ install_apt() {
   if command -v apt-get >/dev/null 2>&1; then
     $SUDO apt-get update -qq
     DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq \
-      ca-certificates curl git jq python3 python3-pip python3-dev libffi-dev rsync tar gzip build-essential lsof ffmpeg ripgrep >/dev/null
+      ca-certificates curl git jq python3 python3-pip python3-dev libffi-dev rsync tar gzip build-essential lsof ffmpeg ripgrep sqlite3 >/dev/null
   fi
 }
 

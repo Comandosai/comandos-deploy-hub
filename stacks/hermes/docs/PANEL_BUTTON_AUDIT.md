@@ -44,7 +44,9 @@
 | Обновления | После пуша версия manifest могла не измениться или raw GitHub мог отдать старый кэш | Workspace поднят до `2.3.0-comandos.11`; update checker сначала превращает `main` в конкретный SHA через `git ls-remote` | Raw manifest по SHA отдаёт `.11`; `update-system` тесты проходят | FIXED |
 | Обновления | Крестик в карточке обновления скрывал конкретную версию навсегда в `localStorage` | Workspace поднят до `2.3.0-comandos.12`; скрытие теперь действует 24 часа, старые вечные маркеры игнорируются | `update-center-notifier` тесты проходят; `clawd` API показал `2.3.0-comandos.7 → 2.3.0-comandos.11` до фикса | FIXED |
 | Обновления | Кнопка обновления успевала перезапустить панель до ответа API; state записывал старую версию из lock | `comandos-hermes.lock` поднят до `2.3.0-comandos.12`; restart delay вынесен в `COMANDOS_WORKSPACE_RESTART_DELAY_SECONDS` с дефолтом 30 сек; отложенный restart отсоединён через `nohup` | На `clawd` повторный API-вызов вернул JSON `ok=true`; после отложенного рестарта служба активна, installed state `.12`, update status `current` | FIXED |
+| Обновления | После правки установщика без bump версии установленная панель не увидела бы обновление | Workspace поднят до `2.3.0-comandos.13`, manifest/lock/package синхронизированы | `clawd`: status показал `.12 → .13`, POST `/api/update/workspace` вернул `ok=true`, после рестарта services active, update status `current` | FIXED |
 | Установка | В уроке пользователь мог заполнить `comandos-hermes.env.example`, а агент дальше проверял пустой `comandos-hermes.env` | Workspace поднят до `2.3.0-comandos.13`; `deploy.sh` берёт заполненный example, если основной env не проходит проверку; тексты урока обновлены | Чистая установка из GitHub отдаёт новые тексты; изолированный fake-SSH прогон: основной env падает, example проходит, deploy выбирает example | FIXED |
+| Задачи | На чистом VPS может отсутствовать системный `sqlite3`, из-за чего backend задач пишет `spawnSync sqlite3 ENOENT` | Workspace поднят до `2.3.0-comandos.14`; `deploy.sh` ставит `sqlite3`, а update script доставляет его на уже установленной панели | `bash -n` для install/update scripts OK; live-проверка обновления на `clawd` нужна после push `.14` | FIXED |
 
 ## Проверенные маршруты
 
@@ -116,7 +118,7 @@
 | Первый реальный чат | Нужен поднятый gateway и ключ модели на VPS |
 | Задания cron | Локально gateway недоступен, поэтому проверено только честное disabled-состояние |
 | MCP с реальным gateway | Локально gateway недоступен, поэтому проверено только честное disabled-состояние |
-| Обновление Workspace / Hermes Agent | Нужен установленный VPS с update script и manifest |
+| Обновление Hermes Agent при новой версии | На `clawd` Hermes Agent сейчас `current`; нужно повторить кнопку, когда manifest будет указывать более новую проверенную версию агента |
 | Telegram router / голос / inline-кнопки | Нужен VPS с Telegram-токеном и живым ботом |
 
 ## Текущий вывод
