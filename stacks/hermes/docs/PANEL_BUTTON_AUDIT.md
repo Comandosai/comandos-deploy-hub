@@ -1,6 +1,6 @@
 # Аудит кнопок COMANDOS Hermes Workspace
 
-Дата обновления: 2026-06-04
+Дата обновления: 2026-06-05
 
 ## Цель
 
@@ -37,9 +37,11 @@
 | Профили | Базовый профиль можно было пытаться переименовать | Для `default` переименование отключено, tooltip объясняет причину | `default` показывает disabled `Переименовать`; временный профиль создаётся/переименовывается/активируется/удаляется | FIXED |
 | Импорт из ClawBot | Пользователь не понимал, что именно запускается | Проверен сценарий: кнопка открывает чат и вставляет промпт мигратора без копирования секретов | `/profiles` -> `Импорт из ClawBot` -> `/chat/main`, промпт виден | OK |
 | OpenAI Codex | Показывался ложный OAuth-сценарий | Codex описан как `CLI-вход`; OAuth/API Key для него отключены | `/settings` и `/settings/providers`: нет `Start OAuth`, нет `OAuth device flow not supported` | FIXED |
+| OpenAI Codex | В CLI-сценарии не было явной кнопки перехода к проверке, а часть текста оставалась на английском | Добавлена кнопка `Перейти к проверке`; видимые подписи `API Key`, `API keys are stored locally`, `Show/Hide manual config snippet` русифицированы | Unit-тесты настроек проходят; живая проверка мастера провайдеров выполняется после установки `.17` | FIXED |
 | Лицензия | Ошибки вроде `License key required` показывались по-английски | Ошибки лицензии нормализованы в русские сообщения | Mock-проверка экрана лицензии: до ввода ошибки нет, после пустой активации русское сообщение | FIXED |
 | Терминал | Кнопка AI-анализа ходила в несуществующий `/api/debug-analyze` | Добавлен локальный безопасный обработчик анализа терминального вывода | Кнопка `AI-анализ терминала` показывает русскую диагностику без 404/500 | FIXED |
 | Терминал | Кнопка новой вкладки требовала проверки | Проверено создание второй вкладки | После клика виден `Терминал 2`, ошибок нет | OK |
+| Терминал | При переходах и закрытых PTY-сессиях `/api/terminal-resize` и `/api/terminal-input` могли давать 404/502 в browser console | Устаревшие terminal session теперь отвечают мягко: resize — `ok=true, attached=false`, input — `ok=false, attached=false`, без HTTP-ошибки | Unit-тест stale terminal API проходит; живая проверка выполняется после установки `.17` | FIXED |
 | Файлы | Нужно было проверить реальные действия файлов | Проверены новый файл, редактирование, сохранение, upload, context menu, download item, delete | Временный файл создан, сохранён и удалён, ошибок нет | OK |
 | Dashboard / Settings | Оставались английские пользовательские подписи | Русифицированы видимые подписи, tooltip и статусы провайдеров | Маршрутный обход не нашёл `Key required`, `Key set`, `Start OAuth`, `Usage trend`, `No analytics usage` | FIXED |
 | Gateway-зависимые разделы | Сообщения о недоступной серверной части были частично английскими | Русифицированы сообщения возможностей gateway | `/jobs`, `/mcp` показывают понятное объяснение, что нужен Hermes Agent gateway | FIXED |
@@ -100,6 +102,7 @@
 | Settings | Вкладки модель/агент/голос/экран/тема/чат/сигналы/язык | Переключаются без ошибок | OK |
 | Settings | `Показать запасную модель`, `Сохранить модель`, добавление ключа, custom provider validation | Не падают, показывают понятное состояние | OK |
 | Providers | `Добавить провайдера` -> `OpenAI Codex` | Показывать только CLI-вход, без ложного OAuth | FIXED |
+| Providers | `OpenAI Codex` -> `CLI-вход` -> `Перейти к проверке` | Перевести пользователя к проверке CLI-входа без OAuth и английских ошибок | FIXED |
 | Updates | `Скрыть обновление Hermes Agent` | Убрать карточку обновления | OK |
 
 ## Автоматические проверки
@@ -112,6 +115,7 @@
 | `pnpm exec vitest run src/server/update-system.test.ts` после bump/cache fix | OK | Проверка сравнения версий и настроек polling |
 | `pnpm exec vitest run src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | 5 тестов прошли; проверены временное скрытие обновлений и сравнение версий |
 | `pnpm exec vitest run src/components/agent-view/agent-usage-helpers.test.ts src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | 12 тестов прошли; проверены выбор провайдера расхода, формат версий и managed release notes |
+| `pnpm exec vitest run src/routes/api/-terminal-session-lifecycle.test.ts src/components/settings-dialog/settings-dialog.test.ts src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | 14 тестов прошли; проверены stale terminal API, настройки, обновления и формат версий |
 | `pnpm exec eslint src/components/agent-view/agent-usage-helpers.ts src/components/agent-view/agent-usage-helpers.test.ts src/components/update-center-notifier.tsx src/components/update-center-notifier.test.ts src/server/update-system.test.ts` | OK | Новая логика и тесты проходят; полный `agent-view-panel.tsx` всё ещё имеет старый lint-долг |
 | Маршрутный Playwright-обход 17 страниц | OK | Нет аварийных экранов, console errors, сетевых падений и проверяемых английских пользовательских фраз |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |

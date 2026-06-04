@@ -40,8 +40,7 @@ export const Route = createFileRoute('/api/terminal-input')({
         const data = typeof body.data === 'string' ? body.data : ''
         const session = getTerminalSession(sessionId)
         if (!session) {
-          return new Response(JSON.stringify({ ok: false }), {
-            status: 404,
+          return new Response(JSON.stringify({ ok: false, attached: false }), {
             headers: { 'Content-Type': 'application/json' },
           })
         }

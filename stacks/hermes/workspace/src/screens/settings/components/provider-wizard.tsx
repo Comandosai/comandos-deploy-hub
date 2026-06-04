@@ -71,8 +71,9 @@ const AUTH_TYPE_ORDER: Array<ProviderAuthType> = [
 function getAuthTypeMeta(authType: ProviderAuthType): AuthTypeMeta {
   if (authType === 'api-key') {
     return {
-      title: 'API Key',
-      description: 'Вставьте API-ключ — он сохранится только в локальном конфиге',
+      title: 'API-ключ',
+      description:
+        'Вставьте API-ключ — он сохранится только в локальном конфиге',
     }
   }
 
@@ -87,13 +88,15 @@ function getAuthTypeMeta(authType: ProviderAuthType): AuthTypeMeta {
   if (authType === 'oauth') {
     return {
       title: 'OAuth',
-      description: 'Вход через браузер, если провайдер реально поддерживает OAuth',
+      description:
+        'Вход через браузер, если провайдер реально поддерживает OAuth',
     }
   }
 
   return {
     title: 'Локально',
-    description: 'Для локальных серверов вроде Ollama или Atomic Chat ключ не нужен',
+    description:
+      'Для локальных серверов вроде Ollama или Atomic Chat ключ не нужен',
   }
 }
 
@@ -295,9 +298,7 @@ export function ProviderWizard({
 
         if (found) {
           setVerifyState('success')
-          setVerificationMessage(
-            `${providerName} подключён, модели доступны.`,
-          )
+          setVerificationMessage(`${providerName} подключён, модели доступны.`)
         } else {
           setVerifyState('warning')
           setVerificationMessage(
@@ -614,7 +615,7 @@ export function ProviderWizard({
                   <>
                     <p className="mt-1 text-sm text-primary-600 text-pretty">
                       {selectedProvider.id === 'openai-codex'
-                        ? 'OpenAI Codex подключается через Codex CLI на сервере. Сначала выполните вход командой codex login, затем нажмите проверку в панели.'
+                        ? 'OpenAI Codex подключается через Codex CLI на сервере. Сначала выполните вход командой codex login, затем перейдите к проверке.'
                         : 'Если Hermes CLI или совместимый CLI уже авторизован, Hermes Agent сможет использовать этот вход. Откройте терминал и выполните настройку.'}
                     </p>
 
@@ -633,6 +634,21 @@ export function ProviderWizard({
                         }}
                       >
                         Открыть терминал
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={function onGoVerify() {
+                          setVerificationMessage(
+                            selectedProvider.id === 'openai-codex'
+                              ? 'Проверяю файл ~/.codex/auth.json на сервере. Если вход ещё не выполнен, сначала запустите codex login в терминале.'
+                              : 'Проверяю, видит ли Hermes Agent локальный CLI-вход.',
+                          )
+                          setVerifyState('warning')
+                          setStep('verify')
+                        }}
+                      >
+                        Перейти к проверке
                       </Button>
 
                       <div className="rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
@@ -757,7 +773,7 @@ export function ProviderWizard({
 
                     <div className="mt-4 rounded-xl border border-primary-200 bg-primary-100/70 px-3 py-2">
                       <p className="text-xs text-primary-700 text-pretty">
-                        API keys are stored locally in{' '}
+                        API-ключи хранятся локально в{' '}
                         <code className="font-mono">{CLAUDE_CONFIG_PATH}</code>,
                         и не отправляются в COMANDOS.
                       </p>
@@ -771,8 +787,9 @@ export function ProviderWizard({
                       }}
                       className="mt-3 text-xs text-primary-500 hover:text-primary-700 underline"
                     >
-                      {showManualSnippet ? 'Hide' : 'Show'} manual config
-                      snippet
+                      {showManualSnippet
+                        ? 'Скрыть ручной фрагмент конфига'
+                        : 'Показать ручной фрагмент конфига'}
                     </button>
 
                     {showManualSnippet ? (
