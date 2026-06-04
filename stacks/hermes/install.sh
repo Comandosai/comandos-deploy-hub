@@ -52,6 +52,7 @@ info "Готово. Файлы установщика лежат в текуще
 printf '  %s\n' "$TARGET_DIR"
 printf '\nДальше:\n'
 printf '  1. Заполните comandos-hermes.env\n'
+printf '     Если в уроке уже открыт comandos-hermes.env.example, можно заполнить его\n'
 printf '     Укажите ROOT_IP и SSH_KEY_PATH или ROOT_PASSWORD\n'
 printf '  2. Если работаете через агента, вставьте второй текст из AGENT_COMMAND.md\n'
-printf '  3. Если работаете через терминал: bash scripts/check-config.sh comandos-hermes.env && ./deploy.sh\n'
+printf '  3. Если работаете через терминал: ./deploy.sh\n'

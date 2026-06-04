@@ -24,6 +24,7 @@
 2. Открыть эту папку в агенте.
 3. Вставить в агента первый текст из `AGENT_COMMAND.md`.
 4. Заполнить `comandos-hermes.env`.
+   Если в уроке уже открыт `comandos-hermes.env.example`, можно заполнить его: `./deploy.sh` подхватит example, когда основной env ещё пустой.
 5. Вставить в агента второй текст из `AGENT_COMMAND.md`.
 6. Получить в конце:
    - URL панели;
@@ -34,7 +35,7 @@
 
 ## Главные файлы
 
-- `comandos-hermes.env.example` - шаблон настроек, пользователь копирует в `comandos-hermes.env`.
+- `comandos-hermes.env.example` - шаблон настроек. Обычно пользователь копирует его в `comandos-hermes.env`, но для урока можно заполнить сам example.
 - `comandos-hermes.lock` - закреплённые версии и запрет автообновления.
 - `AGENT_COMMAND.md` - готовые тексты, которые пользователь вставляет в агента.
 - `AGENTS.md` - инструкция для агента, который разворачивает Hermes.
@@ -114,7 +115,7 @@ ROOT_PASSWORD=...
 curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/install.sh | bash
 ```
 
-После этого появится `comandos-hermes.env`. Пользователь заполняет параметры и вставляет второй текст из `AGENT_COMMAND.md`.
+После этого появятся `comandos-hermes.env` и `comandos-hermes.env.example`. Пользователь заполняет параметры в основном env или в example и вставляет второй текст из `AGENT_COMMAND.md`.
 
 ## Запасной сценарий через терминал
 
@@ -124,7 +125,7 @@ curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main
 curl -fsSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/install.sh | bash
 ```
 
-После заполнения `comandos-hermes.env`:
+После заполнения `comandos-hermes.env` или `comandos-hermes.env.example`:
 
 ```bash
 ./deploy.sh

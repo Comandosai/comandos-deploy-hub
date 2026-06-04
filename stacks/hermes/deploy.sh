@@ -7,6 +7,14 @@ CONFIG_PATH="${1:-$SCRIPT_DIR/comandos-hermes.env}"
 info() { printf '[COMANDOS Hermes] %s\n' "$*"; }
 fail() { printf '[COMANDOS Hermes] ERROR: %s\n' "$*" >&2; exit 1; }
 
+if [[ $# -eq 0 && -f "$SCRIPT_DIR/comandos-hermes.env.example" ]]; then
+  if ! bash "$SCRIPT_DIR/scripts/check-config.sh" "$CONFIG_PATH" >/dev/null 2>&1 &&
+    bash "$SCRIPT_DIR/scripts/check-config.sh" "$SCRIPT_DIR/comandos-hermes.env.example" >/dev/null 2>&1; then
+    CONFIG_PATH="$SCRIPT_DIR/comandos-hermes.env.example"
+    info "Использую comandos-hermes.env.example: основной comandos-hermes.env не заполнен."
+  fi
+fi
+
 expand_path() {
   case "$1" in
     "~") printf '%s\n' "$HOME" ;;
