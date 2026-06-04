@@ -56,6 +56,16 @@ type SkillsApiResponse = {
   total: number
   page: number
   categories: Array<string>
+  actions?: SkillActionCapabilities
+}
+
+type SkillActionCapabilities = {
+  install: boolean
+  uninstall: boolean
+  toggle: boolean
+  installReason?: string
+  uninstallReason?: string
+  toggleReason?: string
 }
 
 type SkillSearchTier = 0 | 1 | 2 | 3
@@ -87,6 +97,12 @@ type HubSearchResponse = {
 }
 
 const PAGE_LIMIT = 30
+
+const DEFAULT_SKILL_ACTIONS: SkillActionCapabilities = {
+  install: true,
+  uninstall: true,
+  toggle: true,
+}
 
 const DEFAULT_CATEGORIES = [
   'All',
@@ -124,6 +140,35 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 function formatCategoryLabel(category: string): string {
   return CATEGORY_LABELS[category] ?? category
+}
+
+function normalizeSkillActionError(message: string): string {
+  if (
+    message.includes('legacy enhanced fork') ||
+    message.includes('Zero-fork mode') ||
+    message.includes('Unexpected non-whitespace character after JSON')
+  ) {
+    return 'Это действие пока недоступно из панели. Управляйте навыками вручную на сервере в ~/.hermes/skills и обновите страницу.'
+  }
+
+  if (message === 'Action failed') return 'Действие с навыком не выполнено.'
+  if (message === 'Failed to fetch skills') return 'Не удалось загрузить навыки.'
+  if (message === 'Failed to search skills hub') {
+    return 'Не удалось выполнить поиск по каталогу навыков.'
+  }
+  if (message === 'Unauthorized') return 'Сессия панели истекла. Войдите заново.'
+
+  return message
+}
+
+function skillActionNotice(actions: SkillActionCapabilities): string | null {
+  const reasons = [
+    !actions.install ? actions.installReason : null,
+    !actions.uninstall ? actions.uninstallReason : null,
+    !actions.toggle ? actions.toggleReason : null,
+  ].filter((value): value is string => Boolean(value))
+
+  return reasons[0] ?? null
 }
 
 function resolveSkillSearchTier(
@@ -232,6 +277,8 @@ export function SkillsScreen() {
     1,
     Math.ceil((skillsQuery.data?.total || 0) / PAGE_LIMIT),
   )
+  const skillActions = skillsQuery.data?.actions ?? DEFAULT_SKILL_ACTIONS
+  const actionNotice = skillActionNotice(skillActions)
 
   const skills = useMemo(
     function resolveVisibleSkills() {
@@ -265,20 +312,21 @@ export function SkillsScreen() {
       return (hubQuery.data?.results || []).map(function mapHubSkill(skill) {
         // Gateway returns: name, description, source, identifier, trust_level, repo, path, tags, extra, installed
         const skillId = skill.id || skill.name
+        const extra = skill.extra ?? {}
         const author =
           skill.author ||
           (skill.repo ? skill.repo.split('/')[0] : null) ||
-          (skill.extra as Record<string, unknown>)?.author ||
+          extra.author ||
           skill.source ||
           'Community'
         const homepage =
           skill.homepage ||
           skill.repo ||
-          (skill.extra as Record<string, unknown>)?.homepage ||
+          extra.homepage ||
           null
-        const category =
+        const skillCategory =
           skill.category ||
-          (skill.extra as Record<string, unknown>)?.category ||
+          extra.category ||
           'Productivity'
 
         return {
@@ -290,7 +338,7 @@ export function SkillsScreen() {
           triggers: skill.tags,
           tags: skill.tags,
           homepage: typeof homepage === 'string' ? homepage : null,
-          category: String(category),
+          category: String(skillCategory),
           icon:
             skill.source === 'github'
               ? '🐙'
@@ -389,7 +437,9 @@ export function SkillsScreen() {
         ok?: boolean
       }
       if (!response.ok) {
-        throw new Error(data.error || 'Action failed')
+        throw new Error(
+          normalizeSkillActionError(data.error || 'Action failed'),
+        )
       }
 
       if (
@@ -399,11 +449,15 @@ export function SkillsScreen() {
         if (data.command) {
           await copyCommandAndToast(
             data.command,
-            data.error || 'Gateway action unavailable.',
+            normalizeSkillActionError(
+              data.error || 'Действие недоступно через текущий gateway.',
+            ),
           )
           return
         }
-        throw new Error(data.error || 'Action failed')
+        throw new Error(
+          normalizeSkillActionError(data.error || 'Action failed'),
+        )
       }
 
       await Promise.all([
@@ -432,7 +486,9 @@ export function SkillsScreen() {
         }
       })
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err)
+      const errorMessage = normalizeSkillActionError(
+        err instanceof Error ? err.message : String(err),
+      )
       setActionError(errorMessage)
       toast(errorMessage, { type: 'error', icon: '❌' })
     } finally {
@@ -573,11 +629,18 @@ export function SkillsScreen() {
               </p>
             ) : null}
 
+            {actionNotice ? (
+              <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+                {actionNotice}
+              </p>
+            ) : null}
+
             <TabsPanel value="installed" className="pt-2">
               <SkillsGrid
                 skills={skills}
                 loading={skillsQuery.isPending}
                 actionSkillId={actionSkillId}
+                actions={skillActions}
                 tab="installed"
                 onOpenDetails={setSelectedSkill}
                 onInstall={(skillId) => runSkillAction('install', { skillId })}
@@ -620,6 +683,7 @@ export function SkillsScreen() {
                 skills={marketplaceSkills}
                 loading={hubQuery.isPending}
                 actionSkillId={actionSkillId}
+                actions={skillActions}
                 tab="marketplace"
                 emptyState={{
                   title: searchInput.trim()
@@ -791,24 +855,36 @@ export function SkillsScreen() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={actionSkillId === selectedSkill.id}
+                      disabled={
+                        actionSkillId === selectedSkill.id ||
+                        !skillActions.uninstall
+                      }
+                      title={skillActions.uninstallReason}
                       onClick={() => {
                         runSkillAction('uninstall', {
                           skillId: selectedSkill.id,
                         })
                       }}
                     >
-                      Удалить
+                      {skillActions.uninstall
+                        ? 'Удалить'
+                        : 'Удаление недоступно'}
                     </Button>
                   ) : (
                     <Button
                       size="sm"
-                      disabled={actionSkillId === selectedSkill.id}
+                      disabled={
+                        actionSkillId === selectedSkill.id ||
+                        !skillActions.install
+                      }
+                      title={skillActions.installReason}
                       onClick={() =>
                         runSkillAction('install', { skillId: selectedSkill.id })
                       }
                     >
-                      Установить
+                      {skillActions.install
+                        ? 'Установить'
+                        : 'Установка недоступна'}
                     </Button>
                   )}
                   <Button
@@ -832,6 +908,7 @@ type SkillsGridProps = {
   skills: Array<SkillSummary>
   loading: boolean
   actionSkillId: string | null
+  actions: SkillActionCapabilities
   tab: 'installed' | 'marketplace'
   emptyState?: {
     title: string
@@ -878,7 +955,6 @@ function SecurityBadge({
 }) {
   if (!security) return null
   const config = SECURITY_BADGE[security.level]
-  if (!config) return null
 
   const [expanded, setExpanded] = useState(false)
 
@@ -920,7 +996,6 @@ function SecurityBadge({
 function SecurityScanCard({ security }: { security: SecurityRisk }) {
   const [showDetails, setShowDetails] = useState(false)
   const config = SECURITY_BADGE[security.level]
-  if (!config) return null
 
   const summaryText =
     security.flags.length === 0
@@ -1000,6 +1075,7 @@ function SkillsGrid({
   skills,
   loading,
   actionSkillId,
+  actions,
   tab,
   emptyState,
   onOpenDetails,
@@ -1119,39 +1195,43 @@ function SkillsGrid({
                     <div className="flex items-center gap-1.5 text-xs text-primary-500">
                       <Switch
                         checked={skill.enabled}
-                        disabled={isActing}
+                        disabled={isActing || !actions.toggle}
                         onCheckedChange={(checked) =>
                           onToggle(skill.id, checked)
                         }
                         aria-label={`Включить или выключить ${skill.name}`}
+                        title={actions.toggleReason}
                       />
                       {skill.enabled ? 'Включён' : 'Выключен'}
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={isActing}
+                      disabled={isActing || !actions.uninstall}
+                      title={actions.uninstallReason}
                       onClick={() => onUninstall(skill.id)}
                     >
-                      Удалить
+                      {actions.uninstall ? 'Удалить' : 'Недоступно'}
                     </Button>
                   </div>
                 ) : skill.installed ? (
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={isActing}
+                    disabled={isActing || !actions.uninstall}
+                    title={actions.uninstallReason}
                     onClick={() => onUninstall(skill.id)}
                   >
-                    Удалить
+                    {actions.uninstall ? 'Удалить' : 'Недоступно'}
                   </Button>
                 ) : (
                   <Button
                     size="sm"
-                    disabled={isActing}
+                    disabled={isActing || !actions.install}
+                    title={actions.installReason}
                     onClick={() => onInstall(skill.id)}
                   >
-                    Установить
+                    {actions.install ? 'Установить' : 'Недоступно'}
                   </Button>
                 )}
               </div>

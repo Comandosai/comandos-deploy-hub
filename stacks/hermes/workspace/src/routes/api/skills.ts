@@ -14,6 +14,7 @@ import {
   getCapabilities,
 } from '../../server/gateway-capabilities'
 import { requireJsonContentType } from '../../server/rate-limit'
+import type { GatewayCapabilities } from '../../server/gateway-capabilities'
 import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
 
 function getSkillsDir(): string {
@@ -114,6 +115,63 @@ function deriveOrigin(
 
 type SkillsTab = 'installed' | 'marketplace' | 'featured'
 type SkillsSort = 'name' | 'category'
+
+type SkillActionCapabilities = {
+  install: boolean
+  uninstall: boolean
+  toggle: boolean
+  installReason?: string
+  uninstallReason?: string
+  toggleReason?: string
+}
+
+const SKILL_INSTALL_MANAGED_REASON =
+  'Установка и удаление навыков из панели в этой сборке пока недоступны. Добавьте или удалите навык вручную на сервере в ~/.hermes/skills и обновите страницу.'
+
+const SKILL_TOGGLE_MANAGED_REASON =
+  'Включение и выключение навыков из панели пока недоступно без Hermes dashboard API. Измените настройки навыка на сервере и обновите страницу.'
+
+function createSkillActions(
+  capabilities: GatewayCapabilities,
+): SkillActionCapabilities {
+  if (!capabilities.skills) {
+    return {
+      install: false,
+      uninstall: false,
+      toggle: false,
+      installReason: 'Hermes Agent gateway пока не отдал список навыков.',
+      uninstallReason: 'Hermes Agent gateway пока не отдал список навыков.',
+      toggleReason: 'Hermes Agent gateway пока не отдал список навыков.',
+    }
+  }
+
+  if (capabilities.dashboard.available) {
+    return {
+      install: false,
+      uninstall: false,
+      toggle: true,
+      installReason: SKILL_INSTALL_MANAGED_REASON,
+      uninstallReason: SKILL_INSTALL_MANAGED_REASON,
+    }
+  }
+
+  if (COMANDOS_SINGLE_PANEL) {
+    return {
+      install: false,
+      uninstall: false,
+      toggle: false,
+      installReason: SKILL_INSTALL_MANAGED_REASON,
+      uninstallReason: SKILL_INSTALL_MANAGED_REASON,
+      toggleReason: SKILL_TOGGLE_MANAGED_REASON,
+    }
+  }
+
+  return {
+    install: true,
+    uninstall: true,
+    toggle: true,
+  }
+}
 
 type SecurityRisk = {
   level: 'safe' | 'low' | 'medium' | 'high'
@@ -285,7 +343,15 @@ function normalizeCategoryLabel(raw: string): string {
   const caseMatch = KNOWN_CATEGORY_LOWER.get(lower)
   if (caseMatch) return caseMatch
   const key = lower.replace(/[\s&]+/g, '-').replace(/-+/g, '-')
-  return CATEGORY_ALIASES[key] ?? CATEGORY_ALIASES[lower] ?? raw
+  const keyAlias = Object.entries(CATEGORY_ALIASES).find(
+    ([alias]) => alias === key,
+  )?.[1]
+  if (keyAlias) return keyAlias
+
+  const lowerAlias = Object.entries(CATEGORY_ALIASES).find(
+    ([alias]) => alias === lower,
+  )?.[1]
+  return lowerAlias || raw
 }
 
 function guessCategory(record: Record<string, unknown>): string {
@@ -561,6 +627,7 @@ export const Route = createFileRoute('/api/skills')({
         }
         const capabilities = await ensureGatewayProbed()
         if (!capabilities.skills) {
+          const actions = createSkillActions(capabilities)
           return json({
             ...createCapabilityUnavailablePayload('skills'),
             items: [],
@@ -568,8 +635,10 @@ export const Route = createFileRoute('/api/skills')({
             total: 0,
             page: 1,
             categories: KNOWN_CATEGORIES,
+            actions,
           })
         }
+        const actions = createSkillActions(capabilities)
 
         try {
           const url = new URL(request.url)
@@ -654,6 +723,7 @@ export const Route = createFileRoute('/api/skills')({
             total,
             page,
             categories: KNOWN_CATEGORIES,
+            actions,
           })
         } catch (err) {
           return json(
@@ -717,8 +787,7 @@ export const Route = createFileRoute('/api/skills')({
               return json(
                 {
                   ok: false,
-                  error:
-                    'Skill install/uninstall is only available on the legacy enhanced fork right now. Zero-fork mode supports listing and toggling installed skills.',
+                  error: SKILL_INSTALL_MANAGED_REASON,
                 },
                 { status: 501 },
               )
@@ -733,6 +802,19 @@ export const Route = createFileRoute('/api/skills')({
 
             const result = await response.json()
             return json(result, { status: response.status })
+          }
+
+          if (COMANDOS_SINGLE_PANEL) {
+            return json(
+              {
+                ok: false,
+                error:
+                  action === 'toggle'
+                    ? SKILL_TOGGLE_MANAGED_REASON
+                    : SKILL_INSTALL_MANAGED_REASON,
+              },
+              { status: 501 },
+            )
           }
 
           const headers: Record<string, string> = {

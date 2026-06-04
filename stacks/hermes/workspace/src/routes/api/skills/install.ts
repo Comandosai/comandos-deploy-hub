@@ -4,11 +4,31 @@ import { isAuthenticated } from '../../../server/auth-middleware'
 import {
   BEARER_TOKEN,
   CLAUDE_API,
+  COMANDOS_SINGLE_PANEL,
   ensureGatewayProbed,
 } from '../../../server/gateway-capabilities'
 
 function authHeaders(): Record<string, string> {
   return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
+}
+
+const SKILL_INSTALL_MANAGED_REASON =
+  'Установка навыков из панели в этой сборке пока недоступна. Добавьте навык вручную на сервере в ~/.hermes/skills и обновите страницу.'
+
+async function readGatewayJson(response: Response): Promise<unknown> {
+  const text = await response.text()
+  if (!text) return { ok: response.ok }
+
+  try {
+    return JSON.parse(text) as unknown
+  } catch {
+    return {
+      ok: false,
+      error: response.ok
+        ? 'Сервер навыков вернул нечитаемый ответ.'
+        : `Сервер навыков вернул нечитаемую ошибку (${response.status}).`,
+    }
+  }
 }
 
 export const Route = createFileRoute('/api/skills/install')({
@@ -29,18 +49,17 @@ export const Route = createFileRoute('/api/skills/install')({
             (body.identifier || body.skillId || '').trim()
           if (!identifier) {
             return json(
-              { ok: false, error: 'identifier or skillId required' },
+              { ok: false, error: 'Укажите навык для установки.' },
               { status: 400 },
             )
           }
 
           const capabilities = await ensureGatewayProbed()
-          if (capabilities.dashboard.available) {
+          if (capabilities.dashboard.available || COMANDOS_SINGLE_PANEL) {
             return json(
               {
                 ok: false,
-                error:
-                  'Skill install is only available on the legacy enhanced fork right now.',
+                error: SKILL_INSTALL_MANAGED_REASON,
               },
               { status: 501 },
             )
@@ -60,7 +79,7 @@ export const Route = createFileRoute('/api/skills/install')({
             signal: AbortSignal.timeout(120_000),
           })
 
-          const result = await response.json()
+          const result = await readGatewayJson(response)
           return json(result, { status: response.status })
         } catch (error) {
           return json(
@@ -69,7 +88,7 @@ export const Route = createFileRoute('/api/skills/install')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to install skill',
+                  : 'Не удалось установить навык.',
             },
             { status: 500 },
           )
