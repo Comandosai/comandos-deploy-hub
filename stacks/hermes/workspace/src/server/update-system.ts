@@ -139,9 +139,11 @@ export function normalizePendingReleaseNotes(
   sections: Array<ReleaseNoteSection>,
   products: UpdateStatus['products'],
 ): Array<ReleaseNoteSection> {
-  return sections.map((section) => {
-    const product = products[section.product]
-    if (!product) return section
+  const normalized = sections.flatMap((section) => {
+    const product = (products as Partial<Record<string, ProductUpdateStatus>>)[
+      section.product
+    ]
+    if (!product) return []
     const to =
       section.to &&
       product.latestHead &&
@@ -149,8 +151,31 @@ export function normalizePendingReleaseNotes(
       product.latestVersion
         ? product.latestVersion
         : section.to
-    return { ...section, to }
+    const next = { ...section, to }
+    const expectedTo = product.updateAvailable
+      ? product.latestVersion || product.latestHead
+      : product.version || product.currentHead
+    if (product.updateAvailable) {
+      return next.from === product.version && next.to === expectedTo
+        ? [next]
+        : []
+    }
+    return next.to === expectedTo ? [next] : []
   })
+
+  const coveredProducts = new Set(normalized.map((section) => section.product))
+  for (const product of Object.values(products)) {
+    if (!product.updateAvailable || coveredProducts.has(product.id)) continue
+    normalized.push({
+      product: product.id,
+      label: product.label,
+      from: product.version || product.currentHead,
+      to: product.latestVersion || product.latestHead,
+      commits: [],
+    })
+  }
+
+  return normalized
 }
 
 function exec(

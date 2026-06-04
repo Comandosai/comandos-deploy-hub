@@ -155,4 +155,61 @@ describe('update-system helpers', () => {
       },
     ])
   })
+
+  it('drops stale managed release notes and synthesizes the current available update', () => {
+    const availableWorkspace: ProductUpdateStatus = {
+      ...workspaceProduct,
+      version: '2.3.0-comandos.20',
+      latestVersion: '2.3.0-comandos.22',
+      updateAvailable: true,
+      canUpdate: true,
+      state: 'available',
+    }
+
+    expect(
+      normalizePendingReleaseNotes(
+        [
+          {
+            product: 'workspace',
+            label: 'COMANDOS AI Workspace',
+            from: '2.3.0-comandos.19',
+            to: '2.3.0-comandos.20',
+            commits: [],
+          },
+        ],
+        {
+          workspace: availableWorkspace,
+          agent: agentProduct,
+        },
+      ),
+    ).toEqual([
+      {
+        product: 'workspace',
+        label: 'COMANDOS AI Workspace',
+        from: '2.3.0-comandos.20',
+        to: '2.3.0-comandos.22',
+        commits: [],
+      },
+    ])
+  })
+
+  it('ignores stale release notes for unknown products', () => {
+    expect(
+      normalizePendingReleaseNotes(
+        [
+          {
+            product: 'unknown-product',
+            label: 'Unknown product',
+            from: 'old',
+            to: 'new',
+            commits: [],
+          },
+        ] as unknown as Parameters<typeof normalizePendingReleaseNotes>[0],
+        {
+          workspace: workspaceProduct,
+          agent: agentProduct,
+        },
+      ),
+    ).toEqual([])
+  })
 })

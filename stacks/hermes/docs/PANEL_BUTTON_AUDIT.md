@@ -131,6 +131,7 @@
 | Live API + Playwright: `/skills` на `.20` | OK | `/api/skills` отдаёт `actions`; direct install/toggle дают русские 501; UI показывает предупреждение и disabled-кнопки `Недоступно`/`Удаление недоступно`; активных install/uninstall кнопок, console errors и HTTP 4xx/5xx в UI-проходе нет |
 | `pnpm exec vitest run src/server/stt-transcription.test.ts` | OK | 4 теста прошли; проверены STT-настройки и русская ошибка отсутствующего ключа Groq |
 | `pnpm exec eslint src/lib/voice-errors.ts src/hooks/use-voice-input.ts src/hooks/use-voice-recorder.ts src/screens/chat/components/chat-composer.tsx src/routes/api/transcribe.ts src/server/stt-transcription.ts src/server/stt-transcription.test.ts` | OK | Ошибок нет; остались старые `no-shadow` warnings в `chat-composer.tsx` |
+| `pnpm exec vitest run src/server/update-system.test.ts` | OK | Проверена нормализация release notes: устаревший переход `.19 -> .20` не должен всплывать, если реально доступно `.20 -> .22` |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
