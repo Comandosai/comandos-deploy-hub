@@ -21,6 +21,7 @@ import { toast } from '@/components/ui/toast'
 import { getUnavailableReason } from '@/lib/feature-gates'
 import { useFeatureAvailable } from '@/hooks/use-feature-available'
 import {
+  PROVIDER_CATALOG,
   getProviderDisplayName,
   getProviderInfo,
   normalizeProviderId,
@@ -824,7 +825,7 @@ function SettingCard(props: {
   )
 }
 
-type ModelProviderOption = 'custom' | 'openrouter' | 'anthropic' | 'openai'
+type ModelProviderOption = string
 
 type ModelConfigDraft = {
   provider: ModelProviderOption
@@ -839,9 +840,10 @@ type PerformanceDraft = {
 
 const MODEL_PROVIDER_OPTIONS: Array<SelectOption> = [
   { label: 'Свой сервер', value: 'custom' },
-  { label: 'OpenRouter', value: 'openrouter' },
-  { label: 'Anthropic', value: 'anthropic' },
-  { label: 'OpenAI', value: 'openai' },
+  ...PROVIDER_CATALOG.map((provider) => ({
+    label: provider.name,
+    value: provider.id,
+  })),
 ]
 
 const MODEL_PRESETS = [
@@ -868,7 +870,7 @@ const MODEL_PRESETS = [
 const DEFAULT_STREAM_STALE_TIMEOUT_SECONDS = 90
 const DEFAULT_STREAM_READ_TIMEOUT_SECONDS = 60
 const MODEL_PROVIDER_VALUES = new Set<ModelProviderOption>(
-  MODEL_PROVIDER_OPTIONS.map((option) => option.value as ModelProviderOption),
+  MODEL_PROVIDER_OPTIONS.map((option) => option.value),
 )
 
 function readRecord(value: unknown): Record<string, unknown> | undefined {
@@ -877,14 +879,29 @@ function readRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined
 }
 
-function parseModelProvider(value: unknown): ModelProviderOption {
-  return typeof value === 'string' &&
-    MODEL_PROVIDER_VALUES.has(value as ModelProviderOption)
-    ? (value as ModelProviderOption)
-    : 'custom'
+export function parseModelProvider(value: unknown): ModelProviderOption {
+  if (typeof value !== 'string') return 'custom'
+  const normalized = normalizeProviderId(value)
+  return normalized || 'custom'
 }
 
-function readPrimaryModelConfig(
+function getModelProviderOptions(
+  provider: ModelProviderOption,
+): Array<SelectOption> {
+  if (!provider || MODEL_PROVIDER_VALUES.has(provider)) {
+    return MODEL_PROVIDER_OPTIONS
+  }
+
+  return [
+    {
+      label: getProviderDisplayName(provider),
+      value: provider,
+    },
+    ...MODEL_PROVIDER_OPTIONS,
+  ]
+}
+
+export function readPrimaryModelConfig(
   config: ClaudeConfig | undefined,
 ): ModelConfigDraft {
   const modelBlock = readRecord(config?.model)
@@ -957,6 +974,7 @@ function ModelConfigSection(props: {
     showPresets = false,
     datalistId,
   } = props
+  const providerOptions = getModelProviderOptions(value.provider)
 
   return (
     <section className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card)] p-4 shadow-sm">
@@ -980,7 +998,7 @@ function ModelConfigSection(props: {
               })
             }}
           >
-            {MODEL_PROVIDER_OPTIONS.map((option) => (
+            {providerOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

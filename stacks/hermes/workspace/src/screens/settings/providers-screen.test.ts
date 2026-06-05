@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildProviderSummaries } from './providers-screen'
+import {
+  buildProviderSummaries,
+  parseModelProvider,
+  readPrimaryModelConfig,
+} from './providers-screen'
 
 describe('buildProviderSummaries', () => {
   it('does not offer deletion for Hermes Agent-owned providers', () => {
@@ -53,5 +57,22 @@ describe('buildProviderSummaries', () => {
     expect(summaries).toHaveLength(1)
     expect(summary.canDelete).toBe(true)
     expect(summary.deleteDisabledReason).toBeUndefined()
+  })
+})
+
+describe('model provider form config', () => {
+  it('preserves DeepSeek instead of silently saving it as custom', () => {
+    const config = {
+      provider: 'deepseek',
+      model: 'deepseek-chat',
+    } as Parameters<typeof readPrimaryModelConfig>[0]
+    const draft = readPrimaryModelConfig(config)
+
+    expect(draft.provider).toBe('deepseek')
+    expect(draft.model).toBe('deepseek-chat')
+  })
+
+  it('preserves unknown provider ids instead of destroying existing config', () => {
+    expect(parseModelProvider('internal-vllm')).toBe('internal-vllm')
   })
 })
