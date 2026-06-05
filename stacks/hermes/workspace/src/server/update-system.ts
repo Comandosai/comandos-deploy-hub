@@ -14,7 +14,7 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 type ProductId = 'workspace' | 'agent'
-type InstallKind = 'git' | 'desktop' | 'docker' | 'unknown'
+type InstallKind = 'git' | 'desktop' | 'docker' | 'managed' | 'unknown'
 type UpdateState = 'current' | 'available' | 'blocked' | 'unsupported' | 'error'
 type UpdateMode =
   | 'git-ff'
@@ -212,6 +212,13 @@ function installedStatePath(): string {
   )
 }
 
+function manifestCachePath(): string {
+  return (
+    process.env.COMANDOS_UPDATE_MANIFEST_CACHE ||
+    join(process.cwd(), '.runtime', 'update-manifest-cache.json')
+  )
+}
+
 function readInstalledState(): ComandosInstalledState {
   try {
     return JSON.parse(
@@ -291,17 +298,55 @@ function resolveGithubRawBranchUrl(url: string): string {
   }
 }
 
-function readComandosManifest(): ComandosUpdateManifest | null {
+function parseComandosManifest(raw: string): ComandosUpdateManifest | null {
+  try {
+    const manifest = JSON.parse(raw) as unknown
+    return manifest !== null && typeof manifest === 'object'
+      ? (manifest as ComandosUpdateManifest)
+      : null
+  } catch {
+    return null
+  }
+}
+
+function readCachedComandosManifest(): ComandosUpdateManifest | null {
+  try {
+    return parseComandosManifest(readFileSync(manifestCachePath(), 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+function writeCachedComandosManifest(manifest: ComandosUpdateManifest): void {
+  const target = manifestCachePath()
+  const tmpPath = `${target}.tmp.${process.pid}`
+  try {
+    mkdirSync(dirname(target), { recursive: true })
+    writeFileSync(tmpPath, `${JSON.stringify(manifest, null, 2)}\n`)
+    renameSync(tmpPath, target)
+  } catch {
+    try {
+      unlinkSync(tmpPath)
+    } catch {
+      // ignore cleanup failures; update status must stay readable
+    }
+  }
+}
+
+export function readComandosManifest(): ComandosUpdateManifest | null {
   const url = comandosManifestUrl()
   if (!url) return null
   try {
+    let manifest: ComandosUpdateManifest | null = null
     if (url.startsWith('file://')) {
-      return JSON.parse(
+      manifest = parseComandosManifest(
         readFileSync(url.slice('file://'.length), 'utf8'),
-      ) as ComandosUpdateManifest
+      )
+      return manifest || readCachedComandosManifest()
     }
     if (url.startsWith('/')) {
-      return JSON.parse(readFileSync(url, 'utf8')) as ComandosUpdateManifest
+      manifest = parseComandosManifest(readFileSync(url, 'utf8'))
+      return manifest || readCachedComandosManifest()
     }
     const manifestUrl = resolveGithubRawBranchUrl(url)
     const raw = exec(
@@ -309,7 +354,7 @@ function readComandosManifest(): ComandosUpdateManifest | null {
       [
         '-fsSL',
         '--max-time',
-        '6',
+        '12',
         '-H',
         'Cache-Control: no-cache',
         '-H',
@@ -317,12 +362,17 @@ function readComandosManifest(): ComandosUpdateManifest | null {
         manifestUrl,
       ],
       {
-        timeout: 8_000,
+        timeout: 15_000,
       },
     )
-    return raw ? (JSON.parse(raw) as ComandosUpdateManifest) : null
+    manifest = raw ? parseComandosManifest(raw) : null
+    if (manifest) {
+      writeCachedComandosManifest(manifest)
+      return manifest
+    }
+    return readCachedComandosManifest()
   } catch {
-    return null
+    return readCachedComandosManifest()
   }
 }
 
@@ -511,7 +561,7 @@ function managedWorkspaceStatus(
   return {
     id: 'workspace',
     label: 'COMANDOS AI Workspace',
-    installKind: workspaceInstallKind(),
+    installKind: 'managed',
     version,
     path: process.cwd(),
     repoPath: null,

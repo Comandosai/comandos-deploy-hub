@@ -1,7 +1,11 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   compareManagedVersions,
   normalizePendingReleaseNotes,
+  readComandosManifest,
   readUpdateCheckIntervalMs,
   remoteUrlMatches,
   renderManagedUpdateScriptTemplate,
@@ -126,6 +130,53 @@ describe('update-system helpers', () => {
     )
     expect(rendered).toContain('REMOTE_HERMES_HOME="/home/hermes/.hermes"')
     expect(rendered).not.toContain('{{')
+  })
+
+  it('falls back to cached COMANDOS manifest when remote manifest is unavailable', () => {
+    const previousUrl = process.env.COMANDOS_UPDATE_MANIFEST_URL
+    const previousCache = process.env.COMANDOS_UPDATE_MANIFEST_CACHE
+    const dir = mkdtempSync(join(tmpdir(), 'comandos-manifest-cache-'))
+    const cachePath = join(dir, 'manifest-cache.json')
+    try {
+      writeFileSync(
+        cachePath,
+        JSON.stringify({
+          schema: 1,
+          workspace: { version: '2.3.0-comandos.61', ref: 'main' },
+          agent: { version: 'Hermes Agent v0.14.0', ref: 'agent-ref' },
+        }),
+      )
+      process.env.COMANDOS_UPDATE_MANIFEST_URL =
+        'http://127.0.0.1:9/update-manifest.json'
+      process.env.COMANDOS_UPDATE_MANIFEST_CACHE = cachePath
+
+      expect(readComandosManifest()?.workspace?.version).toBe(
+        '2.3.0-comandos.61',
+      )
+    } finally {
+      if (previousUrl === undefined) {
+        delete process.env.COMANDOS_UPDATE_MANIFEST_URL
+      } else {
+        process.env.COMANDOS_UPDATE_MANIFEST_URL = previousUrl
+      }
+      if (previousCache === undefined) {
+        delete process.env.COMANDOS_UPDATE_MANIFEST_CACHE
+      } else {
+        process.env.COMANDOS_UPDATE_MANIFEST_CACHE = previousCache
+      }
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('keeps managed update script able to seed the manifest cache', () => {
+    const template = readFileSync(
+      join(process.cwd(), '..', 'templates', 'update', 'comandos-update.sh'),
+      'utf8',
+    )
+
+    expect(template).toContain('cache_update_manifest()')
+    expect(template).toContain('.runtime/update-manifest-cache.json')
+    expect(template).toContain('cache_update_manifest')
   })
 
   it('normalizes managed release notes from branch ref to version', () => {

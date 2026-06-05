@@ -17,7 +17,7 @@ type ProductId = 'workspace' | 'agent'
 type ProductUpdateStatus = {
   id: ProductId
   label: string
-  installKind: 'git' | 'desktop' | 'docker' | 'unknown'
+  installKind: 'git' | 'desktop' | 'docker' | 'managed' | 'unknown'
   version: string
   path: string | null
   repoPath: string | null

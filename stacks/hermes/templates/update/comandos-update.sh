@@ -72,7 +72,27 @@ PY
   fi
 }
 
+cache_update_manifest() {
+  local manifest="$src/update-manifest.json"
+  local target="${COMANDOS_UPDATE_MANIFEST_CACHE:-$REMOTE_WORKSPACE_DIR/.runtime/update-manifest-cache.json}"
+  [[ -f "$manifest" ]] || return
+
+  mkdir -p "$(dirname "$target")" || {
+    log "Не удалось подготовить папку для кэша manifest: $target"
+    return
+  }
+
+  local tmp_target="${target}.tmp.$$"
+  if cp "$manifest" "$tmp_target" && mv "$tmp_target" "$target"; then
+    log "Manifest обновления сохранён в кэш: $target"
+  else
+    rm -f "$tmp_target"
+    log "Не удалось сохранить manifest обновления в кэш: $target"
+  fi
+}
+
 sync_update_script
+cache_update_manifest
 
 is_commitish_ref() {
   [[ "${1:-}" =~ ^[0-9a-fA-F]{7,40}$ ]]
