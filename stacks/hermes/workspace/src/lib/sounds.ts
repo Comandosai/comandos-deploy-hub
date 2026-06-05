@@ -36,6 +36,8 @@ const DEFAULT_VOLUME = 0.3
 // Shared state
 let audioContext: AudioContext | null = null
 let prefs: SoundPrefs = { volume: DEFAULT_VOLUME, enabled: true }
+let audioUnlocked = false
+let unlockHooked = false
 
 // Load preferences from localStorage
 function loadPrefs(): void {
@@ -73,8 +75,37 @@ loadPrefs()
 /**
  * Get or create the shared AudioContext
  */
+function hasUserActivation(): boolean {
+  if (typeof window === 'undefined') return false
+  const activation = (window.navigator as unknown as {
+    userActivation?: { hasBeenActive?: boolean; isActive?: boolean }
+  }).userActivation
+  return Boolean(activation && (activation.hasBeenActive || activation.isActive))
+}
+
+function hookUnlock(): void {
+  if (unlockHooked || typeof window === 'undefined') return
+  unlockHooked = true
+  const unlock = () => {
+    audioUnlocked = true
+    const ctx = getAudioContext()
+    if (ctx?.state === 'suspended') void ctx.resume().catch(() => {})
+  }
+  window.addEventListener('pointerdown', unlock, { passive: true })
+  window.addEventListener('keydown', unlock)
+  window.addEventListener('touchstart', unlock, { passive: true })
+}
+
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null
+  if (!audioUnlocked) {
+    if (hasUserActivation()) {
+      audioUnlocked = true
+    } else {
+      hookUnlock()
+      return null
+    }
+  }
   if (!audioContext || audioContext.state === 'closed') {
     audioContext = new AudioContext()
   }
