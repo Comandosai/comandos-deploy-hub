@@ -158,6 +158,7 @@ grep -vE '^(HERMES_PASSWORD|PUBLIC_URL|PUBLIC_HOST)=' "$CONFIG_PATH" >"$resolved
 chmod 600 "$resolved_config"
 
 remote_tmp="/tmp/comandos-hermes-$(date +%Y%m%d%H%M%S)"
+deploy_bundle="$tmp_dir/comandos-hermes-deploy-bundle.tgz"
 
 retry_command() {
   local label="$1"
@@ -935,13 +936,19 @@ Telegram bot: $telegram_status
 EOF
 REMOTE
 
+cp "$SCRIPT_DIR/comandos-hermes.lock" "$tmp_dir/comandos-hermes.lock"
+COPYFILE_DISABLE=1 tar -czf "$deploy_bundle" -C "$tmp_dir" \
+  comandos-hermes-payload.tgz \
+  comandos-hermes.env \
+  comandos-hermes.lock \
+  remote-install.sh
+
+upload_and_run_remote_install() {
+  "${ssh_base[@]}" "$remote" "rm -rf '$remote_tmp' && mkdir -p '$remote_tmp' && tar -xzf - -C '$remote_tmp' && chmod 700 '$remote_tmp' && chmod 600 '$remote_tmp/comandos-hermes.env' && chmod +x '$remote_tmp/remote-install.sh' && mkdir -p '$remote_tmp/payload' && '$remote_tmp/remote-install.sh' '$remote_tmp'" <"$deploy_bundle"
+}
+
 info "Подключаюсь к VPS: $remote"
-retry_command "SSH preflight" "${ssh_base[@]}" "$remote" "mkdir -p '$remote_tmp'"
-retry_command "SCP payload" "${scp_base[@]}" "$payload" "$remote:$remote_tmp/comandos-hermes-payload.tgz"
-retry_command "SCP config" "${scp_base[@]}" "$resolved_config" "$remote:$remote_tmp/comandos-hermes.env"
-retry_command "SCP lock" "${scp_base[@]}" "$SCRIPT_DIR/comandos-hermes.lock" "$remote:$remote_tmp/comandos-hermes.lock"
-retry_command "SCP remote installer" "${scp_base[@]}" "$tmp_dir/remote-install.sh" "$remote:$remote_tmp/remote-install.sh"
-retry_command "SSH remote install" "${ssh_base[@]}" "$remote" "chmod 700 '$remote_tmp' && chmod +x '$remote_tmp/remote-install.sh' && mkdir -p '$remote_tmp/payload' && '$remote_tmp/remote-install.sh' '$remote_tmp'"
+retry_command "SSH upload/install" upload_and_run_remote_install
 
 printf '\nЛокальная проверка завершена.\n'
 printf 'Панель: %s\n' "$PUBLIC_URL"
