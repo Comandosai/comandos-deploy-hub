@@ -211,6 +211,39 @@ ensure_workspace_runtime_deps() {
   DEBIAN_FRONTEND=noninteractive "${sudo_cmd[@]}" apt-get install -y -qq sqlite3 >/dev/null
 }
 
+backup_workspace() {
+  local backup="$1"
+  if rsync -a --delete --link-dest="$REMOTE_WORKSPACE_DIR" "$REMOTE_WORKSPACE_DIR/" "$backup/"; then
+    return
+  fi
+
+  log "Hardlink backup не получился, делаю облегчённый backup без node_modules/dist/logs"
+  rsync -a --delete \
+    --exclude 'node_modules' \
+    --exclude 'dist' \
+    --exclude 'logs' \
+    "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
+}
+
+validate_workspace_build() {
+  local server_dir="$REMOTE_WORKSPACE_DIR/dist/server"
+  local server_entry="$server_dir/server.js"
+  [[ -s "$server_entry" ]] || die "сборка панели повреждена: нет $server_entry"
+
+  local zero_count
+  zero_count="$(find "$server_dir" -name '*.js' -size 0 | wc -l | tr -d '[:space:]')"
+  if [[ "$zero_count" != "0" ]]; then
+    find "$server_dir" -name '*.js' -size 0 -print >&2
+    die "сборка панели повреждена: найдено пустых JS-файлов: $zero_count"
+  fi
+
+  if ! find "$server_dir" -name '*.js' -print0 \
+    | xargs -0 -r -n 1 node --check >/tmp/comandos-workspace-node-check.log 2>&1; then
+    cat /tmp/comandos-workspace-node-check.log >&2 || true
+    die "сборка панели повреждена: node --check не прошёл"
+  fi
+}
+
 update_workspace() {
   log "Обновляю COMANDOS Workspace до $COMANDOS_WORKSPACE_VERSION"
   assert_workspace_not_downgrade
@@ -219,7 +252,7 @@ update_workspace() {
   if [[ -d "$REMOTE_WORKSPACE_DIR" ]]; then
     backup="$REMOTE_BASE_DIR/backups/workspace-update-$(date +%Y%m%d%H%M%S)"
     mkdir -p "$backup"
-    rsync -a --delete "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
+    backup_workspace "$backup"
     log "Backup: $backup"
   fi
 
@@ -237,6 +270,7 @@ update_workspace() {
   corepack enable >/dev/null 2>&1 || true
   ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile
   pnpm build
+  validate_workspace_build
   write_state
 
   if command -v systemctl >/dev/null 2>&1; then
