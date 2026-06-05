@@ -88,6 +88,15 @@ describe('GET /api/history', () => {
       'user',
       'assistant',
     ])
+    expect(body.messages.map((message: any) => message.text)).toEqual([
+      'hello',
+      'hi',
+    ])
     expect(body.messages[1].content[0].text).toBe('hi')
+    expect(body.messages[1]).toMatchObject({
+      sessionKey: 'main',
+      __historyIndex: 1,
+      createdAt: new Date(2000).toISOString(),
+    })
   })
 })

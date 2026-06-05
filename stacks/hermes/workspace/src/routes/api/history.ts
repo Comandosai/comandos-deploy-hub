@@ -32,8 +32,12 @@ function localHistoryPayload(sessionKey: string, limit: number) {
       id: m.id,
       role: m.role,
       content: [{ type: 'text', text: m.content }],
+      text: m.content,
       timestamp: m.timestamp,
+      createdAt: new Date(m.timestamp).toISOString(),
+      sessionKey,
       historyIndex: index,
+      __historyIndex: index,
     })),
   }
 }
