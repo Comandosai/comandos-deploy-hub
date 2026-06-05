@@ -13,8 +13,30 @@ import {
   resolveSessionKey,
   shouldBindMainToPortableSession,
 } from '../../server/session-utils'
+import { getLocalMessages, getLocalSession } from '../../server/local-session-store'
 import { isAuthenticated } from '@/server/auth-middleware'
-import { getLocalSession, getLocalMessages } from '../../server/local-session-store'
+
+function localHistoryPayload(sessionKey: string, limit: number) {
+  const localSession = getLocalSession(sessionKey)
+  if (!localSession) return null
+
+  const localMessages = getLocalMessages(sessionKey)
+  const boundedMessages =
+    limit > 0 ? localMessages.slice(-limit) : localMessages
+
+  return {
+    sessionKey,
+    sessionId: sessionKey,
+    source: 'local',
+    messages: boundedMessages.map((m, index) => ({
+      id: m.id,
+      role: m.role,
+      content: [{ type: 'text', text: m.content }],
+      timestamp: m.timestamp,
+      historyIndex: index,
+    })),
+  }
+}
 
 export const Route = createFileRoute('/api/history')({
   server: {
@@ -25,15 +47,6 @@ export const Route = createFileRoute('/api/history')({
         }
         await ensureGatewayProbed()
         const capabilities = getGatewayCapabilities()
-        if (!capabilities.sessions) {
-          return json({
-            sessionKey: 'new',
-            sessionId: 'new',
-            messages: [],
-            source: 'unavailable',
-            message: SESSIONS_API_UNAVAILABLE_MESSAGE,
-          })
-        }
         try {
           const url = new URL(request.url)
           const limit = Number(url.searchParams.get('limit') || '200')
@@ -44,6 +57,31 @@ export const Route = createFileRoute('/api/history')({
             friendlyId,
             defaultKey: 'main',
           })
+          // Portable/local chats still persist messages in the workspace
+          // process even when the gateway does not expose a sessions API.
+          // Return that local history instead of making the UI think the new
+          // chat is empty after the first message.
+          if (!capabilities.sessions) {
+            if (sessionKey === 'new') {
+              return json({
+                sessionKey: 'new',
+                sessionId: 'new',
+                messages: [],
+              })
+            }
+
+            const localHistory = localHistoryPayload(sessionKey, limit)
+            if (localHistory) return json(localHistory)
+
+            return json({
+              sessionKey: 'new',
+              sessionId: 'new',
+              messages: [],
+              source: 'unavailable',
+              message: SESSIONS_API_UNAVAILABLE_MESSAGE,
+            })
+          }
+
           const pinPortableMain = shouldBindMainToPortableSession({
             sessionKey,
             dashboardAvailable: capabilities.dashboard.available,
@@ -84,18 +122,15 @@ export const Route = createFileRoute('/api/history')({
           }
 
           if (pinPortableMain) {
-            const localMessages = getLocalMessages('main')
-            return json({
-              sessionKey: 'main',
-              sessionId: 'main',
-              messages: localMessages.map((m, index) => ({
-                id: m.id,
-                role: m.role,
-                content: [{ type: 'text', text: m.content }],
-                timestamp: m.timestamp,
-                historyIndex: index,
-              })),
-            })
+            const localHistory = localHistoryPayload('main', limit)
+            return json(
+              localHistory ?? {
+                sessionKey: 'main',
+                sessionId: 'main',
+                source: 'local',
+                messages: [],
+              },
+            )
           }
           let messages: Awaited<ReturnType<typeof getMessages>> = []
           try {
@@ -106,21 +141,8 @@ export const Route = createFileRoute('/api/history')({
 
           // Fallback to local session store for portable/local model sessions
           if (messages.length === 0) {
-            const localSession = getLocalSession(sessionKey)
-            if (localSession) {
-              const localMessages = getLocalMessages(sessionKey)
-              return json({
-                sessionKey,
-                sessionId: sessionKey,
-                messages: localMessages.map((m, index) => ({
-                  id: m.id,
-                  role: m.role,
-                  content: [{ type: 'text', text: m.content }],
-                  timestamp: m.timestamp,
-                  historyIndex: index,
-                })),
-              })
-            }
+            const localHistory = localHistoryPayload(sessionKey, limit)
+            if (localHistory) return json(localHistory)
           }
 
           const boundedMessages = limit > 0 ? messages.slice(-limit) : messages
