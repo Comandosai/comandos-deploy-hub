@@ -172,6 +172,7 @@
 | QA Playwright: пункт `HermesWorld` на `.40` | FIXED | В `.41` `/playground` больше не автозагружает внешний iframe: сначала показывает русский экран запуска `HermesWorld готов к запуску`, а встроенный запуск начинается только после клика `Запустить в панели` и с iframe permission `autoplay` |
 | QA Playwright/logs: пункт `HermesWorld` на `.41` | OK | До клика iframe не грузится (`iframeCount=0`), console и HTTP 4xx/5xx пустые; после `Запустить в панели` iframe появляется (`iframeCount=1`), browser console/HTTP/failed requests пустые; свежие `comandos-workspace`/`hermes-gateway` логи без ошибок |
 | QA Playwright/API/logs: `Добавить провайдера` -> `OpenAI Codex` на `.43` | OK | В мастере для Codex виден только `CLI-вход`; `Start OAuth`, `OAuth device flow not supported` и инструкция API-ключа для Codex не появляются; `Перейти к проверке` показывает `~/.codex/auth.json`; прямой `/api/oauth/device-code` возвращает HTTP 200 `ok:false` с русским объяснением; browser console и HTTP 4xx/5xx пустые; свежие логи без ошибок |
+| QA Playwright/logs: модалка `Настройки` из панели на `.43` | OK | Шестерёнка открывает старую модалку настроек; конфигурация догружается, API-запросы настроек возвращают 200; `Start OAuth`, `OAuth device flow not supported`, `Key set`, `Key required` не найдены; browser console/HTTP 4xx/5xx и свежие systemd-логи пустые |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
