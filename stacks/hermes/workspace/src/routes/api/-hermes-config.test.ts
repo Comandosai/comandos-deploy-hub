@@ -84,6 +84,41 @@ describe('canonical /api/hermes-config route', () => {
     expect(openrouter.isDefault).toBe(true)
   })
 
+  it('GET returns configured providers without waiting for local port discovery', async () => {
+    const discovery = await import('../../server/local-provider-discovery')
+    vi.mocked(discovery.ensureDiscovery).mockImplementation(
+      () => new Promise(() => undefined),
+    )
+    fs.writeFileSync(
+      path.join(tmpHome, 'config.yaml'),
+      'provider: deepseek\nmodel: deepseek-chat\n',
+      'utf-8',
+    )
+    fs.writeFileSync(
+      path.join(tmpHome, '.env'),
+      'DEEPSEEK_API_KEY=fake-active-deepseek\n',
+      'utf-8',
+    )
+
+    const handlers = await loadHandlers('./hermes-config')
+    const result = await Promise.race([
+      handlers
+        .GET({
+          request: new Request('http://localhost/api/hermes-config'),
+        })
+        .then(async (res) => {
+          const body = await res.json()
+          return body.activeProvider === 'deepseek' ? 'returned' : 'wrong'
+        }),
+      new Promise<string>((resolve) =>
+        setTimeout(() => resolve('timed-out'), 25),
+      ),
+    ])
+
+    expect(result).toBe('returned')
+    vi.mocked(discovery.ensureDiscovery).mockReset()
+  })
+
   it('PATCH dispatches set-default-model and returns the action message', async () => {
     const handlers = await loadHandlers('./hermes-config')
     const res = await handlers.PATCH({
@@ -98,7 +133,10 @@ describe('canonical /api/hermes-config route', () => {
     })
     const body = await res.json()
 
-    expect(body).toMatchObject({ ok: true, message: 'Default model updated.' })
+    expect(body).toMatchObject({
+      ok: true,
+      message: 'Модель по умолчанию обновлена.',
+    })
     expect(fs.readFileSync(path.join(tmpHome, 'config.yaml'), 'utf-8')).toMatch(
       /provider: openrouter/,
     )
@@ -250,6 +288,73 @@ describe('canonical /api/hermes-config route', () => {
     })
     expect(res.status).toBe(503)
     vi.doUnmock('../../server/gateway-capabilities')
+  })
+})
+
+describe('legacy config-get/config-patch compatibility routes', () => {
+  it('GET /api/config-get returns JSON config payload for old settings clients', async () => {
+    fs.writeFileSync(
+      path.join(tmpHome, 'config.yaml'),
+      'model:\n  default: deepseek-chat\n',
+      'utf-8',
+    )
+
+    const handlers = await loadHandlers('./config-get')
+    const res = await handlers.GET({
+      request: new Request('http://localhost/api/config-get'),
+    })
+    const body = await res.json()
+
+    expect(res.headers.get('content-type')).toContain('application/json')
+    expect(body.ok).toBe(true)
+    expect(body.payload.model.default).toBe('deepseek-chat')
+  })
+
+  it('POST /api/config-patch saves dotted path updates from settings controls', async () => {
+    const handlers = await loadHandlers('./config-patch')
+    const res = await handlers.POST({
+      request: new Request('http://localhost/api/config-patch', {
+        method: 'POST',
+        body: JSON.stringify({
+          path: 'agents.defaults.contextTokens',
+          value: 32000,
+        }),
+      }),
+    })
+    const body = await res.json()
+    const onDisk = fs.readFileSync(path.join(tmpHome, 'config.yaml'), 'utf-8')
+
+    expect(body).toMatchObject({ ok: true, message: 'Настройки сохранены.' })
+    expect(onDisk).toContain('agents:')
+    expect(onDisk).toContain('contextTokens: 32000')
+  })
+
+  it('POST /api/config-patch saves raw JSON patches from provider wizard', async () => {
+    const handlers = await loadHandlers('./config-patch')
+    const res = await handlers.POST({
+      request: new Request('http://localhost/api/config-patch', {
+        method: 'POST',
+        body: JSON.stringify({
+          raw: JSON.stringify({
+            auth: {
+              profiles: {
+                'deepseek:default': {
+                  provider: 'deepseek',
+                  apiKey: 'fake-deepseek-key',
+                },
+              },
+            },
+          }),
+          reason: 'test provider wizard patch',
+        }),
+      }),
+    })
+    const body = await res.json()
+    const onDisk = fs.readFileSync(path.join(tmpHome, 'config.yaml'), 'utf-8')
+
+    expect(body).toMatchObject({ ok: true, message: 'Настройки сохранены.' })
+    expect(onDisk).toContain('deepseek:default')
+    expect(onDisk).toContain('provider: deepseek')
   })
 })
 

@@ -23,15 +23,15 @@ import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
 type AuthResult = Response | true
 
 const ACTION_MESSAGES: Record<string, string> = {
-  'set-default-model': 'Default model updated.',
-  'set-api-key': 'API key saved.',
-  'remove-api-key': 'API key removed.',
-  'set-custom-provider': 'Custom provider saved.',
-  'remove-custom-provider': 'Custom provider removed.',
-  'remove-provider': 'Provider removed.',
+  'set-default-model': 'Модель по умолчанию обновлена.',
+  'set-api-key': 'API-ключ сохранён.',
+  'remove-api-key': 'API-ключ удалён.',
+  'set-custom-provider': 'Свой провайдер сохранён.',
+  'remove-custom-provider': 'Свой провайдер удалён.',
+  'remove-provider': 'Провайдер удалён.',
 }
 
-const LEGACY_SAVE_MESSAGE = 'Saved.'
+const LEGACY_SAVE_MESSAGE = 'Настройки сохранены.'
 
 const PatchActionSchema = z.discriminatedUnion('action', [
   z.object({
@@ -72,6 +72,16 @@ const LegacyPatchSchema = z.object({
   env: z.record(z.string(), z.union([z.string(), z.null()])).optional(),
 })
 
+const PathPatchSchema = z.object({
+  path: z.string().min(1),
+  value: z.unknown(),
+})
+
+const RawPatchSchema = z.object({
+  raw: z.unknown(),
+  reason: z.string().optional(),
+})
+
 async function authorize(request: Request): Promise<AuthResult> {
   const result = isAuthenticated(request) as AuthResult
   if (result !== true) return result
@@ -104,7 +114,7 @@ export async function handleHermesConfigGet({
     return unavailablePayload({ paths, claudeHome: paths.hermesHome })
   }
 
-  await ensureDiscovery()
+  void Promise.resolve(ensureDiscovery()).catch(() => undefined)
   const files = readHermesConfigFiles(paths)
   const state = normalizeHermesConfigState({
     paths,
@@ -124,6 +134,28 @@ export async function handleHermesConfigGet({
   return Response.json({
     ...state,
     providers,
+    claudeHome: paths.hermesHome,
+  })
+}
+
+export async function handleLegacyConfigGet({
+  request,
+}: {
+  request: Request
+}): Promise<Response> {
+  const auth = await authorize(request)
+  if (auth !== true) return auth
+
+  const paths = resolveHermesConfigPaths()
+  if (!getCapabilities().config) {
+    return unavailablePayload({ paths, claudeHome: paths.hermesHome })
+  }
+
+  const files = readHermesConfigFiles(paths)
+  return Response.json({
+    ok: true,
+    payload: files.config,
+    config: files.config,
     claudeHome: paths.hermesHome,
   })
 }
@@ -175,6 +207,65 @@ function applyLegacyConfigBody(
   fs.writeFileSync(configPath, YAML.stringify(current), 'utf-8')
 }
 
+function assertSafeConfigPath(pathValue: string): Array<string> {
+  const segments = pathValue.split('.').filter(Boolean)
+  if (segments.length === 0) throw new Error('Пустой путь настройки.')
+  for (const segment of segments) {
+    if (!/^[A-Za-z0-9_-]+$/.test(segment)) {
+      throw new Error(`Некорректный путь настройки: ${pathValue}`)
+    }
+  }
+  return segments
+}
+
+function applyConfigPathValueBody(
+  configPath: string,
+  pathValue: string,
+  value: unknown,
+): void {
+  let current: Record<string, unknown> = {}
+  try {
+    const raw = fs.readFileSync(configPath, 'utf-8')
+    const parsed = YAML.parse(raw)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      current = parsed as Record<string, unknown>
+    }
+  } catch {}
+
+  const segments = assertSafeConfigPath(pathValue)
+  let cursor = current
+  for (const segment of segments.slice(0, -1)) {
+    const existing = cursor[segment]
+    if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+      cursor[segment] = {}
+    }
+    cursor = cursor[segment] as Record<string, unknown>
+  }
+
+  const leaf = segments[segments.length - 1]
+  if (value === null || value === undefined) delete cursor[leaf]
+  else cursor[leaf] = value
+
+  fs.mkdirSync(path.dirname(configPath), { recursive: true })
+  fs.writeFileSync(configPath, YAML.stringify(current), 'utf-8')
+}
+
+function parseRawConfigPatch(raw: unknown): Record<string, unknown> {
+  const parsed = typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('raw должен быть JSON-объектом.')
+  }
+  const updates = parsed as Record<string, unknown>
+  if (
+    typeof updates.defaultModel === 'string' &&
+    updates.defaultModel.trim() &&
+    typeof updates.model !== 'string'
+  ) {
+    updates.model = updates.defaultModel
+  }
+  return updates
+}
+
 function applyLegacyEnvBody(
   envPath: string,
   envUpdates: Record<string, string | null>,
@@ -192,6 +283,127 @@ function applyLegacyEnvBody(
   fs.writeFileSync(envPath, stringifyEnv(current), 'utf-8')
 }
 
+function applyLegacyPatchBody(
+  paths: ReturnType<typeof resolveHermesConfigPaths>,
+  body: unknown,
+):
+  | { ok: true; message: string }
+  | { ok: false; status: number; error: string } {
+  const hasRaw =
+    body !== null &&
+    typeof body === 'object' &&
+    Object.prototype.hasOwnProperty.call(body, 'raw')
+  if (hasRaw) {
+    const raw = RawPatchSchema.safeParse(body)
+    if (!raw.success) {
+      return {
+        ok: false,
+        status: 400,
+        error: 'Некорректный raw-патч настройки.',
+      }
+    }
+    try {
+      applyLegacyConfigBody(paths.configPath, parseRawConfigPatch(raw.data.raw))
+      return { ok: true, message: LEGACY_SAVE_MESSAGE }
+    } catch (error) {
+      return {
+        ok: false,
+        status: 400,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Некорректный raw-патч настройки.',
+      }
+    }
+  }
+
+  const hasPath =
+    body !== null &&
+    typeof body === 'object' &&
+    Object.prototype.hasOwnProperty.call(body, 'path')
+  if (hasPath) {
+    const pathPatch = PathPatchSchema.safeParse(body)
+    if (!pathPatch.success) {
+      return {
+        ok: false,
+        status: 400,
+        error: 'Некорректный путь настройки.',
+      }
+    }
+    try {
+      applyConfigPathValueBody(
+        paths.configPath,
+        pathPatch.data.path,
+        pathPatch.data.value,
+      )
+      return { ok: true, message: LEGACY_SAVE_MESSAGE }
+    } catch (error) {
+      return {
+        ok: false,
+        status: 400,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Некорректный путь настройки.',
+      }
+    }
+  }
+
+  const legacy = LegacyPatchSchema.safeParse(body)
+  if (!legacy.success || (!legacy.data.config && !legacy.data.env)) {
+    return {
+      ok: false,
+      status: 400,
+      error: 'Некорректный запрос настроек.',
+    }
+  }
+
+  if (legacy.data.config)
+    applyLegacyConfigBody(paths.configPath, legacy.data.config)
+  if (legacy.data.env) applyLegacyEnvBody(paths.envPath, legacy.data.env)
+
+  return { ok: true, message: LEGACY_SAVE_MESSAGE }
+}
+
+export async function handleLegacyConfigPatch({
+  request,
+}: {
+  request: Request
+}): Promise<Response> {
+  const auth = await authorize(request)
+  if (auth !== true) return auth
+
+  if (!getCapabilities().config) {
+    return new Response(
+      JSON.stringify(
+        createCapabilityUnavailablePayload('config', {
+          error: 'Обновление конфигурации недоступно на этом backend.',
+        }),
+      ),
+      { status: 503, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return Response.json(
+      { ok: false, error: 'Некорректный JSON.' },
+      { status: 400 },
+    )
+  }
+
+  const result = applyLegacyPatchBody(resolveHermesConfigPaths(), body)
+  if (!result.ok) {
+    return Response.json(
+      { ok: false, error: result.error },
+      { status: result.status },
+    )
+  }
+  return Response.json({ ok: true, message: result.message })
+}
+
 export async function handleHermesConfigPatch({
   request,
 }: {
@@ -204,7 +416,7 @@ export async function handleHermesConfigPatch({
     return new Response(
       JSON.stringify(
         createCapabilityUnavailablePayload('config', {
-          error: 'Configuration updates are unavailable on this backend.',
+          error: 'Обновление конфигурации недоступно на этом backend.',
         }),
       ),
       { status: 503, headers: { 'Content-Type': 'application/json' } },
@@ -215,7 +427,10 @@ export async function handleHermesConfigPatch({
   try {
     body = await request.json()
   } catch {
-    return Response.json({ ok: false, error: 'Invalid JSON' }, { status: 400 })
+    return Response.json(
+      { ok: false, error: 'Некорректный JSON.' },
+      { status: 400 },
+    )
   }
 
   const paths = resolveHermesConfigPaths()
@@ -230,7 +445,7 @@ export async function handleHermesConfigPatch({
       return Response.json(
         {
           ok: false,
-          error: 'Invalid patch action body',
+          error: 'Некорректное действие настройки.',
           issues: parsed.error.issues,
         },
         { status: 400 },
@@ -241,7 +456,7 @@ export async function handleHermesConfigPatch({
       return Response.json(
         {
           ok: false,
-          error: result.message || 'Configuration update failed.',
+          error: result.message || 'Не удалось обновить конфигурацию.',
         },
         { status: result.status ?? 400 },
       )
@@ -252,17 +467,13 @@ export async function handleHermesConfigPatch({
     })
   }
 
-  const legacy = LegacyPatchSchema.safeParse(body)
-  if (!legacy.success) {
+  const legacy = applyLegacyPatchBody(paths, body)
+  if (!legacy.ok) {
     return Response.json(
-      { ok: false, error: 'Invalid request body', issues: legacy.error.issues },
-      { status: 400 },
+      { ok: false, error: legacy.error },
+      { status: legacy.status },
     )
   }
 
-  if (legacy.data.config)
-    applyLegacyConfigBody(paths.configPath, legacy.data.config)
-  if (legacy.data.env) applyLegacyEnvBody(paths.envPath, legacy.data.env)
-
-  return Response.json({ ok: true, message: LEGACY_SAVE_MESSAGE })
+  return Response.json({ ok: true, message: legacy.message })
 }
