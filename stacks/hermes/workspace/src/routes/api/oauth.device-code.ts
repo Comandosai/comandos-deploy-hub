@@ -27,6 +27,14 @@ export function getOAuthDeviceCodeUnsupportedMessage(provider: string): string {
   return `OAuth-подключение для ${label} пока не реализовано в панели. Используйте API-ключ, локальный сервер или настройку через терминал.`
 }
 
+export function getUnsupportedOAuthDeviceCodeResponse(provider: string) {
+  return {
+    ok: false,
+    unsupported: true,
+    error: getOAuthDeviceCodeUnsupportedMessage(provider),
+  }
+}
+
 export const Route = createFileRoute('/api/oauth/device-code')({
   server: {
     handlers: {
@@ -87,12 +95,7 @@ export const Route = createFileRoute('/api/oauth/device-code')({
           }
         }
 
-        return json(
-          {
-            error: getOAuthDeviceCodeUnsupportedMessage(provider),
-          },
-          { status: 400 },
-        )
+        return json(getUnsupportedOAuthDeviceCodeResponse(provider))
       },
     },
   },

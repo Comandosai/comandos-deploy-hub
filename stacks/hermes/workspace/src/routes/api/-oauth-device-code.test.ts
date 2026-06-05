@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { getOAuthDeviceCodeUnsupportedMessage } from './oauth.device-code'
+import {
+  getOAuthDeviceCodeUnsupportedMessage,
+  getUnsupportedOAuthDeviceCodeResponse,
+} from './oauth.device-code'
 
 describe('getOAuthDeviceCodeUnsupportedMessage', () => {
   it('explains that OpenAI Codex uses Codex CLI instead of panel OAuth', () => {
@@ -21,5 +24,14 @@ describe('getOAuthDeviceCodeUnsupportedMessage', () => {
     expect(getOAuthDeviceCodeUnsupportedMessage('   ')).toBe(
       'OAuth-подключение для этого провайдера пока не реализовано в панели. Используйте API-ключ, локальный сервер или настройку через терминал.',
     )
+  })
+
+  it('returns an ok:false payload for unsupported providers without forcing a browser-level HTTP error', () => {
+    expect(getUnsupportedOAuthDeviceCodeResponse('openai-codex')).toEqual({
+      ok: false,
+      unsupported: true,
+      error:
+        'OpenAI Codex не подключается через OAuth в панели. Выполните codex login на сервере, затем вернитесь в настройки и нажмите «Проверить».',
+    })
   })
 })
