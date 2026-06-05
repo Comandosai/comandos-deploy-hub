@@ -106,6 +106,14 @@ function getStepIndex(step: WizardStep): number {
   })
 }
 
+export function getOrderedSupportedAuthTypes(
+  authTypes: Array<ProviderAuthType>,
+): Array<ProviderAuthType> {
+  return AUTH_TYPE_ORDER.filter(function filterSupported(authType) {
+    return authTypes.includes(authType)
+  })
+}
+
 /**
  * Poll GET /api/models for up to `timeoutMs` (default 10 s).
  * Resolves true if the given providerId appears in the response, false on timeout.
@@ -489,25 +497,19 @@ export function ProviderWizard({
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  {AUTH_TYPE_ORDER.map(function mapAuthType(authType) {
+                  {getOrderedSupportedAuthTypes(
+                    selectedProvider.authTypes,
+                  ).map(function mapAuthType(authType) {
                     const meta = getAuthTypeMeta(authType)
-                    const supported =
-                      selectedProvider.authTypes.includes(authType)
 
                     return (
                       <button
                         key={authType}
                         type="button"
-                        disabled={!supported}
                         onClick={function onChooseAuthType() {
                           handleChooseAuthType(authType)
                         }}
-                        className={cn(
-                          'rounded-2xl border p-3 text-left transition-colors',
-                          supported
-                            ? 'border-primary-200 bg-primary-50/70 hover:border-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800/80'
-                            : 'cursor-not-allowed border-primary-200 bg-primary-50/40 opacity-50',
-                        )}
+                        className="rounded-2xl border border-primary-200 bg-primary-50/70 p-3 text-left transition-colors hover:border-primary-400 hover:bg-primary-100 dark:hover:bg-primary-800/80"
                       >
                         <h4 className="text-sm font-medium text-primary-900 text-balance">
                           {meta.title}
@@ -515,11 +517,6 @@ export function ProviderWizard({
                         <p className="mt-1 text-xs text-primary-600 text-pretty">
                           {meta.description}
                         </p>
-                        {!supported ? (
-                          <p className="mt-2 text-xs text-primary-500 text-pretty">
-                            Недоступно для {selectedProvider.name}.
-                          </p>
-                        ) : null}
                       </button>
                     )
                   })}
