@@ -182,6 +182,7 @@
 | QA Playwright/API/logs: `/mcp` на `.44` | OK | После входа `/mcp` показывает русское disabled-состояние; `/api/gateway-status` HTTP 200, gateway available, `mcp=false`, `mcpFallback=false`; `/api/mcp` HTTP 200 `capability_unavailable`; browser console/network и свежие workspace/gateway логи пустые |
 | QA Playwright/logs: сайдбарный обход 17 маршрутов на `.44` | OK | `/dashboard`, `/chat/new`, `/chat/main`, `/files`, `/terminal`, `/jobs`, `/tasks`, `/conductor`, `/operations`, `/swarm`, `/memory`, `/skills`, `/mcp`, `/profiles`, `/settings`, `/settings/providers`, `/playground`: fatal-текста нет, browser console пустая, HTTP 4xx/5xx и failed requests пустые, свежие workspace/gateway логи без ошибок |
 | QA Playwright/logs: вкладки `/settings` на `.44` | OK | Проверены `Подключение`, `Модель и провайдер`, `Поведение агента`, `Голос`, `Экран`, `Тема`, `Чат`, `Сигналы` (`section=notifications`) и `Язык`; все открываются без console/network ошибок, свежие workspace/gateway логи пустые |
+| QA Playwright/logs: нижняя шестерёнка `Настройки` на `.44` | OK | Кнопка из сайдбара открывает поверхность настроек; видны `Настройки` и блок модели/провайдера, старые `Start OAuth`, `OAuth device flow not supported`, `Key required`, `Key set` не появляются; browser console/network и свежие логи пустые |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
