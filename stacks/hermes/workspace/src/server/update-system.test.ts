@@ -214,7 +214,7 @@ describe('update-system helpers', () => {
         statePath,
         JSON.stringify({
           workspaceVersion: '2.3.0-comandos.63',
-          hermesAgentVersion: 'Hermes Agent v0.14.0',
+          hermesAgentVersion: '',
           hermesAgentRef: 'agent-ref',
         }),
       )
@@ -239,6 +239,8 @@ describe('update-system helpers', () => {
       expect(status.products.workspace.latestVersion).toBe('2.3.0-comandos.64')
       expect(status.products.workspace.updateAvailable).toBe(true)
       expect(status.products.agent.installKind).toBe('managed')
+      expect(status.products.agent.version).toBe('Hermes Agent v0.14.0')
+      expect(status.products.agent.updateAvailable).toBe(false)
 
       await Promise.resolve()
       expect(globalThis.fetch).toHaveBeenCalledTimes(1)

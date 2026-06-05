@@ -698,7 +698,11 @@ function managedAgentStatus(
     state.hermesAgentRef ||
     process.env.COMANDOS_HERMES_AGENT_REF ||
     base.currentHead
-  const currentVersion = state.hermesAgentVersion || base.version
+  const currentVersion =
+    state.hermesAgentVersion ||
+    (product.ref && currentRef === product.ref && product.version
+      ? product.version
+      : base.version)
   const versionIsNew = versionIsNewer(currentVersion, product.version)
   const refIsNew = Boolean(product.ref && product.ref !== currentRef)
   const updateAvailable = versionIsNew || refIsNew
