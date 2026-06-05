@@ -206,6 +206,7 @@
 | `pnpm exec eslint src/screens/chat/components/sidebar/session-item.tsx` | OK | Меню сессии после русификации проходит lint; осталось только старое предупреждение ESLint про `.eslintignore` |
 | `pnpm build` | OK | Production build `.51` прошёл; остались старые предупреждения Vite про размер чанков и mixed dynamic/static imports |
 | QA Playwright/logs: меню `Настройки сессии` на `.51` | OK | QA обновлена до `.51`; меню сессии показывает `Закрепить сессию`/`Открепить сессию`, `Pin session`/`Unpin session` не найдены; browser console/network и свежие workspace/gateway логи без ошибок; автоматический backup очищен |
+| QA Playwright: `Пользователь` и `Настройки чата` на `.51` | OK | `Пользователь` открывает menuitem `Настройки`, клик ведёт в `/settings`; `Настройки чата` открывает нижнее меню composer с русскими пунктами `по умолчанию`, `Рабочая папка`, `Низкое`, `deepseek-chat`; browser console и HTTP 4xx/5xx пустые |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
