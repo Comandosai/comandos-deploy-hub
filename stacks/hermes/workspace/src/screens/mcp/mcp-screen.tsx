@@ -39,6 +39,9 @@ export function McpScreen() {
   const categories = query.data?.categories ?? ['All']
 
   const hubQuery = useMcpHub(tab === 'marketplace' ? search : '')
+  const mcpUnavailable = capabilityMode === 'off'
+  const mcpUnavailableReason =
+    'MCP-серверы пока недоступны: текущий Hermes Agent не отдаёт MCP runtime и локальный config.yaml-режим.'
 
   function handleTabChange(next: string | number | null) {
     if (next === 'installed' || next === 'marketplace') {
@@ -71,6 +74,8 @@ export function McpScreen() {
             <Button
               variant="outline"
               size="sm"
+              disabled={mcpUnavailable}
+              title={mcpUnavailable ? mcpUnavailableReason : undefined}
               onClick={() => {
                 setEditing(null)
                 setDialogOpen(true)
@@ -86,6 +91,14 @@ export function McpScreen() {
             >
               Локальный режим: используется config.yaml. Проверка, поиск инструментов
               и логи требуют новых /api/mcp endpoints в hermes-agent.
+            </div>
+          ) : capabilityMode === 'off' ? (
+            <div
+              role="status"
+              className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
+            >
+              MCP-серверы пока недоступны через текущий Hermes Agent. Действия
+              добавления и установки отключены до обновления gateway с поддержкой MCP.
             </div>
           ) : null}
         </header>
@@ -134,6 +147,7 @@ export function McpScreen() {
             <TabsPanel value="installed" className="pt-3">
               <ServerList
                 query={query}
+                capabilityMode={capabilityMode}
                 onEdit={(s) => {
                   setEditing(s)
                   setDialogOpen(true)
@@ -160,7 +174,7 @@ export function McpScreen() {
               </div>
 
               {hubQuery.data?.warnings && hubQuery.data.warnings.length > 0 ? (
-                hubQuery.data.results && hubQuery.data.results.length > 0 ? (
+                hubQuery.data.results.length > 0 ? (
                   <p className="text-xs text-amber-700 dark:text-amber-300">
                     Один или несколько источников недоступны; показываю локальные результаты.
                     <span className="ml-1 text-[11px] text-primary-500">
@@ -187,6 +201,8 @@ export function McpScreen() {
                   (e) => !e.installed,
                 )}
                 loading={hubQuery.isPending}
+                installDisabled={mcpUnavailable}
+                installDisabledReason={mcpUnavailableReason}
                 onInstall={setInstallEntry}
               />
 
@@ -211,7 +227,12 @@ export function McpScreen() {
         <footer className="flex items-center justify-between rounded-xl border border-primary-200 bg-primary-50/80 px-3 py-2.5 text-sm text-primary-500 tabular-nums">
           <span>{totalLabel}</span>
           <span className="text-xs">
-            режим: {capabilityMode === 'fallback' ? 'config.yaml' : 'полный'}
+            режим:{' '}
+            {capabilityMode === 'native'
+              ? 'полный'
+              : capabilityMode === 'fallback'
+                ? 'config.yaml'
+                : 'недоступно'}
           </span>
         </footer>
       </div>
@@ -241,10 +262,11 @@ export function McpScreen() {
 
 interface ServerListProps {
   query: ReturnType<typeof useMcpServers>
+  capabilityMode: ReturnType<typeof useMcpCapabilityMode>['mode']
   onEdit: (server: McpServer) => void
 }
 
-function ServerList({ query, onEdit }: ServerListProps) {
+function ServerList({ query, capabilityMode, onEdit }: ServerListProps) {
   const servers = query.data?.servers ?? []
   if (query.isLoading) {
     return (
@@ -264,6 +286,14 @@ function ServerList({ query, onEdit }: ServerListProps) {
     )
   }
   if (servers.length === 0) {
+    if (capabilityMode === 'off') {
+      return (
+        <EmptyCard
+          title="MCP-серверы недоступны"
+          description="Текущий Hermes Agent не поддерживает MCP runtime и локальный config.yaml-режим. Обновите gateway, чтобы включить управление MCP."
+        />
+      )
+    }
     return (
       <EmptyCard
         title="MCP-серверы не настроены"
@@ -333,12 +363,16 @@ const SOURCE_LABEL: Record<string, string> = {
 interface MarketplaceGridProps {
   entries: Array<HubMcpEntry>
   loading: boolean
+  installDisabled: boolean
+  installDisabledReason: string
   onInstall: (entry: HubMcpEntry) => void
 }
 
 function MarketplaceGrid({
   entries,
   loading,
+  installDisabled,
+  installDisabledReason,
   onInstall,
 }: MarketplaceGridProps) {
   if (loading) {
@@ -432,6 +466,8 @@ function MarketplaceGrid({
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={installDisabled}
+                    title={installDisabled ? installDisabledReason : undefined}
                     onClick={() => onInstall(entry)}
                   >
                     Установить
