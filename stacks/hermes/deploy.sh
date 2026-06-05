@@ -136,7 +136,7 @@ cleanup() { rm -rf "$tmp_dir"; }
 trap cleanup EXIT
 
 payload="$tmp_dir/comandos-hermes-payload.tgz"
-COPYFILE_DISABLE=1 tar -czf "$payload" \
+COPYFILE_DISABLE=1 tar --no-xattrs -czf "$payload" \
   --exclude 'workspace/node_modules' \
   --exclude 'workspace/dist' \
   --exclude 'workspace/logs' \
@@ -293,8 +293,8 @@ resolve_default_model() {
 }
 
 if ! id "$APP_USER" >/dev/null 2>&1; then
-  [[ "$(id -u)" -eq 0 ]] || die "пользователь $APP_USER не найден, а текущий пользователь не root"
-  useradd -m -s /bin/bash "$APP_USER"
+  log "Создаю пользователя $APP_USER..."
+  $SUDO useradd -m -s /bin/bash "$APP_USER"
 fi
 
 install_apt() {
@@ -937,7 +937,7 @@ EOF
 REMOTE
 
 cp "$SCRIPT_DIR/comandos-hermes.lock" "$tmp_dir/comandos-hermes.lock"
-COPYFILE_DISABLE=1 tar -czf "$deploy_bundle" -C "$tmp_dir" \
+COPYFILE_DISABLE=1 tar --no-xattrs -czf "$deploy_bundle" -C "$tmp_dir" \
   comandos-hermes-payload.tgz \
   comandos-hermes.env \
   comandos-hermes.lock \
