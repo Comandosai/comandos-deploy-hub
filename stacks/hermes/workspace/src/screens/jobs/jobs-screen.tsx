@@ -28,9 +28,11 @@ import {
   fetchJobProfiles,
   fetchJobs,
   pauseJob,
+  removeJobFromList,
   resumeJob,
   triggerJob,
   updateJob,
+  upsertJobInList,
 } from '@/lib/jobs-api'
 
 const QUERY_KEY = ['claude', 'jobs'] as const
@@ -323,24 +325,53 @@ export function JobsScreen() {
         : [{ name: 'default', active: true }],
     [profilesQuery.data],
   )
+  const upsertCachedJob = useCallback(
+    (job: ClaudeJob | null | undefined) => {
+      queryClient.setQueryData<Array<ClaudeJob> | undefined>(QUERY_KEY, (jobs) =>
+        upsertJobInList(jobs, job),
+      )
+    },
+    [queryClient],
+  )
+  const removeCachedJob = useCallback(
+    (jobId: string | null | undefined) => {
+      queryClient.setQueryData<Array<ClaudeJob> | undefined>(QUERY_KEY, (jobs) =>
+        removeJobFromList(jobs, jobId),
+      )
+    },
+    [queryClient],
+  )
 
   const pauseMutation = useMutation({
     mutationFn: pauseJob,
-    onSuccess: () => {
+    onSuccess: (job) => {
+      upsertCachedJob(job)
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast('Задание остановлено')
+    },
+    onError: (error) => {
+      toast(error instanceof Error ? error.message : 'Не удалось остановить задание', {
+        type: 'error',
+      })
     },
   })
   const resumeMutation = useMutation({
     mutationFn: resumeJob,
-    onSuccess: () => {
+    onSuccess: (job) => {
+      upsertCachedJob(job)
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast('Задание возобновлено')
+    },
+    onError: (error) => {
+      toast(error instanceof Error ? error.message : 'Не удалось возобновить задание', {
+        type: 'error',
+      })
     },
   })
   const triggerMutation = useMutation({
     mutationFn: triggerJob,
-    onSuccess: () => {
+    onSuccess: (job) => {
+      upsertCachedJob(job)
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       window.setTimeout(() => {
         void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
@@ -350,17 +381,29 @@ export function JobsScreen() {
       }, 12_000)
       toast('Запуск начат. Статус обновится через несколько секунд')
     },
+    onError: (error) => {
+      toast(error instanceof Error ? error.message : 'Не удалось запустить задание', {
+        type: 'error',
+      })
+    },
   })
   const deleteMutation = useMutation({
     mutationFn: deleteJob,
-    onSuccess: () => {
+    onSuccess: (_result, jobId) => {
+      removeCachedJob(jobId)
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast('Задание удалено')
+    },
+    onError: (error) => {
+      toast(error instanceof Error ? error.message : 'Не удалось удалить задание', {
+        type: 'error',
+      })
     },
   })
   const createMutation = useMutation({
     mutationFn: createJob,
-    onSuccess: () => {
+    onSuccess: (job) => {
+      upsertCachedJob(job)
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast('Задание создано')
       setShowCreate(false)
@@ -384,7 +427,9 @@ export function JobsScreen() {
         repeat?: number
       }
     }) => updateJob(payload.jobId, payload.updates),
-    onSuccess: () => {
+    onSuccess: (job, payload) => {
+      if (job.id !== payload.jobId) removeCachedJob(payload.jobId)
+      upsertCachedJob(job)
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast('Задание обновлено')
       setEditingJob(null)

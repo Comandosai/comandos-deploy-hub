@@ -63,6 +63,27 @@ export function findJobById(
   return jobs.find((job) => job.id === jobId) ?? null
 }
 
+export function upsertJobInList(
+  jobs: Array<ClaudeJob> | undefined,
+  nextJob: ClaudeJob | null | undefined,
+): Array<ClaudeJob> | undefined {
+  if (!nextJob) return jobs
+  const currentJobs = jobs ?? []
+  const existingIndex = currentJobs.findIndex((job) => job.id === nextJob.id)
+  if (existingIndex === -1) return [nextJob, ...currentJobs]
+  return currentJobs.map((job, index) =>
+    index === existingIndex ? nextJob : job,
+  )
+}
+
+export function removeJobFromList(
+  jobs: Array<ClaudeJob> | undefined,
+  jobId: string | null | undefined,
+): Array<ClaudeJob> | undefined {
+  if (!jobId || !jobs) return jobs
+  return jobs.filter((job) => job.id !== jobId)
+}
+
 export function normalizeJobState(state: unknown): string | null {
   return typeof state === 'string' && state.trim()
     ? state.trim().toLowerCase()

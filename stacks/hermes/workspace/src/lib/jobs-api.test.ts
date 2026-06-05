@@ -8,6 +8,8 @@ import {
   isTerminalJobState,
   normalizeJobState,
   normalizeJobsResponse,
+  removeJobFromList,
+  upsertJobInList,
 } from './jobs-api'
 import type { HermesJob, JobOutput } from './jobs-api'
 
@@ -39,6 +41,24 @@ describe('job helpers', () => {
     expect(findJobById([job], 'job-1')).toEqual(job)
     expect(findJobById([job], 'missing')).toBeNull()
     expect(findJobById([job], null)).toBeNull()
+  })
+
+  it('upserts a job in a cached list without duplicating it', () => {
+    const updated = {
+      ...job,
+      enabled: false,
+      state: 'paused',
+    } satisfies HermesJob
+
+    expect(upsertJobInList([job], updated)).toEqual([updated])
+    expect(upsertJobInList(undefined, updated)).toEqual([updated])
+  })
+
+  it('removes a job from a cached list', () => {
+    const secondJob = { ...job, id: 'job-2', name: 'Second job' }
+
+    expect(removeJobFromList([job, secondJob], 'job-1')).toEqual([secondJob])
+    expect(removeJobFromList([job], null)).toEqual([job])
   })
 
   it('normalizes and classifies job states', () => {
