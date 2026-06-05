@@ -135,6 +135,7 @@
 | `pnpm exec vitest run src/server/update-system.test.ts` | OK | Проверена нормализация release notes: устаревший переход `.19 -> .20` не должен всплывать, если реально доступно `.20 -> .22` |
 | `pnpm exec vitest run src/components/settings-dialog/settings-dialog.test.ts src/routes/api/-oauth-device-code.test.ts` | OK | 6 тестов прошли; проверены Codex CLI вместо OAuth и русское сообщение прямого OAuth API |
 | `pnpm exec eslint src/components/settings-dialog/settings-dialog.tsx src/components/settings-dialog/settings-dialog.test.ts src/routes/api/oauth.device-code.ts src/routes/api/-oauth-device-code.test.ts` | OK | Настройки провайдеров и OAuth endpoint проходят lint; есть только старое предупреждение ESLint про `.eslintignore` |
+| Live Playwright: `/settings/providers` -> `Добавить провайдера` -> `OpenAI Codex` -> `CLI-вход` на `.23` | OK | Codex CLI-текст виден; `Start OAuth`, `OAuth device flow not supported`, `Key set`, `Key required` не найдены; console/network чистые; прямой `/api/oauth/device-code` для Codex вернул русское объяснение с `codex login` |
 | Live API: `/api/update/workspace` на `clawd` `.20 -> .22` | OK | Обновление применилось; release notes вернули актуальный переход `.20 -> .22`; `comandos-workspace.service` active; повторный `/api/update/status` показывает Workspace `.22`, `updateAvailable=false` |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
