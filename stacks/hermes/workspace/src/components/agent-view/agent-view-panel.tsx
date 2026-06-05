@@ -960,6 +960,8 @@ export function AgentViewPanel() {
       {isDesktop ? (
         <motion.aside
           initial={false}
+          aria-hidden={!panelVisible}
+          inert={!panelVisible ? true : undefined}
           animate={{
             width: panelVisible ? panelWidth : 0,
             opacity: panelVisible ? 1 : 0,
