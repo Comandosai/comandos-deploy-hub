@@ -1,4 +1,11 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
@@ -174,13 +181,27 @@ describe('update-system helpers', () => {
     const previousCache = process.env.COMANDOS_UPDATE_MANIFEST_CACHE
     const previousState = process.env.COMANDOS_INSTALLED_STATE
     const previousVersion = process.env.COMANDOS_WORKSPACE_VERSION
+    const previousAgentRepo = process.env.HERMES_AGENT_REPO
     const previousFetch = globalThis.fetch
     const dir = mkdtempSync(join(tmpdir(), 'comandos-update-status-cache-'))
     const cachePath = join(dir, 'manifest-cache.json')
     const statePath = join(dir, 'installed.json')
+    const agentRepo = join(dir, 'agent-repo')
     let resolveFetch: ((response: Response) => void) | null = null
 
     try {
+      mkdirSync(agentRepo)
+      execFileSync('git', ['init'], { cwd: agentRepo, stdio: 'ignore' })
+      execFileSync(
+        'git',
+        [
+          'remote',
+          'add',
+          'origin',
+          'https://192.0.2.1/NousResearch/hermes-agent.git',
+        ],
+        { cwd: agentRepo, stdio: 'ignore' },
+      )
       writeFileSync(
         cachePath,
         JSON.stringify({
@@ -201,6 +222,7 @@ describe('update-system helpers', () => {
         'https://example.test/update-manifest.json'
       process.env.COMANDOS_UPDATE_MANIFEST_CACHE = cachePath
       process.env.COMANDOS_INSTALLED_STATE = statePath
+      process.env.HERMES_AGENT_REPO = agentRepo
       delete process.env.COMANDOS_WORKSPACE_VERSION
       globalThis.fetch = vi.fn(
         () =>
@@ -216,6 +238,7 @@ describe('update-system helpers', () => {
       expect(status.products.workspace.version).toBe('2.3.0-comandos.63')
       expect(status.products.workspace.latestVersion).toBe('2.3.0-comandos.64')
       expect(status.products.workspace.updateAvailable).toBe(true)
+      expect(status.products.agent.installKind).toBe('managed')
 
       await Promise.resolve()
       expect(globalThis.fetch).toHaveBeenCalledTimes(1)
@@ -253,6 +276,11 @@ describe('update-system helpers', () => {
         delete process.env.COMANDOS_WORKSPACE_VERSION
       } else {
         process.env.COMANDOS_WORKSPACE_VERSION = previousVersion
+      }
+      if (previousAgentRepo === undefined) {
+        delete process.env.HERMES_AGENT_REPO
+      } else {
+        process.env.HERMES_AGENT_REPO = previousAgentRepo
       }
       globalThis.fetch = previousFetch
       rmSync(dir, { recursive: true, force: true })

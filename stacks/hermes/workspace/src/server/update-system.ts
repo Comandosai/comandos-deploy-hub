@@ -723,6 +723,28 @@ function managedAgentStatus(
   }
 }
 
+function readManagedAgentBaseStatus(): ProductUpdateStatus {
+  const state = readInstalledState()
+  return {
+    id: 'agent',
+    label: 'Hermes Agent',
+    installKind: 'managed',
+    version: state.hermesAgentVersion || 'unknown',
+    path: null,
+    repoPath: null,
+    branch: null,
+    currentHead:
+      state.hermesAgentRef || process.env.COMANDOS_HERMES_AGENT_REF || null,
+    latestHead: null,
+    latestVersion: null,
+    updateAvailable: false,
+    canUpdate: false,
+    state: 'current',
+    reason: null,
+    updateMode: 'comandos-managed',
+  }
+}
+
 function execOrThrow(
   command: string,
   args: Array<string>,
@@ -1113,14 +1135,16 @@ export function readUpdateStatus(): UpdateStatus {
     allowRemote: false,
   })
   refreshComandosManifestCacheInBackground()
-  const legacyWorkspace = readWorkspaceUpdateStatus()
-  const legacyAgent = readAgentUpdateStatus()
+  const legacyWorkspace = manifest ? null : readWorkspaceUpdateStatus()
+  const agentBase = manifest
+    ? readManagedAgentBaseStatus()
+    : readAgentUpdateStatus()
   const workspace = manifest
-    ? managedWorkspaceStatus(manifest) || legacyWorkspace
+    ? managedWorkspaceStatus(manifest) || readWorkspaceUpdateStatus()
     : legacyWorkspace
   const agent = manifest
-    ? managedAgentStatus(legacyAgent, manifest) || legacyAgent
-    : legacyAgent
+    ? managedAgentStatus(agentBase, manifest) || agentBase
+    : agentBase
   const products = { workspace, agent }
   return {
     ok: true,
@@ -1189,13 +1213,15 @@ function applyManagedUpdate(
 }
 
 export function applyWorkspaceUpdate(): ApplyUpdateResult {
-  const before = readWorkspaceUpdateStatus()
   const manifest = readComandosManifest()
-  if (manifest) syncManagedUpdateScriptIfNeeded()
-  const managed = manifest ? managedWorkspaceStatus(manifest) : null
-  if (managed?.updateMode === 'comandos-managed') {
-    return applyManagedUpdate('workspace', managed)
+  if (manifest) {
+    syncManagedUpdateScriptIfNeeded()
+    const managed = managedWorkspaceStatus(manifest)
+    if (managed?.updateMode === 'comandos-managed') {
+      return applyManagedUpdate('workspace', managed)
+    }
   }
+  const before = readWorkspaceUpdateStatus()
   if (!before.canUpdate || !before.repoPath || !before.branch) {
     return {
       ok: false,
@@ -1306,13 +1332,15 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
 }
 
 export function applyAgentUpdate(): ApplyUpdateResult {
-  const before = readAgentUpdateStatus()
   const manifest = readComandosManifest()
-  if (manifest) syncManagedUpdateScriptIfNeeded()
-  const managed = manifest ? managedAgentStatus(before, manifest) : null
-  if (managed?.updateMode === 'comandos-managed') {
-    return applyManagedUpdate('agent', managed)
+  if (manifest) {
+    syncManagedUpdateScriptIfNeeded()
+    const managed = managedAgentStatus(readManagedAgentBaseStatus(), manifest)
+    if (managed?.updateMode === 'comandos-managed') {
+      return applyManagedUpdate('agent', managed)
+    }
   }
+  const before = readAgentUpdateStatus()
   if (!before.canUpdate || !before.repoPath) {
     return {
       ok: false,

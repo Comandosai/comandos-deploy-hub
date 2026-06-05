@@ -39,8 +39,9 @@ update-manifest.json
 1. читает текущую установленную версию из `.runtime/comandos-installed.json`;
 2. сразу читает локальный кэш `.runtime/update-manifest-cache.json`;
 3. запускает обновление кэша `COMANDOS_UPDATE_MANIFEST_URL` в фоне, без блокировки панели;
-4. сравнивает локальные версии с manifest;
-5. если version/ref отличаются, показывает уведомление:
+4. берёт версию Hermes Agent из `.runtime/comandos-installed.json`, не через `git fetch`;
+5. сравнивает локальные версии с manifest;
+6. если version/ref отличаются, показывает уведомление:
    - обновить панель;
    - обновить Hermes Agent.
 
