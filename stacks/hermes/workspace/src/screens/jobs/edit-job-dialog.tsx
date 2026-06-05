@@ -142,7 +142,7 @@ export function EditJobDialog({
       schedule: form.schedule.trim(),
       prompt: form.prompt.trim(),
       deliver: form.deliver.length > 0 ? form.deliver : undefined,
-      skills: skills.length > 0 ? Array.from(new Set(skills)) : undefined,
+      skills: Array.from(new Set(skills)),
       repeat:
         form.repeatMode === 'limited'
           ? Math.max(1, Number.parseInt(form.repeatCount, 10) || 1)

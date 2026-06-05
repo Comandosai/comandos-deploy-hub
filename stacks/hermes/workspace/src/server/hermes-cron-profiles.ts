@@ -67,6 +67,14 @@ function normalizeDeliver(value: unknown): Array<string> {
   return []
 }
 
+function normalizeSkills(value: unknown): Array<string> {
+  return Array.isArray(value)
+    ? value
+        .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+        .filter((entry) => entry.length > 0)
+    : []
+}
+
 function lastRunSuccess(job: RawCronJob): boolean | null {
   const status = readString(job.last_status, job.lastRunStatus, job.status)
   if (!status) return null
@@ -224,11 +232,7 @@ function normalizeCreateArgs(
   if (name) args.push('--name', name)
   const deliver = normalizeDeliver(input.deliver)
   if (deliver.length > 0) args.push('--deliver', deliver.join(','))
-  const skills = Array.isArray(input.skills)
-    ? input.skills
-        .map((value) => (typeof value === 'string' ? value.trim() : ''))
-        .filter((value) => value.length > 0)
-    : []
+  const skills = normalizeSkills(input.skills)
   for (const skill of skills) args.push('--skill', skill)
   const repeat =
     typeof input.repeat === 'number' && Number.isFinite(input.repeat)
@@ -288,12 +292,11 @@ export function runProfileCronAction(
   return { ok: true, output, job }
 }
 
-export function updateProfileCronJob(
+export function buildProfileCronEditArgs(
   profile: string,
   jobId: string,
   updates: Record<string, unknown>,
-): Record<string, unknown> {
-  validateProfileAndMaybeJob(profile, jobId)
+): Array<string> {
   const args = ['--profile', profile, 'cron', 'edit', jobId]
   const name = readString(updates.name)
   const schedule = readString(updates.schedule)
@@ -303,11 +306,29 @@ export function updateProfileCronJob(
   if (schedule) args.push('--schedule', schedule)
   if (prompt !== null) args.push('--prompt', prompt)
   if (deliver.length > 0) args.push('--deliver', deliver.join(','))
+  if (Object.prototype.hasOwnProperty.call(updates, 'skills')) {
+    const skills = normalizeSkills(updates.skills)
+    if (skills.length > 0) {
+      for (const skill of skills) args.push('--skill', skill)
+    } else {
+      args.push('--clear-skills')
+    }
+  }
   const repeat =
     typeof updates.repeat === 'number' && Number.isFinite(updates.repeat)
       ? String(updates.repeat)
       : null
   if (repeat) args.push('--repeat', repeat)
+  return args
+}
+
+export function updateProfileCronJob(
+  profile: string,
+  jobId: string,
+  updates: Record<string, unknown>,
+): Record<string, unknown> {
+  validateProfileAndMaybeJob(profile, jobId)
+  const args = buildProfileCronEditArgs(profile, jobId, updates)
   const output = execFileSync(hermesCliPath(), args, {
     encoding: 'utf8',
     timeout: 30_000,
