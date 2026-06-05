@@ -170,6 +170,7 @@
 | QA Playwright: пункт `HermesWorld` на `.38` | PARTIAL | Экран открывался, но browser console показывала autoplay warning `AudioContext was not allowed to start`. В `.39` игровые звуки и ambient были отложены до пользовательского жеста, но QA показала, что общий модуль звуков панели всё ещё создаёт Web Audio заранее |
 | QA Playwright: пункт `HermesWorld` на `.39` | PARTIAL | Найдены 2 оставшихся autoplay warning из общего `src/lib/sounds.ts`. В `.40` общий звук панели агента/чата тоже ждёт пользовательский жест, но QA показала, что текущий `/playground` грузит внешний standalone iframe `hermes-world.ai`, который создаёт свой `AudioContext` |
 | QA Playwright: пункт `HermesWorld` на `.40` | FIXED | В `.41` `/playground` больше не автозагружает внешний iframe: сначала показывает русский экран запуска `HermesWorld готов к запуску`, а встроенный запуск начинается только после клика `Запустить в панели` и с iframe permission `autoplay` |
+| QA Playwright/logs: пункт `HermesWorld` на `.41` | OK | До клика iframe не грузится (`iframeCount=0`), console и HTTP 4xx/5xx пустые; после `Запустить в панели` iframe появляется (`iframeCount=1`), browser console/HTTP/failed requests пустые; свежие `comandos-workspace`/`hermes-gateway` логи без ошибок |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
