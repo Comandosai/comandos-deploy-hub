@@ -22,7 +22,7 @@ import type { AccentColor, SettingsThemeMode } from '@/hooks/use-settings'
 import type { LoaderStyle } from '@/hooks/use-chat-settings'
 import type { BrailleSpinnerPreset } from '@/components/ui/braille-spinner'
 import type { ThemeId } from '@/lib/theme'
-import type {LocaleId} from '@/lib/i18n';
+import type { LocaleId } from '@/lib/i18n'
 import { GROQ_STT_MODELS, STT_PROVIDER_OPTIONS } from '@/lib/stt-config'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -59,7 +59,7 @@ import {
 
 // ── Language ────────────────────────────────────────────────────────────
 
-import { LOCALE_LABELS,  getLocale, setLocale } from '@/lib/i18n'
+import { LOCALE_LABELS, getLocale, setLocale } from '@/lib/i18n'
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -144,6 +144,12 @@ function Row({
 
 const SETTINGS_CARD_CLASS =
   'rounded-xl border border-primary-200 bg-primary-50/80 px-4 py-3 shadow-sm'
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
 
 // ── Section components ──────────────────────────────────────────────────
 
@@ -246,7 +252,14 @@ const PROVIDER_CARDS: Array<{
     authType: 'api_key',
     envKey: 'XIAOMI_API_KEY',
   },
-  { id: 'custom', name: 'Свой сервер', logo: '', models: [], authType: 'api_key', envKey: 'CUSTOM_API_KEY' },
+  {
+    id: 'custom',
+    name: 'Свой сервер',
+    logo: '',
+    models: [],
+    authType: 'api_key',
+    envKey: 'CUSTOM_API_KEY',
+  },
 ]
 
 export type ProviderClickAction =
@@ -269,10 +282,9 @@ export function getProviderClickAction(input: {
   return input.hasKey ? 'select' : 'ignore'
 }
 
-const LOCAL_PROVIDER_SETUP: Partial<Record<
-  string,
-  { baseUrl: string; unavailableMessage: string }
->> = {
+const LOCAL_PROVIDER_SETUP: Partial<
+  Record<string, { baseUrl: string; unavailableMessage: string }>
+> = {
   ollama: {
     baseUrl: 'http://127.0.0.1:11434/v1',
     unavailableMessage:
@@ -325,13 +337,15 @@ function HermesContent() {
     {},
   )
   const [providerStatuses, setProviderStatuses] = useState<
-    Record<
-      string,
-      {
-        configured: boolean
-        authType?: string
-        authSource?: string
-      }
+    Partial<
+      Record<
+        string,
+        {
+          configured: boolean
+          authType?: string
+          authSource?: string
+        }
+      >
     >
   >({})
   const [memEnabled, setMemEnabled] = useState(true)
@@ -404,7 +418,7 @@ function HermesContent() {
         setDefaultProvider(d.activeProvider || '')
         setDefaultModelId(d.activeModel || '')
         if (d.activeProvider) fetchModelsForProvider(d.activeProvider)
-        const mem = (d.config?.memory as Record<string, unknown>) || {}
+        const mem = readRecord(d.config?.memory)
         setMemEnabled(mem.memory_enabled !== false)
         setUserProfileEnabled(mem.user_profile_enabled !== false)
         // Build configured keys map
@@ -423,8 +437,10 @@ function HermesContent() {
         setConfiguredKeys(keys)
         setProviderStatuses(statuses)
         // Load custom provider config (may be stored as 'custom' or legacy 'manifest')
-        const cfgProviders = (d.config?.providers as Record<string, any>) || {}
-        const customCfg = cfgProviders['custom'] || cfgProviders['manifest'] || {}
+        const cfgProviders = readRecord(d.config?.providers)
+        const customCfg = readRecord(
+          cfgProviders['custom'] || cfgProviders['manifest'],
+        )
         if (customCfg.base_url) setCustomBaseUrl(customCfg.base_url)
         if (d.activeProvider === 'custom' && d.activeModel) {
           setCustomModel(d.activeModel)
@@ -611,7 +627,8 @@ function HermesContent() {
         window.open(verificationUri, '_blank', 'noopener,noreferrer')
       }
 
-      const expiresInSeconds = codeData.expires_in || DEFAULT_OAUTH_EXPIRES_SECONDS
+      const expiresInSeconds =
+        codeData.expires_in || DEFAULT_OAUTH_EXPIRES_SECONDS
       const intervalSeconds = Math.max(
         1,
         codeData.interval || DEFAULT_OAUTH_POLL_INTERVAL_SECONDS,
@@ -645,7 +662,11 @@ function HermesContent() {
 
       throw new Error('Время OAuth-входа истекло')
     } catch (error) {
-      if ((error as { name?: string })?.name === 'AbortError') return
+      const errorName =
+        error && typeof error === 'object' && 'name' in error
+          ? String((error as { name: unknown }).name)
+          : ''
+      if (errorName === 'AbortError') return
       setOauthStatus('error')
       setOauthMessage(
         error instanceof Error ? error.message : 'OAuth-вход не удался',
@@ -697,12 +718,16 @@ function HermesContent() {
           Провайдер
         </p>
         <p className="mb-3 text-[11px]" style={mutedStyle}>
-          Выберите провайдера модели. OAuth показываем только там, где он реально реализован.
+          Выберите провайдера модели. OAuth показываем только там, где он
+          реально реализован.
         </p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {PROVIDER_CARDS.map((p) => {
             const isActive =
-              (oauthProviderId || localProviderId || cliProviderId || activeProvider) === p.id
+              (oauthProviderId ||
+                localProviderId ||
+                cliProviderId ||
+                activeProvider) === p.id
             const localOnline =
               localDiscovery?.providers.find((lp) => lp.id === p.id)?.online ===
               true
@@ -717,9 +742,9 @@ function HermesContent() {
                 !!p.envKey &&
                 !!configuredKeys[p.envKey])
             const missingKey =
-              ((p.authType === 'api_key' || p.authType === 'cli_token') &&
-                !verified &&
-                p.id !== 'custom')
+              (p.authType === 'api_key' || p.authType === 'cli_token') &&
+              !verified &&
+              p.id !== 'custom'
             // hasKey gates direct selection. OAuth, local and CLI-token cards
             // remain clickable because they open their own setup panels.
             const hasKey =
@@ -800,18 +825,24 @@ function HermesContent() {
       {oauthProviderId ? (
         <div className="rounded-xl px-3 py-2.5" style={cardStyle}>
           {(() => {
-            const provider = PROVIDER_CARDS.find((p) => p.id === oauthProviderId)
+            const provider = PROVIDER_CARDS.find(
+              (p) => p.id === oauthProviderId,
+            )
             if (!provider) return null
 
             return (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold">{provider.name} OAuth</p>
+                    <p className="text-sm font-semibold">
+                      {provider.name} OAuth
+                    </p>
                   </div>
                   <Button
                     size="sm"
-                    disabled={oauthStatus === 'starting' || oauthStatus === 'pending'}
+                    disabled={
+                      oauthStatus === 'starting' || oauthStatus === 'pending'
+                    }
                     onClick={() => {
                       void startOAuthFlow()
                     }}
@@ -885,8 +916,8 @@ function HermesContent() {
                 </div>
 
                 <div className="rounded-lg border border-primary-200 bg-primary-50/80 px-3 py-2 text-xs text-primary-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
-                  OpenAI Codex не подключается через OAuth-кнопку в панели. Панель
-                  читает серверный файл{' '}
+                  OpenAI Codex не подключается через OAuth-кнопку в панели.
+                  Панель читает серверный файл{' '}
                   <code className="rounded bg-black/10 px-1 py-0.5 font-mono dark:bg-white/10">
                     ~/.codex/auth.json
                   </code>
@@ -897,7 +928,8 @@ function HermesContent() {
                       codex login
                     </code>
                     , потом нажмите «Проверить». Если Codex CLI не установлен,
-                    используйте DeepSeek, MiniMax или другой провайдер с API-ключом.
+                    используйте DeepSeek, MiniMax или другой провайдер с
+                    API-ключом.
                   </div>
                 </div>
               </div>
@@ -909,14 +941,17 @@ function HermesContent() {
       {localProviderId ? (
         <div className="rounded-xl px-3 py-2.5" style={cardStyle}>
           {(() => {
-            const provider = PROVIDER_CARDS.find((p) => p.id === localProviderId)
+            const provider = PROVIDER_CARDS.find(
+              (p) => p.id === localProviderId,
+            )
             if (!provider) return null
             const disc = localDiscovery?.providers.find(
               (lp) => lp.id === provider.id,
             )
             const models =
-              localDiscovery?.models.filter((m) => m.provider === provider.id) ||
-              []
+              localDiscovery?.models.filter(
+                (m) => m.provider === provider.id,
+              ) || []
             const setup = LOCAL_PROVIDER_SETUP[provider.id] || {
               baseUrl: 'local OpenAI-compatible endpoint',
               unavailableMessage: 'No local endpoint detected.',
@@ -951,7 +986,10 @@ function HermesContent() {
 
                 {models.length > 0 ? (
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider" style={mutedStyle}>
+                    <p
+                      className="mb-2 text-xs font-semibold uppercase tracking-wider"
+                      style={mutedStyle}
+                    >
                       Найденные модели
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -991,7 +1029,9 @@ function HermesContent() {
                       <div className="mt-2 flex items-center gap-2">
                         <Button
                           size="sm"
-                          onClick={() => setDefaultModel(provider.id, activeModel)}
+                          onClick={() =>
+                            setDefaultModel(provider.id, activeModel)
+                          }
                         >
                           Сделать основной: {provider.id} · {activeModel}
                         </Button>
@@ -1006,68 +1046,77 @@ function HermesContent() {
       ) : null}
 
       {/* Model Selection for active provider */}
-      {!oauthProviderId && !localProviderId && activeProvider && activeProvider !== 'custom' && (
+      {!oauthProviderId &&
+        !localProviderId &&
+        activeProvider &&
+        activeProvider !== 'custom' && (
+          <div>
+            <p
+              className="mb-1 text-xs font-semibold uppercase tracking-wider"
+              style={mutedStyle}
+            >
+              Модель — выберите и подтвердите ниже
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(() => {
+                if (availableModels.length > 0) return availableModels
+                // Use auto-discovered models for local providers
+                const discovered = localDiscovery?.models
+                  .filter((m) => m.provider === activeProvider)
+                  .map((m) => m.id)
+                if (discovered && discovered.length > 0) return discovered
+                return (
+                  PROVIDER_CARDS.find((p) => p.id === activeProvider)?.models ||
+                  []
+                )
+              })().map((model) => (
+                <button
+                  key={model}
+                  type="button"
+                  aria-pressed={activeModel === model}
+                  onClick={() => setActiveModel(model)}
+                  className={cn(
+                    'rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
+                    activeModel === model
+                      ? 'ring-2 ring-accent-500'
+                      : 'hover:brightness-110',
+                    defaultProvider === activeProvider &&
+                      defaultModelId === model
+                      ? 'border border-accent-500/40'
+                      : '',
+                  )}
+                  style={cardStyle}
+                >
+                  {model}
+                  {defaultProvider === activeProvider &&
+                  defaultModelId === model
+                    ? ' · по умолчанию'
+                    : ''}
+                </button>
+              ))}
+            </div>
+            {activeModel &&
+            (activeProvider !== defaultProvider ||
+              activeModel !== defaultModelId) ? (
+              <div className="mt-2 flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setDefaultModel(activeProvider, activeModel)}
+                >
+                  Сделать основной: {activeProvider} · {activeModel}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+      {/* Custom OpenAI-compatible endpoint fields: Base URL here, API key below. */}
+      {activeProvider === 'custom' && (
         <div>
           <p
             className="mb-1 text-xs font-semibold uppercase tracking-wider"
             style={mutedStyle}
           >
-            Модель — выберите и подтвердите ниже
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {(() => {
-              if (availableModels.length > 0) return availableModels
-              // Use auto-discovered models for local providers
-              const discovered = localDiscovery?.models
-                .filter((m) => m.provider === activeProvider)
-                .map((m) => m.id)
-              if (discovered && discovered.length > 0) return discovered
-              return (
-                PROVIDER_CARDS.find((p) => p.id === activeProvider)?.models ||
-                []
-              )
-            })().map((model) => (
-              <button
-                key={model}
-                type="button"
-                aria-pressed={activeModel === model}
-                onClick={() => setActiveModel(model)}
-                className={cn(
-                  'rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
-                  activeModel === model
-                    ? 'ring-2 ring-accent-500'
-                    : 'hover:brightness-110',
-                  defaultProvider === activeProvider && defaultModelId === model
-                    ? 'border border-accent-500/40'
-                    : '',
-                )}
-                style={cardStyle}
-              >
-                {model}
-                {defaultProvider === activeProvider && defaultModelId === model
-                  ? ' · по умолчанию'
-                  : ''}
-              </button>
-            ))}
-          </div>
-          {activeModel &&
-          (activeProvider !== defaultProvider || activeModel !== defaultModelId) ? (
-            <div className="mt-2 flex items-center gap-2">
-              <Button
-                size="sm"
-                onClick={() => setDefaultModel(activeProvider, activeModel)}
-              >
-                Сделать основной: {activeProvider} · {activeModel}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      )}
-
-      {/* Custom OpenAI-compatible endpoint fields: Base URL here, API key below. */}
-      {activeProvider === 'custom' && (
-        <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wider" style={mutedStyle}>
             Свой endpoint
           </p>
           <div className="space-y-1.5">
@@ -1075,7 +1124,10 @@ function HermesContent() {
               const isEditing = editingKey === 'custom_base_url'
               const hasValue = !!customBaseUrl
               return (
-                <div className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={cardStyle}>
+                <div
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+                  style={cardStyle}
+                >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">Базовый URL</div>
                     <div className="text-[11px] font-mono" style={mutedStyle}>
@@ -1090,24 +1142,74 @@ function HermesContent() {
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
-                              save({ config: { model: { provider: 'manifest' }, providers: { manifest: { type: 'openai', base_url: customBaseUrl, key_env: 'CUSTOM_API_KEY' } } } })
-                                .then(() => setEditingKey(null))
+                              save({
+                                config: {
+                                  model: { provider: 'manifest' },
+                                  providers: {
+                                    manifest: {
+                                      type: 'openai',
+                                      base_url: customBaseUrl,
+                                      key_env: 'CUSTOM_API_KEY',
+                                    },
+                                  },
+                                },
+                              }).then(() => setEditingKey(null))
                             }
                             if (e.key === 'Escape') setEditingKey(null)
                           }}
                         />
-                      ) : hasValue ? customBaseUrl : 'Не настроено'}
+                      ) : hasValue ? (
+                        customBaseUrl
+                      ) : (
+                        'Не настроено'
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={cn('size-2 rounded-full', hasValue ? 'bg-green-500' : 'bg-neutral-500')} />
+                    <span
+                      className={cn(
+                        'size-2 rounded-full',
+                        hasValue ? 'bg-green-500' : 'bg-neutral-500',
+                      )}
+                    />
                     {isEditing ? (
                       <>
-                        <button type="button" onClick={() => { save({ config: { model: { provider: 'manifest' }, providers: { manifest: { type: 'openai', base_url: customBaseUrl, key_env: 'CUSTOM_API_KEY' } } } }).then(() => setEditingKey(null)) }} className="text-xs font-medium text-green-400">Сохранить</button>
-                        <button type="button" onClick={() => setEditingKey(null)} className="text-xs" style={mutedStyle}>Отмена</button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            save({
+                              config: {
+                                model: { provider: 'manifest' },
+                                providers: {
+                                  manifest: {
+                                    type: 'openai',
+                                    base_url: customBaseUrl,
+                                    key_env: 'CUSTOM_API_KEY',
+                                  },
+                                },
+                              },
+                            }).then(() => setEditingKey(null))
+                          }}
+                          className="text-xs font-medium text-green-400"
+                        >
+                          Сохранить
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingKey(null)}
+                          className="text-xs"
+                          style={mutedStyle}
+                        >
+                          Отмена
+                        </button>
                       </>
                     ) : (
-                      <button type="button" onClick={() => setEditingKey('custom_base_url')} className="text-xs font-medium" style={{ color: 'var(--theme-accent)' }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingKey('custom_base_url')}
+                        className="text-xs font-medium"
+                        style={{ color: 'var(--theme-accent)' }}
+                      >
                         {hasValue ? 'Изменить' : 'Добавить'}
                       </button>
                     )}
@@ -1125,10 +1227,7 @@ function HermesContent() {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">Модель</div>
-                    <div
-                      className="text-[11px] font-mono"
-                      style={mutedStyle}
-                    >
+                    <div className="text-[11px] font-mono" style={mutedStyle}>
                       {isEditing ? (
                         <input
                           type="text"
@@ -1464,10 +1563,7 @@ function _ProfileContent() {
 
   return (
     <div className="space-y-4">
-      <SectionHeader
-        title="Профиль"
-        description="Как вас видит чат."
-      />
+      <SectionHeader title="Профиль" description="Как вас видит чат." />
       <div className={SETTINGS_CARD_CLASS}>
         <div className="flex items-center gap-3">
           <UserAvatar size={44} src={cs.avatarDataUrl} alt={displayName} />
@@ -1482,7 +1578,10 @@ function _ProfileContent() {
         </div>
       </div>
       <div className={SETTINGS_CARD_CLASS}>
-        <Row label="Имя пользователя" description="Показывается в чате и боковом меню.">
+        <Row
+          label="Имя пользователя"
+          description="Показывается в чате и боковом меню."
+        >
           <div className="w-full max-w-xs">
             <Input
               value={cs.displayName}
@@ -1708,7 +1807,9 @@ function EnterpriseThemePicker() {
     applyEnterpriseTheme(getThemeVariant(current, nextMode))
   }
 
-  const visibleThemes = ENTERPRISE_THEMES.filter((theme) => isDarkTheme(theme.id) === (currentMode === 'dark'))
+  const visibleThemes = ENTERPRISE_THEMES.filter(
+    (theme) => isDarkTheme(theme.id) === (currentMode === 'dark'),
+  )
 
   return (
     <div className="space-y-3">
@@ -2137,7 +2238,7 @@ function AgentBehaviorContent() {
     fetch('/api/hermes-config')
       .then((r) => r.json())
       .then((d: any) => {
-        setConfig((d.config?.agent as Record<string, unknown>) || {})
+        setConfig(readRecord(d.config?.agent))
       })
       .catch(() => {})
   }, [])
@@ -2190,7 +2291,10 @@ function AgentBehaviorContent() {
             className="h-8 w-20 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-center text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           />
         </Row>
-        <Row label="Таймаут шлюза" description="Сколько секунд ждать до остановки.">
+        <Row
+          label="Таймаут шлюза"
+          description="Сколько секунд ждать до остановки."
+        >
           <input
             type="number"
             min={10}
@@ -2200,7 +2304,10 @@ function AgentBehaviorContent() {
             className="h-8 w-20 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-center text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           />
         </Row>
-        <Row label="Использование инструментов" description="Когда агент обязан использовать инструменты.">
+        <Row
+          label="Использование инструментов"
+          description="Когда агент обязан использовать инструменты."
+        >
           <select
             value={String(config.tool_use_enforcement || 'auto')}
             onChange={(e) => save('tool_use_enforcement', e.target.value)}
@@ -2227,8 +2334,8 @@ function VoiceContent() {
     fetch('/api/hermes-config')
       .then((r) => r.json())
       .then((d: any) => {
-        setTts((d.config?.tts as Record<string, unknown>) || {})
-        setStt((d.config?.stt as Record<string, unknown>) || {})
+        setTts(readRecord(d.config?.tts))
+        setStt(readRecord(d.config?.stt))
       })
       .catch(() => {})
   }, [])
@@ -2267,8 +2374,8 @@ function VoiceContent() {
 
   const ttsProvider = String(tts.provider || 'edge')
   const sttProvider = String(stt.provider || 'local')
-  const sttGroq =
-    (stt.groq as Record<string, unknown> | undefined) || {}
+  const ttsOpenAi = readRecord(tts.openai)
+  const sttGroq = readRecord(stt.groq)
 
   return (
     <div className="space-y-4">
@@ -2307,12 +2414,10 @@ function VoiceContent() {
         {ttsProvider === 'openai' && (
           <Row label="Голос">
             <select
-              value={String(
-                (tts.openai as Record<string, unknown>)?.voice || 'nova',
-              )}
+              value={String(ttsOpenAi.voice || 'nova')}
               onChange={(e) =>
                 saveTts('openai', {
-                  ...((tts.openai as Record<string, unknown>) || {}),
+                  ...ttsOpenAi,
                   voice: e.target.value,
                 })
               }
@@ -2372,7 +2477,10 @@ function VoiceContent() {
                 ))}
               </select>
             </Row>
-            <Row label="Язык" description="Необязательный код языка, например ru или en-US.">
+            <Row
+              label="Язык"
+              description="Необязательный код языка, например ru или en-US."
+            >
               <Input
                 value={String(stt.language || '')}
                 onChange={(e) => saveStt('language', e.target.value)}
@@ -2397,7 +2505,7 @@ function DisplayContent() {
     fetch('/api/hermes-config')
       .then((r) => r.json())
       .then((d: any) => {
-        setConfig((d.config?.display as Record<string, unknown>) || {})
+        setConfig(readRecord(d.config?.display))
       })
       .catch(() => {})
   }, [])
@@ -2449,7 +2557,10 @@ function DisplayContent() {
             <option value="creative">Творчески</option>
           </select>
         </Row>
-        <Row label="Потоковый ответ" description="Показывать ответ сразу по мере генерации.">
+        <Row
+          label="Потоковый ответ"
+          description="Показывать ответ сразу по мере генерации."
+        >
           <Switch
             checked={config.streaming !== false}
             onCheckedChange={(c) => save('streaming', c)}
@@ -2464,13 +2575,19 @@ function DisplayContent() {
             onCheckedChange={(c) => save('show_reasoning', c)}
           />
         </Row>
-        <Row label="Показывать стоимость" description="Показывать стоимость токенов у ответа.">
+        <Row
+          label="Показывать стоимость"
+          description="Показывать стоимость токенов у ответа."
+        >
           <Switch
             checked={config.show_cost === true}
             onCheckedChange={(c) => save('show_cost', c)}
           />
         </Row>
-        <Row label="Компактный режим" description="Уменьшить отступы в ответах.">
+        <Row
+          label="Компактный режим"
+          description="Уменьшить отступы в ответах."
+        >
           <Switch
             checked={config.compact === true}
             onCheckedChange={(c) => save('compact', c)}
@@ -2642,7 +2759,8 @@ export function SettingsDialog({
           </SettingsErrorBoundary>
 
           <div className="sticky bottom-0 z-10 border-t border-primary-200 bg-primary-50/60 px-4 py-3 text-xs text-primary-500 dark:text-neutral-400 md:rounded-b-2xl md:px-5">
-            Большинство настроек сохраняется автоматически. Основная модель меняется только после нажатия «Сделать основной».{' '}
+            Большинство настроек сохраняется автоматически. Основная модель
+            меняется только после нажатия «Сделать основной».{' '}
             <a
               href="/settings"
               className="ml-2 font-medium underline underline-offset-2 hover:text-primary-700 dark:hover:text-neutral-200"
