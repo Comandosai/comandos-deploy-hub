@@ -380,13 +380,11 @@ function UpdateCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -24, scale: 0.96 }}
       transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-      // Firefox/Linux right-clicks on this card were intermittently eaten by
-      // the surrounding motion/backdrop layers, making the modal feel
-      // unresponsive and preventing copy/open-in-new-tab actions. Let the
-      // native context menu open on the card itself and keep the event from
-      // bubbling to the backdrop. See #286.
+      // Keep context-menu events from actionable children inside the notifier.
+      // The card body itself must not catch pointer events, otherwise update
+      // notices block primary panel controls underneath them.
       onContextMenu={(event) => event.stopPropagation()}
-      className="pointer-events-auto overflow-hidden rounded-2xl shadow-2xl select-text"
+      className="pointer-events-none overflow-hidden rounded-2xl shadow-2xl select-text"
       style={{
         background: 'var(--theme-card)',
         border: '1px solid var(--theme-border)',
@@ -483,7 +481,7 @@ function UpdateCard({
             </ul>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2">
           {product.canUpdate ? (
             <button
               type="button"
