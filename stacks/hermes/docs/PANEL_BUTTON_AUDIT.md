@@ -180,6 +180,7 @@
 | `pnpm exec vitest run src/screens/mcp/-marketplace-install-confirmation.test.tsx src/routes/api/-mcp.test.ts src/routes/api/-mcp-logs.test.ts` | OK | 32 теста прошли; проверены API-контракты MCP и install confirmation |
 | QA API update: `.43 -> .44` | OK | QA-контур обновился через `/api/update/workspace`; `/opt/comandos/hermes-qa/workspace/package.json` показывает `2.3.0-comandos.44`; сервисы active |
 | QA Playwright/API/logs: `/mcp` на `.44` | OK | После входа `/mcp` показывает русское disabled-состояние; `/api/gateway-status` HTTP 200, gateway available, `mcp=false`, `mcpFallback=false`; `/api/mcp` HTTP 200 `capability_unavailable`; browser console/network и свежие workspace/gateway логи пустые |
+| QA Playwright/logs: сайдбарный обход 17 маршрутов на `.44` | OK | `/dashboard`, `/chat/new`, `/chat/main`, `/files`, `/terminal`, `/jobs`, `/tasks`, `/conductor`, `/operations`, `/swarm`, `/memory`, `/skills`, `/mcp`, `/profiles`, `/settings`, `/settings/providers`, `/playground`: fatal-текста нет, browser console пустая, HTTP 4xx/5xx и failed requests пустые, свежие workspace/gateway логи без ошибок |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
