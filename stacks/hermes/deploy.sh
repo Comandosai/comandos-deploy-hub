@@ -159,6 +159,27 @@ chmod 600 "$resolved_config"
 
 remote_tmp="/tmp/comandos-hermes-$(date +%Y%m%d%H%M%S)"
 
+retry_command() {
+  local label="$1"
+  shift
+  local attempt=1
+  local max_attempts="${COMANDOS_SSH_RETRIES:-5}"
+  local delay="${COMANDOS_SSH_RETRY_DELAY_SECONDS:-8}"
+  local rc=0
+  while (( attempt <= max_attempts )); do
+    if "$@"; then
+      return 0
+    fi
+    rc=$?
+    if (( attempt >= max_attempts )); then
+      return "$rc"
+    fi
+    info "$label: соединение не прошло, повтор $((attempt + 1))/$max_attempts через ${delay}s"
+    sleep "$delay"
+    attempt=$((attempt + 1))
+  done
+}
+
 cat >"$tmp_dir/remote-install.sh" <<'REMOTE'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -912,12 +933,12 @@ EOF
 REMOTE
 
 info "Подключаюсь к VPS: $remote"
-"${ssh_base[@]}" "$remote" "mkdir -p '$remote_tmp'"
-"${scp_base[@]}" "$payload" "$remote:$remote_tmp/comandos-hermes-payload.tgz" >/dev/null
-"${scp_base[@]}" "$resolved_config" "$remote:$remote_tmp/comandos-hermes.env" >/dev/null
-"${scp_base[@]}" "$SCRIPT_DIR/comandos-hermes.lock" "$remote:$remote_tmp/comandos-hermes.lock" >/dev/null
-"${scp_base[@]}" "$tmp_dir/remote-install.sh" "$remote:$remote_tmp/remote-install.sh" >/dev/null
-"${ssh_base[@]}" "$remote" "chmod 700 '$remote_tmp' && chmod +x '$remote_tmp/remote-install.sh' && mkdir -p '$remote_tmp/payload' && '$remote_tmp/remote-install.sh' '$remote_tmp'"
+retry_command "SSH preflight" "${ssh_base[@]}" "$remote" "mkdir -p '$remote_tmp'"
+retry_command "SCP payload" "${scp_base[@]}" "$payload" "$remote:$remote_tmp/comandos-hermes-payload.tgz"
+retry_command "SCP config" "${scp_base[@]}" "$resolved_config" "$remote:$remote_tmp/comandos-hermes.env"
+retry_command "SCP lock" "${scp_base[@]}" "$SCRIPT_DIR/comandos-hermes.lock" "$remote:$remote_tmp/comandos-hermes.lock"
+retry_command "SCP remote installer" "${scp_base[@]}" "$tmp_dir/remote-install.sh" "$remote:$remote_tmp/remote-install.sh"
+retry_command "SSH remote install" "${ssh_base[@]}" "$remote" "chmod 700 '$remote_tmp' && chmod +x '$remote_tmp/remote-install.sh' && mkdir -p '$remote_tmp/payload' && '$remote_tmp/remote-install.sh' '$remote_tmp'"
 
 printf '\nЛокальная проверка завершена.\n'
 printf 'Панель: %s\n' "$PUBLIC_URL"
