@@ -21,7 +21,6 @@ import type { LoaderStyle } from '@/hooks/use-chat-settings'
 import type { BrailleSpinnerPreset } from '@/components/ui/braille-spinner'
 import type { ThemeId } from '@/lib/theme'
 import type { SettingsNavId } from '@/components/settings/settings-sidebar'
-import type {LocaleId} from '@/lib/i18n';
 import { GROQ_STT_MODELS, STT_PROVIDER_OPTIONS } from '@/lib/stt-config'
 import {
   SETTINGS_NAV_ITEMS,
@@ -32,7 +31,7 @@ import { usePageTitle } from '@/hooks/use-page-title'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useSettings } from '@/hooks/use-settings'
-import { LOCALE_LABELS,  getLocale, setLocale } from '@/lib/i18n'
+import { LOCALE_LABELS } from '@/lib/i18n'
 import { THEMES, getTheme, isDarkTheme, setTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import {
@@ -385,28 +384,20 @@ function SettingsRoute() {
           {activeSection === ('language' as SettingsSectionId) && (
             <SettingsSection
               title="Язык"
-              description="Выберите язык интерфейса Workspace."
+              description="В этой сборке Workspace интерфейс работает на русском языке."
               icon={Settings02Icon}
             >
               <SettingsRow
                 label="Язык интерфейса"
-                description="Переводит навигацию, подписи и кнопки. Ответы агента остаются на языке самого агента."
+                description="Другие языки пока отключены, чтобы не показывать пользователю неготовый перевод."
               >
                 <select
-                  value={getLocale()}
-                  onChange={(e) => {
-                    setLocale(e.target.value as LocaleId)
-                    window.location.reload()
-                  }}
-                  className="h-9 w-full rounded-lg border border-primary-200 dark:border-gray-600 bg-primary-50 dark:bg-gray-800 px-3 text-sm text-primary-900 dark:text-gray-100 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-400 md:max-w-xs"
+                  value="ru"
+                  disabled
+                  aria-label="Язык интерфейса: русский"
+                  className="h-9 w-full cursor-not-allowed rounded-lg border border-primary-200 dark:border-gray-600 bg-primary-50 dark:bg-gray-800 px-3 text-sm text-primary-900 dark:text-gray-100 opacity-80 outline-none md:max-w-xs"
                 >
-                  {(
-                    Object.entries(LOCALE_LABELS) as Array<[LocaleId, string]>
-                  ).map(([id, label]) => (
-                    <option key={id} value={id}>
-                      {label}
-                    </option>
-                  ))}
+                  <option value="ru">{LOCALE_LABELS.ru}</option>
                 </select>
               </SettingsRow>
             </SettingsSection>
