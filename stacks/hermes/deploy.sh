@@ -175,6 +175,9 @@ retry_command() {
     else
       rc=$?
     fi
+    if [[ "$rc" -ne 255 ]]; then
+      fail "$label: команда завершилась ошибкой без повтора (exit $rc)"
+    fi
     if (( attempt >= max_attempts )); then
       fail "$label: не удалось выполнить после $max_attempts попыток (exit $rc)"
     fi
@@ -402,14 +405,14 @@ ensure_user_systemd() {
   $SUDO loginctl enable-linger "$APP_USER" >/dev/null 2>&1 || true
   $SUDO systemctl start "user@$uid.service" >/dev/null 2>&1 || true
 
-  for _ in $(seq 1 20); do
-    if [[ -S "$bus_path" ]]; then
+  for _ in $(seq 1 60); do
+    if [[ -S "$bus_path" ]] || as_app_user "export XDG_RUNTIME_DIR='$runtime_dir'; export DBUS_SESSION_BUS_ADDRESS='unix:path=$bus_path'; systemctl --user list-units >/dev/null 2>&1"; then
       return 0
     fi
-    sleep 0.5
+    sleep 1
   done
 
-  die "user-systemd для $APP_USER не поднялся: $bus_path не найден"
+  die "user-systemd для $APP_USER не поднялся: systemctl --user недоступен"
 }
 
 as_app_user_systemd() {
@@ -893,7 +896,12 @@ install_workspace() {
     if [[ -f "$COMANDOS_INSTALLED_STATE" ]]; then
       local backup="$REMOTE_BASE_DIR/backups/workspace-$(date +%Y%m%d%H%M%S)"
       $SUDO mkdir -p "$backup"
-      $SUDO rsync -a --delete "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
+      $SUDO rsync -a --delete \
+        --exclude node_modules \
+        --exclude dist \
+        --exclude logs \
+        --exclude .runtime \
+        "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
     else
       log "Предыдущая установка не завершена, удаляю черновик workspace без backup..."
       $SUDO rm -rf "$REMOTE_WORKSPACE_DIR"
@@ -916,7 +924,6 @@ install_workspace() {
   as_app_user "cd '$REMOTE_WORKSPACE_DIR' && corepack enable >/dev/null 2>&1 || true; cd '$REMOTE_WORKSPACE_DIR' && CI=true ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --frozen-lockfile"
   cleanup_build_space
   as_app_user "cd '$REMOTE_WORKSPACE_DIR' && CI=true pnpm build"
-  write_installed_state
 }
 
 checks() {
@@ -941,6 +948,7 @@ install_workspace
 install_systemd_user_services
 configure_caddy
 checks
+write_installed_state
 
 telegram_status="disabled"
 if telegram_enabled; then
