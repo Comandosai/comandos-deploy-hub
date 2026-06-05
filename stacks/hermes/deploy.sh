@@ -188,6 +188,7 @@ REMOTE_WORKSPACE_DIR="${REMOTE_WORKSPACE_DIR:-$REMOTE_BASE_DIR/workspace}"
 REMOTE_HERMES_HOME="${REMOTE_HERMES_HOME:-/home/$APP_USER/.hermes}"
 WORKSPACE_PORT="${WORKSPACE_PORT:-3030}"
 HERMES_GATEWAY_PORT="${HERMES_GATEWAY_PORT:-8642}"
+COMANDOS_CADDY_BLOCK_ID="${COMANDOS_CADDY_BLOCK_ID:-COMANDOS HERMES}"
 COMANDOS_LICENSE_SESSION_DAYS="${COMANDOS_LICENSE_SESSION_DAYS:-14}"
 DEFAULT_PROVIDER="${DEFAULT_PROVIDER:-}"
 DEFAULT_MODEL="${DEFAULT_MODEL:-}"
@@ -493,9 +494,11 @@ install_systemd_user_services() {
 }
 
 configure_caddy() {
-  local block caddyfile backup
+  local block caddyfile backup begin_marker end_marker
   caddyfile="/etc/caddy/Caddyfile"
   backup="/etc/caddy/Caddyfile.backup.$(date +%Y%m%d%H%M%S)"
+  begin_marker="# BEGIN $COMANDOS_CADDY_BLOCK_ID"
+  end_marker="# END $COMANDOS_CADDY_BLOCK_ID"
   export DOMAIN VPS_IP WORKSPACE_PORT PUBLIC_HOST
   if [[ -n "${DOMAIN:-}" ]]; then
     render_template "$REMOTE_TMP/payload/templates/caddy/Caddyfile.domain" "$REMOTE_TMP/caddy-block"
@@ -508,18 +511,19 @@ configure_caddy() {
     $SUDO cp "$caddyfile" "$backup"
   fi
   local new_caddyfile="$REMOTE_TMP/Caddyfile.new"
-  python3 - "$caddyfile" "$block" "$new_caddyfile" <<'PY'
+  python3 - "$caddyfile" "$block" "$new_caddyfile" "$begin_marker" "$end_marker" <<'PY'
 import os
 import re
 import sys
 
-path, block, tmp = sys.argv[1:4]
+path, block, tmp, begin_marker, end_marker = sys.argv[1:6]
 old = ""
 if os.path.exists(path):
     with open(path, encoding="utf-8") as f:
         old = f.read()
-old = re.sub(r"\n?# BEGIN COMANDOS HERMES\n.*?\n# END COMANDOS HERMES\n?", "\n", old, flags=re.S).strip()
-new = (old + "\n\n" if old else "") + "# BEGIN COMANDOS HERMES\n" + block.strip() + "\n# END COMANDOS HERMES\n"
+pattern = r"\n?" + re.escape(begin_marker) + r"\n.*?\n" + re.escape(end_marker) + r"\n?"
+old = re.sub(pattern, "\n", old, flags=re.S).strip()
+new = (old + "\n\n" if old else "") + begin_marker + "\n" + block.strip() + "\n" + end_marker + "\n"
 with open(tmp, "w", encoding="utf-8") as f:
     f.write(new)
 PY
