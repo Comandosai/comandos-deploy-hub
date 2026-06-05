@@ -25,7 +25,7 @@ function AlertDialogContent({ className, children }: AlertDialogContentProps) {
   return (
     <AlertDialog.Portal>
       <AlertDialog.Backdrop
-        className="fixed inset-0 transition-all duration-150 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0"
+        className="fixed inset-0 transition-all duration-150 data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[base-ui-inert]:!pointer-events-none"
         style={{ background: 'rgba(0,0,0,0.5)' }}
       />
       <AlertDialog.Popup
@@ -33,7 +33,7 @@ function AlertDialogContent({ className, children }: AlertDialogContentProps) {
           'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
           'w-[min(400px,92vw)] rounded-xl border p-0 shadow-xl',
           'transition-all duration-150',
-          'data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0',
+          'data-[state=open]:pointer-events-auto data-[state=open]:opacity-100 data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[base-ui-inert]:!pointer-events-none',
           'data-[state=open]:scale-100 data-[state=closed]:scale-95',
           className,
         )}
