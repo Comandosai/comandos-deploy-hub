@@ -195,7 +195,7 @@ function SessionItemComponent({
             className="gap-2"
           >
             <HugeiconsIcon icon={PinIcon} size={20} strokeWidth={1.5} />{' '}
-            {isPinned ? 'Unpin session' : 'Pin session'}
+            {isPinned ? 'Открепить сессию' : 'Закрепить сессию'}
           </MenuItem>
           <MenuItem
             onClick={(event) => {
