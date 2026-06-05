@@ -140,6 +140,7 @@
 | `pnpm exec vitest run src/routes/api/-hermes-config.test.ts src/screens/settings/providers-screen.test.ts` | OK | 13 тестов прошли; проверены запрет удаления активного/Codex/системного провайдера и удаление неактивного API-провайдера |
 | `pnpm exec eslint src/server/hermes-config-store.ts src/server/hermes-config-route.ts src/routes/api/-hermes-config.test.ts src/screens/settings/providers-screen.tsx src/screens/settings/providers-screen.test.ts` | OK | Сервер удаления провайдера и экран провайдеров проходят lint; есть только старое предупреждение ESLint про `.eslintignore` |
 | Live Playwright: `/settings/providers` -> `Добавить провайдера` -> `OpenAI Codex` -> `CLI-вход` на `.23` | OK | Codex CLI-текст виден; `Start OAuth`, `OAuth device flow not supported`, `Key set`, `Key required` не найдены; console/network чистые; прямой `/api/oauth/device-code` для Codex вернул русское объяснение с `codex login` |
+| Live Playwright/API: `/settings/providers` на `.24` | OK | DeepSeek как активный провайдер и Hermes как системный провайдер показывают disabled `Удалить` с русской причиной; прямой `/api/hermes-config` защищает active/Codex/unknown; console errors и сетевых 4xx/5xx в UI нет |
 | Live API: `/api/update/workspace` на `clawd` `.20 -> .22` | OK | Обновление применилось; release notes вернули актуальный переход `.20 -> .22`; `comandos-workspace.service` active; повторный `/api/update/status` показывает Workspace `.22`, `updateAvailable=false` |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
