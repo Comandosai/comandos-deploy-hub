@@ -166,13 +166,16 @@ retry_command() {
   local max_attempts="${COMANDOS_SSH_RETRIES:-5}"
   local delay="${COMANDOS_SSH_RETRY_DELAY_SECONDS:-8}"
   local rc=0
+  [[ "$max_attempts" =~ ^[0-9]+$ ]] || max_attempts=5
+  [[ "$delay" =~ ^[0-9]+$ ]] || delay=8
   while (( attempt <= max_attempts )); do
     if "$@"; then
       return 0
+    else
+      rc=$?
     fi
-    rc=$?
     if (( attempt >= max_attempts )); then
-      return "$rc"
+      fail "$label: не удалось выполнить после $max_attempts попыток (exit $rc)"
     fi
     info "$label: соединение не прошло, повтор $((attempt + 1))/$max_attempts через ${delay}s"
     sleep "$delay"
