@@ -45,7 +45,7 @@ export const Route = createFileRoute('/api/license/activate')({
         )
 
         if (!result.ok) {
-          return json(result, { status: 401 })
+          return json(result)
         }
 
         return json(result)
