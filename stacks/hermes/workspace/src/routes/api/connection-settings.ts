@@ -29,15 +29,15 @@ function isValidHttpUrl(u: string): boolean {
 export const Route = createFileRoute('/api/connection-settings')({
   server: {
     handlers: {
-      GET: async ({ request }) => {
+      GET: ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Требуется вход в панель' }, { status: 401 })
         }
         return json(getResolvedUrls())
       },
       PUT: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Требуется вход в панель' }, { status: 401 })
         }
         const csrfCheck = requireJsonContentType(request)
         if (csrfCheck) return csrfCheck
@@ -50,7 +50,10 @@ export const Route = createFileRoute('/api/connection-settings')({
             const value = typeof body.gateway === 'string' ? body.gateway : ''
             if (value && !isValidHttpUrl(value)) {
               return json(
-                { error: 'gateway must be a valid http(s) URL' },
+                {
+                  error:
+                    'Gateway URL должен быть полным http(s)-адресом, например http://127.0.0.1:8642.',
+                },
                 { status: 400 },
               )
             }
@@ -61,7 +64,10 @@ export const Route = createFileRoute('/api/connection-settings')({
               typeof body.dashboard === 'string' ? body.dashboard : ''
             if (value && !isValidHttpUrl(value)) {
               return json(
-                { error: 'dashboard must be a valid http(s) URL' },
+                {
+                  error:
+                    'Legacy dashboard URL должен быть полным http(s)-адресом, например http://127.0.0.1:9119.',
+                },
                 { status: 400 },
               )
             }
@@ -74,7 +80,7 @@ export const Route = createFileRoute('/api/connection-settings')({
           const message =
             error instanceof Error
               ? error.message
-              : 'Failed to update connection settings'
+              : 'Не удалось обновить настройки подключения'
           return json({ error: message }, { status: 500 })
         }
       },

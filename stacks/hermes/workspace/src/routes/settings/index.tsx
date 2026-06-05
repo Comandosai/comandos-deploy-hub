@@ -2717,6 +2717,13 @@ type ConnectionSettings = {
   source: 'override' | 'env' | 'default'
 }
 
+type ConnectionCheck = {
+  status?: 'connected' | 'enhanced' | 'partial' | 'disconnected'
+  label?: string
+  detail?: string
+  error?: string
+}
+
 function ConnectionSection() {
   const [current, setCurrent] = useState<ConnectionSettings | null>(null)
   const [gatewayInput, setGatewayInput] = useState('')
@@ -2742,6 +2749,36 @@ function ConnectionSection() {
     void refresh()
   }, [refresh])
 
+  const checkConnection = async (): Promise<{
+    message: string
+    isError: boolean
+  }> => {
+    try {
+      const res = await fetch('/api/connection-status', { cache: 'no-store' })
+      const data = (await res.json().catch(() => ({}))) as ConnectionCheck
+      if (!res.ok) {
+        return {
+          message:
+            typeof data.error === 'string'
+              ? `Проверка подключения не прошла: ${data.error}`
+              : 'Проверка подключения не прошла.',
+          isError: true,
+        }
+      }
+      const label = data.label || 'проверено'
+      const detail = data.detail ? ` ${data.detail}` : ''
+      return {
+        message: `Подключение: ${label}.${detail}`,
+        isError: data.status === 'disconnected',
+      }
+    } catch {
+      return {
+        message: 'Настройки сохранены, но проверить подключение сейчас не удалось.',
+        isError: true,
+      }
+    }
+  }
+
   const save = async () => {
     setSaving(true)
     setMessage(null)
@@ -2758,7 +2795,9 @@ function ConnectionSection() {
       const data = (await res.json()) as ConnectionSettings & { error?: string }
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       setCurrent(data)
-      setMessage('Сохранено. Подключение обновлено, перезапуск не нужен.')
+      const check = await checkConnection()
+      setIsError(check.isError)
+      setMessage(`Сохранено. ${check.message}`)
     } catch (err) {
       setIsError(true)
       setMessage(err instanceof Error ? err.message : 'Не удалось сохранить')
@@ -2782,7 +2821,9 @@ function ConnectionSection() {
       setCurrent(data)
       setGatewayInput(data.gateway)
       setDashboardInput(data.dashboard)
-      setMessage('Сброшено к env / адресам по умолчанию.')
+      const check = await checkConnection()
+      setIsError(check.isError)
+      setMessage(`Сброшено к env / адресам по умолчанию. ${check.message}`)
     } catch {
       setIsError(true)
       setMessage('Не удалось сбросить')
