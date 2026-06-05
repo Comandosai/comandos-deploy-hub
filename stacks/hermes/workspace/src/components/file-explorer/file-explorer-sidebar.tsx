@@ -329,6 +329,7 @@ export function FileExplorerSidebar({
             onMouseDown={(event) => {
               if (event.button !== 2) return
               event.preventDefault()
+              event.stopPropagation()
               setContextMenu({
                 x: event.clientX,
                 y: event.clientY,
@@ -337,6 +338,7 @@ export function FileExplorerSidebar({
             }}
             onContextMenu={(event) => {
               event.preventDefault()
+              event.stopPropagation()
               setContextMenu({
                 x: event.clientX,
                 y: event.clientY,
