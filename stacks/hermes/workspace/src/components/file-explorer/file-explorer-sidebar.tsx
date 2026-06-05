@@ -326,6 +326,15 @@ export function FileExplorerSidebar({
           <button
             type="button"
             onClick={() => handleFileClick(entry)}
+            onMouseDown={(event) => {
+              if (event.button !== 2) return
+              event.preventDefault()
+              setContextMenu({
+                x: event.clientX,
+                y: event.clientY,
+                entry,
+              })
+            }}
             onContextMenu={(event) => {
               event.preventDefault()
               setContextMenu({
