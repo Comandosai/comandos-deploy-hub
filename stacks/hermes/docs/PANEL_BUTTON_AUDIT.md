@@ -58,13 +58,14 @@
 | Обновления | Модалка показывала урезанную версию `2.3.0-c → main` и могла всплывать от старых pending notes при обычном открытии | Workspace поднят до `2.3.0-comandos.16`; версии больше не режутся как SHA, managed release notes пишут версию вместо `main`, старые notes нормализуются и не открываются сами на routine status poll | Тесты `update-center-notifier` и `update-system` проверяют формат версий и нормализацию `main → 2.3.0-comandos.*`; `pnpm build` OK | FIXED |
 | Навыки | Кнопки `Установить`, `Удалить` и toggle выглядели активными, хотя текущий managed/zero-fork API не поддерживал эти действия; прямой вызов установки мог вернуть техническую ошибку JSON-парсинга | Workspace поднят до `2.3.0-comandos.20`; `/api/skills` отдаёт `actions`, UI отключает недоступные действия с русским объяснением, direct install/uninstall/toggle возвращают управляемые русские 501 | `clawd` обновлён до `.20`; `/api/skills` вернул `install/uninstall/toggle=false`; прямые install/toggle вернули русские 501; Playwright `/skills` не нашёл активных `Установить/Удалить`, console/network чистые | FIXED |
 | Провайдеры | Прямой вызов OAuth API для `openai-codex` мог вернуть общий технический тупик вместо понятного CLI-сценария | Workspace поднят до `2.3.0-comandos.23`; `/api/oauth/device-code` для Codex возвращает русское объяснение с `codex login`, ошибки JSON/provider тоже русифицированы; `settings-dialog.tsx` очищен от lint-ошибок в чтении конфига | `pnpm exec vitest run src/components/settings-dialog/settings-dialog.test.ts src/routes/api/-oauth-device-code.test.ts` OK; `pnpm exec eslint ...settings-dialog... oauth.device-code...` OK | FIXED |
+| Новый чат | Первая отправка из `/chat/new` сохраняла `user + assistant`, но UI оставался пустым или показывал только пользовательское сообщение | Workspace поднят до `2.3.0-comandos.28`; `/api/history` отдаёт local portable history даже без sessions API, local messages имеют поле `text`, а frontend в portable-режиме refetch-ит backend-историю по реальному session id | Live Playwright на `.28`: `/chat/new` -> отправка -> `/chat/main`, UI показал QA-маркер 2 раза за 10 секунд; `/api/history` вернул `user + assistant`; console/network чистые; свежие systemd-логи без ошибок; QA-сессия удалена | FIXED |
 
 ## Проверенные маршруты
 
 | Раздел | URL | Итог | Статус |
 | --- | --- | --- | --- |
 | Панель | `/dashboard` | Открывается, кнопки верхнего уровня видны, ошибок нет | OK |
-| Новый чат | `/chat/new` | Открывается, поле ввода доступно, отправка отключена при пустом сообщении | OK |
+| Новый чат | `/chat/new` | Открывается, поле ввода доступно, отправка отключена при пустом сообщении; первая реальная отправка показывает ответ модели | FIXED |
 | Существующий чат | `/chat/main` | Открывается, кнопка `Новая сессия` переводит в `/chat/new` | OK |
 | Файлы | `/files` | Открывается, действия файлов работают | OK |
 | Терминал | `/terminal` | Открывается, вкладки и AI-анализ работают | FIXED |
@@ -95,6 +96,7 @@
 | Chat | `Аудит рабочей папки` | Подставить готовый промпт в composer | OK |
 | Chat | `Записать правило в память` | Подставить готовый промпт в composer | OK |
 | Chat | `Создать файл` | Подставить готовый промпт в composer | OK |
+| Chat | `Отправить сообщение` из `/chat/new` | Создать первую сессию и показать ответ модели без ручного обновления страницы | FIXED |
 | Chat | `Настройки чата` | Открыть настройки текущей сессии | OK |
 | Chat | `Голосовой ввод` | Не падать без микрофона/разрешения браузера | OK |
 | Chat | `Голосовой ввод` / длинное нажатие микрофона | Ошибки микрофона/STT показываются по-русски без сырого ответа провайдера | FIXED |
@@ -142,9 +144,12 @@
 | `pnpm exec eslint src/components/settings-dialog/settings-dialog.tsx src/components/settings-dialog/settings-dialog.test.ts src/routes/api/oauth.device-code.ts src/routes/api/-oauth-device-code.test.ts` | OK | Настройки провайдеров и OAuth endpoint проходят lint; есть только старое предупреждение ESLint про `.eslintignore` |
 | `pnpm exec vitest run src/routes/api/-hermes-config.test.ts src/screens/settings/providers-screen.test.ts` | OK | 13 тестов прошли; проверены запрет удаления активного/Codex/системного провайдера и удаление неактивного API-провайдера |
 | `pnpm exec eslint src/server/hermes-config-store.ts src/server/hermes-config-route.ts src/routes/api/-hermes-config.test.ts src/screens/settings/providers-screen.tsx src/screens/settings/providers-screen.test.ts` | OK | Сервер удаления провайдера и экран провайдеров проходят lint; есть только старое предупреждение ESLint про `.eslintignore` |
+| `pnpm exec vitest run src/routes/api/-history.test.ts src/server/portable-history.test.ts src/lib/send-stream-session-headers.test.ts src/screens/chat/hooks/use-streaming-message.test.ts` | OK | 11 тестов прошли; проверены local portable history, заголовки resolved session и streaming hook |
+| `pnpm exec eslint src/screens/chat/hooks/use-chat-history.ts src/routes/api/history.ts src/routes/api/-history.test.ts` | OK | Исправленная история чата и API history проходят lint; есть только старое предупреждение ESLint про `.eslintignore` |
 | Live Playwright: `/settings/providers` -> `Добавить провайдера` -> `OpenAI Codex` -> `CLI-вход` на `.23` | OK | Codex CLI-текст виден; `Start OAuth`, `OAuth device flow not supported`, `Key set`, `Key required` не найдены; console/network чистые; прямой `/api/oauth/device-code` для Codex вернул русское объяснение с `codex login` |
 | Live Playwright/API: `/settings/providers` на `.24` | OK | DeepSeek как активный провайдер и Hermes как системный провайдер показывают disabled `Удалить` с русской причиной; прямой `/api/hermes-config` защищает active/Codex/unknown; console errors и сетевых 4xx/5xx в UI нет |
 | Live Playwright/API/logs: `/jobs` на `.24` | OK | Создано временное cron-задание, проверены история, пауза, возобновление, редактирование, ручной запуск и удаление; все `/api/claude-jobs` ответы 200, output появился, browser console чистая, свежие `comandos-workspace`/`hermes-gateway` логи без ошибок, тестовых задач не осталось |
+| Live Playwright/API/logs: `/chat/new` первая отправка на `.28` | OK | UI показал `user + assistant`, `/api/history` вернул local history с обеими ролями, browser console и network чистые, свежие `comandos-workspace`/`hermes-gateway` логи без ошибок, QA-сессия удалена |
 | Live API: `/api/update/workspace` на `clawd` `.20 -> .22` | OK | Обновление применилось; release notes вернули актуальный переход `.20 -> .22`; `comandos-workspace.service` active; повторный `/api/update/status` показывает Workspace `.22`, `updateAvailable=false` |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
@@ -154,7 +159,6 @@
 | --- | --- |
 | Чистая установка из GitHub | Нужен отдельный прогон `install.sh` -> env -> `deploy.sh` на VPS |
 | Вход по реальной лицензии | Локально проверен UI и нормализация ошибок; реальная лицензия проверяется на установленной панели |
-| Первый реальный чат | Нужен поднятый gateway и ключ модели на VPS |
 | MCP с реальным gateway | Локально gateway недоступен, поэтому проверено только честное disabled-состояние |
 | Обновление Hermes Agent при новой версии | На `clawd` Hermes Agent сейчас `current`; нужно повторить кнопку, когда manifest будет указывать более новую проверенную версию агента |
 | Telegram router / голос / inline-кнопки | Нужен VPS с Telegram-токеном и живым ботом |
@@ -162,6 +166,6 @@
 
 ## Текущий вывод
 
-Локальная и живая тестовая панель стали существенно ближе к коробочному состоянию: основные разделы открываются, мёртвые кнопки из найденного прохода исправлены или честно отключены, ложный OAuth для Codex убран, пользовательские ошибки лицензии и gateway русифицированы, ложный `OpenAI` в панели агента и кривые версии обновлений исправлены.
+Локальная и живая тестовая панель стали существенно ближе к коробочному состоянию: основные разделы открываются, мёртвые кнопки из найденного прохода исправлены или честно отключены, ложный OAuth для Codex убран, пользовательские ошибки лицензии и gateway русифицированы, ложный `OpenAI` в панели агента и кривые версии обновлений исправлены. Первый чат на живом VPS с моделью теперь проверен: сообщение отправляется, ответ модели появляется в UI, история доступна через `/api/history`.
 
 Следующий обязательный шаг перед продажей и видео: чистая установка на VPS из GitHub и повтор тех же проверок уже на установленной панели.
