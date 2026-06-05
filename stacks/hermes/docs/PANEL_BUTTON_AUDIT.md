@@ -182,8 +182,10 @@
 | Вход по реальной лицензии | Локально проверен UI и нормализация ошибок; реальная лицензия проверяется на установленной панели |
 | MCP с реальным gateway | Локально gateway недоступен, поэтому проверено только честное disabled-состояние |
 | Обновление Hermes Agent при новой версии | На `clawd` Hermes Agent сейчас `current`; нужно повторить кнопку, когда manifest будет указывать более новую проверенную версию агента |
-| Telegram router / голос / inline-кнопки | Нужен VPS с Telegram-токеном и живым ботом |
+| Telegram router / голос | Нужен VPS с Telegram-токеном и живым ботом |
 | Полный eslint большого `agent-view-panel.tsx` | Файл содержит старые замечания lint: отсутствующее правило `react-hooks/exhaustive-deps`, старые optional-chain/assertion места и shadow warnings. Сборка проходит, но перед финальной продажей это надо вынести в отдельную чистку. |
+
+Проверено отдельно: inline-кнопки Telegram заложены, но по умолчанию выключены. В `comandos-hermes.env.example` стоит `HERMES_INLINE_BUTTONS_ENABLED=false`, `deploy.sh` пишет этот флаг с дефолтом `false`, `router.py` дефолтит `button_protocol_enabled=False`, unit-тест `test_buttons_are_disabled_by_default` проходит. На текущем main-конфиге VPS `button_protocol_enabled=False`; QA Telegram не установлен.
 
 ## Текущий вывод
 
