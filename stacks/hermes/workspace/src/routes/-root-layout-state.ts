@@ -17,7 +17,17 @@ export function getRootSurfaceState(
   onboardingComplete: boolean | null,
   authStatus: RootAuthStatus | null = null,
 ): RootSurfaceState {
-  if (authStatus?.authRequired && !authStatus.authenticated) {
+  if (authStatus === null) {
+    return {
+      showLogin: false,
+      showLicense: false,
+      showOnboarding: false,
+      showWorkspaceShell: false,
+      showPostOnboardingOverlays: false,
+    }
+  }
+
+  if (authStatus.authRequired && !authStatus.authenticated) {
     return {
       showLogin: true,
       showLicense: false,
@@ -27,7 +37,7 @@ export function getRootSurfaceState(
     }
   }
 
-  if (authStatus?.licenseRequired && !authStatus.licenseActivated) {
+  if (authStatus.licenseRequired && !authStatus.licenseActivated) {
     return {
       showLogin: false,
       showLicense: true,
