@@ -507,6 +507,13 @@ with open(dst, "w", encoding="utf-8") as f:
 PY
 }
 
+install_app_file() {
+  local src="$1"
+  local dst="$2"
+  local mode="${3:-600}"
+  $SUDO install -o "$APP_USER" -g "$APP_USER" -m "$mode" "$src" "$dst"
+}
+
 install_systemd_user_services() {
   local systemd_dir service_names
   systemd_dir="$(getent passwd "$APP_USER" | cut -d: -f6)/.config/systemd/user"
@@ -570,7 +577,8 @@ PY
 }
 
 write_workspace_env() {
-  cat >"$REMOTE_WORKSPACE_DIR/.env" <<EOF
+  local env_tmp="$REMOTE_TMP/workspace.env"
+  cat >"$env_tmp" <<EOF
 NODE_ENV=production
 HOST=127.0.0.1
 PORT=$WORKSPACE_PORT
@@ -607,13 +615,14 @@ HERMES_DEFAULT_PROVIDER=$DEFAULT_PROVIDER
 HERMES_DEFAULT_MODEL=$DEFAULT_MODEL
 CLAUDE_DEFAULT_MODEL=$DEFAULT_MODEL
 EOF
-  chmod 600 "$REMOTE_WORKSPACE_DIR/.env"
-  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_WORKSPACE_DIR/.env"
+  install_app_file "$env_tmp" "$REMOTE_WORKSPACE_DIR/.env" 600
 }
 
 write_hermes_env() {
+  local env_tmp="$REMOTE_TMP/hermes.env"
   $SUDO mkdir -p "$REMOTE_HERMES_HOME"
-  cat >"$REMOTE_HERMES_HOME/.env" <<EOF
+  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
+  cat >"$env_tmp" <<EOF
 OPENAI_API_KEY=${OPENAI_API_KEY:-}
 DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
 QWEN_API_KEY=${QWEN_API_KEY:-}
@@ -624,26 +633,32 @@ HERMES_DEFAULT_PROVIDER=$DEFAULT_PROVIDER
 HERMES_DEFAULT_MODEL=$DEFAULT_MODEL
 CLAUDE_DEFAULT_MODEL=$DEFAULT_MODEL
 EOF
-  chmod 600 "$REMOTE_HERMES_HOME/.env"
-  $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
+  install_app_file "$env_tmp" "$REMOTE_HERMES_HOME/.env" 600
 }
 
 write_hermes_config() {
+  local config_path config_tmp existing_tmp
   $SUDO mkdir -p "$REMOTE_HERMES_HOME"
-  local config_path="$REMOTE_HERMES_HOME/config.yaml"
-  if [[ -f "$config_path" ]]; then
+  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
+  config_path="$REMOTE_HERMES_HOME/config.yaml"
+  config_tmp="$REMOTE_TMP/hermes-config.yaml"
+  existing_tmp="$REMOTE_TMP/hermes-config-existing.yaml"
+  if $SUDO test -f "$config_path"; then
     $SUDO cp "$config_path" "$config_path.backup.$(date +%Y%m%d%H%M%S)"
+    $SUDO cat "$config_path" >"$existing_tmp"
+  else
+    : >"$existing_tmp"
   fi
-  python3 - "$config_path" "$DEFAULT_PROVIDER" "$DEFAULT_MODEL" <<'PY'
+  python3 - "$existing_tmp" "$config_tmp" "$DEFAULT_PROVIDER" "$DEFAULT_MODEL" <<'PY'
 import json
 import os
 import re
 import sys
 
-path, provider, model = sys.argv[1:4]
+source_path, out_path, provider, model = sys.argv[1:5]
 raw = ""
-if os.path.exists(path):
-    with open(path, encoding="utf-8") as f:
+if os.path.exists(source_path):
+    with open(source_path, encoding="utf-8") as f:
         raw = f.read()
 
 def strip_top_level_key(text: str, key: str) -> str:
@@ -674,18 +689,20 @@ body = strip_top_level_key(body, "model")
 head = f"provider: {json.dumps(provider, ensure_ascii=False)}\nmodel: {json.dumps(model, ensure_ascii=False)}"
 next_text = head + ("\n\n" + body if body else "") + "\n"
 
-with open(path, "w", encoding="utf-8") as f:
+with open(out_path, "w", encoding="utf-8") as f:
     f.write(next_text)
 PY
-  chmod 600 "$config_path"
-  $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_HERMES_HOME"
+  install_app_file "$config_tmp" "$config_path" 600
 }
 
 write_telegram_env() {
+  local env_tmp config_tmp
+  env_tmp="$REMOTE_TMP/telegram.env"
+  config_tmp="$REMOTE_TMP/telegram-config.json"
   $SUDO mkdir -p "$REMOTE_BASE_DIR/telegram"
   $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/telegram"
-  $SUDO cp "$REMOTE_TMP/payload/templates/telegram/router.py" "$REMOTE_BASE_DIR/telegram/router.py"
-  cat >"$REMOTE_BASE_DIR/telegram/.env" <<EOF
+  install_app_file "$REMOTE_TMP/payload/templates/telegram/router.py" "$REMOTE_BASE_DIR/telegram/router.py" 644
+  cat >"$env_tmp" <<EOF
 TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
 TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-}
 TELEGRAM_BOT_TOKEN_SECOND=${TELEGRAM_BOT_TOKEN_SECOND:-}
@@ -694,10 +711,10 @@ TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:-}
 HERMES_INLINE_BUTTONS_ENABLED=${HERMES_INLINE_BUTTONS_ENABLED:-false}
 COMANDOS_WORKSPACE_URL=$PUBLIC_URL
 EOF
-  chmod 600 "$REMOTE_BASE_DIR/telegram/.env"
+  install_app_file "$env_tmp" "$REMOTE_BASE_DIR/telegram/.env" 600
 
   export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_WORKDIR TELEGRAM_USER_ID HERMES_TIMEOUT_SECONDS HERMES_POLL_TIMEOUT_SECONDS HERMES_STT_MODEL HERMES_STT_LANGUAGE HERMES_STT_ENABLED HERMES_SHOW_PROFILE_IN_RESPONSE HERMES_INLINE_BUTTONS_ENABLED
-  python3 - "$REMOTE_BASE_DIR/telegram/config.json" <<'PY'
+  python3 - "$config_tmp" <<'PY'
 import json
 import os
 import sys
@@ -761,26 +778,27 @@ with open(out, "w", encoding="utf-8") as f:
     json.dump(cfg, f, ensure_ascii=False, indent=2)
     f.write("\n")
 PY
-  chmod 600 "$REMOTE_BASE_DIR/telegram/config.json"
-  $SUDO chown -R "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/telegram"
+  install_app_file "$config_tmp" "$REMOTE_BASE_DIR/telegram/config.json" 600
 }
 
 install_update_script() {
+  local script_tmp="$REMOTE_TMP/comandos-update.sh"
   $SUDO mkdir -p "$REMOTE_BASE_DIR/install"
+  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/install"
   export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_AGENT_INSTALLER_URL
   export COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
-  render_template "$REMOTE_TMP/payload/templates/update/comandos-update.sh" "$REMOTE_BASE_DIR/install/comandos-update.sh"
-  chmod 700 "$REMOTE_BASE_DIR/install/comandos-update.sh"
-  $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_BASE_DIR/install/comandos-update.sh"
+  render_template "$REMOTE_TMP/payload/templates/update/comandos-update.sh" "$script_tmp"
+  install_app_file "$script_tmp" "$REMOTE_BASE_DIR/install/comandos-update.sh" 700
 }
 
 write_installed_state() {
+  local state_tmp="$REMOTE_TMP/installed-state.json"
   $SUDO mkdir -p "$REMOTE_WORKSPACE_DIR/.runtime"
   $SUDO chown "$APP_USER:$APP_USER" "$REMOTE_WORKSPACE_DIR/.runtime"
   local agent_version=""
   agent_version="$(as_app_user "command -v hermes >/dev/null 2>&1 && hermes --version 2>/dev/null | head -1 || true")"
   export COMANDOS_WORKSPACE_VERSION HERMES_AGENT_REF agent_version COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
-  python3 - "$COMANDOS_INSTALLED_STATE" <<'PY'
+  python3 - "$state_tmp" <<'PY'
 import json
 import os
 import sys
@@ -800,8 +818,7 @@ with open(out, "w", encoding="utf-8") as f:
     json.dump(state, f, ensure_ascii=False, indent=2)
     f.write("\n")
 PY
-  chmod 600 "$COMANDOS_INSTALLED_STATE"
-  $SUDO chown "$APP_USER:$APP_USER" "$COMANDOS_INSTALLED_STATE"
+  install_app_file "$state_tmp" "$COMANDOS_INSTALLED_STATE" 600
 }
 
 cleanup_build_space() {

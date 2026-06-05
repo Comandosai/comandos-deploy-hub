@@ -66,6 +66,7 @@
 | Установка | При входе на VPS под sudo-пользователем новый `REMOTE_APP_USER` не создавался, потому что скрипт требовал root | Workspace поднят до `2.3.0-comandos.34`; создание app-пользователя теперь идёт через `$SUDO useradd` | `.33` создала `hermesqa` и поставила Hermes Agent | FIXED |
 | Установка | macOS xattrs попадали в deploy-архив и на VPS печатались предупреждения `LIBARCHIVE.xattr.com.apple.provenance` | Workspace поднят до `2.3.0-comandos.34`; tar-архивы создаются с `--no-xattrs` | `.33` дошла до remote install без предупреждений `LIBARCHIVE.xattr...` | FIXED |
 | Установка | После sudo-установки Hermes Agent CLI существовал у `REMOTE_APP_USER`, но `deploy.sh` проверял `/home/.../.local/bin/hermes` от SSH-пользователя и падал по правам | Workspace поднят до `2.3.0-comandos.34`; `find_hermes_cli` ищет `command -v hermes` и явные пути через `as_app_user` | Серверная проверка: `/home/hermesqa/.local/bin/hermes` существует и виден от `hermesqa`; фикс готовится к повторной чистой установке | FIXED |
+| Установка | На sudo-доступе `deploy.sh` писал `.env`, `config.yaml`, update/state и Telegram-файлы прямым редиректом в каталоги `REMOTE_APP_USER`; при закрытой домашней папке установка падала с `Permission denied` | Workspace поднят до `2.3.0-comandos.35`; файлы генерируются во временной папке и устанавливаются через `sudo install -o REMOTE_APP_USER -m ...` | Чистая установка `.34` воспроизвела падение на `/home/hermesqa/.hermes/.env`; `bash -n` после фикса OK; готовится повторный GitHub-прогон `.35` | FIXED |
 
 ## Проверенные маршруты
 
