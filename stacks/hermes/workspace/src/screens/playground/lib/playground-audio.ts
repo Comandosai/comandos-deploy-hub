@@ -9,6 +9,8 @@ let audioContext: AudioContext | null = null
 let masterGain: GainNode | null = null
 let ambientCleanup: (() => void) | null = null
 let currentAmbient: AmbientZone = null
+let desiredAmbient: AmbientZone = null
+let audioUnlocked = false
 let resumeHooked = false
 let mutedCache = false
 let queuedSounds: Array<() => void> = []
@@ -36,9 +38,7 @@ function applyMute() {
 function ensureContext() {
   if (typeof window === 'undefined') return null
   if (!audioContext) {
-    const Ctor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    if (!Ctor) return null
-    audioContext = new Ctor()
+    audioContext = new window.AudioContext()
     masterGain = audioContext.createGain()
     masterGain.connect(audioContext.destination)
     mutedCache = readMuted()
@@ -48,22 +48,42 @@ function ensureContext() {
   return audioContext
 }
 
+function startDesiredAmbient() {
+  if (!desiredAmbient || mutedCache || desiredAmbient === currentAmbient) return
+  switch (desiredAmbient) {
+    case 'training':
+      void startTrainingAmbient()
+      return
+    case 'forge':
+      void startForgeAmbient()
+  }
+}
+
+async function unlockAudio() {
+  audioUnlocked = true
+  const ctx = await resumeAudio()
+  if (!ctx) return
+
+  const next = queuedSounds
+  queuedSounds = []
+  for (const play of next) play()
+  startDesiredAmbient()
+}
+
 function hookResume() {
   if (resumeHooked || typeof window === 'undefined') return
   resumeHooked = true
-  const flush = () => {
-    void resumeAudio().then(() => {
-      const next = queuedSounds
-      queuedSounds = []
-      for (const play of next) play()
-    })
-  }
+  const flush = () => void unlockAudio()
   window.addEventListener('pointerdown', flush, { passive: true })
   window.addEventListener('keydown', flush)
   window.addEventListener('touchstart', flush, { passive: true })
 }
 
 async function resumeAudio() {
+  if (!audioUnlocked) {
+    hookResume()
+    return null
+  }
   const ctx = ensureContext()
   if (!ctx) return null
   if (ctx.state !== 'running') {
@@ -125,6 +145,15 @@ function connectWhoosh(ctx: AudioContext, start: number, duration: number, fromH
 
 async function runSound(play: (ctx: AudioContext, start: number) => void) {
   if (mutedCache) return
+  if (!audioUnlocked) {
+    enqueueWhenReady(() => {
+      const readyCtx = ensureContext()
+      if (!readyCtx || readyCtx.state !== 'running' || mutedCache) return
+      play(readyCtx, readyCtx.currentTime + 0.02)
+    })
+    hookResume()
+    return
+  }
   const ctx = await resumeAudio()
   if (!ctx) {
     enqueueWhenReady(() => {
@@ -305,18 +334,23 @@ export const playgroundAudio = {
     })
   },
   setAmbient(zone: AmbientZone) {
+    desiredAmbient = zone
     if (zone === currentAmbient) return
     if (!zone) {
       stopAmbient()
       return
     }
-    if (zone === 'training') {
-      void startTrainingAmbient()
+    if (!audioUnlocked) {
+      hookResume()
       return
     }
-    if (zone === 'forge') {
-      void startForgeAmbient()
-      return
+    switch (zone) {
+      case 'training':
+        void startTrainingAmbient()
+        return
+      case 'forge':
+        void startForgeAmbient()
+        return
     }
     stopAmbient()
   },
@@ -335,6 +369,7 @@ export const playgroundAudio = {
     }
     applyMute()
     if (next) stopAmbient()
+    else void unlockAudio()
     emitMute()
   },
   toggleMuted() {

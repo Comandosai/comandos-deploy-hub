@@ -5,7 +5,7 @@ LOCK_VERSION=2026-05-23
 
 # COMANDOS Workspace
 # Пока публичный репозиторий/релиз не утверждён, источником считается локальный handoff.
-COMANDOS_WORKSPACE_VERSION=2.3.0-comandos.38
+COMANDOS_WORKSPACE_VERSION=2.3.0-comandos.39
 COMANDOS_WORKSPACE_SOURCE_MODE=local-handoff
 COMANDOS_WORKSPACE_SOURCE_DIR=./comandos-workspace-handoff-20260522-034101
 COMANDOS_WORKSPACE_INSTALL_MODE=copy-no-git
