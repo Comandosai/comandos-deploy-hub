@@ -29,7 +29,7 @@ export const Route = createFileRoute('/api/auth')({
         // If password protection is disabled, reject auth attempts
         if (!isPasswordProtectionEnabled()) {
           return json(
-            { ok: false, error: 'Authentication not required' },
+            { ok: false, error: 'Вход по паролю не требуется.' },
             { status: 400 },
           )
         }
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/api/auth')({
 
           if (!parsed.success) {
             return json(
-              { ok: false, error: 'Invalid request' },
+              { ok: false, error: 'Некорректный запрос.' },
               { status: 400 },
             )
           }
@@ -59,10 +59,7 @@ export const Route = createFileRoute('/api/auth')({
           if (!valid) {
             // Add small delay to prevent brute force
             await new Promise((resolve) => setTimeout(resolve, 1000))
-            return json(
-              { ok: false, error: 'Invalid password' },
-              { status: 401 },
-            )
+            return json({ ok: false, error: 'Неверный пароль.' })
           }
 
           // Generate session token
