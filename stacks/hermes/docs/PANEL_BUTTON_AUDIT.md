@@ -163,6 +163,7 @@
 | Чистая установка из GitHub: `install.sh` -> заполненный env -> `deploy.sh` на QA-контур `.36` | OK | `/tmp/hermes-clean-install-qa-20260605105010`; `qa.194.113.38.109.nip.io` отвечает 200; Caddy содержит отдельные блоки `COMANDOS HERMES` и `COMANDOS HERMES QA`; порты `3030/8642` и `3130/8742` слушают localhost; QA user services active; main live отвечает 200 |
 | QA Playwright: экран пароля -> экран лицензии на `.36` | FIXED | Найдены фоновые `401 /api/connection-status` и `500 /api/claude-config`: рабочие проверки монтировались до завершения входа/лицензии. В `.37` root layout ждёт auth/license status и не запускает workspace/onboarding API заранее |
 | QA Playwright: кнопка `Активировать` с неверным ключом на `.37` | FIXED | Пользователь видел русский отказ, но browser console получала ожидаемый `401 /api/license/activate`. В `.38` управляемый отказ активации возвращает HTTP 200 с `ok:false`, чтобы кнопка не оставляла техническую ошибку в журнале |
+| QA Playwright/logs: пароль -> лицензия -> неверный ключ на `.38` | OK | Видимый текст: `лицензия не найдена или отключена`; browser console, failed requests и HTTP 4xx/5xx пустые; свежие `comandos-workspace`/`hermes-gateway` логи без ошибок; QA и основной домен отвечают 200 |
 | Поиск секретов в diff | OK | API-ключи, Telegram-токены, пароли, private key не найдены |
 
 ## Что ещё требует живой коробочной проверки
