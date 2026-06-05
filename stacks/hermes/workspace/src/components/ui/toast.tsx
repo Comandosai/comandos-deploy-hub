@@ -81,7 +81,7 @@ export function Toaster() {
         <div
           key={t.id}
           className={cn(
-            'pointer-events-auto flex w-full max-w-[calc(100vw-1rem)] items-start gap-2.5 rounded-xl px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm animate-in slide-in-from-right-5 fade-in duration-200 sm:w-auto',
+            'pointer-events-none flex w-full max-w-[calc(100vw-1rem)] items-start gap-2.5 rounded-xl px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm animate-in slide-in-from-right-5 fade-in duration-200 sm:w-auto',
             typeStyles[t.type],
           )}
         >
@@ -92,7 +92,7 @@ export function Toaster() {
             onClick={() =>
               setToasts((prev) => prev.filter((x) => x.id !== t.id))
             }
-            className="ml-2 shrink-0 rounded-full p-0.5 opacity-70 transition-opacity hover:opacity-100"
+            className="pointer-events-auto ml-2 shrink-0 rounded-full p-0.5 opacity-70 transition-opacity hover:opacity-100"
           >
             ✕
           </button>
