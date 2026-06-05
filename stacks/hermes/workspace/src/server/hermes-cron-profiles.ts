@@ -108,13 +108,8 @@ function hermesCliPath(): string {
 }
 
 export function kickCronTick(profile?: string | null): void {
-  const args =
-    profile && profile !== 'default'
-      ? ['--profile', profile, 'cron', 'tick']
-      : ['cron', 'tick']
-
   try {
-    const child = spawn(hermesCliPath(), args, {
+    const child = spawn(hermesCliPath(), buildCronTickArgs(profile), {
       detached: true,
       stdio: 'ignore',
     })
@@ -123,6 +118,15 @@ export function kickCronTick(profile?: string | null): void {
     // The normal gateway ticker still runs once a minute; a failed kick should
     // not make the UI action fail.
   }
+}
+
+export function buildCronTickArgs(profile?: string | null): Array<string> {
+  const args =
+    profile && profile !== 'default'
+      ? ['--profile', profile, 'cron', 'tick']
+      : ['cron', 'tick']
+  args.push('--accept-hooks')
+  return args
 }
 
 function readJobsFile(path: string): Array<RawCronJob> {
@@ -275,10 +279,9 @@ export function runProfileCronAction(
   action: 'pause' | 'resume' | 'run' | 'remove',
 ): Record<string, unknown> {
   validateProfileAndMaybeJob(profile, jobId)
-  const cliAction = action === 'remove' ? 'remove' : action
   const output = execFileSync(
     hermesCliPath(),
-    ['--profile', profile, 'cron', cliAction, jobId],
+    buildProfileCronActionArgs(profile, jobId, action),
     {
       encoding: 'utf8',
       timeout: 30_000,
@@ -290,6 +293,18 @@ export function runProfileCronAction(
     ) ?? null
   if (action === 'run') kickCronTick(profile)
   return { ok: true, output, job }
+}
+
+export function buildProfileCronActionArgs(
+  profile: string,
+  jobId: string,
+  action: 'pause' | 'resume' | 'run' | 'remove',
+): Array<string> {
+  const cliAction = action === 'remove' ? 'remove' : action
+  const args = ['--profile', profile, 'cron', cliAction]
+  if (action === 'run') args.push('--accept-hooks')
+  args.push(jobId)
+  return args
 }
 
 export function buildProfileCronEditArgs(
