@@ -58,6 +58,74 @@ describe('buildProviderSummaries', () => {
     expect(summary.canDelete).toBe(true)
     expect(summary.deleteDisabledReason).toBeUndefined()
   })
+
+  it('uses Hermes config providers when the models endpoint has no data yet', () => {
+    const summaries = buildProviderSummaries({
+      models: [],
+      configuredProviders: [],
+      activeProvider: 'deepseek',
+      providerStates: [
+        {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          configured: true,
+          authenticated: true,
+          available: true,
+          isDefault: true,
+          models: [{ id: 'deepseek-chat', name: 'deepseek-chat' }],
+        },
+        {
+          id: 'openrouter',
+          name: 'OpenRouter',
+          configured: false,
+          authenticated: false,
+          available: false,
+          isDefault: false,
+          models: [],
+        },
+      ],
+    })
+
+    expect(summaries).toHaveLength(1)
+    expect(summaries[0]).toMatchObject({
+      id: 'deepseek',
+      name: 'DeepSeek',
+      modelCount: 1,
+      status: 'active',
+      canDelete: false,
+    })
+  })
+
+  it('shows an available local provider from Hermes config without marking every catalog provider connected', () => {
+    const summaries = buildProviderSummaries({
+      models: [],
+      configuredProviders: [],
+      providerStates: [
+        {
+          id: 'ollama',
+          name: 'Ollama',
+          configured: false,
+          authenticated: false,
+          available: true,
+          isDefault: false,
+          models: [{ id: 'qwen2.5:7b', name: 'qwen2.5:7b' }],
+        },
+        {
+          id: 'anthropic',
+          name: 'Anthropic',
+          configured: false,
+          authenticated: false,
+          available: false,
+          isDefault: false,
+          models: [],
+        },
+      ],
+    })
+
+    expect(summaries.map((summary) => summary.id)).toEqual(['ollama'])
+    expect(summaries[0].canDelete).toBe(false)
+    expect(summaries[0].deleteDisabledReason).toContain('Локальный провайдер')
+  })
 })
 
 describe('model provider form config', () => {

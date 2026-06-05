@@ -117,7 +117,21 @@ type ConfigPatchResponse = {
 type ProviderConfigResponse = {
   ok?: boolean
   activeProvider?: string
+  activeModel?: string
+  providers?: Array<ProviderConfigProvider>
   error?: string
+}
+
+type ProviderConfigProvider = {
+  id?: string
+  name?: string
+  kind?: string
+  configured?: boolean
+  authenticated?: boolean
+  available?: boolean
+  isDefault?: boolean
+  models?: Array<{ id?: string; name?: string }>
+  warnings?: Array<string>
 }
 
 type SelectOption = {
@@ -427,10 +441,12 @@ function getProviderDeleteDisabledReason(
 export function buildProviderSummaries(payload: {
   models?: Array<ModelCatalogEntry>
   configuredProviders?: Array<string>
+  providerStates?: Array<ProviderConfigProvider>
   activeProvider?: string
 }): Array<ProviderSummary> {
   const modelCounts = new Map<string, number>()
   const activeProvider = normalizeProviderId(payload.activeProvider ?? '')
+  const providerStatesById = new Map<string, ProviderConfigProvider>()
 
   for (const entry of payload.models ?? []) {
     const providerId = readProviderId(entry)
@@ -446,6 +462,34 @@ export function buildProviderSummaries(payload: {
     if (normalized) configuredSet.add(normalized)
   }
 
+  for (const providerState of payload.providerStates ?? []) {
+    const providerId = normalizeProviderId(providerState.id ?? '')
+    if (!providerId) continue
+
+    providerStatesById.set(providerId, providerState)
+
+    const stateModelCount = Array.isArray(providerState.models)
+      ? providerState.models.length
+      : 0
+    if (stateModelCount > 0) {
+      modelCounts.set(
+        providerId,
+        Math.max(modelCounts.get(providerId) ?? 0, stateModelCount),
+      )
+    }
+
+    const shouldShowProvider = Boolean(
+      providerState.configured ||
+      providerState.authenticated ||
+      providerState.available ||
+      providerState.isDefault ||
+      stateModelCount > 0,
+    )
+    if (shouldShowProvider) {
+      configuredSet.add(providerId)
+    }
+  }
+
   for (const providerId of modelCounts.keys()) {
     configuredSet.add(providerId)
   }
@@ -454,6 +498,7 @@ export function buildProviderSummaries(payload: {
 
   for (const providerId of configuredSet) {
     const metadata = getProviderInfo(providerId)
+    const providerState = providerStatesById.get(providerId)
     const modelCount = modelCounts.get(providerId) ?? 0
     const deleteDisabledReason = getProviderDeleteDisabledReason(
       providerId,
@@ -462,12 +507,18 @@ export function buildProviderSummaries(payload: {
 
     summaries.push({
       id: providerId,
-      name: getProviderDisplayName(providerId),
+      name:
+        typeof providerState?.name === 'string' && providerState.name.trim()
+          ? providerState.name.trim()
+          : getProviderDisplayName(providerId),
       description:
         metadata?.description ||
         'Провайдер настроен в локальной конфигурации Hermes.',
       modelCount,
-      status: modelCount > 0 ? 'active' : 'configured',
+      status:
+        providerId === activeProvider || providerState?.isDefault
+          ? 'active'
+          : 'configured',
       canDelete: !deleteDisabledReason,
       deleteDisabledReason,
     })
@@ -635,7 +686,9 @@ function SettingCard(props: {
     if (setting.kind === 'number') {
       nextValue = parseNumberValue(rawValue)
       if (nextValue === null) {
-        toast(`Enter a valid number for ${setting.label}`, { type: 'error' })
+        toast(`Введите корректное число для «${setting.label}»`, {
+          type: 'error',
+        })
         return
       }
     } else if (setting.kind === 'multiline' || setting.kind === 'text') {
@@ -724,7 +777,7 @@ function SettingCard(props: {
                 })
               }}
             >
-              <option value="">Select…</option>
+              <option value="">Выберите...</option>
               {(setting.options ?? []).map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -1324,14 +1377,10 @@ function ActiveModelCard({
 function ProviderManagementSection(props: {
   embedded: boolean
   providerSummaries: Array<ProviderSummary>
-  modelsQuery: ReturnType<
-    typeof useQuery<{
-      ok?: boolean
-      models?: Array<ModelCatalogEntry>
-      configuredProviders?: Array<string>
-    }>
-  >
+  isLoadingProviders: boolean
+  providerError: unknown
   deletingId: string | null
+  onRetryProviders: () => void
   onAddProvider: () => void
   onEdit: (provider: ProviderSummary) => void
   onDelete: (provider: ProviderSummary) => void
@@ -1339,8 +1388,10 @@ function ProviderManagementSection(props: {
   const {
     embedded,
     providerSummaries,
-    modelsQuery,
+    isLoadingProviders,
+    providerError,
     deletingId,
+    onRetryProviders,
     onAddProvider,
     onEdit,
     onDelete,
@@ -1380,30 +1431,26 @@ function ProviderManagementSection(props: {
           </p>
         </div>
 
-        {modelsQuery.isPending ? (
+        {isLoadingProviders ? (
           <p className="rounded-xl border border-primary-200 bg-white px-3 py-2 text-sm text-primary-600">
             Загружаю провайдеры из Hermes Agent...
           </p>
         ) : null}
 
-        {modelsQuery.error ? (
+        {providerError ? (
           <div className="rounded-xl border border-primary-200 bg-white px-4 py-3">
             <p className="mb-2 text-sm text-primary-700">
-              Сейчас не удалось загрузить провайдеры. Проверьте подключение
-              Hermes Agent.
+              Сейчас не удалось загрузить список провайдеров. Проверьте, что
+              Hermes Agent запущен, и повторите попытку.
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => modelsQuery.refetch()}
-            >
+            <Button variant="outline" size="sm" onClick={onRetryProviders}>
               Повторить
             </Button>
           </div>
         ) : null}
 
-        {!modelsQuery.isPending &&
-        !modelsQuery.error &&
+        {!isLoadingProviders &&
+        !providerError &&
         providerSummaries.length === 0 ? (
           <div className="rounded-xl border border-primary-200 bg-white px-4 py-4">
             <p className="text-sm text-primary-700">
@@ -1585,6 +1632,9 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
         )
           ? modelsQuery.data.configuredProviders
           : [],
+        providerStates: Array.isArray(providerConfigQuery.data?.providers)
+          ? providerConfigQuery.data.providers
+          : [],
         activeProvider: providerConfigQuery.data?.activeProvider,
       })
     },
@@ -1592,8 +1642,17 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
       modelsQuery.data?.configuredProviders,
       modelsQuery.data?.models,
       providerConfigQuery.data?.activeProvider,
+      providerConfigQuery.data?.providers,
     ],
   )
+
+  const isLoadingProviders =
+    providerSummaries.length === 0 &&
+    (providerConfigQuery.isPending || modelsQuery.isPending)
+  const providerError =
+    providerSummaries.length === 0
+      ? (providerConfigQuery.error ?? modelsQuery.error)
+      : null
 
   const modelOptions = useMemo(
     function resolveModelOptions() {
@@ -1807,8 +1866,13 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
               <ProviderManagementSection
                 embedded={embedded}
                 providerSummaries={providerSummaries}
-                modelsQuery={modelsQuery}
+                isLoadingProviders={isLoadingProviders}
+                providerError={providerError}
                 deletingId={deletingId}
+                onRetryProviders={() => {
+                  void providerConfigQuery.refetch()
+                  void modelsQuery.refetch()
+                }}
                 onAddProvider={() => {
                   setEditingProvider(null)
                   setWizardOpen(true)
