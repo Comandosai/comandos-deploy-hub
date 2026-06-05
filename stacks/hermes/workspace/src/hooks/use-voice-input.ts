@@ -70,6 +70,9 @@ export function useVoiceInput(
   const [state, setState] = useState<VoiceInputState>('idle')
   const [transcript, setTranscript] = useState('')
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
+  const recognitionStartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  )
   const recorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Array<Blob>>([])
   const recorderMimeTypeRef = useRef('audio/webm')
@@ -79,6 +82,13 @@ export function useVoiceInput(
 
   const callbacksRef = useRef({ onResult, onInterim, onError, transcribe })
   callbacksRef.current = { onResult, onInterim, onError, transcribe }
+
+  const clearRecognitionStartTimer = useCallback(() => {
+    if (recognitionStartTimerRef.current) {
+      clearTimeout(recognitionStartTimerRef.current)
+      recognitionStartTimerRef.current = null
+    }
+  }, [])
 
   const cleanupRecorder = useCallback(() => {
     const recorder = recorderRef.current
@@ -103,6 +113,7 @@ export function useVoiceInput(
     }
 
     const recognition = recognitionRef.current
+    clearRecognitionStartTimer()
     if (!recognition) return
     try {
       recognition.stop()
@@ -110,7 +121,7 @@ export function useVoiceInput(
       // already stopped
     }
     setState('idle')
-  }, [cleanupRecorder])
+  }, [cleanupRecorder, clearRecognitionStartTimer])
 
   const start = useCallback(async () => {
     if (callbacksRef.current.transcribe) {
@@ -209,12 +220,15 @@ export function useVoiceInput(
     }
 
     const recognition = new SpeechRecognition()
+    let started = false
     recognition.lang = lang
     recognition.interimResults = interim
     recognition.continuous = true
     recognition.maxAlternatives = 1
 
     recognition.onstart = () => {
+      started = true
+      clearRecognitionStartTimer()
       setState('listening')
       setTranscript('')
     }
@@ -245,6 +259,7 @@ export function useVoiceInput(
     }
 
     recognition.onerror = (event: any) => {
+      clearRecognitionStartTimer()
       if (event.error === 'aborted' || event.error === 'no-speech') {
         setState('idle')
         return
@@ -254,13 +269,39 @@ export function useVoiceInput(
     }
 
     recognition.onend = () => {
+      clearRecognitionStartTimer()
       setState('idle')
       recognitionRef.current = null
     }
 
     recognitionRef.current = recognition
-    recognition.start()
-  }, [cleanupRecorder, interim, lang])
+    clearRecognitionStartTimer()
+    try {
+      recognition.start()
+      recognitionStartTimerRef.current = setTimeout(() => {
+        if (started || recognitionRef.current !== recognition) return
+        try {
+          recognition.stop()
+        } catch {
+          /* noop */
+        }
+        recognitionRef.current = null
+        setState('error')
+        callbacksRef.current.onError?.(
+          'Браузер не запустил голосовой ввод. Проверьте доступ к микрофону и попробуйте снова.',
+        )
+      }, 2000)
+    } catch (error) {
+      recognitionRef.current = null
+      setState('error')
+      callbacksRef.current.onError?.(
+        normalizeVoiceError(
+          error,
+          'Браузер не запустил голосовой ввод. Проверьте доступ к микрофону и попробуйте снова.',
+        ),
+      )
+    }
+  }, [cleanupRecorder, clearRecognitionStartTimer, interim, lang])
 
   const toggle = useCallback(() => {
     if (state === 'listening') {
@@ -279,6 +320,7 @@ export function useVoiceInput(
           /* */
         }
       }
+      clearRecognitionStartTimer()
       if (recorderRef.current) {
         try {
           recorderRef.current.stop()
@@ -288,7 +330,7 @@ export function useVoiceInput(
       }
       cleanupRecorder()
     }
-  }, [cleanupRecorder])
+  }, [cleanupRecorder, clearRecognitionStartTimer])
 
   return {
     state,
