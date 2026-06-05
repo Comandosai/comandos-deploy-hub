@@ -169,6 +169,41 @@ function storeNotes(sections: Array<ReleaseNoteSection>): Notes | null {
   return notes
 }
 
+export function normalizeUpdateError(
+  error: unknown,
+  productLabel = 'обновления',
+): string {
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : ''
+  const message = raw.trim()
+
+  if (!message) {
+    return `Не удалось выполнить обновление ${productLabel}. Обновите страницу и повторите проверку.`
+  }
+
+  if (
+    /failed to fetch|fetch failed|networkerror|load failed|err_aborted|aborted|unexpected token|json|syntaxerror/i.test(
+      message,
+    )
+  ) {
+    return `Связь с панелью прервалась во время обновления ${productLabel}. Подождите 30 секунд и обновите страницу; если версия не изменилась, повторите обновление.`
+  }
+
+  if (/too many requests|rate limit|429/i.test(message)) {
+    return `Слишком много попыток обновления ${productLabel}. Подождите минуту и попробуйте снова.`
+  }
+
+  if (!/[А-Яа-яЁё]/.test(message)) {
+    return `Обновление ${productLabel} не выполнилось. Проверьте состояние сервера и повторите через минуту.`
+  }
+
+  return message
+}
+
 export function UpdateCenterNotifier() {
   const queryClient = useQueryClient()
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set())
@@ -252,12 +287,20 @@ export function UpdateCenterNotifier() {
           body: JSON.stringify({}),
         },
       )
-      const result = (await res.json()) as ApplyUpdateResult
+      const result = (await res.json().catch(() => ({
+        ok: false,
+        product: product.id,
+        error:
+          'Ответ обновления не удалось прочитать. Панель могла уже уйти в перезапуск.',
+      }))) as ApplyUpdateResult
       if (!res.ok || !result.ok) {
         setPhases((prev) => ({ ...prev, [product.id]: 'error' }))
         setErrors((prev) => ({
           ...prev,
-          [product.id]: result.error || `Не удалось обновить ${product.label}`,
+          [product.id]: normalizeUpdateError(
+            result.error || `Не удалось обновить ${product.label}`,
+            product.label,
+          ),
         }))
         return
       }
@@ -276,7 +319,7 @@ export function UpdateCenterNotifier() {
       setPhases((prev) => ({ ...prev, [product.id]: 'error' }))
       setErrors((prev) => ({
         ...prev,
-        [product.id]: err instanceof Error ? err.message : String(err),
+        [product.id]: normalizeUpdateError(err, product.label),
       }))
     }
   }

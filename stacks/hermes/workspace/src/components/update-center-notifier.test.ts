@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatReleaseRef,
+  normalizeUpdateError,
   parseUpdateDismissal,
   serializeUpdateDismissal,
 } from './update-center-notifier'
@@ -33,5 +34,40 @@ describe('update center release refs', () => {
     expect(formatReleaseRef('96bc5ad1234567890abcdef')).toBe('96bc5ad')
     expect(formatReleaseRef('main')).toBe('main')
     expect(formatReleaseRef(null)).toBe('неизвестно')
+  })
+})
+
+describe('update center error messages', () => {
+  it('turns browser network errors into a Russian recovery hint', () => {
+    expect(normalizeUpdateError(new TypeError('Failed to fetch'), 'Workspace'))
+      .toMatchInlineSnapshot(
+        `"Связь с панелью прервалась во время обновления Workspace. Подождите 30 секунд и обновите страницу; если версия не изменилась, повторите обновление."`,
+      )
+  })
+
+  it('does not show raw JSON parse errors to the user', () => {
+    expect(
+      normalizeUpdateError(
+        'Unexpected token < in JSON at position 0',
+        'Hermes Agent',
+      ),
+    ).toMatchInlineSnapshot(
+      `"Связь с панелью прервалась во время обновления Hermes Agent. Подождите 30 секунд и обновите страницу; если версия не изменилась, повторите обновление."`,
+    )
+  })
+
+  it('keeps server-provided Russian errors as-is', () => {
+    expect(
+      normalizeUpdateError(
+        'Ветка Workspace разошлась с origin. Сначала сделайте backup.',
+        'Workspace',
+      ),
+    ).toBe('Ветка Workspace разошлась с origin. Сначала сделайте backup.')
+  })
+
+  it('hides raw English backend errors behind a generic Russian message', () => {
+    expect(normalizeUpdateError('Command failed: git fetch', 'Workspace')).toBe(
+      'Обновление Workspace не выполнилось. Проверьте состояние сервера и повторите через минуту.',
+    )
   })
 })
