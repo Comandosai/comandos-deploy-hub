@@ -1,12 +1,13 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   compareManagedVersions,
   normalizePendingReleaseNotes,
   readComandosManifest,
   readUpdateCheckIntervalMs,
+  readUpdateStatus,
   remoteUrlMatches,
   renderManagedUpdateScriptTemplate,
   versionIsNewer,
@@ -164,6 +165,96 @@ describe('update-system helpers', () => {
       } else {
         process.env.COMANDOS_UPDATE_MANIFEST_CACHE = previousCache
       }
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('returns cached update status before refreshing the remote manifest', async () => {
+    const previousUrl = process.env.COMANDOS_UPDATE_MANIFEST_URL
+    const previousCache = process.env.COMANDOS_UPDATE_MANIFEST_CACHE
+    const previousState = process.env.COMANDOS_INSTALLED_STATE
+    const previousVersion = process.env.COMANDOS_WORKSPACE_VERSION
+    const previousFetch = globalThis.fetch
+    const dir = mkdtempSync(join(tmpdir(), 'comandos-update-status-cache-'))
+    const cachePath = join(dir, 'manifest-cache.json')
+    const statePath = join(dir, 'installed.json')
+    let resolveFetch: ((response: Response) => void) | null = null
+
+    try {
+      writeFileSync(
+        cachePath,
+        JSON.stringify({
+          schema: 1,
+          workspace: { version: '2.3.0-comandos.64', ref: 'main' },
+          agent: { version: 'Hermes Agent v0.14.0', ref: 'agent-ref' },
+        }),
+      )
+      writeFileSync(
+        statePath,
+        JSON.stringify({
+          workspaceVersion: '2.3.0-comandos.63',
+          hermesAgentVersion: 'Hermes Agent v0.14.0',
+          hermesAgentRef: 'agent-ref',
+        }),
+      )
+      process.env.COMANDOS_UPDATE_MANIFEST_URL =
+        'https://example.test/update-manifest.json'
+      process.env.COMANDOS_UPDATE_MANIFEST_CACHE = cachePath
+      process.env.COMANDOS_INSTALLED_STATE = statePath
+      delete process.env.COMANDOS_WORKSPACE_VERSION
+      globalThis.fetch = vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveFetch = resolve
+          }),
+      )
+
+      const startedAt = Date.now()
+      const status = readUpdateStatus()
+      expect(Date.now() - startedAt).toBeLessThan(1_000)
+      expect(status.products.workspace.installKind).toBe('managed')
+      expect(status.products.workspace.version).toBe('2.3.0-comandos.63')
+      expect(status.products.workspace.latestVersion).toBe('2.3.0-comandos.64')
+      expect(status.products.workspace.updateAvailable).toBe(true)
+
+      await Promise.resolve()
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+      resolveFetch?.(
+        new Response(
+          JSON.stringify({
+            schema: 1,
+            workspace: { version: '2.3.0-comandos.65', ref: 'main' },
+            agent: { version: 'Hermes Agent v0.14.0', ref: 'agent-ref' },
+          }),
+          { status: 200 },
+        ),
+      )
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(
+        readComandosManifest({ preferCache: true })?.workspace?.version,
+      ).toBe('2.3.0-comandos.65')
+    } finally {
+      if (previousUrl === undefined) {
+        delete process.env.COMANDOS_UPDATE_MANIFEST_URL
+      } else {
+        process.env.COMANDOS_UPDATE_MANIFEST_URL = previousUrl
+      }
+      if (previousCache === undefined) {
+        delete process.env.COMANDOS_UPDATE_MANIFEST_CACHE
+      } else {
+        process.env.COMANDOS_UPDATE_MANIFEST_CACHE = previousCache
+      }
+      if (previousState === undefined) {
+        delete process.env.COMANDOS_INSTALLED_STATE
+      } else {
+        process.env.COMANDOS_INSTALLED_STATE = previousState
+      }
+      if (previousVersion === undefined) {
+        delete process.env.COMANDOS_WORKSPACE_VERSION
+      } else {
+        process.env.COMANDOS_WORKSPACE_VERSION = previousVersion
+      }
+      globalThis.fetch = previousFetch
       rmSync(dir, { recursive: true, force: true })
     }
   })

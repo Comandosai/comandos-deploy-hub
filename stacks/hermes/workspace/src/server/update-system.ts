@@ -101,6 +101,11 @@ type ComandosUpdateManifest = {
   agent?: ManifestProduct
 }
 
+type ReadComandosManifestOptions = {
+  preferCache?: boolean
+  allowRemote?: boolean
+}
+
 const DEFAULT_COMANDOS_UPDATE_MANIFEST_URL =
   'https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/stacks/hermes/update-manifest.json'
 const DEFAULT_HERMES_AGENT_INSTALLER_URL =
@@ -108,7 +113,10 @@ const DEFAULT_HERMES_AGENT_INSTALLER_URL =
 const DEFAULT_UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000
 const MIN_UPDATE_CHECK_INTERVAL_MS = 10 * 1000
 const MAX_UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
+const BACKGROUND_MANIFEST_REFRESH_INTERVAL_MS = 60 * 1000
 let managedUpdateScriptSyncAttempted = false
+let manifestRefreshPromise: Promise<ComandosUpdateManifest | null> | null = null
+let manifestRefreshStartedAt = 0
 
 function pendingNotesPath(): string {
   return join(process.cwd(), '.runtime', 'pending-update-release-notes.json')
@@ -298,6 +306,54 @@ function resolveGithubRawBranchUrl(url: string): string {
   }
 }
 
+async function fetchTextWithTimeout(
+  url: string,
+  timeoutMs: number,
+  headers: Record<string, string> = {},
+): Promise<string | null> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetch(url, {
+      headers,
+      signal: controller.signal,
+    })
+    return response.ok ? await response.text() : null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+async function resolveGithubRawBranchUrlAsync(url: string): Promise<string> {
+  const match = url.match(
+    /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/,
+  )
+  if (!match) return url
+
+  const [, owner, repo, ref, path] = match
+  if (/^[0-9a-f]{40}$/i.test(ref)) return url
+
+  const apiUrl = `https://api.github.com/repos/${encodeURIComponent(
+    owner,
+  )}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(ref)}`
+  const raw = await fetchTextWithTimeout(apiUrl, 3_000, {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'comandos-workspace-update-check',
+  })
+
+  try {
+    const data = raw ? (JSON.parse(raw) as { sha?: unknown }) : null
+    const sha = typeof data?.sha === 'string' ? data.sha : null
+    return sha && /^[0-9a-f]{40}$/i.test(sha)
+      ? `https://raw.githubusercontent.com/${owner}/${repo}/${sha}/${path}`
+      : url
+  } catch {
+    return url
+  }
+}
+
 function parseComandosManifest(raw: string): ComandosUpdateManifest | null {
   try {
     const manifest = JSON.parse(raw) as unknown
@@ -333,9 +389,15 @@ function writeCachedComandosManifest(manifest: ComandosUpdateManifest): void {
   }
 }
 
-export function readComandosManifest(): ComandosUpdateManifest | null {
+export function readComandosManifest(
+  options: ReadComandosManifestOptions = {},
+): ComandosUpdateManifest | null {
+  const allowRemote = options.allowRemote ?? true
+  const cached = options.preferCache ? readCachedComandosManifest() : null
+  if (cached) return cached
+
   const url = comandosManifestUrl()
-  if (!url) return null
+  if (!url) return cached
   try {
     let manifest: ComandosUpdateManifest | null = null
     if (url.startsWith('file://')) {
@@ -348,6 +410,7 @@ export function readComandosManifest(): ComandosUpdateManifest | null {
       manifest = parseComandosManifest(readFileSync(url, 'utf8'))
       return manifest || readCachedComandosManifest()
     }
+    if (!allowRemote) return readCachedComandosManifest()
     const manifestUrl = resolveGithubRawBranchUrl(url)
     const raw = exec(
       'curl',
@@ -374,6 +437,49 @@ export function readComandosManifest(): ComandosUpdateManifest | null {
   } catch {
     return readCachedComandosManifest()
   }
+}
+
+export async function refreshComandosManifestCache(): Promise<ComandosUpdateManifest | null> {
+  const url = comandosManifestUrl()
+  if (!url) return null
+  try {
+    let manifest: ComandosUpdateManifest | null = null
+    if (url.startsWith('file://')) {
+      manifest = parseComandosManifest(
+        readFileSync(url.slice('file://'.length), 'utf8'),
+      )
+    } else if (url.startsWith('/')) {
+      manifest = parseComandosManifest(readFileSync(url, 'utf8'))
+    } else {
+      const manifestUrl = await resolveGithubRawBranchUrlAsync(url)
+      const raw = await fetchTextWithTimeout(manifestUrl, 4_000, {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      })
+      manifest = raw ? parseComandosManifest(raw) : null
+    }
+    if (manifest) writeCachedComandosManifest(manifest)
+    return manifest
+  } catch {
+    return null
+  }
+}
+
+export function refreshComandosManifestCacheInBackground(): void {
+  const url = comandosManifestUrl()
+  if (!url) return
+  const now = Date.now()
+  if (
+    manifestRefreshPromise ||
+    now - manifestRefreshStartedAt < BACKGROUND_MANIFEST_REFRESH_INTERVAL_MS
+  ) {
+    return
+  }
+
+  manifestRefreshStartedAt = now
+  manifestRefreshPromise = refreshComandosManifestCache().finally(() => {
+    manifestRefreshPromise = null
+  })
 }
 
 function isExecutable(path: string | null | undefined): boolean {
@@ -1002,8 +1108,11 @@ export function readAgentUpdateStatus(): ProductUpdateStatus {
 }
 
 export function readUpdateStatus(): UpdateStatus {
-  const manifest = readComandosManifest()
-  if (manifest) syncManagedUpdateScriptIfNeeded()
+  const manifest = readComandosManifest({
+    preferCache: true,
+    allowRemote: false,
+  })
+  refreshComandosManifestCacheInBackground()
   const legacyWorkspace = readWorkspaceUpdateStatus()
   const legacyAgent = readAgentUpdateStatus()
   const workspace = manifest
@@ -1082,6 +1191,7 @@ function applyManagedUpdate(
 export function applyWorkspaceUpdate(): ApplyUpdateResult {
   const before = readWorkspaceUpdateStatus()
   const manifest = readComandosManifest()
+  if (manifest) syncManagedUpdateScriptIfNeeded()
   const managed = manifest ? managedWorkspaceStatus(manifest) : null
   if (managed?.updateMode === 'comandos-managed') {
     return applyManagedUpdate('workspace', managed)
@@ -1198,6 +1308,7 @@ export function applyWorkspaceUpdate(): ApplyUpdateResult {
 export function applyAgentUpdate(): ApplyUpdateResult {
   const before = readAgentUpdateStatus()
   const manifest = readComandosManifest()
+  if (manifest) syncManagedUpdateScriptIfNeeded()
   const managed = manifest ? managedAgentStatus(before, manifest) : null
   if (managed?.updateMode === 'comandos-managed') {
     return applyManagedUpdate('agent', managed)
