@@ -125,8 +125,12 @@ function parseExecNotification(text: string): ExecNotification | null {
 
   if (!name) {
     const withoutPrefix = trimmed.replace(/^Exec completed[:\s-]*/i, '').trim()
-    const nameMatch = withoutPrefix.match(/^([^\(\{\[]+?)(?:\s*\(|\s*$)/)
-    if (nameMatch) name = nameMatch[1].trim()
+    const delimiterIndex = withoutPrefix.search(/[\s({[]/)
+    name = (
+      delimiterIndex >= 0
+        ? withoutPrefix.slice(0, delimiterIndex)
+        : withoutPrefix
+    ).trim()
   }
 
   if (exitCode === null) {
@@ -165,11 +169,11 @@ function getAttachmentSignature(message: ChatMessage): string {
 
   return message.attachments
     .map((attachment) => {
-      const name = typeof attachment?.name === 'string' ? attachment.name : ''
+      const name = typeof attachment.name === 'string' ? attachment.name : ''
       const size =
-        typeof attachment?.size === 'number' ? String(attachment.size) : ''
+        typeof attachment.size === 'number' ? String(attachment.size) : ''
       const type =
-        typeof attachment?.contentType === 'string'
+        typeof attachment.contentType === 'string'
           ? attachment.contentType
           : ''
       return `${name}:${size}:${type}`
@@ -303,10 +307,10 @@ export function useChatHistory({
     normalizedForcedSessionKey || explicitRouteSessionKey,
   )
   const shouldFetchHistory =
-    !portableMode &&
     !isNewChat &&
     Boolean(sessionKeyForHistory) &&
-    (canFetchWithoutSessions ||
+    (portableMode ||
+      canFetchWithoutSessions ||
       (!isRedirecting &&
         (hasDirectSessionKey || !sessionsReady || activeExists)))
 
@@ -329,11 +333,6 @@ export function useChatHistory({
   const historyQuery = useQuery({
     queryKey: historyKey,
     queryFn: async function fetchHistoryForSession() {
-      if (portableMode) {
-        if (isNewChat) return { sessionKey: 'new', messages: [] }
-        return readPortableHistory()
-      }
-
       const cached = queryClient.getQueryData(historyKey)
       const optimisticMessages = Array.isArray((cached as any)?.messages)
         ? (cached as any).messages.filter((message: any) => {
@@ -342,6 +341,37 @@ export function useChatHistory({
           return Boolean(message.clientId)
         })
         : []
+
+      if (portableMode) {
+        if (isNewChat) return { sessionKey: 'new', messages: [] }
+        let serverData: HistoryResponse
+        try {
+          serverData = await fetchHistory({
+            sessionKey: effectiveSessionKeyForHistory,
+            friendlyId: effectiveFriendlyId,
+          })
+        } catch {
+          serverData = readPortableHistory()
+        }
+
+        const fallbackData = readPortableHistory()
+        const dataWithFallback =
+          Array.isArray(serverData.messages) && serverData.messages.length > 0
+            ? serverData
+            : fallbackData
+
+        if (!optimisticMessages.length) return dataWithFallback
+
+        const merged = mergeOptimisticHistoryMessages(
+          dataWithFallback.messages,
+          optimisticMessages,
+        )
+
+        return {
+          ...dataWithFallback,
+          messages: merged,
+        }
+      }
 
       const serverData = await fetchHistory({
         sessionKey: sessionKeyForHistory,
