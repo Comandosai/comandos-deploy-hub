@@ -471,13 +471,23 @@ PY"; then
 }
 
 find_hermes_cli() {
-  local cli
+  local cli cli_q candidate candidate_q
   cli="$(as_app_user 'command -v hermes || true')"
-  if [[ -z "$cli" ]]; then
-    cli="/home/$APP_USER/.local/bin/hermes"
+  if [[ -n "$cli" ]]; then
+    printf -v cli_q '%q' "$cli"
+    if as_app_user "test -x $cli_q"; then
+      printf '%s\n' "$cli"
+      return
+    fi
   fi
-  [[ -x "$cli" ]] || die "hermes cli не найден: $cli"
-  printf '%s\n' "$cli"
+  for candidate in "/home/$APP_USER/.local/bin/hermes" "$REMOTE_HERMES_HOME/hermes-agent/hermes"; do
+    printf -v candidate_q '%q' "$candidate"
+    if as_app_user "test -x $candidate_q"; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+  die "hermes cli не найден для пользователя $APP_USER"
 }
 
 render_template() {
