@@ -213,11 +213,7 @@ ensure_workspace_runtime_deps() {
 
 backup_workspace() {
   local backup="$1"
-  if rsync -a --delete --link-dest="$REMOTE_WORKSPACE_DIR" "$REMOTE_WORKSPACE_DIR/" "$backup/"; then
-    return
-  fi
-
-  log "Hardlink backup не получился, делаю облегчённый backup без node_modules/dist/logs"
+  log "Делаю облегчённый backup без node_modules/dist/logs"
   rsync -a --delete \
     --exclude 'node_modules' \
     --exclude 'dist' \
