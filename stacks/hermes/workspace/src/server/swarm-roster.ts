@@ -55,6 +55,179 @@ export const SwarmRosterUpsertSchema = SwarmRosterWorkerSchema.extend({
 
 export type SwarmRosterUpsert = z.infer<typeof SwarmRosterUpsertSchema>
 
+type LegacyRosterLocalization = {
+  role?: { legacy: Array<string>; localized: string }
+  specialty?: { legacy: Array<string>; localized: string }
+  mission?: { legacy: Array<string>; localized: string }
+}
+
+const LEGACY_ROSTER_LOCALIZATIONS: Partial<Record<string, LegacyRosterLocalization>> = {
+  orchestrator: {
+    role: {
+      legacy: ['Swarm Orchestrator / Greenlight Gate'],
+      localized: 'Оркестратор роя / контроль подтверждений',
+    },
+    specialty: {
+      legacy: ['mission routing, task decomposition, handoffs, proof contracts, human approval gates'],
+      localized: 'маршрутизация миссий, декомпозиция задач, передачи контекста, доказательства, контроль подтверждений',
+    },
+    mission: {
+      legacy: ['Decompose missions into safe, proof-bearing work and route to the right specialist while preserving human greenlight control.'],
+      localized: 'Делит миссии на безопасные проверяемые задачи, направляет их нужному специалисту и сохраняет контроль главного подтверждения.',
+    },
+  },
+  'km-agent': {
+    role: {
+      legacy: ['RAZSOC / GBrain Knowledge Steward'],
+      localized: 'Хранитель знаний RAZSOC / GBrain',
+    },
+    specialty: {
+      legacy: ['RAZSOC, GBrain, Obsidian, TaskNotes, graph health, durable knowledge capture, drift audits'],
+      localized: 'RAZSOC, GBrain, Obsidian, TaskNotes, здоровье графа, фиксация знаний, аудит отклонений',
+    },
+    mission: {
+      legacy: ['Keep the operating brain coherent, searchable, and source-of-record aligned without polluting durable knowledge.'],
+      localized: 'Держит рабочую память связной, доступной для поиска и согласованной с источниками правды без засорения долговременных знаний.',
+    },
+  },
+  builder: {
+    role: {
+      legacy: ['Scoped Implementation Agent'],
+      localized: 'Агент точечной реализации',
+    },
+    specialty: {
+      legacy: ['focused implementation, tests, small diffs, integration fixes'],
+      localized: 'точечная реализация, тесты, маленькие изменения, интеграционные исправления',
+    },
+    mission: {
+      legacy: ['Ship scoped product/code slices with tests, minimal diffs, and clear verification evidence.'],
+      localized: 'Делает ограниченные продуктовые и кодовые задачи с тестами, минимальными изменениями и понятными доказательствами проверки.',
+    },
+  },
+  reviewer: {
+    role: {
+      legacy: ['Independent Review / Merge Gate'],
+      localized: 'Независимая проверка / контроль слияния',
+    },
+    specialty: {
+      legacy: ['security review, logic review, regression detection, quality gates'],
+      localized: 'проверка безопасности, логики, регрессий и качества',
+    },
+    mission: {
+      legacy: ['Independently review changes and block unsafe, untested, or logically broken work before it lands.'],
+      localized: 'Независимо проверяет изменения и блокирует небезопасную, непроверенную или логически сломанную работу до попадания в основную версию.',
+    },
+  },
+  qa: {
+    role: {
+      legacy: ['Browser / Workflow / CLI Smoke Verification'],
+      localized: 'Проверка браузера / сценариев / команд',
+    },
+    specialty: {
+      legacy: ['browser QA, workflow smoke tests, expected-vs-actual checks, regression reproduction'],
+      localized: 'проверка браузера, быстрые проверки сценариев, сравнение ожидания с фактом, воспроизведение регрессий',
+    },
+    mission: {
+      legacy: ['Verify user-visible behavior with concrete smoke evidence and concise bug reports.'],
+      localized: 'Проверяет видимое пользователю поведение, собирает конкретные доказательства и коротко описывает найденные ошибки.',
+    },
+  },
+  researcher: {
+    role: {
+      legacy: ['Brain-first Research / Bounded Autoresearch'],
+      localized: 'Исследователь с опорой на память / ограниченный автопоиск',
+    },
+    specialty: {
+      legacy: ['GBrain-first lookup, external research, synthesis, source trails, bounded research loops'],
+      localized: 'поиск сначала в GBrain, внешнее исследование, синтез, след источников, ограниченные циклы проверки',
+    },
+    mission: {
+      legacy: ['Produce decision-grade research with brain-first context, external verification, and explicit uncertainty.'],
+      localized: 'Готовит исследования для принятия решений: сначала контекст из памяти, затем внешняя проверка и явное указание неопределённости.',
+    },
+  },
+  'ops-watch': {
+    role: {
+      legacy: ['Local Infra / Runtime Health Watch'],
+      localized: 'Локальная инфраструктура / контроль здоровья',
+    },
+    specialty: {
+      legacy: ['gateway health, cron, MCP, workspace services, local process status, boring reliability'],
+      localized: 'здоровье шлюза, cron, MCP, сервисы workspace, локальные процессы, спокойная надёжность',
+    },
+    mission: {
+      legacy: ['Keep Hermes, Workspace, GBrain, gateway, cron, and local services observable and healthy with quiet, low-risk checks.'],
+      localized: 'Следит, чтобы Hermes, Workspace, GBrain, шлюз, cron и локальные сервисы были наблюдаемыми и здоровыми через тихие проверки с низким риском.',
+    },
+  },
+  maintainer: {
+    role: {
+      legacy: ['Upstream Dependency / Patch Hygiene'],
+      localized: 'Зависимости / порядок локальных патчей',
+    },
+    specialty: {
+      legacy: ['upstream tracking, local patch hygiene, dependency updates, PR/issue follow-through'],
+      localized: 'слежение за upstream, порядок локальных патчей, обновление зависимостей, сопровождение PR и issues',
+    },
+    mission: {
+      legacy: ['Keep local forks and upstream dependencies healthy without losing local patches or dirty-worktree context.'],
+      localized: 'Поддерживает локальные форки и внешние зависимости в порядке, не теряя локальные патчи и контекст незакоммиченных изменений.',
+    },
+  },
+  strategist: {
+    role: {
+      legacy: ['Wedges / Bets / Kill Criteria'],
+      localized: 'Стратегия / ставки / критерии остановки',
+    },
+    specialty: {
+      legacy: ['operating plans, gstack-style wedges, strategy reviews, decision framing, kill criteria'],
+      localized: 'рабочие планы, узкие ставки, стратегические проверки, рамки решений, критерии остановки',
+    },
+    mission: {
+      legacy: ['Turn ambiguity into crisp wedges, bets, constraints, and kill criteria without over-planning.'],
+      localized: 'Превращает неопределённость в ясные ставки, ограничения и критерии остановки без лишнего планирования.',
+    },
+  },
+  'inbox-triage': {
+    role: {
+      legacy: ['Capture / Discard / Route / Task Triage'],
+      localized: 'Входящие / отбор / маршрутизация / задачи',
+    },
+    specialty: {
+      legacy: ['low-friction inbox processing, capture routing, task/research/defer decisions, durable-context filtering'],
+      localized: 'быстрый разбор входящих, маршрутизация, решения задача/исследование/отложить, фильтр долговременного контекста',
+    },
+    mission: {
+      legacy: ['Route incoming material into discard, task, research, or durable brain capture with minimal overhead and no junk accumulation.'],
+      localized: 'Раскладывает входящие материалы на удалить, задачу, исследование или долговременную память без лишних действий и накопления мусора.',
+    },
+  },
+}
+
+function replaceLegacyRosterText(value: string, replacement?: { legacy: Array<string>; localized: string }): string {
+  if (!replacement) return value
+  const normalized = value.trim()
+  return replacement.legacy.includes(normalized) ? replacement.localized : value
+}
+
+export function localizeLegacySwarmRosterWorker(worker: SwarmRosterWorker): SwarmRosterWorker {
+  const localization = LEGACY_ROSTER_LOCALIZATIONS[worker.id]
+  if (!localization) return worker
+  return {
+    ...worker,
+    role: replaceLegacyRosterText(worker.role, localization.role),
+    specialty: replaceLegacyRosterText(worker.specialty, localization.specialty),
+    mission: replaceLegacyRosterText(worker.mission, localization.mission),
+  }
+}
+
+export function localizeLegacySwarmRoster(roster: SwarmRoster): SwarmRoster {
+  return {
+    ...roster,
+    workers: roster.workers.map(localizeLegacySwarmRosterWorker),
+  }
+}
+
 function titleCase(value: string): string {
   return value
     .split(/[-_\s]+/)
@@ -101,7 +274,7 @@ export function fallbackRoster(ids: Array<string> = []): SwarmRoster {
       role: defaultRoleFromId(id),
       specialty: '',
       model: 'Worker',
-      mission: 'Awaiting orchestrator dispatch.',
+      mission: 'Ожидает задачу от оркестратора.',
       skills: [],
       capabilities: [],
       defaultCwd: undefined,
@@ -122,7 +295,7 @@ export function readSwarmRoster(ids: Array<string> = []): SwarmRoster {
     for (const fallback of fallbackRoster(ids).workers) {
       if (!byId.has(fallback.id)) byId.set(fallback.id, fallback)
     }
-    return { version: parsed.version, workers: [...byId.values()] }
+    return localizeLegacySwarmRoster({ version: parsed.version, workers: [...byId.values()] })
   } catch {
     return fallbackRoster(ids)
   }

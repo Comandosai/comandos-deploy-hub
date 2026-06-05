@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SwarmRosterSchema, SwarmRosterUpsertSchema, isSwarmWorkerId } from './swarm-roster'
+import { SwarmRosterSchema, SwarmRosterUpsertSchema, isSwarmWorkerId, localizeLegacySwarmRoster } from './swarm-roster'
 
 describe('swarm roster semantic workers', () => {
   it('accepts both legacy swarm ids and semantic profile ids for upsert', () => {
@@ -63,6 +63,65 @@ describe('swarm roster semantic workers', () => {
       mcpServers: ['gbrain'],
       wrapper: 'km:health',
       greenlightRequiredFor: ['delete', 'purge', 'publish'],
+    })
+  })
+
+  it('localizes legacy saved swarm role descriptions without overwriting custom text', () => {
+    const localized = localizeLegacySwarmRoster({
+      version: 1,
+      workers: [
+        {
+          id: 'builder',
+          name: 'Builder',
+          role: 'Scoped Implementation Agent',
+          specialty: 'focused implementation, tests, small diffs, integration fixes',
+          model: 'GPT-5.5',
+          mission: 'Ship scoped product/code slices with tests, minimal diffs, and clear verification evidence.',
+          skills: [],
+          capabilities: [],
+          preferredTaskTypes: [],
+          maxConcurrentTasks: 1,
+          acceptsBroadcast: true,
+          reviewRequired: false,
+          modes: [],
+          tools: [],
+          plugins: [],
+          pluginToolsets: [],
+          mcpServers: [],
+          greenlightRequiredFor: [],
+        },
+        {
+          id: 'custom-agent',
+          name: 'Custom Agent',
+          role: 'Custom English role',
+          specialty: 'Custom English specialty',
+          model: 'GPT-5.5',
+          mission: 'Custom English mission.',
+          skills: [],
+          capabilities: [],
+          preferredTaskTypes: [],
+          maxConcurrentTasks: 1,
+          acceptsBroadcast: true,
+          reviewRequired: false,
+          modes: [],
+          tools: [],
+          plugins: [],
+          pluginToolsets: [],
+          mcpServers: [],
+          greenlightRequiredFor: [],
+        },
+      ],
+    })
+
+    expect(localized.workers[0]).toMatchObject({
+      role: 'Агент точечной реализации',
+      specialty: 'точечная реализация, тесты, маленькие изменения, интеграционные исправления',
+      mission: 'Делает ограниченные продуктовые и кодовые задачи с тестами, минимальными изменениями и понятными доказательствами проверки.',
+    })
+    expect(localized.workers[1]).toMatchObject({
+      role: 'Custom English role',
+      specialty: 'Custom English specialty',
+      mission: 'Custom English mission.',
     })
   })
 })
