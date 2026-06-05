@@ -48,8 +48,12 @@ afterEach(() => {
 })
 
 async function loadHandlers(modulePath: string) {
-  const mod = await import(modulePath)
-  return (mod as any).Route.server.handlers
+  const mod: {
+    Route: {
+      server: { handlers: Record<string, (input: any) => Promise<Response>> }
+    }
+  } = await import(modulePath)
+  return mod.Route.server.handlers
 }
 
 describe('canonical /api/hermes-config route', () => {
@@ -61,7 +65,7 @@ describe('canonical /api/hermes-config route', () => {
     )
     fs.writeFileSync(
       path.join(tmpHome, '.env'),
-      'OPENROUTER_API_KEY=sk-test-1234\n',
+      'OPENROUTER_API_KEY=fake-active-openrouter\n',
       'utf-8',
     )
 
@@ -95,9 +99,9 @@ describe('canonical /api/hermes-config route', () => {
     const body = await res.json()
 
     expect(body).toMatchObject({ ok: true, message: 'Default model updated.' })
-    expect(
-      fs.readFileSync(path.join(tmpHome, 'config.yaml'), 'utf-8'),
-    ).toMatch(/provider: openrouter/)
+    expect(fs.readFileSync(path.join(tmpHome, 'config.yaml'), 'utf-8')).toMatch(
+      /provider: openrouter/,
+    )
   })
 
   it('PATCH legacy { config } body deep-merges and preserves siblings', async () => {
@@ -131,6 +135,103 @@ describe('canonical /api/hermes-config route', () => {
     expect(res.status).toBe(400)
   })
 
+  it('PATCH remove-provider refuses to remove the active provider', async () => {
+    fs.writeFileSync(
+      path.join(tmpHome, 'config.yaml'),
+      'provider: openrouter\nmodel: auto\n',
+      'utf-8',
+    )
+    fs.writeFileSync(
+      path.join(tmpHome, '.env'),
+      'OPENROUTER_API_KEY=fake-active-openrouter\n',
+      'utf-8',
+    )
+
+    const handlers = await loadHandlers('./hermes-config')
+    const res = await handlers.PATCH({
+      request: new Request('http://localhost/api/hermes-config', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          action: 'remove-provider',
+          providerId: 'openrouter',
+        }),
+      }),
+    })
+    const body = await res.json()
+
+    expect(res.status).toBe(409)
+    expect(body.error).toContain('Сначала выберите другую модель')
+    expect(fs.readFileSync(path.join(tmpHome, '.env'), 'utf-8')).toContain(
+      'OPENROUTER_API_KEY=fake-active-openrouter',
+    )
+  })
+
+  it('PATCH remove-provider removes inactive env keys and config auth profiles', async () => {
+    fs.writeFileSync(
+      path.join(tmpHome, 'config.yaml'),
+      [
+        'provider: deepseek',
+        'model: deepseek-chat',
+        'auth:',
+        '  profiles:',
+        '    openrouter:default:',
+        '      provider: openrouter',
+        '      apiKey: fake-config-openrouter',
+        '    deepseek:default:',
+        '      provider: deepseek',
+        '      apiKey: fake-config-deepseek',
+        '',
+      ].join('\n'),
+      'utf-8',
+    )
+    fs.writeFileSync(
+      path.join(tmpHome, '.env'),
+      'OPENROUTER_API_KEY=fake-env-openrouter\nDEEPSEEK_API_KEY=fake-env-deepseek\n',
+      'utf-8',
+    )
+
+    const handlers = await loadHandlers('./hermes-config')
+    const res = await handlers.PATCH({
+      request: new Request('http://localhost/api/hermes-config', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          action: 'remove-provider',
+          providerId: 'openrouter',
+        }),
+      }),
+    })
+    const body = await res.json()
+    const configOnDisk = fs.readFileSync(
+      path.join(tmpHome, 'config.yaml'),
+      'utf-8',
+    )
+    const envOnDisk = fs.readFileSync(path.join(tmpHome, '.env'), 'utf-8')
+
+    expect(res.status).toBe(200)
+    expect(body.ok).toBe(true)
+    expect(configOnDisk).not.toContain('openrouter')
+    expect(configOnDisk).toContain('deepseek:default')
+    expect(envOnDisk).not.toContain('OPENROUTER_API_KEY')
+    expect(envOnDisk).toContain('DEEPSEEK_API_KEY=fake-env-deepseek')
+  })
+
+  it('PATCH remove-provider explains CLI providers instead of pretending to delete them', async () => {
+    const handlers = await loadHandlers('./hermes-config')
+    const res = await handlers.PATCH({
+      request: new Request('http://localhost/api/hermes-config', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          action: 'remove-provider',
+          providerId: 'openai-codex',
+        }),
+      }),
+    })
+    const body = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(body.error).toContain('codex logout')
+  })
+
   it('PATCH returns 503 when the gateway capability is unavailable', async () => {
     vi.doMock('../../server/gateway-capabilities', () => ({
       ensureGatewayProbed: vi.fn(),
@@ -140,7 +241,11 @@ describe('canonical /api/hermes-config route', () => {
     const res = await handlers.PATCH({
       request: new Request('http://localhost/api/hermes-config', {
         method: 'PATCH',
-        body: JSON.stringify({ action: 'set-api-key', envKey: 'X', value: 'y' }),
+        body: JSON.stringify({
+          action: 'set-api-key',
+          envKey: 'X',
+          value: 'y',
+        }),
       }),
     })
     expect(res.status).toBe(503)

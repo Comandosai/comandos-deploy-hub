@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import YAML from 'yaml'
 
+import { HERMES_PROVIDER_CATALOG } from './hermes-config-migration'
 import type { HermesConfigPaths } from './hermes-config-migration'
 
 export type SetDefaultModelPatch = {
@@ -37,16 +38,23 @@ export type RemoveCustomProviderPatch = {
   name: string
 }
 
+export type RemoveProviderPatch = {
+  action: 'remove-provider'
+  providerId: string
+}
+
 export type HermesConfigPatch =
   | SetDefaultModelPatch
   | SetApiKeyPatch
   | RemoveApiKeyPatch
   | SetCustomProviderPatch
   | RemoveCustomProviderPatch
+  | RemoveProviderPatch
 
 export type HermesConfigPatchResult = {
   ok: boolean
   message?: string
+  status?: number
 }
 
 export type HermesConfigFiles = {
@@ -104,9 +112,11 @@ function quoteEnvValue(value: string): string {
 }
 
 export function stringifyEnv(env: Record<string, string>): string {
-  return Object.entries(env)
-    .map(([k, v]) => `${k}=${quoteEnvValue(v)}`)
-    .join('\n') + '\n'
+  return (
+    Object.entries(env)
+      .map(([k, v]) => `${k}=${quoteEnvValue(v)}`)
+      .join('\n') + '\n'
+  )
 }
 
 function readYamlConfig(configPath: string): Record<string, unknown> {
@@ -121,7 +131,10 @@ function readYamlConfig(configPath: string): Record<string, unknown> {
   }
 }
 
-function writeYamlConfig(configPath: string, config: Record<string, unknown>): void {
+function writeYamlConfig(
+  configPath: string,
+  config: Record<string, unknown>,
+): void {
   fs.mkdirSync(path.dirname(configPath), { recursive: true })
   fs.writeFileSync(configPath, YAML.stringify(config), 'utf-8')
 }
@@ -139,6 +152,18 @@ function writeEnv(envPath: string, env: Record<string, string>): void {
   fs.writeFileSync(envPath, stringifyEnv(env), 'utf-8')
 }
 
+function writeAuthProfiles(
+  authProfilesPath: string,
+  authProfiles: Record<string, unknown>,
+): void {
+  fs.mkdirSync(path.dirname(authProfilesPath), { recursive: true })
+  fs.writeFileSync(
+    authProfilesPath,
+    JSON.stringify(authProfiles, null, 2) + '\n',
+    'utf-8',
+  )
+}
+
 function readAuthProfiles(authProfilesPath: string): Record<string, unknown> {
   try {
     const raw = fs.readFileSync(authProfilesPath, 'utf-8')
@@ -151,7 +176,9 @@ function readAuthProfiles(authProfilesPath: string): Record<string, unknown> {
   }
 }
 
-export function readHermesConfigFiles(paths: HermesConfigPaths): HermesConfigFiles {
+export function readHermesConfigFiles(
+  paths: HermesConfigPaths,
+): HermesConfigFiles {
   return {
     config: readYamlConfig(paths.configPath),
     env: readEnv(paths.envPath),
@@ -159,13 +186,60 @@ export function readHermesConfigFiles(paths: HermesConfigPaths): HermesConfigFil
   }
 }
 
-function readCustomProvidersList(config: Record<string, unknown>): Array<Record<string, unknown>> {
+function readCustomProvidersList(
+  config: Record<string, unknown>,
+): Array<Record<string, unknown>> {
   const entries = config.custom_providers
   return Array.isArray(entries)
     ? entries.filter((entry): entry is Record<string, unknown> => {
-        return Boolean(entry && typeof entry === 'object' && !Array.isArray(entry))
+        return Boolean(
+          entry && typeof entry === 'object' && !Array.isArray(entry),
+        )
       })
     : []
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
+function readActiveProvider(config: Record<string, unknown>): string {
+  const flatProvider =
+    typeof config.provider === 'string' ? config.provider.trim() : ''
+  const model = readRecord(config.model)
+  const nestedProvider =
+    typeof model.provider === 'string' ? model.provider.trim() : ''
+  return nestedProvider || flatProvider
+}
+
+function removeProviderProfiles(
+  holder: Record<string, unknown>,
+  providerId: string,
+): boolean {
+  const profiles = readRecord(holder.profiles)
+  let changed = false
+
+  for (const [profileKey, rawProfile] of Object.entries(profiles)) {
+    const profile = readRecord(rawProfile)
+    const profileProvider =
+      typeof profile.provider === 'string' ? profile.provider.trim() : ''
+    if (
+      profileKey.startsWith(`${providerId}:`) ||
+      profileProvider === providerId
+    ) {
+      delete profiles[profileKey]
+      changed = true
+    }
+  }
+
+  if (changed) {
+    if (Object.keys(profiles).length === 0) delete holder.profiles
+    else holder.profiles = profiles
+  }
+
+  return changed
 }
 
 function applySetDefaultModel(
@@ -244,6 +318,88 @@ function applyRemoveCustomProvider(
   return { ok: true }
 }
 
+function applyRemoveProvider(
+  paths: HermesConfigPaths,
+  patch: RemoveProviderPatch,
+): HermesConfigPatchResult {
+  const providerId = patch.providerId.trim().toLowerCase()
+  const provider = HERMES_PROVIDER_CATALOG.find(
+    (entry) => entry.id === providerId,
+  )
+
+  if (!provider) {
+    return {
+      ok: false,
+      status: 400,
+      message:
+        'Этот провайдер приходит от Hermes Agent и не удаляется из панели настроек.',
+    }
+  }
+
+  if (provider.kind === 'local') {
+    return {
+      ok: false,
+      status: 400,
+      message:
+        'Локальный провайдер не хранит API-ключ в панели. Отключите его в локальном сервисе.',
+    }
+  }
+
+  if (provider.kind === 'cli_token') {
+    return {
+      ok: false,
+      status: 400,
+      message:
+        'CLI-провайдер не хранит ключ в Hermes. Для OpenAI Codex выполните codex logout на сервере.',
+    }
+  }
+
+  const config = readYamlConfig(paths.configPath)
+  if (readActiveProvider(config) === providerId) {
+    return {
+      ok: false,
+      status: 409,
+      message:
+        'Сначала выберите другую модель по умолчанию, потом удалите этот провайдер.',
+    }
+  }
+
+  const env = readEnv(paths.envPath)
+  let changed = false
+
+  for (const envKey of provider.envKeys) {
+    if (envKey in env) {
+      delete env[envKey]
+      changed = true
+    }
+  }
+
+  const auth = readRecord(config.auth)
+  if (removeProviderProfiles(auth, providerId)) {
+    changed = true
+    if (Object.keys(auth).length === 0) delete config.auth
+    else config.auth = auth
+  }
+
+  const authProfiles = readAuthProfiles(paths.authProfilesPath)
+  const authProfilesChanged = removeProviderProfiles(authProfiles, providerId)
+
+  if (!changed && !authProfilesChanged) {
+    return {
+      ok: false,
+      status: 404,
+      message: 'Для этого провайдера не найден сохранённый ключ или профиль.',
+    }
+  }
+
+  writeEnv(paths.envPath, env)
+  writeYamlConfig(paths.configPath, config)
+  if (authProfilesChanged)
+    writeAuthProfiles(paths.authProfilesPath, authProfiles)
+
+  return { ok: true }
+}
+
 export function applyHermesConfigPatch(
   paths: HermesConfigPaths,
   patch: HermesConfigPatch,
@@ -259,6 +415,8 @@ export function applyHermesConfigPatch(
       return applySetCustomProvider(paths, patch)
     case 'remove-custom-provider':
       return applyRemoveCustomProvider(paths, patch)
+    case 'remove-provider':
+      return applyRemoveProvider(paths, patch)
     default: {
       const _exhaustive: never = patch
       void _exhaustive

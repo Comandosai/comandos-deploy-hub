@@ -31,18 +31,22 @@ import { cn } from '@/lib/utils'
 // bundling Node.js-only modules (node:sqlite, node:fs) into the client bundle.
 async function getConfig(): Promise<Record<string, unknown>> {
   const res = await fetch('/api/claude-config')
-  if (!res.ok) throw new Error(`Не удалось загрузить конфиг: HTTP ${res.status}`)
-  const data = await res.json() as { config?: Record<string, unknown> }
+  if (!res.ok)
+    throw new Error(`Не удалось загрузить конфиг: HTTP ${res.status}`)
+  const data = (await res.json()) as { config?: Record<string, unknown> }
   return data.config ?? {}
 }
 
-async function patchConfig(patch: Record<string, unknown>): Promise<Record<string, unknown>> {
+async function patchConfig(
+  patch: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
   const res = await fetch('/api/claude-config', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ config: patch }),
   })
-  if (!res.ok) throw new Error(`Не удалось сохранить конфиг: HTTP ${res.status}`)
+  if (!res.ok)
+    throw new Error(`Не удалось сохранить конфиг: HTTP ${res.status}`)
   return res.json() as Promise<Record<string, unknown>>
 }
 
@@ -88,6 +92,8 @@ type ProviderSummary = {
   description: string
   modelCount: number
   status: ProviderStatus
+  canDelete: boolean
+  deleteDisabledReason?: string
 }
 
 type ProvidersScreenProps = {
@@ -104,6 +110,12 @@ type ConfigQueryResponse = {
 
 type ConfigPatchResponse = {
   ok?: boolean
+  error?: string
+}
+
+type ProviderConfigResponse = {
+  ok?: boolean
+  activeProvider?: string
   error?: string
 }
 
@@ -233,6 +245,17 @@ async function fetchModels(): Promise<{
     models: models as Array<ModelCatalogEntry>,
     configuredProviders,
   }
+}
+
+async function fetchProviderConfig(): Promise<ProviderConfigResponse> {
+  const response = await fetch('/api/hermes-config')
+  const payload = (await response
+    .json()
+    .catch(() => ({}))) as ProviderConfigResponse
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.error || `HTTP ${response.status}`)
+  }
+  return payload
 }
 
 const TAB_ORDER: Array<{ id: SettingsTabId; label: string }> = [
@@ -375,11 +398,38 @@ function readProviderId(entry: ModelCatalogEntry): string | null {
   return normalized || null
 }
 
-function buildProviderSummaries(payload: {
+function getProviderDeleteDisabledReason(
+  providerId: string,
+  activeProvider: string,
+): string | undefined {
+  const metadata = getProviderInfo(providerId)
+
+  if (!metadata) {
+    return 'Этот провайдер приходит от Hermes Agent и не удаляется из панели.'
+  }
+
+  if (providerId === activeProvider) {
+    return 'Сначала выберите другую модель по умолчанию, потом удалите провайдера.'
+  }
+
+  if (metadata.authTypes.includes('local')) {
+    return 'Локальный провайдер не хранит ключ в панели. Отключите его в локальном сервисе.'
+  }
+
+  if (metadata.authTypes.includes('cli-token')) {
+    return 'CLI-вход не хранит ключ в Hermes. Для OpenAI Codex выполните codex logout на сервере.'
+  }
+
+  return undefined
+}
+
+export function buildProviderSummaries(payload: {
   models?: Array<ModelCatalogEntry>
   configuredProviders?: Array<string>
+  activeProvider?: string
 }): Array<ProviderSummary> {
   const modelCounts = new Map<string, number>()
+  const activeProvider = normalizeProviderId(payload.activeProvider ?? '')
 
   for (const entry of payload.models ?? []) {
     const providerId = readProviderId(entry)
@@ -404,6 +454,10 @@ function buildProviderSummaries(payload: {
   for (const providerId of configuredSet) {
     const metadata = getProviderInfo(providerId)
     const modelCount = modelCounts.get(providerId) ?? 0
+    const deleteDisabledReason = getProviderDeleteDisabledReason(
+      providerId,
+      activeProvider,
+    )
 
     summaries.push({
       id: providerId,
@@ -413,6 +467,8 @@ function buildProviderSummaries(payload: {
         'Провайдер настроен в локальной конфигурации Hermes.',
       modelCount,
       status: modelCount > 0 ? 'active' : 'configured',
+      canDelete: !deleteDisabledReason,
+      deleteDisabledReason,
     })
   }
 
@@ -458,7 +514,7 @@ function getDraftValue(
   config: ClaudeConfig | undefined,
   draftValues: Record<string, string>,
 ): string {
-  if (draftValues[setting.id] !== undefined) return draftValues[setting.id]
+  if (setting.id in draftValues) return draftValues[setting.id]
   if (!setting.path) return ''
   const rawValue = readPath(config, setting.path)
   if (setting.formatter) return setting.formatter(rawValue)
@@ -1076,13 +1132,18 @@ function ActiveModelCard({
         queryClient.invalidateQueries({ queryKey: ['claude', 'config'] }),
         queryClient.invalidateQueries({ queryKey: ['claude-config'] }),
       ])
-      toast('Конфигурация модели сохранена — сработает со следующего сообщения', {
-        type: 'success',
-      })
+      toast(
+        'Конфигурация модели сохранена — сработает со следующего сообщения',
+        {
+          type: 'success',
+        },
+      )
     },
     onError: (error) => {
       toast(
-        error instanceof Error ? error.message : 'Не удалось сохранить конфигурацию модели',
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить конфигурацию модели',
         { type: 'error' },
       )
     },
@@ -1122,7 +1183,8 @@ function ActiveModelCard({
         </p>
       ) : configQuery.error ? (
         <p className="mt-4 text-sm text-red-500">
-          Не удалось загрузить конфигурацию. Проверьте, что Hermes Agent запущен.
+          Не удалось загрузить конфигурацию. Проверьте, что Hermes Agent
+          запущен.
         </p>
       ) : (
         <div className="mt-5 space-y-4">
@@ -1143,7 +1205,8 @@ function ActiveModelCard({
                   Запасная модель
                 </h3>
                 <p className="text-sm text-primary-600">
-                  Дополнительная модель на случай, если основной путь не сработает.
+                  Дополнительная модель на случай, если основной путь не
+                  сработает.
                 </p>
               </div>
               <Button
@@ -1201,7 +1264,9 @@ function ActiveModelCard({
                     }))
                   }}
                 />
-                <p className="text-xs text-primary-500">По умолчанию: 90 сек.</p>
+                <p className="text-xs text-primary-500">
+                  По умолчанию: 90 сек.
+                </p>
               </label>
 
               <label className="space-y-1.5">
@@ -1220,7 +1285,9 @@ function ActiveModelCard({
                     }))
                   }}
                 />
-                <p className="text-xs text-primary-500">По умолчанию: 60 сек.</p>
+                <p className="text-xs text-primary-500">
+                  По умолчанию: 60 сек.
+                </p>
               </label>
             </div>
 
@@ -1286,8 +1353,8 @@ function ProviderManagementSection(props: {
               Подключённые провайдеры
             </h3>
             <p className="mt-1 text-xs text-primary-600">
-              API-ключи остаются в локальном конфиге Hermes и не отправляются
-              в COMANDOS.
+              API-ключи остаются в локальном конфиге Hermes и не отправляются в
+              COMANDOS.
             </p>
           </div>
           <p className="text-xs text-primary-600 tabular-nums">
@@ -1304,7 +1371,8 @@ function ProviderManagementSection(props: {
         {modelsQuery.error ? (
           <div className="rounded-xl border border-primary-200 bg-white px-4 py-3">
             <p className="mb-2 text-sm text-primary-700">
-              Сейчас не удалось загрузить провайдеры. Проверьте подключение Hermes Agent.
+              Сейчас не удалось загрузить провайдеры. Проверьте подключение
+              Hermes Agent.
             </p>
             <Button
               variant="outline"
@@ -1321,8 +1389,8 @@ function ProviderManagementSection(props: {
         providerSummaries.length === 0 ? (
           <div className="rounded-xl border border-primary-200 bg-white px-4 py-4">
             <p className="text-sm text-primary-700">
-              Провайдеры пока не настроены. Нажмите «Добавить провайдера»,
-              чтобы открыть мастер настройки.
+              Провайдеры пока не настроены. Нажмите «Добавить провайдера», чтобы
+              открыть мастер настройки.
             </p>
           </div>
         ) : null}
@@ -1388,8 +1456,9 @@ function ProviderManagementSection(props: {
                       onClick={function onProviderDelete() {
                         onDelete(provider)
                       }}
-                      disabled={isDeleting}
+                      disabled={isDeleting || !provider.canDelete}
                       aria-label={`Удалить ${provider.name}`}
+                      title={provider.deleteDisabledReason}
                     >
                       <HugeiconsIcon
                         icon={Delete02Icon}
@@ -1399,6 +1468,12 @@ function ProviderManagementSection(props: {
                       {isDeleting ? 'Удаляю...' : 'Удалить'}
                     </Button>
                   </div>
+
+                  {provider.deleteDisabledReason ? (
+                    <p className="mt-2 rounded-lg border border-primary-200 bg-primary-50 px-2.5 py-2 text-xs text-primary-600">
+                      {provider.deleteDisabledReason}
+                    </p>
+                  ) : null}
                 </article>
               )
             })}
@@ -1425,6 +1500,13 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
     queryFn: fetchModels,
     refetchInterval: 60_000,
     retry: false,
+    enabled: configAvailable,
+  })
+
+  const providerConfigQuery = useQuery({
+    queryKey: ['hermes', 'provider-config'],
+    queryFn: fetchProviderConfig,
+    retry: 1,
     enabled: configAvailable,
   })
 
@@ -1463,9 +1545,14 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
       toast(`${variables.label} сохранено`, { type: 'success' })
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось сохранить настройку', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить настройку',
+        {
+          type: 'error',
+        },
+      )
     },
   })
 
@@ -1480,9 +1567,14 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
         )
           ? modelsQuery.data.configuredProviders
           : [],
+        activeProvider: providerConfigQuery.data?.activeProvider,
       })
     },
-    [modelsQuery.data?.configuredProviders, modelsQuery.data?.models],
+    [
+      modelsQuery.data?.configuredProviders,
+      modelsQuery.data?.models,
+      providerConfigQuery.data?.activeProvider,
+    ],
   )
 
   const modelOptions = useMemo(
@@ -1533,6 +1625,17 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
   }
 
   async function handleDelete(provider: ProviderSummary) {
+    if (!provider.canDelete) {
+      toast(
+        provider.deleteDisabledReason ??
+          'Этот провайдер нельзя удалить из панели.',
+        {
+          type: 'error',
+        },
+      )
+      return
+    }
+
     const confirmed = window.confirm(
       `Удалить провайдера "${provider.name}"? API-ключ будет удалён из локального конфига.`,
     )
@@ -1540,27 +1643,35 @@ export function ProvidersScreen({ embedded = false }: ProvidersScreenProps) {
 
     setDeletingId(provider.id)
     try {
-      const res = await fetch('/api/claude-config', {
-        method: 'POST',
+      const res = await fetch('/api/hermes-config', {
+        method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           action: 'remove-provider',
-          provider: provider.id,
+          providerId: provider.id,
         }),
       })
       const data = (await res.json()) as { ok: boolean; error?: string }
-      if (!data.ok) {
-        toast(`Не удалось удалить провайдера: ${data.error ?? 'неизвестная ошибка'}`, {
-          type: 'error',
-        })
+      if (!res.ok || !data.ok) {
+        toast(
+          `Не удалось удалить провайдера: ${data.error ?? 'неизвестная ошибка'}`,
+          {
+            type: 'error',
+          },
+        )
       } else {
         await queryClient.invalidateQueries({
           queryKey: ['claude', 'providers', 'models'],
         })
+        await queryClient.invalidateQueries({
+          queryKey: ['hermes', 'provider-config'],
+        })
         toast(`Провайдер "${provider.name}" удалён`, { type: 'success' })
       }
     } catch {
-      toast('Сетевая ошибка — не удалось удалить провайдера.', { type: 'error' })
+      toast('Сетевая ошибка — не удалось удалить провайдера.', {
+        type: 'error',
+      })
     } finally {
       setDeletingId(null)
     }
