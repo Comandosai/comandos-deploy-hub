@@ -384,7 +384,7 @@ export function FileExplorerSidebar({
       aria-hidden={collapsed}
       inert={collapsed ? true : undefined}
       className={cn(
-        'border-r border-primary-200 bg-primary-100 h-full flex flex-col transition-all duration-200 ease-out',
+        'border-r border-primary-200 bg-primary-100 h-full flex flex-col overflow-hidden transition-all duration-200 ease-out',
         collapsed
           ? 'w-0 opacity-0 pointer-events-none'
           : 'w-[260px] opacity-100',
