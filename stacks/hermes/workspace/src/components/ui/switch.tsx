@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils'
  */
 function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
   return (
-    <span className="inline-flex align-middle [&>input[aria-hidden='true']]:pointer-events-none">
+    <span className="inline-flex align-middle [&>input[aria-hidden='true']]:!hidden [&>input[aria-hidden='true']]:pointer-events-none">
       <SwitchPrimitive.Root
         className={cn(
           'relative inline-flex h-[calc(var(--thumb-size)+2px)] w-[calc(var(--thumb-size)*2.4-2px)] shrink-0 items-center rounded-full p-px outline-none transition-[background-color,box-shadow] duration-200 [--thumb-size:--spacing(5)] focus-visible:ring-2 focus-visible:ring-primary-950 focus-visible:ring-offset-1 focus-visible:ring-offset-background data-checked:bg-emerald-600 data-unchecked:bg-primary-300 dark:data-unchecked:bg-neutral-600 border border-primary-300 dark:border-neutral-500 data-checked:border-emerald-700 data-disabled:opacity-64 sm:[--thumb-size:--spacing(4)]',
