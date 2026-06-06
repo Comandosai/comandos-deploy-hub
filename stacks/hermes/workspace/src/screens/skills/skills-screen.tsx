@@ -142,6 +142,45 @@ function formatCategoryLabel(category: string): string {
   return CATEGORY_LABELS[category] ?? category
 }
 
+const FEATURED_GROUP_LABELS: Record<string, string> = {
+  'Most Popular': 'Популярное',
+  'New This Week': 'Новое за неделю',
+  'Developer Tools': 'Инструменты разработки',
+  Productivity: 'Продуктивность',
+}
+
+function formatFeaturedGroupLabel(group: string | undefined): string {
+  return group ? FEATURED_GROUP_LABELS[group] ?? group : 'Выбор команды'
+}
+
+const SKILL_DESCRIPTION_LABELS: Record<string, string> = {
+  'Manage Apple Notes via memo CLI: create, search, edit.':
+    'Управляет Apple Notes через memo CLI: создаёт, ищет и редактирует заметки.',
+  'Generate images, video, and audio with ComfyUI — install, launch, manage nodes/models, run workflows with parameter injection. Uses the official comfy-cli for lifecycle and direct REST/WebSocket API for execution.':
+    'Генерирует изображения, видео и аудио через ComfyUI: устанавливает, запускает, управляет узлами и моделями, выполняет сценарии с параметрами.',
+  'Create, triage, label, assign GitHub issues via gh or REST.':
+    'Создаёт, разбирает, помечает и назначает GitHub issues через gh или REST.',
+  'GitHub PR lifecycle: branch, commit, open, CI, merge.':
+    'Ведёт цикл pull request в GitHub: ветка, commit, открытие, проверки CI и слияние.',
+  'Clone/create/fork repos; manage remotes, releases.':
+    'Клонирует, создаёт и форкает репозитории; управляет remotes и релизами.',
+}
+
+function formatSkillDescription(description: string): string {
+  const normalized = description.replace(/\s+/g, ' ').trim()
+  if (!normalized) return 'Описание навыка не указано.'
+  const translated = SKILL_DESCRIPTION_LABELS[normalized]
+  if (translated) return translated
+
+  const hasCyrillic = /[А-Яа-яЁё]/.test(normalized)
+  const hasLatin = /[A-Za-z]/.test(normalized)
+  if (hasLatin && !hasCyrillic) {
+    return 'Описание из внешнего каталога пока не переведено. Перед установкой откройте детали и проверьте навык вручную.'
+  }
+
+  return description
+}
+
 function normalizeSkillActionError(message: string): string {
   if (
     message.includes('legacy enhanced fork') ||
@@ -352,9 +391,9 @@ export function SkillsScreen() {
                       ? '🤖'
                       : '🧩',
           content: [
-            skill.description,
-            skill.identifier ? `Identifier: ${skill.identifier}` : '',
-            skill.trust_level ? `Trust: ${skill.trust_level}` : '',
+            formatSkillDescription(skill.description),
+            skill.identifier ? `Идентификатор: ${skill.identifier}` : '',
+            skill.trust_level ? `Доверие источника: ${skill.trust_level}` : '',
           ]
             .filter(Boolean)
             .join('\n\n'),
@@ -762,8 +801,9 @@ export function SkillsScreen() {
                   {selectedSkill.icon} {selectedSkill.name}
                 </DialogTitle>
                 <DialogDescription className="mt-1 text-pretty">
-                  Автор: {selectedSkill.author} • {selectedSkill.category} •{' '}
-                  файлов: {selectedSkill.fileCount.toLocaleString()}
+                  Автор: {selectedSkill.author} •{' '}
+                  {formatCategoryLabel(selectedSkill.category)} • файлов:{' '}
+                  {selectedSkill.fileCount.toLocaleString()}
                 </DialogDescription>
                 {selectedSkill.security && (
                   <div className="mt-3 rounded-xl border border-primary-200 bg-primary-50/80 overflow-hidden">
@@ -812,7 +852,7 @@ export function SkillsScreen() {
                     <article className="rounded-xl border border-primary-200 bg-primary-100/30 p-4 backdrop-blur-sm">
                       <Markdown>
                         {selectedSkill.content ||
-                          `# ${selectedSkill.name}\n\n${selectedSkill.description}`}
+                          `# ${selectedSkill.name}\n\n${formatSkillDescription(selectedSkill.description)}`}
                       </Markdown>
                     </article>
                   </div>
@@ -1163,13 +1203,13 @@ function SkillsGrid({
               </div>
 
               <p className="line-clamp-3 min-h-[58px] text-sm text-primary-500 text-pretty">
-                {skill.description}
+                {formatSkillDescription(skill.description)}
               </p>
 
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <SecurityBadge security={skill.security} />
                 <span className="rounded-md border border-primary-200 bg-primary-100/50 px-2 py-0.5 text-xs text-primary-500">
-                  {skill.category}
+                  {formatCategoryLabel(skill.category)}
                 </span>
                 {skill.triggers.slice(0, 2).map((trigger) => (
                   <span
@@ -1267,7 +1307,7 @@ function FeaturedGrid({
   if (skills.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-primary-200 bg-primary-100/40 px-4 py-10 text-center text-sm text-primary-500 text-pretty">
-        Featured picks are currently unavailable.
+        Рекомендованные навыки сейчас недоступны.
       </div>
     )
   }
@@ -1284,7 +1324,7 @@ function FeaturedGrid({
             <div className="mb-3 flex items-start justify-between gap-2">
               <div className="space-y-1">
                 <p className="text-xs font-medium uppercase text-primary-500 tabular-nums">
-                  {skill.featuredGroup || 'Staff Pick'}
+                  {formatFeaturedGroupLabel(skill.featuredGroup)}
                 </p>
                 <h3 className="text-lg font-medium text-ink text-balance">
                   {skill.icon} {skill.name}
@@ -1305,7 +1345,7 @@ function FeaturedGrid({
             </div>
 
             <p className="line-clamp-3 mb-3 text-sm text-primary-500 text-pretty">
-              {skill.description}
+              {formatSkillDescription(skill.description)}
             </p>
 
             <div className="mt-auto flex items-center justify-between gap-2 pt-3">
