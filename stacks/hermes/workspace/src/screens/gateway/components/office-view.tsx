@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { AGENT_ACCENT_COLORS, AgentAvatar } from './agent-avatar'
 import type { AgentWorkingRow, AgentWorkingStatus } from './agents-working-panel'
 import type { ModelPresetId } from './team-panel'
-import { AGENT_ACCENT_COLORS, AgentAvatar } from './agent-avatar'
+import { cn } from '@/lib/utils'
 
 export type RemoteSession = {
   sessionKey: string
@@ -16,16 +16,16 @@ export type RemoteSession = {
 }
 
 export type OfficeViewProps = {
-  agentRows: AgentWorkingRow[]
+  agentRows: Array<AgentWorkingRow>
   missionRunning: boolean
-  onViewOutput: (agentId: string) => void
+  onViewOutput?: (agentId: string) => void
   onNewMission?: () => void
   selectedOutputAgentId?: string
   activeTemplateName?: string
   processType: 'sequential' | 'hierarchical' | 'parallel'
   companyName?: string
   agentTasks?: Record<string, string>
-  remoteSessions?: RemoteSession[]
+  remoteSessions?: Array<RemoteSession>
   onViewRemoteOutput?: (sessionKey: string, label: string) => void
   /** Fixed pixel height for the office container (compact mode) */
   containerHeight?: number
@@ -63,12 +63,19 @@ type SocialSpotType = 'coffee' | 'water' | 'plant' | 'snack'
 type SocialSpot = { x: number; y: number; type: SocialSpotType }
 
 export function getOfficeModelBadge(modelId: string): string {
-  return OFFICE_MODEL_BADGE[modelId as ModelPresetId] ?? DEFAULT_OFFICE_MODEL_BADGE
+  if (modelId in OFFICE_MODEL_BADGE) {
+    return OFFICE_MODEL_BADGE[modelId as ModelPresetId]
+  }
+  return DEFAULT_OFFICE_MODEL_BADGE
 }
 
 export function getOfficeModelLabel(modelId: string): string {
   if (!modelId) return 'Неизвестно'
-  return OFFICE_MODEL_LABEL[modelId as ModelPresetId] ?? modelId.split('/')[1] ?? modelId
+  if (modelId in OFFICE_MODEL_LABEL) {
+    return OFFICE_MODEL_LABEL[modelId as ModelPresetId]
+  }
+  const modelName = modelId.split('/')[1]
+  return modelName || modelId
 }
 
 export function getAgentStatusMeta(status: AgentWorkingStatus): {
@@ -113,21 +120,21 @@ const WARROOM_DESK_POSITIONS = [
   { x: 504, y: 420 }, { x: 642, y: 420 }, { x: 780, y: 420 },
 ]
 
-const GRID_SOCIAL_SPOTS: SocialSpot[] = [
+const GRID_SOCIAL_SPOTS: Array<SocialSpot> = [
   { x: 840, y: 140, type: 'coffee' as const },
   { x: 840, y: 300, type: 'water' as const },
   { x: 60, y: 440, type: 'plant' as const },
   { x: 840, y: 460, type: 'snack' as const },
 ]
 
-const ROUNDTABLE_SOCIAL_SPOTS: SocialSpot[] = [
+const ROUNDTABLE_SOCIAL_SPOTS: Array<SocialSpot> = [
   { x: 450, y: 320, type: 'plant' },
   { x: 510, y: 320, type: 'snack' },
   { x: 870, y: 120, type: 'coffee' },
   { x: 870, y: 480, type: 'water' },
 ]
 
-const WARROOM_SOCIAL_SPOTS: SocialSpot[] = [
+const WARROOM_SOCIAL_SPOTS: Array<SocialSpot> = [
   { x: 56, y: 300, type: 'coffee' },
   { x: 56, y: 350, type: 'water' },
   { x: 904, y: 300, type: 'snack' },
@@ -140,7 +147,7 @@ const DESK_POSITIONS_BY_TEMPLATE: Record<OfficeLayoutTemplate, Array<{ x: number
   warroom: WARROOM_DESK_POSITIONS,
 }
 
-const SOCIAL_SPOTS_BY_TEMPLATE: Record<OfficeLayoutTemplate, SocialSpot[]> = {
+const SOCIAL_SPOTS_BY_TEMPLATE: Record<OfficeLayoutTemplate, Array<SocialSpot>> = {
   grid: GRID_SOCIAL_SPOTS,
   roundtable: ROUNDTABLE_SOCIAL_SPOTS,
   warroom: WARROOM_SOCIAL_SPOTS,
@@ -569,7 +576,7 @@ export function OfficeView({
                 <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/60" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
               </span>
-              Mission Live
+              Миссия активна
             </span>
           ) : null}
           <button
@@ -577,7 +584,7 @@ export function OfficeView({
             onClick={() => onNewMission?.()}
             className="min-h-11 rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-600 sm:px-4 sm:py-2 sm:text-sm"
           >
-            + New Mission
+            + Новая миссия
           </button>
         </div>
       </div>}
@@ -589,13 +596,8 @@ export function OfficeView({
             const accent = AGENT_ACCENT_COLORS[index % AGENT_ACCENT_COLORS.length]
             const statusMeta = getAgentStatusMeta(agent.status)
             const emoji = getAgentEmoji(agent)
-            return (
-              <button
-                key={`${agent.id}-mobile`}
-                type="button"
-                onClick={() => onViewOutput(agent.id)}
-                className="flex min-h-11 w-full items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left shadow-sm dark:border-slate-700 dark:bg-slate-900/70"
-              >
+            const content = (
+              <>
                 <div className={cn('flex size-9 shrink-0 items-center justify-center rounded-full', accent.avatar)}>
                   {emoji ? (
                     <span className="text-base leading-none" aria-hidden>{emoji}</span>
@@ -608,7 +610,26 @@ export function OfficeView({
                   <p className="truncate text-xs text-neutral-500 dark:text-slate-400">{getOfficeModelLabel(agent.modelId)}</p>
                 </div>
                 <span className={cn('shrink-0 text-xs font-semibold', statusMeta.className)}>{statusMeta.label}</span>
+              </>
+            )
+            const rowClassName = 'flex min-h-11 w-full items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left shadow-sm dark:border-slate-700 dark:bg-slate-900/70'
+            return onViewOutput ? (
+              <button
+                key={`${agent.id}-mobile`}
+                type="button"
+                onClick={() => onViewOutput(agent.id)}
+                className={rowClassName}
+              >
+                {content}
               </button>
+            ) : (
+              <div
+                key={`${agent.id}-mobile`}
+                className={rowClassName}
+                aria-label={`${agent.name} · ${statusMeta.label}`}
+              >
+                {content}
+              </div>
             )
           })}
         </div>
@@ -783,23 +804,8 @@ export function OfficeView({
           const yPct = (pos.y / sceneH) * 100
           const movementTransform = `translate(-50%, -50%)`
 
-          return (
-            <button
-              key={agent.id}
-              type="button"
-              onClick={() => onViewOutput(agent.id)}
-              className={cn(
-                'group absolute z-10 flex flex-col items-center rounded-xl bg-transparent px-1.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400',
-                isSelected && 'ring-2 ring-accent-300/80',
-              )}
-              style={{
-                left: `${xPct}%`,
-                top: `${yPct}%`,
-                transform: movementTransform,
-                transition: 'left 0.8s ease-in-out, top 0.8s ease-in-out',
-              }}
-              title={`${agent.name} · ${statusMeta.label}`}
-            >
+          const content = (
+            <>
               {/* Speech bubble */}
               {showSpeech ? (
                 <span className="pointer-events-none relative mb-2 max-w-[180px] rounded-lg bg-white px-3 py-1.5 text-xs leading-snug text-neutral-700 shadow-lg dark:bg-slate-800 dark:text-slate-200">
@@ -811,7 +817,8 @@ export function OfficeView({
               {/* Avatar */}
               <div
                 className={cn(
-                  'relative rounded-full transition-transform duration-300 group-hover:scale-105',
+                  'relative rounded-full transition-transform duration-300',
+                  onViewOutput && 'group-hover:scale-105',
                   getAgentStatusGlowClass(agent.status),
                 )}
               >
@@ -861,7 +868,39 @@ export function OfficeView({
               {!compact ? (
                 <span className="max-w-full truncate text-xs text-neutral-500 dark:text-slate-400">{getOfficeModelLabel(agent.modelId)}</span>
               ) : null}
+            </>
+          )
+          const avatarClassName = cn(
+            'group absolute z-10 flex flex-col items-center rounded-xl bg-transparent px-1.5 py-1',
+            onViewOutput && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400',
+            isSelected && 'ring-2 ring-accent-300/80',
+          )
+          const avatarStyle = {
+            left: `${xPct}%`,
+            top: `${yPct}%`,
+            transform: movementTransform,
+            transition: 'left 0.8s ease-in-out, top 0.8s ease-in-out',
+          }
+          return onViewOutput ? (
+            <button
+              key={agent.id}
+              type="button"
+              onClick={() => onViewOutput(agent.id)}
+              className={avatarClassName}
+              style={avatarStyle}
+              title={`${agent.name} · ${statusMeta.label}`}
+            >
+              {content}
             </button>
+          ) : (
+            <div
+              key={agent.id}
+              className={avatarClassName}
+              style={avatarStyle}
+              aria-label={`${agent.name} · ${statusMeta.label}`}
+            >
+              {content}
+            </div>
           )
         })}
       </div>
@@ -874,9 +913,9 @@ export function OfficeView({
             className="mb-2 flex w-full items-center justify-between px-1 text-left"
           >
             <p className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
-              Remote Sessions
+              Удалённые сессии
             </p>
-            <span className="text-[10px] text-neutral-400">{remoteCollapsed ? 'Show' : 'Hide'}</span>
+            <span className="text-[10px] text-neutral-400">{remoteCollapsed ? 'Показать' : 'Скрыть'}</span>
           </button>
           {!remoteCollapsed ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
