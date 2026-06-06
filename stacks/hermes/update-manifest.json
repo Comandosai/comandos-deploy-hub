@@ -3,7 +3,7 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.97",
+    "version": "2.3.0-comandos.98",
     "ref": "main",
     "notes": [
       "Раздел `Память -> База знаний` больше не показывает английские кнопки, пустые состояния и ошибки API в базовом сценарии.",

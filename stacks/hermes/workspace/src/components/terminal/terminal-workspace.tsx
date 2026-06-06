@@ -791,6 +791,8 @@ export function TerminalWorkspace({
                     y: event.clientY,
                   })
                 }}
+                aria-label={`Вкладка терминала: ${tab.title}`}
+                title={`Вкладка терминала: ${tab.title}`}
                 className={cn(
                   'group relative flex h-8 max-w-[220px] items-center gap-2 px-3 text-xs text-primary-700 transition-colors',
                   isActive
@@ -819,6 +821,8 @@ export function TerminalWorkspace({
                   <span
                     role="button"
                     tabIndex={0}
+                    aria-label={`Закрыть вкладку терминала: ${tab.title}`}
+                    title={`Закрыть вкладку терминала: ${tab.title}`}
                     onClick={function onClose(event) {
                       event.stopPropagation()
                       handleCloseTab(tab)
