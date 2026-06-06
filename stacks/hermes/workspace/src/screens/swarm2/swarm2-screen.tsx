@@ -7,7 +7,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
 } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -17,15 +16,17 @@ import {
   MessageMultiple01Icon,
   UserMultipleIcon,
 } from '@hugeicons/core-free-icons'
-import type { CrewMember } from '@/hooks/use-crew-status'
-import { getOnlineStatus, useCrewStatus } from '@/hooks/use-crew-status'
-import { toast } from '@/components/ui/toast'
 import { OperationalWorkerCard } from './operational-worker-card'
 import { Swarm2OrchestratorCard } from './swarm2-orchestrator-card'
 import { Swarm2Wires } from './swarm2-wires'
 import { Swarm2ActivityFeed } from './swarm2-activity-feed'
 import { Swarm2KanbanBoard } from './swarm2-kanban-board'
-import { Swarm2ReportsView, buildSwarm2InboxLanes, type Swarm2InboxItem } from './swarm2-reports-view'
+import { Swarm2ReportsView, buildSwarm2InboxLanes } from './swarm2-reports-view'
+import type { CSSProperties } from 'react'
+import type { Swarm2InboxItem } from './swarm2-reports-view'
+import type { CrewMember } from '@/hooks/use-crew-status'
+import { toast } from '@/components/ui/toast'
+import { getOnlineStatus, useCrewStatus } from '@/hooks/use-crew-status'
 import { RouterChat } from '@/components/swarm/router-chat'
 import { SwarmTerminal } from '@/components/swarm/swarm-terminal'
 import { WorkflowHelpModal } from '@/components/workflow-help-modal'
@@ -401,9 +402,20 @@ const SPECIALTY_DISPLAY_LABELS: Record<string, string> = {
   'UPSTREAM DEPENDENCY / PATCH HYGIENE': 'ЗАВИСИМОСТИ И АККУРАТНОСТЬ ПРАВОК',
 }
 
+const WORKER_NAME_DISPLAY_LABELS: Record<string, string> = {
+  'KM Agent': 'Агент знаний',
+  'Ops Watch': 'Наблюдатель операций',
+  'Inbox Triage': 'Разбор входящих',
+}
+
 function displayRoleLabel(role: string | null | undefined): string {
   const value = String(role || 'Worker')
   return ROLE_DISPLAY_LABELS[value] ?? value
+}
+
+function displayWorkerName(name: string | null | undefined): string {
+  const value = String(name || '').trim()
+  return WORKER_NAME_DISPLAY_LABELS[value] ?? value
 }
 
 function displaySpecialtyLabel(specialty: string | null | undefined): string | undefined {
@@ -445,7 +457,7 @@ async function fetchRoster(): Promise<Array<SwarmRosterWorker>> {
   const res = await fetch('/api/swarm-roster')
   if (!res.ok) throw new Error(`Roster request failed: ${res.status}`)
   const data = (await res.json()) as SwarmRosterResponse
-  return Array.isArray(data.roster?.workers) ? data.roster!.workers! : []
+  return Array.isArray(data.roster?.workers) ? data.roster.workers : []
 }
 
 async function fetchMissions(): Promise<Array<SwarmMissionSummary>> {
@@ -587,7 +599,7 @@ function scrollNodeToTop(node: HTMLElement | null) {
 function withInstantScroll<T>(anchor: HTMLElement | null, fn: () => T): T {
   if (typeof window === 'undefined') return fn()
 
-  const targets: HTMLElement[] = []
+  const targets: Array<HTMLElement> = []
   if (document.documentElement instanceof HTMLElement) targets.push(document.documentElement)
   if (document.body instanceof HTMLElement) targets.push(document.body)
 
@@ -647,8 +659,8 @@ function scheduleScrollContextToTop(anchor: HTMLElement | null) {
   if (typeof window === 'undefined') return () => {}
 
   let cancelled = false
-  const timers: number[] = []
-  const frames: number[] = []
+  const timers: Array<number> = []
+  const frames: Array<number> = []
 
   const run = () => {
     if (cancelled) return
@@ -684,7 +696,7 @@ function progressForRuntime(runtime: RuntimeEntry | undefined): number {
   if (runtime.checkpointStatus === 'done' || runtime.checkpointStatus === 'handoff') return 100
   if (runtime.checkpointStatus === 'blocked' || runtime.checkpointStatus === 'needs_input') return 100
   if (!runtime.currentTask?.trim()) return 0
-  const text = `${runtime.phase ?? ''} ${runtime.currentTask ?? ''}`.toLowerCase()
+  const text = `${runtime.phase || ''} ${runtime.currentTask}`.toLowerCase()
   if (text.includes('review')) return 72
   if (text.includes('test') || text.includes('qa')) return 78
   if (text.includes('implement') || text.includes('build') || text.includes('patch')) return 64
@@ -1143,7 +1155,6 @@ export function Swarm2Screen() {
               variant: 'destructive',
             })
           }
-          // eslint-disable-next-line no-console
           console.error('[swarm2] start session failed:', res.status, text)
         }
       } catch (err) {
@@ -1175,7 +1186,6 @@ export function Swarm2Screen() {
         })
         if (!res.ok) {
           const text = await res.text().catch(() => '')
-          // eslint-disable-next-line no-console
           console.error('[swarm2] stop session failed:', res.status, text)
         }
       } finally {
@@ -1200,11 +1210,9 @@ export function Swarm2Screen() {
         })
         if (!res.ok) {
           const text = await res.text().catch(() => '')
-          // eslint-disable-next-line no-console
           console.error('[swarm2] tmux scroll failed:', res.status, text)
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('[swarm2] tmux scroll exception:', error)
       }
     },
@@ -1227,7 +1235,7 @@ export function Swarm2Screen() {
       const roster = rosterQuery.data?.find((worker) => worker.id === member.id)
       return {
         ...member,
-        displayName: runtime?.displayName || roster?.name || member.displayName,
+        displayName: displayWorkerName(runtime?.displayName || roster?.name || member.displayName),
         role: displayRoleLabel(roster?.role || runtime?.role || member.role),
         specialty: displaySpecialtyLabel(roster?.specialty),
         mission: roster?.mission,
@@ -1241,7 +1249,7 @@ export function Swarm2Screen() {
       .filter((worker) => !seen.has(worker.id))
       .map((worker) => ({
         id: worker.id,
-        displayName: worker.name || worker.id,
+        displayName: displayWorkerName(worker.name || worker.id),
         role: displayRoleLabel(worker.role),
         profileFound: false,
         gatewayState: 'unknown',

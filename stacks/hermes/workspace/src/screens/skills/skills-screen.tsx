@@ -136,6 +136,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   Communication: 'Коммуникации',
   'Data & Analytics': 'Данные и аналитика',
   'Finance & Crypto': 'Финансы и крипто',
+  evaluation: 'Оценка',
+  models: 'Модели',
+  skills: 'Навыки',
 }
 
 function formatCategoryLabel(category: string): string {
