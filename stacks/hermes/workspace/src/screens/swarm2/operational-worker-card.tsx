@@ -445,7 +445,7 @@ export function OperationalWorkerCard({
               event.stopPropagation()
               setSettingsOpen(true)
             }}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]"
           >
             <HugeiconsIcon icon={Settings01Icon} size={16} strokeWidth={1.8} />
           </button>

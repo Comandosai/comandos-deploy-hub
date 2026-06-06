@@ -365,12 +365,12 @@ function SectionLabel({
         <button
           type="button"
           onClick={onToggle}
-          className="ml-auto p-0.5 rounded hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors"
+          className="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-primary-200 dark:hover:bg-primary-800"
           aria-label={expanded ? `Свернуть ${label}` : `Развернуть ${label}`}
         >
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            size={12}
+            size={14}
             strokeWidth={2}
             className={cn(
               'text-primary-500 transition-transform duration-150',
