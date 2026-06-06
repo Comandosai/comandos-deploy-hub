@@ -834,6 +834,7 @@ function SettingCard(props: {
               min={setting.min}
               step={setting.step}
               placeholder={setting.placeholder}
+              aria-label={setting.label}
               onChange={(event) => {
                 const nextValue = event.target.value
                 setDraftValues((prev) => ({
@@ -1327,6 +1328,7 @@ function ActiveModelCard({
                   type="number"
                   min={1}
                   value={performanceConfig.streamStaleTimeout}
+                  aria-label="Таймаут простоя потока в секундах"
                   className="border-[var(--theme-border)] bg-[var(--theme-card)] text-sm"
                   onChange={(event) => {
                     setPerformanceConfig((current) => ({
@@ -1348,6 +1350,7 @@ function ActiveModelCard({
                   type="number"
                   min={1}
                   value={performanceConfig.streamReadTimeout}
+                  aria-label="Таймаут чтения потока в секундах"
                   className="border-[var(--theme-border)] bg-[var(--theme-card)] text-sm"
                   onChange={(event) => {
                     setPerformanceConfig((current) => ({

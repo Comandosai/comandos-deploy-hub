@@ -1738,6 +1738,7 @@ function ClaudeConfigSection({
             type="number"
             min={10}
             value={readNumber(terminalConfig.timeout, 180)}
+            aria-label="Таймаут терминала в секундах"
             onChange={(e) =>
               saveNumberField('terminal', 'timeout', e.target.value, 180)
             }
@@ -2261,6 +2262,7 @@ function ClaudeConfigSection({
           min={1}
           max={100}
           value={readNumber(agentConfig.max_turns, 50)}
+          aria-label="Максимум шагов агента"
           onChange={(e) =>
             saveNumberField('agent', 'max_turns', e.target.value, 50)
           }
@@ -2276,6 +2278,7 @@ function ClaudeConfigSection({
           min={10}
           max={600}
           value={readNumber(agentConfig.gateway_timeout, 120)}
+          aria-label="Таймаут gateway в секундах"
           onChange={(e) =>
             saveNumberField('agent', 'gateway_timeout', e.target.value, 120)
           }
@@ -2352,6 +2355,7 @@ function ClaudeConfigSection({
           type="number"
           min={1}
           value={readNumber(smartRouting.max_simple_chars, 500)}
+          aria-label="Максимум символов для простой задачи"
           onChange={(e) =>
             saveNumberField(
               'smart_model_routing',
@@ -2371,6 +2375,7 @@ function ClaudeConfigSection({
           type="number"
           min={1}
           value={readNumber(smartRouting.max_simple_words, 80)}
+          aria-label="Максимум слов для простой задачи"
           onChange={(e) =>
             saveNumberField(
               'smart_model_routing',
