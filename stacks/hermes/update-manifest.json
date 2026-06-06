@@ -3,9 +3,10 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.118",
+    "version": "2.3.0-comandos.119",
     "ref": "main",
     "notes": [
+      "Страница настройки провайдеров получила русский заголовок, а onboarding-подсказка настроек больше не смешивает русский текст с английским названием провайдеров.",
       "Следующий скрытый слой рабочих панелей переведён на русский: обзор миссии, run console, approval-блоки, отчёт запуска, dashboard insights и onboarding-подсказка больше не показывают пользователю `Configure`, `View Output`, `Send directive...`, `Stream`, `Timeline`, `Usage peaked` или `Cache reads`.",
       "Следующий слой кнопок и служебных controls переведён на русский: вложения, мобильная навигация, очистка/undo чата, usage meter, файлы памяти, аналитический период, approvals, календарь и панели агентов больше не отдают английские подписи вроде `Attach image`, `Mobile navigation`, `Undo last message`, `Previous`, `Next`, `Agent options`, `View Output`, `Pause` или `Kill session`.",
       "Служебное поле ввода xterm больше не отображается для автопроверок как английское `Terminal input`: терминальный helper textarea получил русское имя `Ввод терминала`.",

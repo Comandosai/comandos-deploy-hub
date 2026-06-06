@@ -90,7 +90,7 @@ export const tourSteps: Array<Step> = [
     placement: 'right',
     title: 'Настройки',
     content:
-      'Настраивайте providers, темы, поведение интерфейса и язык.',
+      'Настраивайте провайдеры, темы, поведение интерфейса и язык.',
   },
   // Step 11: Finish
   {

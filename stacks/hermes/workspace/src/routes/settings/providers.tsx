@@ -5,7 +5,7 @@ import { ProvidersScreen } from '@/screens/settings/providers-screen'
 export const Route = createFileRoute('/settings/providers')({
   ssr: false,
   component: function SettingsProvidersRoute() {
-    usePageTitle('Provider Setup')
+    usePageTitle('Провайдеры моделей')
     return <ProvidersScreen />
   },
 })
