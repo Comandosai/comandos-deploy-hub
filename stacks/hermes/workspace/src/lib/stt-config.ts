@@ -5,11 +5,11 @@ export const STT_PROVIDER_OPTIONS = [
 ] as const
 
 export const LOCAL_STT_MODEL_SIZE_OPTIONS = [
-  { value: 'tiny', label: 'Очень маленькая (tiny)' },
-  { value: 'base', label: 'Базовая (base)' },
-  { value: 'small', label: 'Малая (small)' },
-  { value: 'medium', label: 'Средняя (medium)' },
-  { value: 'large', label: 'Большая (large)' },
+  { value: 'tiny', label: 'Очень маленькая' },
+  { value: 'base', label: 'Базовая' },
+  { value: 'small', label: 'Малая' },
+  { value: 'medium', label: 'Средняя' },
+  { value: 'large', label: 'Большая' },
 ] as const
 
 export const GROQ_STT_MODELS = [
