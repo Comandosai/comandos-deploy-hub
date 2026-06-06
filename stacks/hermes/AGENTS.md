@@ -10,7 +10,7 @@
 
 1. панель COMANDOS Workspace;
 2. Hermes Agent gateway;
-3. Telegram-бот;
+3. Telegram-бот, если пользователь заполнил Telegram-настройки;
 4. проверка лицензии COMANDOS при входе в панель;
 5. HTTPS-доступ;
 6. сгенерированный 24-символьный пароль панели;
@@ -22,17 +22,24 @@
 Сначала прочитай:
 
 1. `comandos-hermes.env`
+   - если пользователь заполнил `comandos-hermes.env.example`, а основной env пустой или не проходит проверку, используй example;
 2. `comandos-hermes.lock`
 3. `docs/INSTALLER_SPEC.md`
 4. `docs/UPDATE_POLICY.md`
 
-Потом запусти:
+Потом проверь основной env:
 
 ```bash
 bash scripts/check-config.sh comandos-hermes.env
 ```
 
-Если проверка не прошла, остановись и покажи пользователю, какие поля нужно заполнить.
+Если основной env не прошёл, но пользователь заполнил `comandos-hermes.env.example`, проверь example:
+
+```bash
+bash scripts/check-config.sh comandos-hermes.env.example
+```
+
+Если не прошёл ни один файл, остановись и покажи пользователю только список незаполненных или неверных полей. Секреты не печатай.
 
 ## Правила установки
 
@@ -43,9 +50,10 @@ bash scripts/check-config.sh comandos-hermes.env
 - Не запускай `hermes update`.
 - Не добавляй cron/timer для автообновлений.
 - Пароль панели генерируй сам, 24 символа.
-- Telegram-токен обязателен.
-- Telegram ID пользователя обязателен. Он попадает в первый маршрут `Telegram ID -> default profile`.
-- Telegram-роутер должен запускаться через `comandos-telegram.service`; не возвращай старую Node.js-заглушку.
+- Telegram необязателен для первого запуска панели.
+- Если пользователь заполнил Telegram, обязательны оба поля: `TELEGRAM_BOT_TOKEN` и `TELEGRAM_USER_ID`.
+- Если Telegram включён, `TELEGRAM_USER_ID` попадает в первый маршрут `Telegram ID -> default profile`.
+- Если Telegram включён, Telegram-роутер должен запускаться через `comandos-telegram.service`; не возвращай старую Node.js-заглушку.
 - Если `DOMAIN` заполнен, ставь HTTPS на домен.
 - Если `DOMAIN` пустой, ставь HTTPS через `https://ROOT_IP.nip.io`.
 
@@ -71,7 +79,7 @@ URL панели: ...
 Лицензия: вводится пользователем при входе
 Hermes gateway: active
 Workspace service: active
-Telegram bot: active
+Telegram bot: active или disabled
 Версии зафиксированы: да
 Автообновление: выключено
 Уведомления об обновлениях: включены
