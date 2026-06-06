@@ -8,7 +8,7 @@ export const Route = createFileRoute('/api/knowledge/search')({
     handlers: {
       GET: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
 
         const url = new URL(request.url)
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/knowledge/search')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to search knowledge pages',
+                  : 'Не удалось выполнить поиск по базе знаний',
             },
             { status: 500 },
           )

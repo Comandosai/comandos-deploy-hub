@@ -8,7 +8,7 @@ export const Route = createFileRoute('/api/knowledge/read')({
     handlers: {
       GET: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
 
         const url = new URL(request.url)
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/knowledge/read')({
           const message =
             error instanceof Error
               ? error.message
-              : 'Failed to read knowledge page'
+              : 'Не удалось прочитать страницу базы знаний'
           const status =
             /not allowed|outside knowledge root|required|traversal/i.test(
               message,

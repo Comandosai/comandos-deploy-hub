@@ -8,7 +8,7 @@ export const Route = createFileRoute('/api/knowledge/graph')({
     handlers: {
       GET: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
 
         try {
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/api/knowledge/graph')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to build knowledge graph',
+                  : 'Не удалось построить граф базы знаний',
             },
             { status: 500 },
           )

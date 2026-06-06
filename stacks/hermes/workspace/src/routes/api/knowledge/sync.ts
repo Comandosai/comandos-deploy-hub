@@ -1,18 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
-import {
-  readKnowledgeBaseConfig,
-  type KnowledgeBaseConfig,
-} from '../../../server/knowledge-config'
 import { syncKnowledgeSource } from '../../../server/knowledge-browser'
+import { readKnowledgeBaseConfig } from '../../../server/knowledge-config'
+import type { KnowledgeBaseConfig } from '../../../server/knowledge-config'
 
 export const Route = createFileRoute('/api/knowledge/sync')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
 
         // Optional: allow body to override source temporarily for one-shot use
@@ -42,7 +40,7 @@ export const Route = createFileRoute('/api/knowledge/sync')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to sync knowledge source',
+                  : 'Не удалось синхронизировать источник базы знаний',
             },
             { status: 500 },
           )
@@ -50,7 +48,7 @@ export const Route = createFileRoute('/api/knowledge/sync')({
       },
       GET: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
         const config = readKnowledgeBaseConfig()
         return json({ source: config.source })

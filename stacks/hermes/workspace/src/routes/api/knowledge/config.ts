@@ -4,15 +4,15 @@ import { isAuthenticated } from '../../../server/auth-middleware'
 import {
   readKnowledgeBaseConfig,
   writeKnowledgeBaseConfig,
-  type KnowledgeBaseConfig,
 } from '../../../server/knowledge-config'
+import type { KnowledgeBaseConfig } from '../../../server/knowledge-config'
 
 export const Route = createFileRoute('/api/knowledge/config')({
   server: {
     handlers: {
       GET: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
         try {
           return json({ config: readKnowledgeBaseConfig() })
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/knowledge/config')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to read knowledge base config',
+                  : 'Не удалось прочитать настройки базы знаний',
             },
             { status: 500 },
           )
@@ -30,7 +30,7 @@ export const Route = createFileRoute('/api/knowledge/config')({
       },
       POST: async ({ request }) => {
         if (!isAuthenticated(request)) {
-          return json({ error: 'Unauthorized' }, { status: 401 })
+          return json({ error: 'Нужен вход в Workspace' }, { status: 401 })
         }
         try {
           const body = (await request.json()) as Partial<KnowledgeBaseConfig>
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/api/knowledge/config')({
               error:
                 error instanceof Error
                   ? error.message
-                  : 'Failed to save knowledge base config',
+                  : 'Не удалось сохранить настройки базы знаний',
             },
             { status: 500 },
           )

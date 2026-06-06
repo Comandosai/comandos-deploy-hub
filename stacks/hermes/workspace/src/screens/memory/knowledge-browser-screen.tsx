@@ -95,7 +95,7 @@ async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url)
   if (!response.ok) {
     const text = await response.text().catch(() => '')
-    throw new Error(text || `Request failed (${response.status})`)
+    throw new Error(text || `Запрос не прошёл (${response.status})`)
   }
   return (await response.json()) as T
 }
@@ -458,7 +458,7 @@ export function KnowledgeBrowserScreen() {
             }}
           >
             <HugeiconsIcon icon={Link01Icon} size={16} strokeWidth={1.7} />
-            Graph view
+            Граф связей
           </button>
 
           <DialogRoot open={settingsOpen} onOpenChange={setSettingsOpen}>
@@ -493,7 +493,7 @@ export function KnowledgeBrowserScreen() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Source type</label>
+                  <label className="text-sm font-medium">Источник</label>
                   <div className="flex gap-3">
                     <button
                       type="button"
@@ -517,7 +517,7 @@ export function KnowledgeBrowserScreen() {
                       }}
                     >
                       <HugeiconsIcon icon={Folder01Icon} size={16} strokeWidth={1.7} />
-                      Local folder
+                      Локальная папка
                     </button>
                     <button
                       type="button"
@@ -543,7 +543,7 @@ export function KnowledgeBrowserScreen() {
                       }}
                     >
                       <HugeiconsIcon icon={CodeIcon} size={16} strokeWidth={1.7} />
-                      GitHub repo
+                      GitHub-репозиторий
                     </button>
                   </div>
                 </div>
@@ -551,7 +551,7 @@ export function KnowledgeBrowserScreen() {
                 {settingsSource?.type === 'local' && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="kb-local-path">
-                      Folder path
+                      Путь к папке
                     </label>
                     <input
                       id="kb-local-path"
@@ -564,7 +564,7 @@ export function KnowledgeBrowserScreen() {
                             : prev,
                         )
                       }
-                      placeholder="~/my-wiki or /absolute/path"
+                      placeholder="~/my-wiki или /absolute/path"
                       className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                       style={{
                         borderColor: 'var(--theme-border)',
@@ -579,7 +579,7 @@ export function KnowledgeBrowserScreen() {
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium" htmlFor="kb-gh-repo">
-                        Repository
+                        Репозиторий
                       </label>
                       <input
                         id="kb-gh-repo"
@@ -592,7 +592,7 @@ export function KnowledgeBrowserScreen() {
                               : prev,
                           )
                         }
-                        placeholder="owner/repo (e.g. dontcallmejames/my-wiki)"
+                        placeholder="owner/repo, например dontcallmejames/my-wiki"
                         className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                         style={{
                           borderColor: 'var(--theme-border)',
@@ -604,7 +604,7 @@ export function KnowledgeBrowserScreen() {
                     <div className="flex gap-3">
                       <div className="flex-1 space-y-1.5">
                         <label className="text-sm font-medium" htmlFor="kb-gh-branch">
-                          Branch
+                          Ветка
                         </label>
                         <input
                           id="kb-gh-branch"
@@ -628,7 +628,7 @@ export function KnowledgeBrowserScreen() {
                       </div>
                       <div className="flex-1 space-y-1.5">
                         <label className="text-sm font-medium" htmlFor="kb-gh-path">
-                          Sub-folder
+                          Подпапка
                         </label>
                         <input
                           id="kb-gh-path"
@@ -641,7 +641,7 @@ export function KnowledgeBrowserScreen() {
                                 : prev,
                             )
                           }
-                          placeholder="wiki (optional)"
+                          placeholder="wiki (необязательно)"
                           className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                           style={{
                             borderColor: 'var(--theme-border)',
@@ -665,7 +665,6 @@ export function KnowledgeBrowserScreen() {
                     <button
                       type="button"
                       onClick={async () => {
-                        if (!settingsSource || settingsSource.type !== 'github') return
                         setSyncing(true)
                         setSyncError(null)
                         try {
@@ -684,7 +683,9 @@ export function KnowledgeBrowserScreen() {
                           }
                         } catch (err) {
                           setSyncError(
-                            err instanceof Error ? err.message : 'Sync failed',
+                            err instanceof Error
+                              ? err.message
+                              : 'Синхронизация не прошла',
                           )
                         } finally {
                           setSyncing(false)
@@ -697,7 +698,7 @@ export function KnowledgeBrowserScreen() {
                         color: 'var(--theme-text)',
                       }}
                     >
-                      {syncing ? 'Syncing…' : 'Sync now'}
+                      {syncing ? 'Синхронизирую...' : 'Синхронизировать'}
                     </button>
                   )}
                   <button
@@ -723,7 +724,7 @@ export function KnowledgeBrowserScreen() {
                     }}
                     className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-600"
                   >
-                    Save
+                    Сохранить
                   </button>
                 </div>
               </div>
@@ -740,7 +741,7 @@ export function KnowledgeBrowserScreen() {
             onClick={() => setMobileTreeOpen((value) => !value)}
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-neutral-400">
-              Knowledge Pages ({filteredPages.length})
+              Страницы базы знаний ({filteredPages.length})
             </span>
             <span className="text-primary-500 dark:text-neutral-400 md:hidden">
               <HugeiconsIcon
@@ -912,7 +913,7 @@ export function KnowledgeBrowserScreen() {
                     {focusedResult && focusedResult.path === page.path ? (
                       <div className="rounded-xl border border-yellow-300/40 bg-yellow-300/10 px-3 py-2 text-sm text-primary-900 dark:text-yellow-50">
                         <div className="font-medium">
-                          Search hit at line {focusLine}
+                          Совпадение в строке {focusLine}
                         </div>
                         <div className="mt-1 text-xs opacity-80">
                           {focusedResult.text}
@@ -976,7 +977,7 @@ export function KnowledgeBrowserScreen() {
                           size={16}
                           strokeWidth={1.7}
                         />
-                        Backlinks
+                        Обратные ссылки
                       </div>
                       {backlinks.length === 0 ? (
                         <div className="text-sm text-primary-500 dark:text-neutral-400">
@@ -1240,10 +1241,10 @@ function EmptyKnowledgeState({ knowledgeRoot }: { knowledgeRoot: string }) {
   return (
     <div className="flex min-h-32 flex-col justify-center rounded-xl border border-primary-200 bg-primary-50 px-4 py-5 text-sm text-primary-600 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300">
       <div className="text-base font-semibold text-primary-900 dark:text-neutral-100">
-        No knowledge base found
+        База знаний не найдена
       </div>
       <p className="mt-2 text-pretty">
-        Create markdown files in <code>{knowledgeRoot}</code> to get started.
+        Создайте Markdown-файлы в <code>{knowledgeRoot}</code>, чтобы начать.
       </p>
       <a
         href="https://karpathy.ai/"
@@ -1252,7 +1253,7 @@ function EmptyKnowledgeState({ knowledgeRoot }: { knowledgeRoot: string }) {
         className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary-900 underline decoration-primary-300 underline-offset-4 hover:decoration-primary-500 dark:text-neutral-100"
       >
         <HugeiconsIcon icon={Link01Icon} size={14} strokeWidth={1.7} />
-        See the Karpathy LLM wiki pattern
+        Пример wiki-структуры Karpathy
       </a>
     </div>
   )
