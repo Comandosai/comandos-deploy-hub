@@ -21,7 +21,11 @@ import type { LoaderStyle } from '@/hooks/use-chat-settings'
 import type { BrailleSpinnerPreset } from '@/components/ui/braille-spinner'
 import type { ThemeId } from '@/lib/theme'
 import type { SettingsNavId } from '@/components/settings/settings-sidebar'
-import { GROQ_STT_MODELS, STT_PROVIDER_OPTIONS } from '@/lib/stt-config'
+import {
+  GROQ_STT_MODELS,
+  LOCAL_STT_MODEL_SIZE_OPTIONS,
+  STT_PROVIDER_OPTIONS,
+} from '@/lib/stt-config'
 import {
   SETTINGS_NAV_ITEMS,
   SettingsMobilePills,
@@ -2403,6 +2407,7 @@ function ClaudeConfigSection({
         >
           <select
             value={ttsProvider}
+            aria-label="Провайдер озвучивания"
             onChange={(e) =>
               void saveConfig({ config: { tts: { provider: e.target.value } } })
             }
@@ -2419,6 +2424,7 @@ function ClaudeConfigSection({
           <SettingsRow label="Голос" description="Название голоса Edge.">
             <Input
               value={(ttsEdge.voice as string) || ''}
+              aria-label="Голос Edge TTS"
               onChange={(e) =>
                 void saveConfig({
                   config: { tts: { edge: { voice: e.target.value } } },
@@ -2435,6 +2441,7 @@ function ClaudeConfigSection({
             <SettingsRow label="ID голоса" description="voice_id в ElevenLabs.">
               <Input
                 value={(ttsElevenLabs.voice_id as string) || ''}
+                aria-label="ID голоса ElevenLabs"
                 onChange={(e) =>
                   void saveConfig({
                     config: {
@@ -2448,6 +2455,7 @@ function ClaudeConfigSection({
             <SettingsRow label="Модель" description="Название модели ElevenLabs.">
               <Input
                 value={(ttsElevenLabs.model as string) || ''}
+                aria-label="Модель ElevenLabs"
                 onChange={(e) =>
                   void saveConfig({
                     config: { tts: { elevenlabs: { model: e.target.value } } },
@@ -2467,6 +2475,7 @@ function ClaudeConfigSection({
             >
               <select
                 value={(ttsOpenAi.voice as string) || 'alloy'}
+                aria-label="Голос OpenAI TTS"
                 onChange={(e) =>
                   void saveConfig({
                     config: { tts: { openai: { voice: e.target.value } } },
@@ -2486,6 +2495,7 @@ function ClaudeConfigSection({
             <SettingsRow label="Модель" description="Модель OpenAI TTS.">
               <Input
                 value={(ttsOpenAi.model as string) || ''}
+                aria-label="Модель OpenAI TTS"
                 onChange={(e) =>
                   void saveConfig({
                     config: { tts: { openai: { model: e.target.value } } },
@@ -2504,21 +2514,25 @@ function ClaudeConfigSection({
         description="Настройки голосового ввода."
         icon={Mic01Icon}
       >
-        <SettingsRow label="Включить STT" description="Включить голосовой ввод.">
+        <SettingsRow
+          label="Включить распознавание"
+          description="Включить голосовой ввод."
+        >
           <Switch
             checked={readBoolean(sttConfig.enabled, false)}
-            aria-label="Включить STT"
+            aria-label="Включить распознавание речи"
             onCheckedChange={(checked) =>
               void saveConfig({ config: { stt: { enabled: checked } } })
             }
           />
         </SettingsRow>
         <SettingsRow
-          label="Провайдер STT"
+          label="Провайдер распознавания"
           description="Какой движок использовать для распознавания речи."
         >
           <select
             value={sttProvider}
+            aria-label="Провайдер распознавания речи"
             onChange={(e) =>
               void saveConfig({ config: { stt: { provider: e.target.value } } })
             }
@@ -2534,10 +2548,11 @@ function ClaudeConfigSection({
         {sttProvider === 'local' && (
           <SettingsRow
             label="Размер модели"
-            description="tiny, base, small, medium, large"
+            description="Размер локальной модели Whisper. Чем больше модель, тем выше качество и нагрузка."
           >
             <select
               value={(sttLocal.model_size as string) || 'base'}
+              aria-label="Размер локальной модели распознавания"
               onChange={(e) =>
                 void saveConfig({
                   config: { stt: { local: { model_size: e.target.value } } },
@@ -2545,9 +2560,9 @@ function ClaudeConfigSection({
               }
               className={selectClassName}
             >
-              {['tiny', 'base', 'small', 'medium', 'large'].map((size) => (
-                <option key={size} value={size}>
-                  {size}
+              {LOCAL_STT_MODEL_SIZE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -2561,6 +2576,7 @@ function ClaudeConfigSection({
             >
               <select
                 value={(sttGroq.model as string) || GROQ_STT_MODELS[0]}
+                aria-label="Модель Groq Whisper"
                 onChange={(e) =>
                   void saveConfig({
                     config: { stt: { groq: { ...sttGroq, model: e.target.value } } },
@@ -2581,6 +2597,7 @@ function ClaudeConfigSection({
             >
               <Input
                 value={(sttConfig.language as string) || ''}
+                aria-label="Язык распознавания"
                 onChange={(e) =>
                   void saveConfig({
                     config: { stt: { language: e.target.value } },

@@ -2402,6 +2402,7 @@ function VoiceContent() {
         <Row label="Провайдер озвучивания">
           <select
             value={ttsProvider}
+            aria-label="Провайдер озвучивания"
             onChange={(e) => saveTts('provider', e.target.value)}
             className="h-8 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
@@ -2415,6 +2416,7 @@ function VoiceContent() {
           <Row label="Голос">
             <select
               value={String(ttsOpenAi.voice || 'nova')}
+              aria-label="Голос OpenAI TTS"
               onChange={(e) =>
                 saveTts('openai', {
                   ...ttsOpenAi,
@@ -2447,6 +2449,7 @@ function VoiceContent() {
         <Row label="Провайдер распознавания">
           <select
             value={sttProvider}
+            aria-label="Провайдер распознавания речи"
             onChange={(e) => saveStt('provider', e.target.value)}
             className="h-8 rounded-lg border border-primary-200 bg-primary-50 px-2 text-sm text-primary-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
@@ -2462,6 +2465,7 @@ function VoiceContent() {
             <Row label="Модель Groq">
               <select
                 value={String(sttGroq.model || GROQ_STT_MODELS[0])}
+                aria-label="Модель Groq Whisper"
                 onChange={(e) =>
                   saveStt('groq', {
                     ...sttGroq,
@@ -2483,8 +2487,9 @@ function VoiceContent() {
             >
               <Input
                 value={String(stt.language || '')}
+                aria-label="Язык распознавания"
                 onChange={(e) => saveStt('language', e.target.value)}
-                placeholder="auto"
+                placeholder="авто"
                 className="h-8 w-40"
               />
             </Row>
