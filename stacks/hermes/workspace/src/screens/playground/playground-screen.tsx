@@ -32,12 +32,12 @@ function LazyPanelBoundary({ children }: { children: ReactNode }) {
 }
 
 const WORLD_META: Record<PlaygroundWorldId, { name: string; accent: string }> = {
-  training: { name: 'Training Grounds', accent: '#5eead4' },
-  agora: { name: 'Agora Commons', accent: '#d9b35f' },
-  forge: { name: 'The Forge', accent: '#22d3ee' },
-  grove: { name: 'The Grove', accent: '#34d399' },
-  oracle: { name: 'Oracle Temple', accent: '#a78bfa' },
-  arena: { name: 'Benchmark Arena', accent: '#fb7185' },
+  training: { name: 'Тренировочная площадка', accent: '#5eead4' },
+  agora: { name: 'Площадь Агоры', accent: '#d9b35f' },
+  forge: { name: 'Кузница', accent: '#22d3ee' },
+  grove: { name: 'Роща', accent: '#34d399' },
+  oracle: { name: 'Храм Оракула', accent: '#a78bfa' },
+  arena: { name: 'Арена моделей', accent: '#fb7185' },
 }
 
 const FORGE_INTRO_STORAGE_KEY = 'hermes-playground-forge-intro-seen'
@@ -665,8 +665,8 @@ export function PlaygroundScreen() {
         <FpsCounter enabled={settings.performance.fpsCounter} />
         <PlaygroundHud
           state={rpg.state}
-          activeQuestTitle={activeQuest?.title ?? 'Training Complete'}
-          objectiveLabel={currentObjective?.label ?? 'Forge Gate unlocked. Keep exploring the Playground.'}
+          activeQuestTitle={activeQuest?.title ?? 'Обучение завершено'}
+          objectiveLabel={currentObjective?.label ?? 'Ворота Кузницы открыты. Продолжайте исследовать HermesWorld.'}
           objectiveHint={currentObjective?.hint}
           objectiveTarget={currentObjective?.target ?? null}
           levelProgress={rpg.levelProgress}
@@ -710,8 +710,8 @@ export function PlaygroundScreen() {
         <button
           type="button"
           onClick={() => setFocusMode((v) => !v)}
-          aria-label={focusMode ? 'Exit focus mode (F or Esc)' : 'Focus mode — hide side rail (F)'}
-          title={focusMode ? 'Exit focus mode (F or Esc)' : 'Focus mode — hide side rail (F)'}
+          aria-label={focusMode ? 'Выйти из режима фокуса (F или Esc)' : 'Включить режим фокуса: скрыть боковую панель (F)'}
+          title={focusMode ? 'Выйти из режима фокуса (F или Esc)' : 'Включить режим фокуса: скрыть боковую панель (F)'}
           className="pointer-events-auto fixed right-3 top-[230px] z-[71] hidden h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-[16px] text-white shadow-xl backdrop-blur-xl md:flex"
           style={{
             boxShadow: focusMode ? `0 0 14px ${WORLD_META[world].accent}88` : '0 8px 22px rgba(0,0,0,.55)',
@@ -890,16 +890,18 @@ function MobileAbilityControls() {
         type="button"
         onClick={jump}
         className="pointer-events-auto fixed bottom-[138px] right-4 z-[74] h-14 w-14 rounded-full border-2 border-amber-200/40 bg-black/72 text-[11px] font-black uppercase tracking-[0.12em] text-amber-100 shadow-2xl backdrop-blur-xl md:hidden"
+        aria-label="Прыжок"
       >
-        Jump
+        Прыжок
       </button>
       <button
         type="button"
         onClick={() => emitCrouch(!crouching)}
         className="pointer-events-auto fixed bottom-[104px] left-4 z-[74] rounded-full border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-xl backdrop-blur-xl md:hidden"
         style={{ background: crouching ? 'rgba(241,197,109,.24)' : 'rgba(0,0,0,.68)', borderColor: crouching ? 'rgba(241,197,109,.55)' : 'rgba(255,255,255,.15)' }}
+        aria-label={crouching ? 'Выключить присед' : 'Включить присед'}
       >
-        {crouching ? 'Crouch on' : 'Crouch'}
+        {crouching ? 'Присед включён' : 'Присесть'}
       </button>
     </>
   )
@@ -909,13 +911,13 @@ function OnboardingHintCard({ open }: { open: boolean }) {
   if (!open) return null
   return (
     <div className="pointer-events-none fixed left-1/2 top-[108px] z-[92] w-[min(92vw,420px)] -translate-x-1/2 rounded-2xl border border-amber-200/35 bg-black/76 p-3 text-white shadow-2xl backdrop-blur-xl">
-      <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200/70">Training hint</div>
-      <div className="mt-1 text-sm font-black text-[#F1C56D]">Move • Talk • Jump • Crouch</div>
+      <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-200/70">Подсказка обучения</div>
+      <div className="mt-1 text-sm font-black text-[#F1C56D]">Движение • Разговор • Прыжок • Присед</div>
       <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-white/72">
-        <span><kbd className="text-amber-100">WASD</kbd> Move</span>
-        <span><kbd className="text-amber-100">E</kbd> Talk</span>
-        <span><kbd className="text-amber-100">Space</kbd> Jump</span>
-        <span><kbd className="text-amber-100">Ctrl</kbd> Crouch</span>
+        <span><kbd className="text-amber-100">WASD</kbd> движение</span>
+        <span><kbd className="text-amber-100">E</kbd> разговор</span>
+        <span><kbd className="text-amber-100">Space</kbd> прыжок</span>
+        <span><kbd className="text-amber-100">Ctrl</kbd> присед</span>
       </div>
     </div>
   )
@@ -1080,9 +1082,9 @@ function TitleScreen({
               </div>
             </div>
             <div className="grid gap-2 text-[12px] sm:grid-cols-3">
-              <PremiumFeatureCard icon="❁" title="Six Worlds" desc="Training Grounds → Forge → Arena" />
-              <PremiumFeatureCard icon="⛔" title="Live Multiplayer" desc="Walk with builders worldwide" />
-              <PremiumFeatureCard icon="🔮" title="Hermes Skills" desc="Promptcraft · Memory · Diplomacy" />
+              <PremiumFeatureCard icon="❁" title="Шесть миров" desc="Тренировка → Кузница → Арена" />
+              <PremiumFeatureCard icon="⛔" title="Живой мультиплеер" desc="Идите рядом со строителями со всего мира" />
+              <PremiumFeatureCard icon="🔮" title="Навыки Hermes" desc="Промпты · Память · Дипломатия" />
             </div>
           </div>
 
@@ -1094,15 +1096,15 @@ function TitleScreen({
             }}
           >
             <div className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: 'rgba(34,211,238,0.85)' }}>
-              ◈ Your Path
+              ◈ Ваш путь
             </div>
             <ol className="mt-4 space-y-3 text-[13px]">
               {[
-                'Meet Athena. Claim the Hermes Sigil.',
-                'Equip your kit at the Quartermaster.',
-                'Send your first chat message.',
-                'Visit the Archive Podium.',
-                'Pass through the Forge Gate.',
+                'Встретьте Афину и получите сигил Hermes.',
+                'Наденьте снаряжение у квартирмейстера.',
+                'Отправьте первое сообщение в чат.',
+                'Посетите архивный подиум.',
+                'Пройдите через ворота Кузницы.',
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span
@@ -1211,24 +1213,24 @@ function TutorialCompleteModal({
   return (
     <div className="pointer-events-auto fixed inset-0 z-[120] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-[520px] rounded-3xl border border-cyan-300/35 bg-[#070b14] p-5 text-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Training Complete</div>
-        <div className="mt-1 text-xl font-extrabold">Initiate Builder</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Обучение завершено</div>
+        <div className="mt-1 text-xl font-extrabold">Начинающий сборщик</div>
         <div className="mt-3 space-y-2 text-sm text-white/80">
-          <p>You learned the full builder loop:</p>
+          <p>Вы прошли полный цикл сборщика:</p>
           <ul className="space-y-1 text-white/72">
-            <li>Movement through the grounds</li>
-            <li>Starter gear and loadout basics</li>
-            <li>Local chat and nearby builders</li>
-            <li>Docs, memory, and briefing recall</li>
-            <li>How Hermes turns prompts into builds</li>
+            <li>движение по площадке;</li>
+            <li>стартовое снаряжение и основы набора;</li>
+            <li>локальный чат и строители рядом;</li>
+            <li>документы, память и возврат к брифингу;</li>
+            <li>как Hermes превращает запросы в готовую сборку.</li>
           </ul>
         </div>
         <div className="mt-4 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/70 hover:bg-white/5">
-            Later
+            Позже
           </button>
           <button onClick={onStepThroughForgeGate} className="rounded-xl border border-cyan-300/40 bg-cyan-400/15 px-4 py-2 text-sm font-bold text-cyan-100 hover:bg-cyan-400/25">
-            Step through the Forge Gate
+            Пройти через ворота Кузницы
           </button>
         </div>
       </div>
@@ -1249,10 +1251,10 @@ function ForgeArrivalOverlay({
   return (
     <div className="pointer-events-none fixed inset-0 z-[118] flex items-center justify-center bg-[#030712]/78 p-4 backdrop-blur-md">
       <div className="w-full max-w-[560px] rounded-3xl border border-cyan-300/30 bg-[#07131a]/92 p-6 text-center text-white shadow-2xl">
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Forge Gate</div>
-        <div className="mt-2 text-2xl font-extrabold text-cyan-100">Generating world...</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Ворота Кузницы</div>
+        <div className="mt-2 text-2xl font-extrabold text-cyan-100">Создаю мир...</div>
         <div className="mt-4 text-sm text-white/76">
-          {loading ? 'Pan is hardening the first blueprint into a playable space.' : flavor}
+          {loading ? 'Пан превращает первый чертёж в игровое пространство.' : flavor}
         </div>
       </div>
     </div>
@@ -1271,7 +1273,7 @@ function NearbyBuildersChip({ players }: { players: Array<RemotePlayer> }) {
       className="pointer-events-auto fixed top-[210px] z-[70] hidden w-[220px] rounded-2xl border border-white/15 bg-black/65 p-2 text-white shadow-2xl backdrop-blur-xl md:block"
       style={{ left: chromeLeft }}
     >
-      <div className="mb-1 px-1 text-[9px] font-bold uppercase tracking-[0.16em] text-white/45">Builders Nearby</div>
+      <div className="mb-1 px-1 text-[9px] font-bold uppercase tracking-[0.16em] text-white/45">Строители рядом</div>
       <div className="space-y-1">
         {players.map((player) => (
           <button
@@ -1283,13 +1285,14 @@ function NearbyBuildersChip({ players }: { players: Array<RemotePlayer> }) {
               window.setTimeout(() => setPingedId((current) => (current === player.id ? null : current)), 2000)
             }}
             className="flex w-full items-center justify-between rounded-xl border border-white/8 bg-white/5 px-2 py-1.5 text-left hover:bg-white/10"
+            aria-label={`Подать сигнал игроку ${player.name}`}
           >
             <span className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full" style={{ background: player.color, boxShadow: `0 0 10px ${player.color}` }} />
               <span className="text-[11px] font-semibold">{player.name}</span>
             </span>
             <span className="text-[9px] uppercase tracking-[0.12em] text-white/40">
-              {pingedId === player.id ? 'pinged' : 'ping'}
+              {pingedId === player.id ? 'сигнал' : 'позвать'}
             </span>
           </button>
         ))}
@@ -1336,7 +1339,7 @@ function CameraPresetToast() {
   if (!name) return null
   return (
     <div className="pointer-events-none fixed left-1/2 top-[88px] z-[85] w-[min(86vw,360px)] -translate-x-1/2">
-      <Toast title="Camera preset" rarity="common" icon="🎬">
+      <Toast title="Положение камеры" rarity="common" icon="🎬">
         {name}
       </Toast>
     </div>
@@ -1344,16 +1347,16 @@ function CameraPresetToast() {
 }
 
 const HERMES_LORE_LINES = [
-  'Hermes carried prompts between the gods of Olympus and the builders of Earth.',
-  'A Hermes Agent is just a fast, faithful messenger — with memory.',
-  'Promptcraft is the first skill. Diplomacy is the last.',
-  'Build small. Ship now. Iterate at the speed of intent.',
-  'Memory turns moments into a story. Story turns a tool into a teammate.',
-  'The Forge is where prompts harden into tools. The Arena is where they earn their keep.',
-  'Six worlds. One builder. Forge your path.',
-  'Every NPC here teaches a real Hermes Agent skill. Listen.',
-  'Routing is the art of choosing the right tool, the right model, the right moment.',
-  'You are not alone. The Agora is full of builders walking the same road.',
+  'Hermes переносит запросы между людьми, моделями и инструментами.',
+  'Hermes Agent — быстрый и точный посыльный с памятью.',
+  'Промпты — первый навык. Дипломатия — последний.',
+  'Собирайте малое. Выпускайте сейчас. Улучшайте быстро.',
+  'Память превращает моменты в историю, а инструмент — в напарника.',
+  'Кузница превращает запросы в инструменты. Арена проверяет, чего они стоят.',
+  'Шесть миров. Один сборщик. Выкуйте свой путь.',
+  'Каждый NPC здесь учит реальному навыку Hermes Agent. Слушайте.',
+  'Маршрутизация — искусство выбрать нужный инструмент, модель и момент.',
+  'Вы не одни. Агора полна строителей на той же дороге.',
 ]
 
 /** Loading screen shown during world transitions — rotating Hermes lore + spinner. */
@@ -1377,7 +1380,7 @@ function TransitionLoadingScreen({ active, worldName }: { active: boolean; world
           className="text-[12px] font-bold uppercase tracking-[0.45em]"
           style={{ color: 'rgba(245, 217, 122, 0.7)' }}
         >
-          — entering —
+          — вход —
         </div>
         <div
           className="text-[44px] leading-none font-black"
@@ -1427,13 +1430,14 @@ function PlaygroundHelpHud({ worldName }: { worldName: string }) {
       <button
         onClick={() => setOpen((value) => !value)}
         className="flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-black/55 text-[12px] font-bold text-white/80 hover:bg-white/10"
-        title="Show controls"
+        title="Показать управление"
+        aria-label="Показать управление"
       >
         ?
       </button>
       {open && (
         <div className="rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
-          Click ground = walk · Click NPC = talk · WASD · Shift sprint · 1 Strike · 2 Dash · 3 Bolt · 4 Summon · E talk · J journal · M map · T chat · F focus · Drag mouse to rotate camera
+          Клик по земле = идти · клик по NPC = говорить · WASD · Shift бег · 1 удар · 2 рывок · 3 импульс · 4 призыв · E говорить · J журнал · M карта · T чат · F фокус · мышь вращает камеру
         </div>
       )}
     </div>
@@ -1514,28 +1518,32 @@ function PlaygroundUtilityDock({
       <button
         onClick={onReplayNarration}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title="Replay world narration"
+        title="Повторить озвучку мира"
+        aria-label="Повторить озвучку мира"
       >
         📢
       </button>
       <button
         onClick={onToggleNarration}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title={narrationMuted ? 'Unmute narration' : 'Mute narration'}
+        title={narrationMuted ? 'Включить озвучку' : 'Выключить озвучку'}
+        aria-label={narrationMuted ? 'Включить озвучку' : 'Выключить озвучку'}
       >
         {narrationMuted ? '🔇' : '🗣️'}
       </button>
       <button
         onClick={onToggleAudio}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title={audioMuted ? 'Unmute audio' : 'Mute audio'}
+        title={audioMuted ? 'Включить звук' : 'Выключить звук'}
+        aria-label={audioMuted ? 'Включить звук' : 'Выключить звук'}
       >
         {audioMuted ? '🔇' : '🔊'}
       </button>
       <button
         onClick={onCustomize}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
-        title="Customize avatar (C)"
+        title="Настроить аватар (C)"
+        aria-label="Настроить аватар"
       >
         👤
       </button>

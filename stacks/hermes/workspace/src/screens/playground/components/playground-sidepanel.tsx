@@ -59,12 +59,18 @@ const FOUNDERS_PALETTE = {
   slate: '#1B2433',
   obsidian: '#0A0D12',
 } as const
+const RARITY_LABELS: Record<string, string> = {
+  common: 'обычный',
+  rare: 'редкий',
+  epic: 'эпический',
+  legendary: 'легендарный',
+}
 const INVENTORY_SECTIONS: Array<{
   id: 'inventory' | 'founders-vault'
   label: string
 }> = [
-  { id: 'inventory', label: 'Inventory' },
-  { id: 'founders-vault', label: "Founders' Vault" },
+  { id: 'inventory', label: 'Инвентарь' },
+  { id: 'founders-vault', label: 'Хранилище основателя' },
 ]
 
 function getFoundersVaultUnclaimedCount() {
@@ -125,8 +131,8 @@ export function PlaygroundSidePanel({
           }}
         >
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/55">Quest Tracker</span>
-            <button type="button" onClick={() => setQuestRailOpen(false)} className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white/55">Hide</button>
+            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/55">Трекер задания</span>
+            <button type="button" onClick={() => setQuestRailOpen(false)} className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white/55">Скрыть</button>
           </div>
           <div className="flex items-start gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-lg">
@@ -141,7 +147,7 @@ export function PlaygroundSidePanel({
               </div>
               {tutorialStep && (
                 <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
-                  Step {tutorialStep} of 5
+                  Шаг {tutorialStep} из 5
                 </div>
               )}
             </div>
@@ -170,9 +176,9 @@ export function PlaygroundSidePanel({
           type="button"
           onClick={() => setQuestRailOpen(true)}
           className="pointer-events-auto fixed right-3 top-[356px] z-[76] rounded-full border border-amber-200/35 bg-black/70 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-100 shadow-xl backdrop-blur-xl"
-          title="Open quest tracker"
+          title="Открыть трекер задания"
         >
-          📜 Quest
+          📜 Задание
         </button>
       )}
 
@@ -213,6 +219,7 @@ export function PlaygroundSidePanel({
                     tab === entry.id ? `inset 0 -2px 0 ${worldAccent}` : 'none',
                 }}
                 title={entry.label}
+                aria-label={entry.label}
               >
                 <span className="relative text-base leading-none">
                   {entry.icon}
@@ -350,7 +357,7 @@ function InventoryTab({
         <>
           <div>
             <div className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-white/55">
-              Equipped
+              Надето
             </div>
             <div className="grid grid-cols-2 gap-2">
               {SLOT_LABELS.map(({ slot, label }) => {
@@ -371,7 +378,7 @@ function InventoryTab({
                       outlineOffset: '-4px',
                     }}
                     title={
-                      item ? `Unequip ${item.name}` : `Empty ${label} slot`
+                      item ? `Снять ${item.name}` : `Пустой слот: ${label}`
                     }
                   >
                     <div className="text-[9px] uppercase tracking-[0.12em] text-white/45">
@@ -385,12 +392,12 @@ function InventoryTab({
                       </span>
                       <div className="min-w-0">
                         <div className="truncate text-[10px] font-semibold">
-                          {item?.name || 'Empty'}
+                          {item?.name || 'Пусто'}
                         </div>
                         <div className="text-[8px] text-white/45">
                           {item?.stat
                             ? `${item.stat.label} +${item.stat.value}`
-                            : 'Click item below to equip'}
+                            : 'Нажмите предмет ниже, чтобы надеть'}
                         </div>
                       </div>
                     </div>
@@ -402,7 +409,7 @@ function InventoryTab({
 
           <div>
             <div className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-white/55">
-              Inventory
+              Инвентарь
             </div>
             <div className="grid grid-cols-4 gap-2">
               {Array.from({ length: 24 }).map((_, index) => {
@@ -411,7 +418,11 @@ function InventoryTab({
                 const isEquipped = id
                   ? Object.values(equipped).includes(id)
                   : false
-                const slotLabel = item && item.slot ? 'Equip' : item?.rarity
+                const slotLabel = item && item.slot
+                  ? 'Надеть'
+                  : item?.rarity
+                    ? RARITY_LABELS[item.rarity] ?? item.rarity
+                    : undefined
                 return (
                   <button
                     key={index}
@@ -421,7 +432,7 @@ function InventoryTab({
                       if (!id) return
                       onEquipItem(id)
                     }}
-                    title={item ? item.description : 'Empty slot'}
+                    title={item ? item.description : 'Пустой слот'}
                     className="flex h-16 flex-col items-center justify-center rounded-lg border border-white/10 bg-black/35 text-center transition hover:border-white/30 disabled:cursor-default"
                   >
                     {item ? (
@@ -431,7 +442,7 @@ function InventoryTab({
                           {item.name}
                         </div>
                         <div className="text-[7px] uppercase tracking-[0.1em] text-white/45">
-                          {isEquipped ? 'Equipped' : slotLabel}
+                          {isEquipped ? 'Надето' : slotLabel}
                         </div>
                       </>
                     ) : (
@@ -472,14 +483,14 @@ function FoundersVaultPlaceholder({
             className="text-[9px] font-bold uppercase tracking-[0.18em]"
             style={{ color: FOUNDERS_PALETTE.gold }}
           >
-            Founders' Vault
+            Хранилище основателя
           </div>
           <div className="mt-1 text-[14px] font-semibold text-white">
-            Locked for v0.3 preview
+            Закрыто в версии v0.3
           </div>
           <div className="mt-1 text-[10px] leading-relaxed text-white/72">
-            Early supporters will receive claimable gifts here once
-            server-authoritative granting ships in v0.4.
+            Ранние участники получат здесь подарки, когда в версии v0.4
+            появится серверная выдача наград.
           </div>
         </div>
         <div
@@ -496,10 +507,10 @@ function FoundersVaultPlaceholder({
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-[9px]">
         {[
-          'Founder cosmetics',
-          'Soft currency grants',
-          'Title + flair rewards',
-          'Companion unlocks',
+          'Косметика основателя',
+          'Мягкая валюта',
+          'Титул и отметки',
+          'Разблокировка спутника',
         ].map((label) => (
           <div
             key={label}
@@ -522,8 +533,8 @@ function FoundersVaultPlaceholder({
           color: FOUNDERS_PALETTE.gold,
         }}
       >
-        {foundersVaultUnclaimed} unclaimed founder gift queued • claiming
-        disabled in v0.3
+        В очереди подарков основателя: {foundersVaultUnclaimed} • получение
+        отключено в v0.3
       </div>
     </div>
   )
@@ -532,28 +543,28 @@ function FoundersVaultPlaceholder({
 function SkillsTab({ state }: { state: PlaygroundRpgState }) {
   const entries = [
     {
-      label: 'Power',
+      label: 'Сила',
       value: state.playerProfile.equipped.weapon
         ? (itemById(state.playerProfile.equipped.weapon)?.stat?.value ?? 0)
         : 0,
       color: '#fb7185',
     },
     {
-      label: 'Guard',
+      label: 'Защита',
       value: state.playerProfile.equipped.cloak
         ? (itemById(state.playerProfile.equipped.cloak)?.stat?.value ?? 0)
         : 0,
       color: '#22d3ee',
     },
     {
-      label: 'Command',
+      label: 'Команда',
       value: state.playerProfile.equipped.head
         ? (itemById(state.playerProfile.equipped.head)?.stat?.value ?? 0)
         : 0,
       color: '#facc15',
     },
     {
-      label: 'Recall',
+      label: 'Память',
       value: state.playerProfile.equipped.artifact
         ? (itemById(state.playerProfile.equipped.artifact)?.stat?.value ?? 0)
         : 0,
@@ -620,7 +631,7 @@ function QuestsTab({
                 className="text-[9px]"
                 style={{ color: done ? '#10b981' : accent }}
               >
-                {done ? 'DONE' : quest.optional ? 'BONUS' : '...'}
+                {done ? 'ГОТОВО' : quest.optional ? 'БОНУС' : '...'}
               </div>
             </div>
             <div className="mt-0.5 text-[9px] leading-tight text-white/55">
@@ -688,7 +699,7 @@ function WorldsTab({
             <div>
               <div className="text-[11px] font-semibold">{world.name}</div>
               <div className="text-[9px] text-white/45">
-                {unlocked ? world.tagline : 'Locked'}
+                {unlocked ? world.tagline : 'Закрыто'}
               </div>
             </div>
             <div className="text-sm">
@@ -699,7 +710,7 @@ function WorldsTab({
       })}
       <div className="pt-1 text-[9px] uppercase tracking-[0.12em] text-white/40">
         {Math.min(state.unlockedWorlds.length, worlds.length)} / {worlds.length}{' '}
-        unlocked
+        открыто
       </div>
     </div>
   )
@@ -716,16 +727,16 @@ function SettingsTab({
     <div className="space-y-2 text-[10px] text-white/70">
       <div>
         <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/55">
-          Controls
+          Управление
         </div>
         <ul className="mt-1 space-y-0.5">
-          <li>WASD move · Shift sprint</li>
-          <li>E talk · T chat · J journal · M world map · C avatar</li>
-          <li>Drag with mouse to rotate camera · wheel to zoom</li>
-          <li>Arrow keys still orbit view · 1 Strike · 2 Dash · 3 Bolt</li>
+          <li>WASD — движение · Shift — бег</li>
+          <li>E — говорить · T — чат · J — журнал · M — карта · C — аватар</li>
+          <li>Тяните мышью, чтобы вращать камеру · колесо меняет масштаб</li>
+          <li>Стрелки вращают обзор · 1 — удар · 2 — рывок · 3 — импульс</li>
           <li>
-            <strong>F focus mode</strong> (hide rail) · Esc closes panels +
-            focus
+            <strong>F — режим фокуса</strong> скрывает панель · Esc закрывает панели
+            и фокус
           </li>
         </ul>
       </div>
@@ -734,7 +745,7 @@ function SettingsTab({
           onClick={onReset}
           className="rounded-lg border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-rose-100 hover:bg-rose-500/20"
         >
-          Reset local profile
+          Сбросить локальный профиль
         </button>
       )}
       {onReplayTutorial && (
@@ -742,7 +753,7 @@ function SettingsTab({
           onClick={onReplayTutorial}
           className="w-full rounded-lg border border-cyan-300/30 bg-cyan-400/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-100 hover:bg-cyan-400/20"
         >
-          Replay tutorial
+          Повторить обучение
         </button>
       )}
     </div>

@@ -16,62 +16,62 @@ const ACTIONS: Array<ActionSlot> = [
   {
     id: 'strike',
     key: '1',
-    label: 'Strike',
+    label: 'Удар',
     icon: '◇',
     cost: 0,
     cooldownMs: 900,
-    description: 'Basic melee attack for nearby targets.',
+    description: 'Базовая ближняя атака по цели рядом.',
     color: '#F1C56D',
   },
   {
     id: 'dash',
     key: '2',
-    label: 'Dash',
+    label: 'Рывок',
     icon: '↟',
     cost: 8,
     cooldownMs: 4000,
-    description: 'Short movement burst. Costs 8 MP.',
+    description: 'Короткий рывок. Стоит 8 MP.',
     color: '#2E6A63',
   },
   {
     id: 'bolt',
     key: '3',
-    label: 'Bolt',
+    label: 'Импульс',
     icon: '⌁',
     cost: 15,
     cooldownMs: 5200,
-    description: 'Ranged bolt that hits the test enemy from a distance.',
+    description: 'Дальний импульс, который бьёт тестового врага на расстоянии.',
     color: '#B8862B',
   },
   {
     id: 'summon',
     key: '4',
-    label: 'Summon',
+    label: 'Призыв',
     icon: '✦',
     cost: 20,
     cooldownMs: 30000,
-    description: 'Summon a temporary Hermes familiar that walks beside you for 60s. (Hermes Summoning skill)',
+    description: 'Призывает временного спутника Hermes на 60 секунд.',
     color: '#F4E9D3',
   },
   {
     id: 'sigil',
     key: '5',
-    label: 'Sigil',
+    label: 'Сигил',
     icon: '☤',
     cost: 0,
     cooldownMs: 1,
-    description: 'Hermes sigil focus slot. Unlocks in Agora.',
+    description: 'Слот фокуса сигила Hermes. Открывается в Агоре.',
     color: '#F1C56D',
     locked: true,
   },
   {
     id: 'scroll',
     key: '6',
-    label: 'Scroll',
+    label: 'Свиток',
     icon: '▱',
     cost: 0,
     cooldownMs: 1,
-    description: 'Reserved scroll slot for quests and lore.',
+    description: 'Резервный слот свитка для заданий и знаний.',
     color: '#F4E9D3',
     locked: true,
   },
@@ -161,6 +161,7 @@ export function PlaygroundActionBar({ onCast, hp, hpMax, mp, mpMax, sp, spMax }:
             <button
               onClick={() => tryCast(action)}
               disabled={cdRemaining > 0 || noMp || action.locked}
+              aria-label={`${action.key}: ${action.label}`}
               className="relative h-14 w-14 overflow-hidden rounded-[14px] border transition-transform hover:-translate-y-1 disabled:opacity-55 disabled:hover:translate-y-0"
               style={{
                 borderColor: castable ? action.color : 'rgba(184,134,43,.36)',
@@ -205,7 +206,7 @@ export function PlaygroundActionBar({ onCast, hp, hpMax, mp, mpMax, sp, spMax }:
                   {action.label}
                 </div>
                 <div className="opacity-80">{action.description}</div>
-                {noMp && <div className="mt-1 text-[#F1C56D]">Not enough MP</div>}
+                {noMp && <div className="mt-1 text-[#F1C56D]">Не хватает MP</div>}
               </div>
             )}
           </div>

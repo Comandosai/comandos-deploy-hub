@@ -34,7 +34,7 @@ export function DebugPanel({
         'absolute inset-y-0 right-0 z-40 flex h-full w-[400px] max-w-full translate-x-0 flex-col border-l border-primary-700/40 bg-[#0d0d0d] text-primary-100 shadow-2xl transition-transform duration-200',
       )}
       role="complementary"
-      aria-label="Debug analyzer"
+      aria-label="Диагностика терминала"
     >
       <div className="flex items-center gap-2 border-b border-primary-700/40 px-4 py-3">
         <div className="min-w-0 flex-1">

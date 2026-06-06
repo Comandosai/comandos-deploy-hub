@@ -47,7 +47,7 @@ export function SettingsPanel({ open, onClose, signedInName, onSignOut }: Props)
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="HermesWorld settings"
+        aria-label="Настройки HermesWorld"
         className="max-h-[92vh] w-[min(96vw,980px)] overflow-hidden rounded-3xl border-2 text-white shadow-2xl"
         style={{
           borderColor: 'rgba(241,197,109,.55)',
@@ -65,34 +65,34 @@ export function SettingsPanel({ open, onClose, signedInName, onSignOut }: Props)
           </button>
         </div>
         <div className="grid max-h-[calc(92vh-84px)] gap-3 overflow-y-auto p-4 md:grid-cols-2 xl:grid-cols-3">
-          <Section title="Graphics">
-            <Select label="Render distance" value={settings.graphics.renderDistance} onChange={onSelect(['graphics', 'renderDistance'])} options={['low', 'med', 'high', 'ultra']} />
-            <Select label="Shadow quality" value={settings.graphics.shadowQuality} onChange={onSelect(['graphics', 'shadowQuality'])} options={['low', 'med', 'high', 'ultra']} />
-            <Select label="Texture quality" value={settings.graphics.textureQuality} onChange={onSelect(['graphics', 'textureQuality'])} options={['low', 'med', 'high', 'ultra']} />
-            <Check label="Anti-aliasing" checked={settings.graphics.antiAliasing} onChange={onToggle(['graphics', 'antiAliasing'])} />
+          <Section title="Графика">
+            <Select label="Дальность прорисовки" value={settings.graphics.renderDistance} onChange={onSelect(['graphics', 'renderDistance'])} options={['low', 'med', 'high', 'ultra']} />
+            <Select label="Качество теней" value={settings.graphics.shadowQuality} onChange={onSelect(['graphics', 'shadowQuality'])} options={['low', 'med', 'high', 'ultra']} />
+            <Select label="Качество текстур" value={settings.graphics.textureQuality} onChange={onSelect(['graphics', 'textureQuality'])} options={['low', 'med', 'high', 'ultra']} />
+            <Check label="Сглаживание" checked={settings.graphics.antiAliasing} onChange={onToggle(['graphics', 'antiAliasing'])} />
           </Section>
 
-          <Section title="Performance">
-            <Check label="FPS counter" checked={settings.performance.fpsCounter} onChange={onToggle(['performance', 'fpsCounter'])} />
-            <Select label="Target FPS" value={settings.performance.targetFps} onChange={onSelect(['performance', 'targetFps'])} options={['30', '60', '120', 'uncapped']} />
-            <Check label="Reduced motion" checked={settings.performance.reducedMotion} onChange={onToggle(['performance', 'reducedMotion'])} />
+          <Section title="Производительность">
+            <Check label="Счётчик FPS" checked={settings.performance.fpsCounter} onChange={onToggle(['performance', 'fpsCounter'])} />
+            <Select label="Целевой FPS" value={settings.performance.targetFps} onChange={onSelect(['performance', 'targetFps'])} options={['30', '60', '120', 'uncapped']} />
+            <Check label="Меньше анимации" checked={settings.performance.reducedMotion} onChange={onToggle(['performance', 'reducedMotion'])} />
           </Section>
 
-          <Section title="Controls">
-            <Range label="Mouse sensitivity" value={settings.controls.mouseSensitivity} min={1} max={100} onChange={onNumber(['controls', 'mouseSensitivity'])} />
-            <Check label="Invert Y" checked={settings.controls.invertY} onChange={onToggle(['controls', 'invertY'])} />
+          <Section title="Управление">
+            <Range label="Чувствительность мыши" value={settings.controls.mouseSensitivity} min={1} max={100} onChange={onNumber(['controls', 'mouseSensitivity'])} />
+            <Check label="Инвертировать Y" checked={settings.controls.invertY} onChange={onToggle(['controls', 'invertY'])} />
             <div className="rounded-xl border border-white/10 bg-black/25 p-2">
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Keyboard rebinding</div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">Клавиши</div>
               <div className="grid gap-1 text-[11px] text-white/70">
                 {Object.entries(settings.controls.bindings).slice(0, 14).map(([action, key]) => (
-                  <div key={action} className="flex justify-between gap-2"><span>{action}</span><kbd className="text-amber-100">{key}</kbd></div>
+                  <div key={action} className="flex justify-between gap-2"><span>{CONTROL_ACTION_LABELS[action] ?? action}</span><kbd className="text-amber-100">{key}</kbd></div>
                 ))}
               </div>
             </div>
           </Section>
 
-          <Section title="Audio">
-            <Range label="Master" value={settings.audio.master} min={0} max={100} onChange={onNumber(['audio', 'master'])} />
+          <Section title="Звук">
+            <Range label="Общая громкость" value={settings.audio.master} min={0} max={100} onChange={onNumber(['audio', 'master'])} />
             <Range label="Музыка" value={settings.audio.music} min={0} max={100} onChange={onNumber(['audio', 'music'])} />
             <Range label="Эффекты" value={settings.audio.sfx} min={0} max={100} onChange={onNumber(['audio', 'sfx'])} />
             <Range label="Фон" value={settings.audio.ambient} min={0} max={100} onChange={onNumber(['audio', 'ambient'])} />
@@ -108,17 +108,17 @@ export function SettingsPanel({ open, onClose, signedInName, onSignOut }: Props)
 
           <Section title="Доступность">
             <Check label="Режим без вспышек" checked={settings.accessibility.photosensitiveMode} onChange={onToggle(['accessibility', 'photosensitiveMode'])} />
-            <p className="text-xs leading-relaxed text-white/50">Disables rapid flashes, strobe-like pulses, sparkle bursts, and fast lighting loops. Flash animations are capped at 1.5Hz by default and stopped in this mode.</p>
+            <p className="text-xs leading-relaxed text-white/50">Отключает быстрые вспышки, строб-эффекты, резкие искры и быстрые световые циклы. В обычном режиме вспышки ограничены частотой 1.5 Гц, а здесь полностью останавливаются.</p>
           </Section>
 
-          <Section title="Account">
+          <Section title="Аккаунт">
             {signedInName ? (
               <>
-                <div className="rounded-xl border border-emerald-300/20 bg-emerald-300/10 p-3 text-sm text-emerald-50">Signed in as {signedInName}</div>
-                <button type="button" onClick={onSignOut} className="rounded-xl border border-red-300/25 bg-red-300/10 px-3 py-2 text-sm font-bold text-red-100 hover:bg-red-300/15">Sign out</button>
+                <div className="rounded-xl border border-emerald-300/20 bg-emerald-300/10 p-3 text-sm text-emerald-50">Вы вошли как {signedInName}</div>
+                <button type="button" onClick={onSignOut} className="rounded-xl border border-red-300/25 bg-red-300/10 px-3 py-2 text-sm font-bold text-red-100 hover:bg-red-300/15">Выйти</button>
               </>
             ) : (
-              <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/55">Not signed in. Sign out is unavailable.</div>
+              <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/55">Вход не выполнен. Выход из аккаунта недоступен.</div>
             )}
           </Section>
         </div>
@@ -131,8 +131,35 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   return <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-3"><h2 className="mb-3 text-sm font-black uppercase tracking-[0.18em] text-[#F1C56D]">{title}</h2><div className="space-y-3">{children}</div></section>
 }
 
+const SELECT_LABELS: Record<string, string> = {
+  low: 'низко',
+  med: 'средне',
+  high: 'высоко',
+  ultra: 'ультра',
+  uncapped: 'без ограничения',
+}
+
+const CONTROL_ACTION_LABELS: Record<string, string> = {
+  forward: 'вперёд',
+  backward: 'назад',
+  left: 'влево',
+  right: 'вправо',
+  jump: 'прыжок',
+  sprint: 'бег',
+  interact: 'действие',
+  chat: 'чат',
+  journal: 'журнал',
+  map: 'карта',
+  inventory: 'инвентарь',
+  avatar: 'аватар',
+  focus: 'фокус',
+  attack: 'удар',
+  dash: 'рывок',
+  bolt: 'импульс',
+}
+
 function Select({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (event: ChangeEvent<HTMLSelectElement>) => void }) {
-  return <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/55">{label}<select value={value} onChange={onChange} className="mt-1 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none">{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+  return <label className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/55">{label}<select value={value} onChange={onChange} className="mt-1 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none">{options.map((option) => <option key={option} value={option}>{SELECT_LABELS[option] ?? option}</option>)}</select></label>
 }
 
 function Range({ label, value, min, max, suffix = '', onChange }: { label: string; value: number; min: number; max: number; suffix?: string; onChange: (event: ChangeEvent<HTMLInputElement>) => void }) {

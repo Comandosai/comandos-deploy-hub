@@ -48,71 +48,71 @@ export type NpcDialogTree = {
 export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   athena: {
     id: 'athena',
-    name: 'Athena',
-    title: 'Guide of the Training Grounds',
+    name: 'Афина',
+    title: 'Проводник тренировочной площадки',
     color: '#a78bfa',
     opening:
-      'Welcome, builder. I am Athena. Hermes Agent is the messenger layer for your work: one interface that routes prompts to the right model and tool, then carries the result back into your workflow.',
+      'Добро пожаловать, сборщик. Я Афина. Hermes Agent связывает вашу работу: один интерфейс отправляет запросы нужной модели и инструменту, а потом возвращает результат в рабочий сценарий.',
     lore: [
-      'These Training Grounds teach the Hermes loop: move, equip, speak, remember, and build.',
-      'Long before COMANDOS AI Workspace, agents were tools. We invited them into a world instead.',
-      'Start here, then walk through the Forge Gate when you are ready to build with Hermes for real.',
-      'I am scripted for this hackathon. Soon a real Hermes agent will speak through me with deeper memory.',
+      'Эта площадка учит циклу Hermes: двигаться, надевать снаряжение, говорить, помнить и собирать.',
+      'До COMANDOS AI Workspace агенты были просто инструментами. Мы поселили их в мире.',
+      'Начните здесь, а когда будете готовы к реальной сборке с Hermes, пройдите через ворота Кузницы.',
+      'Сейчас я сценарный персонаж для хакатона. Позже через меня будет говорить настоящий агент Hermes с глубокой памятью.',
     ],
     choices: [
       {
         id: 'training-sigil',
-        label: '[Quest] Receive the Hermes Sigil',
+        label: '[Задание] Получить сигил Hermes',
         reply:
-          'Take the Hermes Sigil, your Training Blade, and your Novice Cloak. Open your kit, equip them, and meet me again at the Forge Gate.',
+          'Возьмите сигил Hermes, учебный клинок и плащ новичка. Откройте снаряжение, наденьте их и встретьтесь со мной у ворот Кузницы.',
       },
       {
         id: 'training-build',
-        label: '[Quest] Build a tiny prototype',
+        label: '[Задание] Собрать маленький прототип',
         reply:
-          'Excellent. Let us build a tiny prototype: a quest tracker, a portal, a training arena, anything small and real. The Forge is where Hermes turns prompts into products, and it answers builders who ship.',
+          'Хорошо. Соберём маленький прототип: трекер заданий, портал, тренировочную арену или любую небольшую реальную вещь. Кузница превращает запросы в продукты и отвечает тем, кто доводит до результата.',
         grantSkillXp: { worldsmithing: 20, engineering: 20 },
       },
       {
         id: 'lore-hermes',
-        label: 'Tell me about Hermes Agent',
+        label: 'Расскажи про Hermes Agent',
         reply:
-          'Hermes is the harness — the messenger that carries your prompt to whichever model serves you best. Codex, Claude, Kimi, Opus, your local models. One voice, many minds.',
+          'Hermes — это связка и посыльный. Он несёт ваш запрос к той модели, которая лучше подходит: Codex, Claude, Kimi, Opus или локальная модель. Один голос, много умов.',
       },
       {
         id: 'lore-rohan',
-        label: 'Why does this feel like an MMO?',
+        label: 'Почему это похоже на MMO?',
         reply:
-          'Because that is the point. Old MMOs taught us to live in a shared world. Now agents live there too. You are the first generation to play with both.',
+          'Потому что так и задумано. Старые MMO учили жить в общем мире. Теперь там живут и агенты. Вы первое поколение, которое играет с обоими.',
       },
     ],
   },
 
   apollo: {
     id: 'apollo',
-    name: 'Apollo',
-    title: 'Bard of Models',
+    name: 'Аполлон',
+    title: 'Бард моделей',
     color: '#f59e0b',
     opening:
-      'Hail, traveler. I am Apollo. Every world here begins as a song — a prompt that becomes a place.',
+      'Приветствую, путник. Я Аполлон. Каждый мир здесь начинается как песня — запрос, который становится местом.',
     lore: [
-      'The Forge is loud. The Grove is melodic. The Arena is percussion. I write the score for each.',
-      'When COMANDOS AI Workspace ships music generation in a quest, I am the one composing.',
+      'Кузница звучит громко. Роща мелодична. Арена бьёт ритмом. Я пишу музыку для каждой зоны.',
+      'Когда в COMANDOS AI Workspace появится генерация музыки в заданиях, сочинять буду я.',
     ],
     choices: [
       {
         id: 'song-fragment',
-        label: '[Quest] Ask for a Song Fragment',
+        label: '[Задание] Попросить фрагмент песни',
         reply:
-          'A fragment of the Grove’s melody is yours. Three of them open the Ritual. Walk into the Grove and gather two more.',
+          'Фрагмент мелодии Рощи ваш. Три фрагмента открывают ритуал. Войдите в Рощу и найдите ещё два.',
         grantItems: ['song-fragment'],
         grantSkillXp: { diplomacy: 30, oracle: 20 },
       },
       {
         id: 'lore-music',
-        label: 'How does music help builders?',
+        label: 'Как музыка помогает сборщикам?',
         reply:
-          'Sound is context. A workspace with the right ambient is one where a builder ships. I score yours.',
+          'Звук — это контекст. В рабочей среде с правильным фоном сборщик быстрее доводит дело до результата. Я пишу этот фон.',
       },
     ],
   },
@@ -120,55 +120,55 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   iris: {
     id: 'iris',
     name: 'Iris',
-    title: 'Messenger of the Bridge',
+    title: 'Посланница моста',
     color: '#22d3ee',
     opening:
-      'I am Iris. The Archive Podium is where Hermes explains memory, docs, context, and recall so your next session starts with signal instead of drift.',
+      'Я Ирида. Архивный подиум объясняет память, документы, контекст и возврат к фактам, чтобы следующая сессия начиналась с сути, а не с хаоса.',
     lore: [
-      'The chat panel above your head? That is my domain. Every message you send is a packet I deliver.',
-      'Hermes remembers what you build when you keep the docs close and the memory files honest.',
-      'In the next sprint I get a real WebSocket. Until then, the bots are my apprentices.',
+      'Панель чата над головой — моя область. Каждое сообщение я доставляю как пакет.',
+      'Hermes помнит, что вы строите, если документы рядом, а файлы памяти честные.',
+      'В следующем этапе у меня появится настоящий WebSocket. Пока боты — мои ученики.',
     ],
     choices: [
       {
         id: 'wave-all',
-        label: 'Send a wave to everyone in the world',
+        label: 'Помахать всем в мире',
         reply:
-          'Done. They felt it. Watch the chat — someone always answers a wave.',
+          'Готово. Они почувствовали. Смотрите чат — кто-нибудь всегда отвечает на приветствие.',
         grantSkillXp: { diplomacy: 25 },
       },
       {
         id: 'lore-multiplayer',
-        label: 'When does real multiplayer arrive?',
+        label: 'Когда появится настоящий мультиплеер?',
         reply:
-          'When Eric ships the WebSocket route. Probably v0.2. For now you are surrounded by builders who feel real enough.',
+          'Когда будет готов маршрут WebSocket. Вероятно, в v0.2. Пока вокруг вас строители, которые ощущаются достаточно живыми.',
       },
     ],
   },
 
   nike: {
     id: 'nike',
-    name: 'Nike',
-    title: 'Champion of Benchmarks',
+    name: 'Ника',
+    title: 'Чемпионка проверок',
     color: '#fb7185',
     opening:
-      'I am Nike. In the Arena we duel models, not bodies. Bring me your best prompt and we will see whose answer wins.',
+      'Я Ника. На Арене мы сталкиваем модели, а не тела. Принесите лучший запрос и посмотрим, чей ответ победит.',
     lore: [
-      'A duel is a benchmark with stakes. Speed, clarity, accuracy. Two prompts walk in, one leaves with the medal.',
-      'BenchLoop runs the judging in the real world. In the Arena it is dramatic. Same math.',
+      'Дуэль — это проверка со ставками: скорость, ясность, точность. Два запроса входят, один выходит с медалью.',
+      'BenchLoop судит в реальном мире. На Арене это выглядит драматично, но математика та же.',
     ],
     choices: [
       {
         id: 'duel',
-        label: '[Quest] Enter a duel',
+        label: '[Задание] Войти в дуэль',
         reply:
-          'Step into the medallion in the Arena. The first match is a freebie. Win, and the Kimi Sigil is yours.',
+          'Встаньте на медальон Арены. Первый бой бесплатный. Победите — и сигил Kimi ваш.',
       },
       {
         id: 'lore-models',
-        label: 'Tell me about the model wars',
+        label: 'Расскажи про войны моделей',
         reply:
-          'Codex, Claude, Kimi, GPT-5, the local fleet — they fight for context windows, latency, and grace. Watch them. Bet on the underdog.',
+          'Codex, Claude, Kimi, GPT-5 и локальные модели борются за контекст, задержку и качество ответа. Наблюдайте. Иногда побеждает недооценённый.',
       },
     ],
   },
@@ -176,35 +176,35 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   pan: {
     id: 'pan',
     name: 'Pan',
-    title: 'Druid of the Grove · Hacker of the Forge',
+    title: 'Друид Рощи · хакер Кузницы',
     color: '#34d399',
     opening:
-      'Two faces, same person. In the Forge I patch broken prompts. In the Grove I plant trees from songs. Pick a topic.',
+      'Два лица, один человек. В Кузнице я чиню сломанные запросы. В Роще выращиваю деревья из песен. Выбирайте тему.',
     lore: [
-      'A grove is a debugger you can walk in. Trees show what your agents are doing in real time.',
-      'When BenchLoop integrates, every leaf will be a model run.',
+      'Роща — это отладчик, по которому можно ходить. Деревья показывают, что делают агенты в реальном времени.',
+      'Когда подключится BenchLoop, каждый лист будет запуском модели.',
     ],
     choices: [
       {
         id: 'grove-leaf',
-        label: '[Quest] Receive a Grove Leaf',
+        label: '[Задание] Получить лист Рощи',
         reply:
-          'Take this glowing leaf. Sing to it later and a song will answer.',
+          'Возьмите этот светящийся лист. Позже спойте ему, и песня ответит.',
         grantItems: ['grove-leaf'],
         grantSkillXp: { worldsmithing: 20, oracle: 20 },
       },
       {
         id: 'forge-demo',
-        label: '[Build] Forge a demo tool',
+        label: '[Сборка] Выковать демо-инструмент',
         reply:
-          'Name the thing you want to make and the Forge will start from there. This is where Hermes turns prompts into products, so keep the loop small, concrete, and shippable.',
+          'Назовите, что хотите сделать, и Кузница начнёт с этого. Здесь Hermes превращает запросы в продукты, поэтому держите цикл маленьким, конкретным и доводимым.',
         grantSkillXp: { engineering: 25, worldsmithing: 15 },
       },
       {
         id: 'lore-forge',
-        label: 'Tell me about the Forge',
+        label: 'Расскажи про Кузницу',
         reply:
-          'The Forge is where prompts harden into tools. Every NPC in the Forge runs a different model. Listen for the pitch — Codex is brassy, Claude is choral, Kimi is bell-like.',
+          'Кузница — место, где запросы становятся инструментами. Каждый NPC в Кузнице работает на своей модели. Слушайте оттенок: Codex звучит медью, Claude хором, Kimi колокольчиком.',
       },
     ],
   },
@@ -212,28 +212,28 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   chronos: {
     id: 'chronos',
     name: 'Chronos',
-    title: 'Architect of Time · Archivist of Quests',
+    title: 'Архитектор времени · архивариус заданий',
     color: '#facc15',
     opening:
-      'Time is the only resource you never get back. I keep the archives so you do not relive a wasted hour.',
+      'Время — единственный ресурс, который нельзя вернуть. Я храню архивы, чтобы вы не проживали потраченный час заново.',
     lore: [
-      'Every quest you complete is etched here. Open the Journal with J and you will see my work.',
-      'The cron jobs in COMANDOS AI Workspace are also mine. I run on heartbeat.',
+      'Каждое выполненное задание отмечено здесь. Откройте журнал клавишей J и увидите мою работу.',
+      'Периодические задания в COMANDOS AI Workspace тоже мои. Я работаю по ритму.',
     ],
     choices: [
       {
         id: 'oracle-riddle',
-        label: '[Quest] Receive the Oracle’s Riddle',
+        label: '[Задание] Получить загадку оракула',
         reply:
-          'A sealed scroll. The Oracle in the Temple will read it back to you. Walk to the Oracle Temple and she will explain.',
+          'Запечатанный свиток. Оракул в храме прочтёт его вам. Идите к храму Оракула, и она объяснит.',
         grantItems: ['oracle-riddle', 'oracle-crystal'],
         grantSkillXp: { oracle: 60, promptcraft: 30 },
       },
       {
         id: 'lore-journal',
-        label: 'How do I read the Journal?',
+        label: 'Как читать журнал?',
         reply:
-          'Press J. Press it again to close. Press Esc anywhere and the Playground returns to focus.',
+          'Нажмите J. Нажмите ещё раз, чтобы закрыть. Esc почти везде возвращает HermesWorld в фокус.',
       },
     ],
   },
@@ -241,25 +241,25 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   artemis: {
     id: 'artemis',
     name: 'Artemis',
-    title: 'Tracker of the Wild',
+    title: 'Следопыт дикой зоны',
     color: '#9ca3af',
     opening:
-      'I track lost agents. In the Grove they hide between branches. Stay quiet and you will hear them.',
+      'Я выслеживаю потерянных агентов. В Роще они прячутся между ветвями. Замрите — и услышите их.',
     lore: [
-      'When you run a long agent task in COMANDOS AI Workspace, it walks somewhere. I find it when it forgets to come home.',
-      'Mini-map is coming. I will mark every agent on it.',
+      'Когда вы запускаете долгую задачу агента в COMANDOS AI Workspace, она куда-то идёт. Я нахожу её, если она забывает вернуться.',
+      'Мини-карта скоро появится. Я отмечу на ней каждого агента.',
     ],
     choices: [
       {
         id: 'lore-grove',
-        label: 'Tell me about the Grove',
+        label: 'Расскажи про Рощу',
         reply:
-          'The Grove is alive. Each tree is a different model breathing. A canopy is a context window. A leaf is a token.',
+          'Роща живая. Каждое дерево — это модель, которая дышит. Крона — окно контекста. Лист — токен.',
       },
       {
         id: 'gift',
-        label: 'Ask for a tracker’s blessing',
-        reply: 'You will see further. Take some Worldsmithing XP.',
+        label: 'Попросить благословение следопыта',
+        reply: 'Вы будете видеть дальше. Возьмите немного опыта создания миров.',
         grantSkillXp: { worldsmithing: 15, oracle: 15 },
       },
     ],
@@ -268,27 +268,27 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   eros: {
     id: 'eros',
     name: 'Eros',
-    title: 'Whisperer of Prompts',
+    title: 'Шепчущий промптам',
     color: '#f472b6',
     opening:
-      'A good prompt is a kind word said precisely. I keep the secret of how to ask.',
+      'Хороший промпт — это доброе слово, сказанное точно. Я храню секрет правильного вопроса.',
     lore: [
-      'Promptcraft is a love language. Soft when you can, sharp when you must.',
-      'When a model misunderstands, the model is rarely wrong. The prompt is.',
+      'Работа с промптами — язык внимания. Мягко, когда можно; точно, когда нужно.',
+      'Когда модель не понимает, чаще виновата не модель, а запрос.',
     ],
     choices: [
       {
         id: 'lesson',
-        label: 'Teach me a Promptcraft lesson',
+        label: 'Дай урок по промптам',
         reply:
-          'Lesson one: name the role, name the goal, name the guard. The rest is taste. Take your XP.',
+          'Урок первый: назовите роль, цель и ограничение. Остальное — вкус. Берите опыт.',
         grantSkillXp: { promptcraft: 60 },
       },
       {
         id: 'lore-oracle',
-        label: 'Tell me about the Oracle',
+        label: 'Расскажи про Оракула',
         reply:
-          'The Oracle is not psychic. She is a model with very good context. The crystals around her store memory.',
+          'Оракул не читает мысли. Это модель с очень хорошим контекстом. Кристаллы вокруг неё хранят память.',
       },
     ],
   },
@@ -296,26 +296,26 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   hermes: {
     id: 'hermes',
     name: 'Hermes',
-    title: 'Herald of the Workspace',
+    title: 'Вестник рабочей области',
     color: '#2dd4bf',
     opening:
-      'I am Hermes. I carry rules between models so duels stay fair, and prompts between humans and machines so neither gets lost.',
+      'Я Hermes. Я переношу правила между моделями, чтобы дуэли были честными, и запросы между людьми и машинами, чтобы никто не потерялся.',
     lore: [
-      'The Workspace is mine. The Playground is the world I built so you would have somewhere to walk while you build.',
-      'Every quest you finish here is a small lesson in how to live alongside agents.',
+      'Workspace — моя территория. HermesWorld — мир, который я построил, чтобы вам было где ходить, пока вы собираете.',
+      'Каждое задание здесь — маленький урок жизни рядом с агентами.',
     ],
     choices: [
       {
         id: 'duel',
-        label: '[Quest] Begin the Duel of Models',
+        label: '[Задание] Начать дуэль моделей',
         reply:
-          'Step into the Arena medallion. The duel begins when you stand on the center. Survive and earn the Kimi Sigil.',
+          'Встаньте на медальон Арены. Дуэль начнётся в центре. Выдержите бой и получите сигил Kimi.',
       },
       {
         id: 'lore-name',
-        label: 'Why “Hermes”?',
+        label: 'Почему Hermes?',
         reply:
-          'Greek messenger god — fast, witty, neutral. He carried words between gods and humans. Same job, different scale.',
+          'Греческий бог-посланник: быстрый, находчивый, нейтральный. Он переносил слова между богами и людьми. Работа та же, масштаб другой.',
       },
     ],
   },
@@ -323,145 +323,145 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
 
   shopkeeper: {
     id: 'shopkeeper',
-    name: 'Dorian',
-    title: 'Quartermaster of the Starter Kit',
+    name: 'Дориан',
+    title: 'Квартирмейстер стартового набора',
     color: '#fbbf24',
     portraitSrc: '/assets/hermesworld/v2/wave-a-source/A03-A08-rerolls.png',
-    portraitAlt: 'Midjourney quartermaster portrait reference for Dorian',
+    portraitAlt: 'Портрет квартирмейстера Дориана',
     opening:
-      'You look under-equipped. I am Dorian, quartermaster of the Training Grounds. Builders do better with a blade, a cloak, and a sigil.',
+      'Вы выглядите недостаточно снаряжённым. Я Дориан, квартирмейстер тренировочной площадки. Со клинком, плащом и сигилом сборщики работают лучше.',
     lore: [
-      'The market will eventually trade cosmetics, generated relics, guild banners, and agent-made artifacts. For now, your starter kit teaches inventory, gear, progression, and rewards.',
-      'A good product hub has economy, even before money. Reputation, tokens, badges, access, trust — those are currencies too.',
+      'Позже рынок будет обменивать косметику, созданные реликвии, знамёна гильдий и артефакты агентов. Пока стартовый набор учит инвентарю, снаряжению, прогрессу и наградам.',
+      'У хорошего продуктового центра есть экономика ещё до денег. Репутация, токены, значки, доступ и доверие — тоже валюта.',
     ],
     choices: [
       {
         id: 'starter-kit',
-        label: '[Quest] Claim the builder starter kit',
+        label: '[Задание] Забрать стартовый набор сборщика',
         reply:
-          'A token, a scroll, and a story. Not much by MMO standards, but enough to begin. Check your inventory on the right.',
+          'Токен, свиток и история. По меркам MMO немного, но для начала достаточно. Проверьте инвентарь справа.',
         grantItems: ['hermes-token', 'athena-scroll'],
         grantSkillXp: { diplomacy: 20, promptcraft: 20 },
       },
       {
         id: 'market-plan',
-        label: 'What will this market become?',
+        label: 'Чем станет этот рынок?',
         reply:
-          'A player economy for generated worlds: prompts as blueprints, skills as recipes, agents as companions, benchmarks as trophies.',
+          'Экономикой игроков для созданных миров: промпты как чертежи, навыки как рецепты, агенты как спутники, проверки как трофеи.',
       },
     ],
   },
 
   trainer: {
     id: 'trainer',
-    name: 'Leonidas',
-    title: 'Combat Trainer',
+    name: 'Леонид',
+    title: 'Боевой наставник',
     color: '#fb7185',
     opening:
-      'Stand inside the training ring and learn the simple truth: a game needs verbs. Move, talk, fight, loot, level, return.',
+      'Встаньте в тренировочный круг и запомните простую вещь: игре нужны действия. Идти, говорить, сражаться, собирать, расти, возвращаться.',
     lore: [
-      'Right now combat is a prototype. Next it gets range, cooldowns, enemy tells, deaths, respawn shrines, and rewards that feel earned.',
-      'The Arena is not about violence. It is a benchmark made visible — models as champions, prompts as weapons.',
+      'Сейчас бой — прототип. Дальше появятся дальность, перезарядка, предупреждения врагов, поражения, точки возрождения и заслуженные награды.',
+      'Арена не про насилие. Это видимая проверка: модели как чемпионы, промпты как оружие.',
     ],
     choices: [
       {
         id: 'training-drill',
-        label: '[Quest] Run the first combat drill',
+        label: '[Задание] Пройти первое боевое упражнение',
         reply:
-          'Good. You know the loop now. Take the Portal Key and try the Forge. A real game always gives the next door after the first lesson.',
+          'Хорошо. Теперь вы знаете цикл. Возьмите ключ портала и попробуйте Кузницу. Настоящая игра после первого урока всегда даёт следующую дверь.',
         completeQuest: 'first-worldsmith',
         grantItems: ['portal-key'],
         grantSkillXp: { engineering: 30, summoning: 20 },
       },
       {
         id: 'skill-tip',
-        label: 'Teach me the hotbar',
+        label: 'Объясни панель действий',
         reply:
-          'Press 1 through 6. Spend MP wisely. Cooldowns are still young, but soon they will define class identity.',
+          'Нажимайте 1-6. Тратьте MP с умом. Перезарядки ещё простые, но скоро они будут задавать стиль класса.',
       },
     ],
   },
 
   banker: {
     id: 'banker',
-    name: 'Midas',
-    title: 'Banker of Memory',
+    name: 'Мидас',
+    title: 'Банкир памяти',
     color: '#facc15',
     opening:
-      'I do not store gold. I store continuity. A serious agent platform needs memory you can trust, inspect, and carry across sessions.',
+      'Я храню не золото, а непрерывность. Серьёзной агентской платформе нужна память, которой можно доверять, которую можно проверять и переносить между сессиями.',
     lore: [
-      'Soon your Playground profile will persist: level, inventory, completed quests, unlocked worlds, cosmetics, guild identity.',
-      'Enterprise means continuity. If a world forgets you, it is a toy. If it remembers responsibly, it becomes infrastructure.',
+      'Скоро профиль HermesWorld будет сохранять уровень, инвентарь, выполненные задания, открытые миры, косметику и гильдию.',
+      'Рабочая версия означает непрерывность. Если мир забывает вас — это игрушка. Если помнит ответственно — это инфраструктура.',
     ],
     choices: [
       {
         id: 'memory-lesson',
-        label: 'Teach me about persistent memory',
+        label: 'Объясни постоянную память',
         reply:
-          'Short-term memory is a chat bubble. Long-term memory is a ledger. The Oracle reads ledgers. The Bank protects them.',
+          'Краткая память — это пузырь чата. Долгая память — журнал. Оракул читает журналы, банк защищает их.',
         grantSkillXp: { oracle: 40, diplomacy: 10 },
       },
       {
         id: 'bank-vault',
-        label: 'What goes in the vault?',
+        label: 'Что хранится в хранилище?',
         reply:
-          'Profiles, guild progress, agent companions, generated maps, and the history of what you built here.',
+          'Профили, прогресс гильдий, спутники-агенты, созданные карты и история того, что вы здесь собрали.',
       },
     ],
   },
 
   recruiter: {
     id: 'recruiter',
-    name: 'Cassia',
-    title: 'Guild Recruiter',
+    name: 'Кассия',
+    title: 'Вербовщик гильдии',
     color: '#a78bfa',
     opening:
-      'Solo builders ship features. Guilds ship worlds. The Playground becomes interesting when people organize around missions.',
+      'Одиночные сборщики выпускают функции. Гильдии выпускают миры. HermesWorld становится интересным, когда люди собираются вокруг миссий.',
     lore: [
-      'A guild can be a team, a Discord, a startup, a model lab, or a swarm of agents. The UI should make that feel native.',
-      'When multiplayer lands, this dais becomes the party finder: invite, queue, quest, voice, run agents together.',
+      'Гильдия может быть командой, Discord, стартапом, лабораторией моделей или роем агентов. Интерфейс должен делать это естественным.',
+      'Когда появится мультиплеер, эта площадка станет поиском группы: приглашения, очередь, задания, голос и совместный запуск агентов.',
     ],
     choices: [
       {
         id: 'guild-charter',
-        label: '[Quest] Draft a guild charter',
+        label: '[Задание] Набросать устав гильдии',
         reply:
-          'The charter is signed. Your first guild is theoretical, which is honestly how most startups begin. Take the XP.',
+          'Устав подписан. Первая гильдия пока теоретическая — честно говоря, большинство стартапов так и начинается. Берите опыт.',
         grantSkillXp: { diplomacy: 70, summoning: 30 },
       },
       {
         id: 'multiplayer-plan',
-        label: 'How does multiplayer fit?',
+        label: 'Как сюда вписывается мультиплеер?',
         reply:
-          'Presence first: position, chat, world, emotes. Then parties. Then shared quests. Then agents that can join the group as party members.',
+          'Сначала присутствие: позиция, чат, мир, эмоции. Потом группы. Потом общие задания. Потом агенты, которые входят в группу как участники.',
       },
     ],
   },
 
   tavernkeeper: {
     id: 'tavernkeeper',
-    name: 'Selene',
-    title: 'Tavern Keeper',
+    name: 'Селена',
+    title: 'Хозяйка таверны',
     color: '#f59e0b',
     opening:
-      'Every MMO hub needs a warm room where nobody is optimizing anything. Sit down. The next quest can wait thirty seconds.',
+      'Каждому MMO-центру нужна тёплая комната, где никто ничего не оптимизирует. Садитесь. Следующее задание подождёт тридцать секунд.',
     lore: [
-      'The tavern should become social glue: ambient chat, stories, music generation, voice rooms, screenshots, and launch parties.',
-      'You cannot fake community with dashboards alone. You need spaces where people linger without a task.',
+      'Таверна должна стать социальным клеем: фоновый чат, истории, генерация музыки, голосовые комнаты, скриншоты и launch-party.',
+      'Сообщество нельзя подделать одними панелями. Нужны места, где люди остаются без конкретной задачи.',
     ],
     choices: [
       {
         id: 'rested-xp',
-        label: 'Ask for rested XP',
+        label: 'Попросить бонус отдыха',
         reply:
-          'Rested, restored, mildly over-caffeinated. Go build something expensive-looking.',
+          'Отдохнули, восстановились, слегка перебрали кофеина. Идите соберите что-нибудь, что выглядит дорого.',
         grantSkillXp: { diplomacy: 25, worldsmithing: 25 },
       },
       {
         id: 'tavern-future',
-        label: 'What should the tavern become?',
+        label: 'Чем должна стать таверна?',
         reply:
-          'A creator lounge: voice, music, generated posters, build-in-public boards, live agent demos, and weird little rituals people remember.',
+          'Гостиной создателей: голос, музыка, сгенерированные постеры, доски публичной сборки, живые демо агентов и маленькие запоминающиеся ритуалы.',
       },
     ],
   },
@@ -469,26 +469,26 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
 
   innkeeper: {
     id: 'innkeeper',
-    name: 'Hestia',
-    title: 'Innkeeper of the Wayfarer',
+    name: 'Гестия',
+    title: 'Хозяйка постоялого двора',
     color: '#86efac',
     opening:
-      'Beds are warm. Fireplace is mine. The Inn is where adventurers log out and where new builders log in. Stay a while.',
+      'Кровати тёплые. Камин мой. Постоялый двор — место, где приключенцы выходят, а новые сборщики входят. Останьтесь ненадолго.',
     lore: [
-      'Inns in real MMOs were always the social anchor. Hermes Inn is the same — rest, parties, party finder, log-in lobby.',
-      'When persistence ships, this is where you save and resume your run.',
+      'Постоялые дворы в MMO всегда были социальной точкой. Hermes Inn такой же: отдых, группы, поиск команды, вход в мир.',
+      'Когда появится постоянное сохранение, здесь вы будете сохранять и продолжать прохождение.',
     ],
     choices: [
       {
         id: 'rest-up',
-        label: 'Rest by the fireplace',
-        reply: 'Take some restored stamina and a +XP buff for the next quest.',
+        label: 'Отдохнуть у камина',
+        reply: 'Восстановите выносливость и получите бонус опыта для следующего задания.',
         grantSkillXp: { diplomacy: 25, oracle: 15 },
       },
       {
         id: 'lore-inn',
-        label: 'What is this Inn for?',
-        reply: 'Login lobby, save point, party finder, and the place new builders meet veterans without pressure.',
+        label: 'Для чего этот двор?',
+        reply: 'Лобби входа, точка сохранения, поиск группы и место, где новые сборщики спокойно встречают опытных.',
       },
     ],
   },
@@ -496,26 +496,26 @@ export const NPC_DIALOG: Record<string, NpcDialogTree> = {
   apothecary: {
     id: 'apothecary',
     name: 'Eros',
-    title: 'Apothecary of Prompts',
+    title: 'Аптекарь промптов',
     color: '#f472b6',
     opening:
-      'Every potion is a prompt. Every shelf is a category. Pick one and I will distill it into something useful.',
+      'Каждое зелье — это промпт. Каждая полка — категория. Выберите, и я перегоню это во что-нибудь полезное.',
     lore: [
-      'Promptcraft is mixology. Right ingredient, right dose, right order.',
-      'The shelves here will eventually map to real Hermes skill packs.',
+      'Промпты — это миксология: правильный ингредиент, правильная доза, правильный порядок.',
+      'Позже эти полки будут связаны с настоящими наборами навыков Hermes.',
     ],
     choices: [
       {
         id: 'first-vial',
-        label: 'Buy a starter vial',
-        reply: 'Take this vial. Use it before a hard quest and your skill XP gain doubles.',
+        label: 'Купить стартовый флакон',
+        reply: 'Возьмите флакон. Используйте перед сложным заданием, и прирост опыта навыков удвоится.',
         grantItems: ['oracle-crystal'],
         grantSkillXp: { promptcraft: 40 },
       },
       {
         id: 'lore-shelves',
-        label: 'What goes on these shelves?',
-        reply: 'Skill recipes, agent personas, prompt templates. The store catalogue maps to your real Hermes capabilities.',
+        label: 'Что будет на этих полках?',
+        reply: 'Рецепты навыков, персонажи агентов, шаблоны промптов. Каталог магазина будет связан с реальными возможностями Hermes.',
       },
     ],
   },

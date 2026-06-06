@@ -26,6 +26,27 @@ type Props = {
 const HAIR_STYLES: Array<AvatarConfig['hairStyle']> = ['short', 'cap', 'long', 'mohawk', 'bald']
 const HELMETS: Array<AvatarConfig['helmet']> = ['winged', 'circlet', 'cap', 'crown', 'none']
 const WEAPONS: Array<AvatarConfig['weapon']> = ['sword', 'staff', 'bow', 'none']
+const PRESET_LABELS: Record<string, string> = {
+  hermes: 'Hermes',
+  athena: 'Афина',
+  forge: 'Кузница',
+  grove: 'Роща',
+  oracle: 'Оракул',
+}
+const OPTION_LABELS: Record<string, string> = {
+  short: 'короткие',
+  cap: 'шапка',
+  long: 'длинные',
+  mohawk: 'ирокез',
+  bald: 'без волос',
+  winged: 'крылатый',
+  circlet: 'обруч',
+  crown: 'корона',
+  sword: 'меч',
+  staff: 'посох',
+  bow: 'лук',
+  none: 'нет',
+}
 
 export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) {
   const [cfg, setCfg] = useState<AvatarConfig>(() => value ?? loadAvatarConfig())
@@ -64,7 +85,7 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
             <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-200/80">Настройка агента</div>
             <div className="text-base font-extrabold">Мастерская сборки</div>
           </div>
-          <button onClick={onClose} className="text-white/55 hover:text-white">✕</button>
+          <button onClick={onClose} className="text-white/55 hover:text-white" aria-label="Закрыть мастерскую аватара">✕</button>
         </div>
 
         <div className="grid min-h-0 grid-cols-1 gap-4 overflow-y-auto p-4 sm:gap-5 sm:p-5 md:grid-cols-[260px_1fr]">
@@ -73,7 +94,7 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
             <div className="relative h-[260px] w-[220px] overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-cyan-500/10 to-black/40">
               <PreviewSvg cfg={cfg} />
             </div>
-            <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Quick presets</div>
+            <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Быстрые пресеты</div>
             <div className="flex flex-wrap justify-center gap-1.5">
               {Object.keys(AVATAR_PRESETS).map((id) => (
                 <button
@@ -81,7 +102,7 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
                   onClick={() => loadPreset(id)}
                   className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] hover:bg-white/10"
                 >
-                  {id}
+                  {PRESET_LABELS[id] ?? id}
                 </button>
               ))}
             </div>
@@ -89,34 +110,34 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
 
           {/* Tweaks */}
           <div className="relative z-0 space-y-4">
-            <Section label="Skin">
+            <Section label="Кожа">
               <Swatches values={SKIN_TONES} active={cfg.skin} onPick={(v) => update('skin', v)} />
             </Section>
-            <Section label="Hair color">
+            <Section label="Цвет волос">
               <Swatches values={HAIR_COLORS} active={cfg.hair} onPick={(v) => update('hair', v)} />
             </Section>
-            <Section label="Hair style">
+            <Section label="Причёска">
               <Toggles values={HAIR_STYLES} active={cfg.hairStyle} onPick={(v) => update('hairStyle', v)} />
             </Section>
-            <Section label="Eyes">
+            <Section label="Глаза">
               <Swatches values={EYE_COLORS} active={cfg.eyes} onPick={(v) => update('eyes', v)} />
             </Section>
-            <Section label="Outfit">
+            <Section label="Одежда">
               <Swatches values={OUTFIT_COLORS} active={cfg.outfit} onPick={(v) => update('outfit', v)} />
             </Section>
-            <Section label="Outfit accent">
+            <Section label="Акцент одежды">
               <Swatches values={ACCENT_COLORS} active={cfg.outfitAccent} onPick={(v) => update('outfitAccent', v)} />
             </Section>
-            <Section label="Cape">
+            <Section label="Плащ">
               <Swatches values={['#0891b2', '#7c3aed', '#b45309', '#166534', '#7c2d12', '#1f2937', '#fb7185', 'transparent']} active={cfg.cape} onPick={(v) => update('cape', v)} />
             </Section>
-            <Section label="Helmet">
+            <Section label="Шлем">
               <Toggles values={HELMETS} active={cfg.helmet} onPick={(v) => update('helmet', v)} />
             </Section>
-            <Section label="Weapon">
+            <Section label="Оружие">
               <Toggles values={WEAPONS} active={cfg.weapon} onPick={(v) => update('weapon', v)} />
             </Section>
-            <Section label="Avatar portrait">
+            <Section label="Портрет аватара">
               <Toggles values={PORTRAITS} active={cfg.portrait} onPick={(v) => update('portrait', v)} />
             </Section>
           </div>
@@ -133,13 +154,13 @@ export function PlaygroundCustomizer({ open, onClose, value, onChange }: Props) 
               }}
               className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/75 hover:bg-white/5"
             >
-              Reset
+              Сбросить
             </button>
             <button
               onClick={onClose}
               className="rounded-lg border border-cyan-400/50 bg-cyan-400/15 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-cyan-100 hover:bg-cyan-400/25"
             >
-              Done
+              Готово
             </button>
           </div>
         </div>
@@ -171,6 +192,7 @@ function Swatches({ values, active, onPick }: { values: string[]; active: string
             boxShadow: active === v ? '0 0 8px rgba(34,211,238,0.65)' : 'none',
           }}
           title={v}
+          aria-label={`Выбрать цвет ${v}`}
         />
       ))}
     </div>
@@ -191,7 +213,7 @@ function Toggles<T extends string>({ values, active, onPick }: { values: T[]; ac
             color: active === v ? '#cffafe' : 'rgba(255,255,255,0.7)',
           }}
         >
-          {v}
+          {OPTION_LABELS[v] ?? v}
         </button>
       ))}
     </div>

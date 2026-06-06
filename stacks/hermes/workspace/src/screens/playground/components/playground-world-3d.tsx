@@ -92,7 +92,7 @@ type WorldDef = {
 const WORLDS_3D: Record<PlaygroundWorldId, WorldDef> = {
   training: {
     id: 'training',
-    name: 'Training Grounds',
+    name: 'Тренировочная площадка',
     accent: '#5eead4',
     groundColor: '#1c4a3b',
     skyColor: '#0b2530',
@@ -104,7 +104,7 @@ const WORLDS_3D: Record<PlaygroundWorldId, WorldDef> = {
   },
   agora: {
     id: 'agora',
-    name: 'The Agora',
+    name: 'Агора',
     accent: '#d9b35f',
     groundColor: '#6b9a55',
     skyColor: '#b9e2ef',
@@ -116,7 +116,7 @@ const WORLDS_3D: Record<PlaygroundWorldId, WorldDef> = {
   },
   forge: {
     id: 'forge',
-    name: 'The Forge',
+    name: 'Кузница',
     accent: '#22d3ee',
     groundColor: '#21192a',
     skyColor: '#090611',
@@ -128,7 +128,7 @@ const WORLDS_3D: Record<PlaygroundWorldId, WorldDef> = {
   },
   grove: {
     id: 'grove',
-    name: 'The Grove',
+    name: 'Роща',
     accent: '#34d399',
     groundColor: '#193b2c',
     skyColor: '#071811',
@@ -140,7 +140,7 @@ const WORLDS_3D: Record<PlaygroundWorldId, WorldDef> = {
   },
   oracle: {
     id: 'oracle',
-    name: 'Oracle Temple',
+    name: 'Храм Оракула',
     accent: '#a78bfa',
     groundColor: '#261b46',
     skyColor: '#0b0718',
@@ -152,7 +152,7 @@ const WORLDS_3D: Record<PlaygroundWorldId, WorldDef> = {
   },
   arena: {
     id: 'arena',
-    name: 'Benchmark Arena',
+    name: 'Арена моделей',
     accent: '#fb7185',
     groundColor: '#491827',
     skyColor: '#1b070c',
@@ -1723,12 +1723,12 @@ function PlayerAndCamera({
   // ESC returns to default isometric.
   useEffect(() => {
     const presets: Array<{ yaw: number; pitch: number; distance: number; name: string }> = [
-      { yaw: Math.PI / 4, pitch: 0.85, distance: 13, name: 'Isometric' },
-      { yaw: 0, pitch: 0.55, distance: 9, name: 'Behind-back' },
-      { yaw: Math.PI, pitch: 0.6, distance: 9, name: 'Front-face' },
-      { yaw: Math.PI / 2, pitch: 1.15, distance: 18, name: 'Top-down' },
-      { yaw: -Math.PI / 4, pitch: 0.7, distance: 16, name: 'Cinematic-low' },
-      { yaw: Math.PI / 4, pitch: 0.4, distance: 22, name: 'Wide-establish' },
+      { yaw: Math.PI / 4, pitch: 0.85, distance: 13, name: 'Изометрия' },
+      { yaw: 0, pitch: 0.55, distance: 9, name: 'За спиной' },
+      { yaw: Math.PI, pitch: 0.6, distance: 9, name: 'Спереди' },
+      { yaw: Math.PI / 2, pitch: 1.15, distance: 18, name: 'Сверху' },
+      { yaw: -Math.PI / 4, pitch: 0.7, distance: 16, name: 'Кино низко' },
+      { yaw: Math.PI / 4, pitch: 0.4, distance: 22, name: 'Широкий план' },
     ]
     let idx = 0
     const onKey = (event: KeyboardEvent) => {

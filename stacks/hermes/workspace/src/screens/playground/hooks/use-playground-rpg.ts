@@ -113,7 +113,9 @@ function replayTutorialState(prev: PlaygroundRpgState): PlaygroundRpgState {
       equipped: { ...EMPTY_EQUIPPED },
       inventory: [...STARTER_INVENTORY],
       questProgress: defaultQuestProgress(),
-      titlesUnlocked: prev.playerProfile.titlesUnlocked.filter((title) => title !== 'Initiate Builder'),
+      titlesUnlocked: prev.playerProfile.titlesUnlocked.filter(
+        (title) => title !== 'Initiate Builder' && title !== 'Начинающий сборщик',
+      ),
       lastZone: 'training',
     },
   }
@@ -275,11 +277,11 @@ export function usePlaygroundRpg() {
       const item = itemById(itemId)
       const label = item?.stat?.label?.toLowerCase()
       if (!label || !item?.stat) continue
-      if (label.includes('power')) values.power += item.stat.value
-      if (label.includes('guard')) values.guard += item.stat.value
-      if (label.includes('command')) values.command += item.stat.value
-      if (label.includes('recall')) values.recall += item.stat.value
-      if (label.includes('burst')) values.burst += item.stat.value
+      if (label.includes('power') || label.includes('сила')) values.power += item.stat.value
+      if (label.includes('guard') || label.includes('защита')) values.guard += item.stat.value
+      if (label.includes('command') || label.includes('команда')) values.command += item.stat.value
+      if (label.includes('recall') || label.includes('память')) values.recall += item.stat.value
+      if (label.includes('burst') || label.includes('импульс')) values.burst += item.stat.value
     }
     return values
   }, [state.playerProfile.equipped])
@@ -359,16 +361,16 @@ export function usePlaygroundRpg() {
       return completeQuestState(next, quest)
     })
     if (completedQuest) {
-      pushToast('quest', 'Quest Complete', completedQuest.title)
+      pushToast('quest', 'Задание выполнено', completedQuest.title)
       pushToast('xp', '+ XP', `+${completedQuest.reward.xp} XP`)
       if (completedQuest.reward.items?.length) {
         for (const itemId of completedQuest.reward.items) {
           const item = itemById(itemId)
-          if (item) pushToast('item', '+ Item', item.name)
+          if (item) pushToast('item', '+ Предмет', item.name)
         }
       }
       if (completedQuest.reward.title) {
-        pushToast('title', 'Title Unlocked', completedQuest.reward.title)
+        pushToast('title', 'Титул открыт', completedQuest.reward.title)
       }
     }
   }, [pushToast])
@@ -384,7 +386,7 @@ export function usePlaygroundRpg() {
     }))
     for (const itemId of items) {
       const item = itemById(itemId)
-      if (item) pushToast('item', '+ Item', item.name)
+      if (item) pushToast('item', '+ Предмет', item.name)
     }
   }, [pushToast])
 
@@ -430,7 +432,7 @@ export function usePlaygroundRpg() {
           : null
     if (objectiveId) markObjective('training-q2', objectiveId)
     if (item.accent) {
-      pushToast('item', 'Equipped', item.name)
+      pushToast('item', 'Надето', item.name)
     }
     return true
   }, [markObjective, pushToast])
@@ -451,15 +453,15 @@ export function usePlaygroundRpg() {
   const completeQuest = useCallback((quest: PlaygroundQuest) => {
     if (!quest) return
     setState((prev) => completeQuestState(prev, quest))
-    pushToast('quest', 'Quest Complete', quest.title)
+    pushToast('quest', 'Задание выполнено', quest.title)
     pushToast('xp', '+ XP', `+${quest.reward.xp} XP`)
     if (quest.reward.items?.length) {
       for (const itemId of quest.reward.items) {
         const item = itemById(itemId)
-        if (item) pushToast('item', '+ Item', item.name)
+        if (item) pushToast('item', '+ Предмет', item.name)
       }
     }
-    if (quest.reward.title) pushToast('title', 'Title Unlocked', quest.reward.title)
+    if (quest.reward.title) pushToast('title', 'Титул открыт', quest.reward.title)
   }, [pushToast])
 
   const completeQuestById = useCallback((questId: string) => {
@@ -512,7 +514,7 @@ export function usePlaygroundRpg() {
     pushToast('xp', '+ XP', `+${xpReward} XP`)
     if (itemDrop) {
       const item = itemById(itemDrop)
-      if (item) pushToast('item', '+ Item', item.name)
+      if (item) pushToast('item', '+ Предмет', item.name)
     }
   }, [pushToast])
 

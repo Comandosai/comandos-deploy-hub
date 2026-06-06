@@ -55,7 +55,7 @@ export function MobileTerminalInput() {
         onClick={() => void paste()}
         className="flex items-center justify-center size-8 rounded-lg shrink-0 active:opacity-60"
         style={{ background: '#2a2a2a', color: '#aaa' }}
-        aria-label="Paste"
+        aria-label="Вставить"
       >
         <HugeiconsIcon icon={Copy01Icon} size={16} strokeWidth={1.6} />
       </button>
@@ -73,7 +73,7 @@ export function MobileTerminalInput() {
             void sendToActiveTab('\t')
           }
         }}
-        placeholder="Type command…"
+        placeholder="Введите команду..."
         autoCapitalize="none"
         autoCorrect="off"
         autoComplete="off"

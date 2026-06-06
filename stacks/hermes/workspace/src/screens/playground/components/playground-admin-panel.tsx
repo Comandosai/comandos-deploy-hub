@@ -36,19 +36,19 @@ type AdminStats = {
 }
 
 const WORLD_LABELS: Record<string, string> = {
-  training: 'Training',
-  agora: 'Agora',
-  forge: 'Forge',
-  grove: 'Grove',
-  oracle: 'Oracle',
-  arena: 'Arena',
+  training: 'Тренировка',
+  agora: 'Агора',
+  forge: 'Кузница',
+  grove: 'Роща',
+  oracle: 'Оракул',
+  arena: 'Арена',
 }
 
 const EVENT_STYLES: Record<string, { label: string; tone: string }> = {
-  join: { label: 'Join', tone: 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100' },
-  leave: { label: 'Leave', tone: 'border-zinc-300/20 bg-white/5 text-zinc-200' },
-  chat: { label: 'Human chat', tone: 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100' },
-  world_change: { label: 'Travel', tone: 'border-violet-300/25 bg-violet-300/10 text-violet-100' },
+  join: { label: 'Вход', tone: 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100' },
+  leave: { label: 'Выход', tone: 'border-zinc-300/20 bg-white/5 text-zinc-200' },
+  chat: { label: 'Чат человека', tone: 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100' },
+  world_change: { label: 'Переход', tone: 'border-violet-300/25 bg-violet-300/10 text-violet-100' },
 }
 
 function fmtTime(ts?: number) {
@@ -59,10 +59,10 @@ function fmtTime(ts?: number) {
 function fmtAge(ts?: number) {
   if (!ts) return '—'
   const seconds = Math.max(0, Math.floor((Date.now() - ts) / 1000))
-  if (seconds < 60) return `${seconds}s ago`
+  if (seconds < 60) return `${seconds} с назад`
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  return `${Math.floor(minutes / 60)}h ago`
+  if (minutes < 60) return `${minutes} мин назад`
+  return `${Math.floor(minutes / 60)} ч назад`
 }
 
 export function PlaygroundAdminPanel() {
@@ -107,14 +107,14 @@ export function PlaygroundAdminPanel() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-amber-200/25 bg-amber-200/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-100">Private</span>
-              <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">Dashboard admin</span>
+              <span className="rounded-full border border-amber-200/25 bg-amber-200/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-100">Приватно</span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">Админ-панель</span>
             </div>
-            <div className="mt-1 text-base font-bold tracking-tight text-white">HermesWorld Control Room</div>
-            <div className="mt-0.5 text-[11px] text-white/50">Human relay analytics. NPC ambient chatter is client-side flavor and intentionally excluded.</div>
+            <div className="mt-1 text-base font-bold tracking-tight text-white">Центр управления HermesWorld</div>
+            <div className="mt-0.5 text-[11px] text-white/50">Аналитика живого чата. Фоновый NPC-чат работает на клиенте и сюда не входит.</div>
           </div>
           <div className="text-right text-[10px] text-white/45">
-            <div>Updated</div>
+            <div>Обновлено</div>
             <div className="font-semibold text-white/70">{fmtTime(stats?.ts)}</div>
           </div>
         </div>
@@ -126,28 +126,28 @@ export function PlaygroundAdminPanel() {
         {stats ? (
           <>
             <div className="grid grid-cols-3 gap-2">
-              <StatCard label="Online now" value={stats.online} accent="#34d399" />
-              <StatCard label="Unique today" value={stats.uniqueToday} accent="#fbbf24" />
-              <StatCard label="Peak today" value={stats.peakToday} accent="#a78bfa" />
-              <StatCard label="Active 15m" value={stats.activeLast15m} accent="#22d3ee" />
-              <StatCard label="Active 60m" value={stats.activeLast60m} accent="#60a5fa" />
-              <StatCard label="Human chats" value={stats.chatsToday} accent="#f472b6" />
+              <StatCard label="Сейчас онлайн" value={stats.online} accent="#34d399" />
+              <StatCard label="Уникальных сегодня" value={stats.uniqueToday} accent="#fbbf24" />
+              <StatCard label="Пик сегодня" value={stats.peakToday} accent="#a78bfa" />
+              <StatCard label="Активны 15 мин" value={stats.activeLast15m} accent="#22d3ee" />
+              <StatCard label="Активны 60 мин" value={stats.activeLast60m} accent="#60a5fa" />
+              <StatCard label="Чаты людей" value={stats.chatsToday} accent="#f472b6" />
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              <HealthPill label="Joins" value={stats.joinsToday} />
-              <HealthPill label="Leaves" value={stats.leavesToday} />
-              <HealthPill label="Churn" value={`${derived?.churn ?? 0}%`} warn={(derived?.churn ?? 0) > 75 && stats.joinsToday > 5} />
+              <HealthPill label="Входы" value={stats.joinsToday} />
+              <HealthPill label="Выходы" value={stats.leavesToday} />
+              <HealthPill label="Отток" value={`${derived?.churn ?? 0}%`} warn={(derived?.churn ?? 0) > 75 && stats.joinsToday > 5} />
             </div>
 
             {derived?.stale ? (
               <div className="rounded-2xl border border-yellow-300/25 bg-yellow-300/10 p-3 text-[11px] text-yellow-100">
-                Active players are much higher than live sockets. Likely reconnect/background-tab churn, not real concurrent users.
+                Активных игроков сильно больше, чем живых соединений. Скорее всего, это переподключения или вкладки в фоне, а не реальные одновременные пользователи.
               </div>
             ) : null}
 
             <section>
-              <SectionTitle title="Worlds" detail={derived?.busiestWorld ? `Busiest: ${WORLD_LABELS[derived.busiestWorld[0]] ?? derived.busiestWorld[0]}` : 'No live world yet'} />
+              <SectionTitle title="Миры" detail={derived?.busiestWorld ? `Самый активный: ${WORLD_LABELS[derived.busiestWorld[0]] ?? derived.busiestWorld[0]}` : 'Пока нет живого мира'} />
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries({ training: 0, agora: 0, forge: 0, grove: 0, oracle: 0, arena: 0, ...stats.byWorld }).map(([world, count]) => (
                   <div key={world} className="rounded-2xl border border-white/8 bg-white/[0.045] px-3 py-2">
@@ -164,23 +164,23 @@ export function PlaygroundAdminPanel() {
             </section>
 
             <section>
-              <SectionTitle title="Recent players" detail={`${stats.recentPlayers.length} tracked today`} />
+              <SectionTitle title="Последние игроки" detail={`сегодня: ${stats.recentPlayers.length}`} />
               <div className="max-h-56 space-y-1.5 overflow-auto rounded-2xl border border-white/8 bg-black/25 p-2">
-                {stats.recentPlayers.length === 0 ? <EmptyState label="No human players tracked yet." /> : null}
+                {stats.recentPlayers.length === 0 ? <EmptyState label="Живые игроки пока не найдены." /> : null}
                 {stats.recentPlayers.slice(0, 14).map((player) => (
                   <div key={player.id} className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-xl bg-white/[0.04] px-2.5 py-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full" style={{ background: player.color || '#fff' }} />
                         <span className="truncate font-semibold" style={{ color: player.color || '#fff' }}>{player.name || player.id.slice(0, 8)}</span>
-                        {player.chats > 0 ? <span className="rounded bg-cyan-300/12 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-cyan-100">chatter</span> : null}
+                        {player.chats > 0 ? <span className="rounded bg-cyan-300/12 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-cyan-100">чат</span> : null}
                       </div>
                       <div className="mt-0.5 truncate text-[10px] text-white/45">
-                        {WORLD_LABELS[player.lastWorld || ''] ?? player.lastWorld ?? 'unknown'} · {fmtAge(player.lastSeen)} · joined {player.joins}x · chats {player.chats}
+                        {WORLD_LABELS[player.lastWorld || ''] ?? player.lastWorld ?? 'неизвестно'} · {fmtAge(player.lastSeen)} · входы {player.joins} · чаты {player.chats}
                       </div>
                     </div>
                     <div className="text-right text-[10px] text-white/42">
-                      <div>last chat</div>
+                      <div>последний чат</div>
                       <div className="text-white/65">{fmtAge(player.lastChatAt)}</div>
                     </div>
                   </div>
@@ -189,9 +189,9 @@ export function PlaygroundAdminPanel() {
             </section>
 
             <section>
-              <SectionTitle title="Recent human chatters" detail={`${derived?.recentChatters.length ?? 0} today`} />
+              <SectionTitle title="Последние собеседники" detail={`сегодня: ${derived?.recentChatters.length ?? 0}`} />
               <div className="flex flex-wrap gap-1.5 rounded-2xl border border-white/8 bg-white/[0.035] p-2">
-                {derived?.recentChatters.length === 0 ? <span className="text-[11px] text-white/40">No human chat yet. NPC bubbles are not counted here.</span> : null}
+                {derived?.recentChatters.length === 0 ? <span className="text-[11px] text-white/40">Живого чата пока нет. Пузырьки NPC здесь не считаются.</span> : null}
                 {derived?.recentChatters.slice(0, 12).map((player) => (
                   <span key={player.id} className="rounded-full border border-cyan-300/15 bg-cyan-300/8 px-2 py-1 text-[10px] text-cyan-50">
                     {player.name || player.id.slice(0, 8)} · {player.chats}
@@ -201,9 +201,9 @@ export function PlaygroundAdminPanel() {
             </section>
 
             <section>
-              <SectionTitle title="Recent events" detail="latest relay events" />
+              <SectionTitle title="Последние события" detail="свежие события канала" />
               <div className="max-h-64 space-y-1.5 overflow-auto rounded-2xl border border-white/8 bg-black/25 p-2">
-                {stats.recentEvents.length === 0 ? <EmptyState label="No relay events yet." /> : null}
+                {stats.recentEvents.length === 0 ? <EmptyState label="Событий канала пока нет." /> : null}
                 {stats.recentEvents.slice(0, 28).map((event, idx) => {
                   const style = EVENT_STYLES[event.type] ?? { label: event.type, tone: 'border-white/15 bg-white/8 text-white/80' }
                   return (

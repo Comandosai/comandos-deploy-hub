@@ -136,9 +136,9 @@ export function PlaygroundDialog({
       if (e?.name === 'AbortError') return
       // Never surface raw provider errors (401, JSON dumps, etc.) to the player.
       const fallbackLines = [
-        `*${npc.name} pauses* — "The chronicle is silent. Speak with me through the scripted scrolls below."`,
-        `*${npc.name} cocks their head* — "Live agent dialog is offline. Try one of the prepared replies."`,
-        `*${npc.name} sighs* — "The aether between worlds is unstable. Let us speak in the old tongue — pick a reply."`,
+        `*${npc.name} делает паузу* — "Хроника молчит. Выберите один из подготовленных ответов ниже."`,
+        `*${npc.name} склоняет голову* — "Живой агентский диалог сейчас выключен. Попробуйте готовые ответы."`,
+        `*${npc.name} вздыхает* — "Эфир между мирами нестабилен. Поговорим старым способом — выберите ответ."`,
       ]
       const t: ChatTurn = {
         role: 'assistant',
@@ -208,7 +208,7 @@ export function PlaygroundDialog({
             )}
             {offlineMode && (
               <span className="rounded bg-amber-300/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-200">
-                scripted mode
+                сценарный режим
               </span>
             )}
           </div>
@@ -246,7 +246,7 @@ export function PlaygroundDialog({
             <div key={i} className="mb-2">
               {t.role === 'user' ? (
                 <div className="flex justify-end">
-                  <SpeechBubble variant="player" tail="right" name="You" compact>
+                  <SpeechBubble variant="player" tail="right" name="Вы" compact>
                     {t.content}
                   </SpeechBubble>
                 </div>
@@ -255,7 +255,7 @@ export function PlaygroundDialog({
                   {t.content}
                   {t.fallback && (
                     <span className="ml-2 rounded bg-amber-800/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-900/75">
-                      offline
+                      офлайн
                     </span>
                   )}
                 </SpeechBubble>
@@ -290,7 +290,7 @@ export function PlaygroundDialog({
               // Stop WASD movement keys from being captured by the world.
               e.stopPropagation()
             }}
-            placeholder={`Ask ${npc.name} anything…`}
+            placeholder={`Спросите ${npc.name} о чём угодно...`}
             disabled={askingLLM}
             className="flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[12px] text-white placeholder:text-white/40 outline-none focus:border-white/30"
             autoFocus
@@ -301,7 +301,7 @@ export function PlaygroundDialog({
             className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/85 transition hover:bg-white/15 disabled:opacity-40"
             style={{ borderColor: askingLLM ? '#94a3b8' : npc.color, color: askingLLM ? '#94a3b8' : npc.color }}
           >
-            {askingLLM ? '…' : 'Speak'}
+            {askingLLM ? '…' : 'Сказать'}
           </button>
         </form>
       </div>
@@ -311,7 +311,7 @@ export function PlaygroundDialog({
       <div className="border-t border-white/10 bg-black/40 p-3">
         <div className="mb-2 flex items-center justify-between">
           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
-            Quest replies
+            Ответы задания
           </div>
         </div>
         <div className="space-y-1.5">
@@ -330,7 +330,7 @@ export function PlaygroundDialog({
                 <span className="opacity-60">›</span> {c.label}
                 {quest && (
                   <span className="ml-2 rounded bg-amber-300/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-amber-200">
-                    active
+                    активно
                   </span>
                 )}
               </button>
@@ -346,7 +346,7 @@ export function PlaygroundDialog({
             onClick={onClose}
             className="block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left text-[12px] text-white/55 transition hover:border-white/30 hover:bg-white/10"
           >
-            <span className="opacity-60">›</span> Farewell
+            <span className="opacity-60">›</span> Попрощаться
           </button>
         </div>
       </div>

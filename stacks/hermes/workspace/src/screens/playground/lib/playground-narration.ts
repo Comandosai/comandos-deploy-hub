@@ -16,52 +16,52 @@ const MUTE_KEY = 'hermes.playground.narration.muted'
 
 const NARRATION: Record<PlaygroundWorldId, { name: string; lines: string[] }> = {
   training: {
-    name: 'Training Grounds',
+    name: 'Тренировочная площадка',
     lines: [
-      'Welcome to the Training Grounds. This is where every Hermes Agent begins.',
-      'Walk to the glowing Arrival Circle. Talk to Athena to accept your first quest.',
-      'You will learn five skills: movement, gear, chat, memory, and building.',
-      'Press F to toggle focus mode while playing. The arrow at the top of the screen points to your current objective.',
+      'Добро пожаловать на тренировочную площадку. Здесь начинается путь каждого агента Hermes.',
+      'Идите к светящемуся кругу прибытия. Поговорите с Афиной, чтобы принять первое задание.',
+      'Вы освоите пять навыков: движение, снаряжение, чат, память и сборку.',
+      'Нажмите F, чтобы включить режим фокуса. Стрелка сверху показывает текущую цель.',
     ],
   },
   agora: {
-    name: 'Agora Commons',
+    name: 'Площадь Агоры',
     lines: [
-      'You are in the Agora Commons, the social plaza where humans and agents mingle.',
-      'Six buildings ring the plaza: the Tavern, the Bank, the Smithy, the Inn, the Apothecary, and the Guild Hall.',
-      'Talk to Cassia the Recruiter for community quests, or step inside any building to interact with its keeper.',
+      'Вы на площади Агоры, где встречаются люди и агенты.',
+      'Вокруг площади шесть зданий: таверна, банк, кузня, постоялый двор, лавка промптов и зал гильдии.',
+      'Поговорите с Кассией о командных заданиях или зайдите в любое здание к его хранителю.',
     ],
   },
   forge: {
-    name: 'The Forge',
+    name: 'Кузница',
     lines: [
-      'You stand in the Forge — the builder realm where prompts harden into tools.',
-      'Pan the Hacker and Chronos the Architect can help you ship a real Hermes-powered tool.',
-      'This is where engineering meets magic. Pick up the Forge Shard to advance.',
+      'Вы в Кузнице — мире сборки, где промпты становятся инструментами.',
+      'Пан-хакер и Хронос-архитектор помогут выпустить настоящий инструмент на Hermes.',
+      'Здесь инженерия встречается с магией. Возьмите осколок Кузницы, чтобы пройти дальше.',
     ],
   },
   grove: {
-    name: 'The Grove',
+    name: 'Роща',
     lines: [
-      'You enter the Grove — a bioluminescent forest for music, ritual, and creative work.',
-      'Here you will find Pan the Druid, Apollo the Songkeeper, and Artemis the Tracker.',
-      'Gather a Song Fragment to learn how Hermes can weave creative content.',
+      'Вы входите в Рощу — светящийся лес для музыки, ритуалов и творческой работы.',
+      'Здесь вас ждут Пан-друид, Аполлон-хранитель песен и Артемида-следопыт.',
+      'Найдите фрагмент песни, чтобы увидеть, как Hermes собирает творческий контент.',
     ],
   },
   oracle: {
-    name: 'Oracle Temple',
+    name: 'Храм Оракула',
     lines: [
-      'You have entered the Oracle Temple, the quiet archive of lore and memory.',
-      'Athena the Oracle, Chronos the Archivist, and Eros the Whisperer keep the long-term context here.',
-      'Solve the Oracle\u2019s Riddle to learn how Hermes searches and recalls your memories.',
+      'Вы вошли в храм Оракула, тихий архив знаний и памяти.',
+      'Афина-оракул, Хронос-архивариус и Эрос-шёпот хранят здесь долгий контекст.',
+      'Решите загадку оракула, чтобы понять, как Hermes ищет и вспоминает ваши данные.',
     ],
   },
   arena: {
-    name: 'Benchmark Arena',
+    name: 'Арена моделей',
     lines: [
-      'Welcome to the Benchmark Arena, where models duel through prompts, evals, and agent battles.',
-      'Hermes himself referees here. Nike champions the strongest. Chronos sets the odds.',
-      'Win the duel to claim the Kimi Sigil and prove your agent\u2019s worth.',
+      'Добро пожаловать на Арену моделей, где модели соревнуются через промпты, проверки и агентские битвы.',
+      'Сам Hermes судит здесь. Ника поддерживает сильнейших. Хронос считает шансы.',
+      'Победите в дуэли, получите сигил Kimi и докажите ценность агента.',
     ],
   },
 }

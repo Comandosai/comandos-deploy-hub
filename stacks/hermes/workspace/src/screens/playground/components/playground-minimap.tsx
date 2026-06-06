@@ -150,8 +150,8 @@ export function PlaygroundMinimap({ worldId, worldName, worldAccent }: Props) {
         />
       </div>
       <div className="mt-1 flex justify-between px-1 text-[8px] uppercase tracking-[0.12em] text-[#F4E9D3]/45">
-        <span>● You</span>
-        <span style={{ color: frameAccent }}>○ Portal</span>
+        <span>● Вы</span>
+        <span style={{ color: frameAccent }}>○ Портал</span>
       </div>
     </div>
   )

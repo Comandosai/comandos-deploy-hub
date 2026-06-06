@@ -15,27 +15,27 @@ type MapPanelProps = {
 }
 
 const ZONES: MapZone[] = [
-  { id: 'agora', name: 'Agora Commons', x: 42, y: 38, w: 24, h: 22, accent: '#d9b35f', description: 'Market plaza and social hub.' },
-  { id: 'forge', name: 'The Forge', x: 68, y: 18, w: 20, h: 21, accent: '#22d3ee', description: 'Crafting labs and prompt anvils.' },
-  { id: 'grove', name: 'Grove of Echoes', x: 14, y: 26, w: 24, h: 24, accent: '#34d399', description: 'Bioluminescent music quests.' },
-  { id: 'oracle', name: 'Oracle Temple', x: 20, y: 62, w: 24, h: 21, accent: '#a78bfa', description: 'Lore archive and memory shrines.' },
-  { id: 'arena', name: 'Benchmark Arena', x: 68, y: 62, w: 22, h: 22, accent: '#fb7185', description: 'Model duels and ranked trials.' },
-  { id: 'training', name: 'Training Grounds', x: 41, y: 69, w: 19, h: 16, accent: '#5eead4', description: 'Starter circle and first sword.' },
+  { id: 'agora', name: 'Площадь Агоры', x: 42, y: 38, w: 24, h: 22, accent: '#d9b35f', description: 'Рынок, встречи и общий центр.' },
+  { id: 'forge', name: 'Кузница', x: 68, y: 18, w: 20, h: 21, accent: '#22d3ee', description: 'Лаборатории сборки и наковальни промптов.' },
+  { id: 'grove', name: 'Роща эха', x: 14, y: 26, w: 24, h: 24, accent: '#34d399', description: 'Музыкальные задания в светящемся лесу.' },
+  { id: 'oracle', name: 'Храм Оракула', x: 20, y: 62, w: 24, h: 21, accent: '#a78bfa', description: 'Архив знаний и святилища памяти.' },
+  { id: 'arena', name: 'Арена моделей', x: 68, y: 62, w: 22, h: 22, accent: '#fb7185', description: 'Дуэли моделей и рейтинговые испытания.' },
+  { id: 'training', name: 'Тренировочная площадка', x: 41, y: 69, w: 19, h: 16, accent: '#5eead4', description: 'Стартовый круг и первый клинок.' },
 ]
 
 export function MapPanel({ currentZoneId = 'agora', playerPosition = { x: 53, y: 48 } }: MapPanelProps) {
   return (
     <section
       role="dialog"
-      aria-label="World map"
+      aria-label="Карта мира"
       className="relative min-h-[min(720px,86vh)] w-[min(94vw,980px)] overflow-hidden rounded-[32px] border border-[#d9b35f]/45 bg-[linear-gradient(180deg,rgba(20,15,9,.97),rgba(3,5,12,.96))] text-[#f9e7b5] shadow-[0_32px_110px_rgba(0,0,0,.72),inset_0_1px_0_rgba(255,255,255,.10)]"
     >
       <div className="flex items-center justify-between gap-3 border-b border-[#d9b35f]/25 bg-black/22 px-5 py-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#d9b35f]/70">Cartographer View</p>
-          <h2 className="font-serif text-2xl font-black text-[#ffe7a3]">World Map</h2>
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#d9b35f]/70">Вид картографа</p>
+          <h2 className="font-serif text-2xl font-black text-[#ffe7a3]">Карта мира</h2>
         </div>
-        <span className="rounded-full border border-[#d9b35f]/30 bg-[#d9b35f]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#d9b35f]">Hermes Realm</span>
+        <span className="rounded-full border border-[#d9b35f]/30 bg-[#d9b35f]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#d9b35f]">Мир Hermes</span>
       </div>
 
       <div className="relative h-[min(610px,74vh)] overflow-hidden bg-[radial-gradient(circle_at_50%_44%,rgba(217,179,95,.14),transparent_34%),linear-gradient(120deg,rgba(34,211,238,.08),transparent_38%),linear-gradient(230deg,rgba(168,85,247,.10),transparent_36%)]">
@@ -58,7 +58,7 @@ export function MapPanel({ currentZoneId = 'agora', playerPosition = { x: 53, y:
           return (
             <button
               key={zone.id}
-              aria-label={`Zone highlight ${zone.name}`}
+              aria-label={`Открыть зону: ${zone.name}`}
               data-current-zone={current ? 'true' : 'false'}
               className="group absolute rounded-[28px] border px-3 py-2 text-left transition duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/60"
               style={{
@@ -80,12 +80,12 @@ export function MapPanel({ currentZoneId = 'agora', playerPosition = { x: 53, y:
         })}
 
         <div
-          aria-label="Current player position"
+          aria-label="Текущее положение игрока"
           className="absolute z-10 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#fde68a] bg-[#fbbf24] shadow-[0_0_25px_rgba(251,191,36,.9)]"
           style={{ left: `${playerPosition.x}%`, top: `${playerPosition.y}%` }}
         >
           <span className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full border border-[#fbbf24]/45" />
-          <span className="absolute left-1/2 top-[calc(100%+.35rem)] -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#fde68a]">You</span>
+          <span className="absolute left-1/2 top-[calc(100%+.35rem)] -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#fde68a]">Вы</span>
         </div>
       </div>
     </section>
