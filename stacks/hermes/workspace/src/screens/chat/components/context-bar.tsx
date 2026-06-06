@@ -123,7 +123,7 @@ function ContextBarComponent({
           type="button"
           className="absolute inset-x-0 -top-2 -bottom-2 z-10"
           onClick={() => setShowLabel((prev) => !prev)}
-          aria-label={`Context: ${Math.round(clampedPct)}% used`}
+          aria-label={`Окно контекста: ${Math.round(clampedPct)}% использовано`}
         />
         {/* Bar — always 3px, never moves */}
         <div className={cn('w-full h-[3px]', barBg)}>
