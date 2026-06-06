@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { profileErrorJson } from '../../../server/profile-api-errors'
 import { setActiveProfile } from '../../../server/profiles-browser'
 import { requireJsonContentType } from '../../../server/rate-limit'
 
@@ -18,15 +19,7 @@ export const Route = createFileRoute('/api/profiles/activate')({
           setActiveProfile(body.name || '')
           return json({ ok: true })
         } catch (error) {
-          return json(
-            {
-              error:
-                error instanceof Error
-                  ? error.message
-                  : 'Failed to activate profile',
-            },
-            { status: 500 },
-          )
+          return profileErrorJson(error, 'Не удалось активировать профиль.')
         }
       },
     },

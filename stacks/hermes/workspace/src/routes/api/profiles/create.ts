@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { json } from '@tanstack/react-start'
 import { isAuthenticated } from '../../../server/auth-middleware'
+import { profileErrorJson } from '../../../server/profile-api-errors'
 import { createProfile } from '../../../server/profiles-browser'
 import { requireJsonContentType } from '../../../server/rate-limit'
 
@@ -29,15 +30,7 @@ export const Route = createFileRoute('/api/profiles/create')({
             }),
           })
         } catch (error) {
-          return json(
-            {
-              error:
-                error instanceof Error
-                  ? error.message
-                  : 'Failed to create profile',
-            },
-            { status: 500 },
-          )
+          return profileErrorJson(error, 'Не удалось создать профиль.')
         }
       },
     },
