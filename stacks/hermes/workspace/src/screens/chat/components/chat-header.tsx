@@ -517,26 +517,36 @@ function ChatHeaderComponent({
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger
-                onClick={onRefresh ? handleRefresh : undefined}
+                onClick={isStale && onRefresh ? handleRefresh : undefined}
                 render={
-                  <button
-                    type="button"
-                    aria-label={isStale ? 'Нужно обновить — нажмите для синхронизации' : 'На связи'}
-                    className={cn(
-                      'mr-2 inline-flex items-center justify-center rounded-full transition-colors',
-                      isRefreshing && 'animate-pulse',
-                      onRefresh
-                        ? 'cursor-pointer hover:opacity-70'
-                        : 'cursor-default',
-                    )}
-                  >
-                    <span
+                  isStale && onRefresh ? (
+                    <button
+                      type="button"
+                      aria-label="Нужно обновить — нажмите для синхронизации"
                       className={cn(
-                        'block size-2 rounded-full transition-colors duration-500',
-                        isStale ? 'bg-amber-400' : 'bg-emerald-500',
+                        'mr-2 inline-flex items-center justify-center rounded-full transition-colors hover:opacity-70',
+                        isRefreshing && 'animate-pulse',
                       )}
-                    />
-                  </button>
+                    >
+                      <span className="block size-2 rounded-full bg-amber-400 transition-colors duration-500" />
+                    </button>
+                  ) : (
+                    <span
+                      role="status"
+                      aria-label={isStale ? 'Нужно обновить' : 'На связи'}
+                      className={cn(
+                        'mr-2 inline-flex items-center justify-center rounded-full transition-colors',
+                        isRefreshing && 'animate-pulse',
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'block size-2 rounded-full transition-colors duration-500',
+                          isStale ? 'bg-amber-400' : 'bg-emerald-500',
+                        )}
+                      />
+                    </span>
+                  )
                 }
               />
               <TooltipContent side="bottom">
