@@ -1,8 +1,10 @@
 import { Editor } from '@monaco-editor/react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { FloppyDiskIcon, LockIcon } from '@hugeicons/core-free-icons'
+import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { labelMonacoTextareas } from '@/components/monaco/monaco-accessibility'
 
 type SaveState = 'saved' | 'saving' | 'unsaved' | 'error'
 
@@ -56,6 +58,7 @@ function MemoryEditor({
   onToggleReadOnly,
 }: MemoryEditorProps) {
   const disabled = !path || loading || Boolean(error)
+  const editorContainerRef = useRef<HTMLDivElement | null>(null)
 
   return (
     <section className="flex min-h-0 flex-1 flex-col border-primary-200 bg-primary-50/40 lg:border-r">
@@ -91,7 +94,7 @@ function MemoryEditor({
           </Button>
         </div>
       </header>
-      <div className="min-h-0 flex-1">
+      <div ref={editorContainerRef} className="min-h-0 flex-1">
         {loading ? (
           <div className="flex h-full items-center justify-center text-sm text-primary-600 text-pretty">
             Загружаю содержимое файла...
@@ -109,6 +112,9 @@ function MemoryEditor({
             value={content}
             onChange={function onChangeEditor(nextValue) {
               onChangeContent(nextValue || '')
+            }}
+            onMount={function onEditorMount() {
+              labelMonacoTextareas(editorContainerRef.current, 'Редактор памяти')
             }}
             options={{
               readOnly,

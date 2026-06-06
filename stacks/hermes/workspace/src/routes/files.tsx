@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@monaco-editor/react'
 import { createFileRoute } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -6,6 +6,7 @@ import { Folder01Icon } from '@hugeicons/core-free-icons'
 import { usePageTitle } from '@/hooks/use-page-title'
 import { FileExplorerSidebar } from '@/components/file-explorer'
 import { resolveTheme, useSettings } from '@/hooks/use-settings'
+import { labelMonacoTextareas } from '@/components/monaco/monaco-accessibility'
 
 const INITIAL_EDITOR_VALUE = `// Рабочие файлы
 // Используйте дерево файлов слева, чтобы смотреть и менять файлы проекта.
@@ -57,6 +58,7 @@ function FilesRoute() {
   const [isMobile, setIsMobile] = useState(false)
   const [fileExplorerCollapsed, setFileExplorerCollapsed] = useState(false)
   const [editorValue, setEditorValue] = useState(INITIAL_EDITOR_VALUE)
+  const editorContainerRef = useRef<HTMLDivElement | null>(null)
   const resolvedTheme = resolveTheme(settings.theme)
 
   useEffect(() => {
@@ -72,7 +74,7 @@ function FilesRoute() {
     setFileExplorerCollapsed(true)
   }, [isMobile])
 
-  const handleInsertReference = useCallback(function handleInsertReference(
+  const handleInsertReference = useCallback(function appendFileReference(
     reference: string,
   ) {
     setEditorValue((prev) => `${prev}\n${reference}\n`)
@@ -109,7 +111,7 @@ function FilesRoute() {
               </p>
             </div>
           </header>
-          <div className="min-h-0 flex-1 pb-24 md:pb-0">
+          <div ref={editorContainerRef} className="min-h-0 flex-1 pb-24 md:pb-0">
             <Editor
               height="100%"
               theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs-light'}
@@ -118,6 +120,9 @@ function FilesRoute() {
               loading="Загружаю редактор..."
               onChange={function onEditorChange(value) {
                 setEditorValue(value || '')
+              }}
+              onMount={function onEditorMount() {
+                labelMonacoTextareas(editorContainerRef.current, 'Редактор файлов')
               }}
               options={{
                 minimap: { enabled: settings.editorMinimap },
