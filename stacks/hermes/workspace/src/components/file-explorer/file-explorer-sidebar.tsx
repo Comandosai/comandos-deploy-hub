@@ -39,7 +39,6 @@ export type FileEntry = {
 
 type FileExplorerSidebarProps = {
   collapsed: boolean
-  onToggle: () => void
   onInsertReference: (reference: string) => void
   hidden?: boolean
   className?: string
@@ -116,7 +115,6 @@ function filterTree(entries: Array<FileEntry>, term: string): Array<FileEntry> {
 
 export function FileExplorerSidebar({
   collapsed,
-  onToggle,
   onInsertReference,
   hidden = false,
   className,
@@ -633,12 +631,6 @@ export function FileExplorerSidebar({
         onSaved={refresh}
       />
 
-      <button
-        type="button"
-        onClick={onToggle}
-        className="sr-only"
-        aria-label="Показать или скрыть файловую панель"
-      />
     </aside>
   )
 }

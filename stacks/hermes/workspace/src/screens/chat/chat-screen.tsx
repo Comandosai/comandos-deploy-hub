@@ -2592,7 +2592,6 @@ export function ChatScreen({
         {hideUi || compact || isFocusMode ? null : isMobile ? null : (
           <FileExplorerSidebar
             collapsed={fileExplorerCollapsed}
-            onToggle={handleToggleFileExplorer}
             onInsertReference={handleInsertFileReference}
           />
         )}
