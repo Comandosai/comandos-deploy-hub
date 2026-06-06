@@ -161,8 +161,8 @@ export async function fetchWorkspaceStats(): Promise<WorkspaceStats | null> {
   }
 }
 
-export async function fetchWorkspaceProjectShortcuts(): Promise<Array<never>> {
-  return []
+export function fetchWorkspaceProjectShortcuts(): Promise<Array<never>> {
+  return Promise.resolve([])
 }
 
 function NavItem({
@@ -256,6 +256,8 @@ function NavItem({
                   href={href}
                   onClick={handleSelect}
                   className={cls}
+                  aria-label={item.label}
+                  title={item.label}
                   data-tour={item.dataTour}
                   data-sidebar-active={item.active ? 'true' : undefined}
                 >
@@ -297,6 +299,8 @@ function NavItem({
                   handleSelect()
                 }}
                 className={cls}
+                aria-label={item.label}
+                title={item.label}
                 data-tour={item.dataTour}
                 data-sidebar-active={item.active ? 'true' : undefined}
               >
@@ -1191,6 +1195,8 @@ function ChatSidebarComponent({
           <MenuRoot>
             <MenuTrigger
               data-tour="settings"
+              aria-label={`Пользователь: ${profileDisplayName}`}
+              title={`Пользователь: ${profileDisplayName}`}
               className={cn(
                 'flex items-center gap-2.5 rounded-lg py-1 transition-colors hover:bg-primary-200 dark:hover:bg-neutral-800 flex-1 min-w-0',
                 isVisuallyCollapsed ? 'justify-center px-0' : 'px-1.5',
