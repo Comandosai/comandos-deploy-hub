@@ -1181,7 +1181,7 @@ function ChatSidebarComponent({
               <button
                 type="button"
                 onClick={openSettingsPage}
-                className="shrink-0 rounded-lg p-1.5 text-primary-400 hover:bg-primary-200 dark:hover:bg-neutral-800 hover:text-primary-600 dark:hover:text-neutral-300 transition-colors"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-primary-400 transition-colors hover:bg-primary-200 hover:text-primary-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
                 aria-label="Настройки"
               >
                 <HugeiconsIcon
