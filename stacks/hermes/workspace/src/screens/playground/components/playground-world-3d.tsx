@@ -17,47 +17,15 @@ import { PlaygroundNpcGlb } from './playground-npc-glb'
 import { SpeechBubble } from './speech-bubble'
 import { useHermesWorldSettings } from './hermesworld-settings'
 
-/**
- * Module-level GLB presence probe. Returns:
- *   'unknown' — still probing
- *   'present' — use GLB body
- *   'missing' — fall back to voxel body
- *
- * Synchronous read after first probe; the NPC component re-renders when
- * the result resolves.
- */
-const _glbPresence = new Map<string, 'unknown' | 'present' | 'missing'>()
-function npcGlbUrl(id: string) {
+const AVAILABLE_NPC_GLB_IDS = new Set<string>()
+
+function normalizeNpcGlbId(id: string) {
   const safe = id.replace(/[^a-z0-9_-]+/gi, '') || 'villager-common'
-  return `/assets/hermesworld/characters/${safe}.glb`
+  return safe
 }
+
 function useGlbAvailable(id: string, enabled: boolean): boolean {
-  const [_, force] = useState(0)
-  const url = npcGlbUrl(id)
-  const cached = _glbPresence.get(url)
-  useEffect(() => {
-    if (!enabled || cached === 'present' || cached === 'missing') return
-    if (typeof window === 'undefined') return
-    _glbPresence.set(url, 'unknown')
-    let cancelled = false
-    fetch(url, { method: 'HEAD' })
-      .then((r) => {
-        if (cancelled) return
-        const ct = r.headers.get('content-type') || ''
-        const isReal = r.ok
-          && !ct.includes('text/html')
-          && (ct.includes('octet-stream') || ct.includes('gltf') || ct.includes('binary') || ct === '' || ct.includes('application/'))
-        _glbPresence.set(url, isReal ? 'present' : 'missing')
-        force((n) => n + 1)
-      })
-      .catch(() => {
-        if (cancelled) return
-        _glbPresence.set(url, 'missing')
-        force((n) => n + 1)
-      })
-    return () => { cancelled = true }
-  }, [cached, enabled, url])
-  return enabled && cached === 'present'
+  return enabled && AVAILABLE_NPC_GLB_IDS.has(normalizeNpcGlbId(id))
 }
 
 function useAvatarConfig() {
@@ -320,10 +288,10 @@ function Monster({
             <div style={{ height: '100%', width: `${hpPct * 100}%`, background: color, transition: 'width 200ms' }} />
           </div>
           <div style={{ marginTop: 2, fontSize: 9, color: 'white', textAlign: 'center', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            Rogue Model
+            Сбойная модель
           </div>
           <div style={{ fontSize: 9, color: '#9ca3af', textAlign: 'center' }}>
-            {hp}/{hpMax} HP · click to attack
+            {hp}/{hpMax} здоровья · нажмите для атаки
           </div>
         </div>
       </Html>

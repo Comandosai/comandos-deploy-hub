@@ -80,7 +80,7 @@ export function PlaygroundHud({
   const chromeLeft = isPublicPlayRoute ? MOCKUP_LEFT : sidebarCollapsed ? 'min(120px, 9vw)' : '320px'
   const hudAccent = currentWorld === 'agora' ? HUD.gold : worldAccent
   const coinCount = 128
-  const title = playerProfile.titlesUnlocked.at(-1) || (currentWorld === 'agora' ? 'Agora Initiate' : 'Training Grounds')
+  const title = playerProfile.titlesUnlocked.at(-1) || (currentWorld === 'agora' ? 'Посвящённый Агоры' : 'Тренировочная площадка')
   const panelBg = `linear-gradient(180deg, rgba(15,22,34,.92), rgba(10,13,18,.84)), radial-gradient(circle at 20% 0%, ${hudAccent}2b, transparent 58%), radial-gradient(circle at 100% 100%, ${HUD.verdigris}35, transparent 62%)`
   const panelShadow = `0 18px 42px rgba(0,0,0,.58), 0 0 0 1px ${HUD.obsidian}, 0 0 28px ${hudAccent}30, inset 0 1px 0 rgba(244,233,211,.18)`
 
@@ -142,7 +142,7 @@ export function PlaygroundHud({
               >
                 <img
                   src={`/avatars/${playerProfile.avatarConfig.portrait || 'hermes'}.png`}
-                  alt="Your avatar"
+                  alt="Ваш аватар"
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover"

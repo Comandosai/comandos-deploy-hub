@@ -28,7 +28,7 @@ export function PlaygroundJournal({
     () => Array.from(grouped.keys()),
     [grouped],
   )
-  const activeChapter = activeQuest?.chapter ?? chapters[0] ?? 'Training Grounds Tutorial'
+  const activeChapter = activeQuest?.chapter ?? chapters[0] ?? 'Обучение на тренировочной площадке'
   const [selectedChapter, setSelectedChapter] = useState(activeChapter)
   const chapter = chapters.includes(selectedChapter) ? selectedChapter : activeChapter
   const quests = grouped.get(chapter) ?? []

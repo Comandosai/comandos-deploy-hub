@@ -74,15 +74,15 @@ function PlaygroundChatInner({ worldId, messages, onSend, collapsed = false, onT
   const visibleMessages = useMemo(() => (filter === 'humans' ? humanMessages : filter === 'npcs' ? npcMessages : messages), [filter, humanMessages, messages, npcMessages])
   const onlineCount = serverOnline != null && liveConnected ? serverOnline : 1 + npcCount
   const onlineLabel = serverOnline != null && liveConnected
-    ? `${onlineCount} player${onlineCount === 1 ? '' : 's'}`
-    : `${onlineCount} online`
+    ? `${onlineCount} ${onlineCount === 1 ? 'игрок' : 'игроков'}`
+    : `${onlineCount} онлайн`
   const transportLabel = transport === 'ws' || transport === 'both'
-    ? 'live'
+    ? 'живой канал'
     : transport === 'broadcast'
-      ? 'local-only'
+      ? 'только локально'
       : transport === 'offline'
-        ? 'offline'
-        : 'connecting'
+        ? 'офлайн'
+        : 'подключение'
   const visiblyCollapsed = collapsed && !softExpanded
   return (
     <div
@@ -100,8 +100,8 @@ function PlaygroundChatInner({ worldId, messages, onSend, collapsed = false, onT
             style={{ background: liveConnected ? '#34d399' : '#facc15' }}
             title={transportLabel}
           />
-          Chat · {onlineLabel}
-          {npcCount > 0 && <span className="text-white/35"> · {npcCount} ambient NPC</span>}
+          Чат · {onlineLabel}
+          {npcCount > 0 && <span className="text-white/35"> · фоновых NPC: {npcCount}</span>}
           <span className="ml-1 rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] text-white/45">
             {transportLabel}
           </span>
