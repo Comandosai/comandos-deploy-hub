@@ -333,50 +333,20 @@ function NavItem({
   )
 }
 
-// ── Last-visited route tracking ─────────────────────────────────────────
-
-const LAST_ROUTE_KEY = 'claude-sidebar-last-route'
-
-function getLastRoute(section: string): string | null {
-  try {
-    const stored = localStorage.getItem(LAST_ROUTE_KEY)
-    if (!stored) return null
-    const map = JSON.parse(stored) as Record<string, string>
-    return map[section] || null
-  } catch {
-    return null
-  }
-}
-
-function setLastRoute(section: string, route: string) {
-  try {
-    const stored = localStorage.getItem(LAST_ROUTE_KEY)
-    const map = stored ? (JSON.parse(stored) as Record<string, string>) : {}
-    map[section] = route
-    localStorage.setItem(LAST_ROUTE_KEY, JSON.stringify(map))
-  } catch {
-    // ignore
-  }
-}
-
 // ── Section header ──────────────────────────────────────────────────────
 
 function SectionLabel({
   label,
   isCollapsed,
-  transition,
   collapsible,
   expanded,
   onToggle,
-  navigateTo,
 }: {
   label: string
   isCollapsed: boolean
-  transition: Record<string, unknown>
   collapsible?: boolean
   expanded?: boolean
   onToggle?: () => void
-  navigateTo?: string
 }) {
   if (isCollapsed) return null
 
@@ -391,16 +361,7 @@ function SectionLabel({
       <div
         className="flex items-center gap-1.5 px-3 pt-3 pb-1 w-full"
       >
-        {navigateTo ? (
-          <a
-            href={navigateTo}
-            className="text-[10px] font-semibold uppercase tracking-wider text-primary-500 dark:text-neutral-400 hover:text-primary-700 dark:hover:text-neutral-200 select-none transition-colors"
-          >
-            {label}
-          </a>
-        ) : (
-          labelContent
-        )}
+        {labelContent}
         <button
           type="button"
           onClick={onToggle}
@@ -425,16 +386,7 @@ function SectionLabel({
     <div
       className="px-3 pt-3 pb-1"
     >
-      {navigateTo ? (
-        <a
-          href={navigateTo}
-          className="text-[10px] font-semibold uppercase tracking-wider text-primary-500 dark:text-neutral-400 hover:text-primary-700 dark:hover:text-neutral-200 select-none transition-colors"
-        >
-          {label}
-        </a>
-      ) : (
-        labelContent
-      )}
+      {labelContent}
     </div>
   )
 }
@@ -592,20 +544,6 @@ function ChatSidebarComponent({
   const isConductorActive = pathname === '/conductor'
   const isOperationsActive = pathname === '/operations'
   const isSwarmActive = pathname === '/swarm' || pathname === '/swarm2'
-  const mainRoutes = ['/chat', '/new', '/files', '/terminal']
-  const knowledgeRoutes = ['/memory', '/skills']
-  const systemRoutes = ['/settings', '/logs']
-
-  useEffect(() => {
-    if (mainRoutes.includes(pathname)) setLastRoute('main', pathname)
-    if (knowledgeRoutes.includes(pathname)) setLastRoute('knowledge', pathname)
-    if (systemRoutes.includes(pathname)) setLastRoute('system', pathname)
-  }, [pathname])
-
-  const mainNav = getLastRoute('main') || '/chat'
-  const knowledgeNav = getLastRoute('knowledge') || '/memory'
-  const _systemNav = getLastRoute('system') || '/settings'
-
   const transition = {
     duration: 0.15,
     ease: isCollapsed ? 'easeIn' : 'easeOut',
@@ -1109,11 +1047,9 @@ function ChatSidebarComponent({
           <SectionLabel
             label="Основное"
             isCollapsed={isVisuallyCollapsed}
-            transition={transition}
             collapsible
             expanded={mainExpanded}
             onToggle={toggleMain}
-            navigateTo={mainNav}
           />
           <CollapsibleSection
             expanded={mainExpanded || isCollapsed}
@@ -1126,11 +1062,9 @@ function ChatSidebarComponent({
           <SectionLabel
             label="Знания"
             isCollapsed={isVisuallyCollapsed}
-            transition={transition}
             collapsible
             expanded={knowledgeExpanded}
             onToggle={toggleKnowledge}
-            navigateTo={knowledgeNav}
           />
           <CollapsibleSection
             expanded={knowledgeExpanded || isCollapsed}
