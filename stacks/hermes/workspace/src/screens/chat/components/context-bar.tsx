@@ -152,7 +152,15 @@ function ContextBarComponent({
 
   return (
     <PreviewCard>
-      <PreviewCardTrigger className="block w-full cursor-pointer">
+      <PreviewCardTrigger
+        render={
+          <button
+            type="button"
+            aria-label={`Окно контекста: ${Math.round(clampedPct)}% использовано`}
+          />
+        }
+        className="block w-full cursor-pointer"
+      >
         <div
           className={cn(
             'shrink-0 w-full h-2 transition-colors duration-300 relative',
