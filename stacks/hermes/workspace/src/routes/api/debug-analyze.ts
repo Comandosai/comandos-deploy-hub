@@ -96,7 +96,10 @@ function analyzeTerminalOutput(output: string): DebugAnalysis {
   if (
     lower.includes('[reconnecting') ||
     lower.includes('failed to connect') ||
-    lower.includes('connection error')
+    lower.includes('connection error') ||
+    lower.includes('[переподключаюсь') ||
+    lower.includes('не удалось подключиться') ||
+    lower.includes('ошибка соединения')
   ) {
     commands.push({
       command: 'curl -fsS http://127.0.0.1:8642/health || true',

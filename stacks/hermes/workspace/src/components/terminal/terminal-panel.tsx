@@ -261,7 +261,7 @@ export function TerminalPanel({ isMobile }: TerminalPanelProps) {
     })
 
     if (!response.ok || !response.body) {
-      terminal.writeln('\r\n[terminal] failed to connect\r\n')
+      terminal.writeln('\r\n[терминал] не удалось подключиться\r\n')
       return
     }
 

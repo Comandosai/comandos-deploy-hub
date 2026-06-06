@@ -165,7 +165,7 @@ export function TerminalWorkspace({
     [activeTabId, tabs],
   )
 
-  const sendInput = useCallback(function sendInput(
+  const sendInput = useCallback(function sendTerminalInput(
     tabId: string,
     data: string,
   ) {
@@ -185,7 +185,7 @@ export function TerminalWorkspace({
   }, [])
 
   const resizeSession = useCallback(
-    async function resizeSession(tabId: string, terminal: Terminal) {
+    async function resizeTerminalSession(tabId: string, terminal: Terminal) {
       if (!panelVisible) return
       const currentTab = useTerminalPanelStore
         .getState()
@@ -207,7 +207,7 @@ export function TerminalWorkspace({
   )
 
   const captureRecentTerminalOutput = useCallback(
-    function captureRecentTerminalOutput(tabId: string): string {
+    function captureTerminalOutput(tabId: string): string {
       const terminal = terminalMapRef.current.get(tabId)
       if (!terminal) return ''
 
@@ -227,7 +227,7 @@ export function TerminalWorkspace({
   )
 
   const handleAnalyzeDebug = useCallback(
-    async function handleAnalyzeDebug() {
+    async function analyzeTerminalDebug() {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
       if (!activeTab) return
 
@@ -249,14 +249,14 @@ export function TerminalWorkspace({
 
         const analysis = toDebugAnalysis(payload)
         if (!analysis) {
-          throw new Error('Invalid analysis response payload')
+          throw new Error('Сервер вернул неожиданный ответ диагностики.')
         }
 
         setDebugAnalysis(analysis)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
         setDebugAnalysis({
-          summary: 'Debug analysis failed.',
+          summary: 'Не удалось выполнить диагностику терминала.',
           rootCause: message,
           suggestedCommands: [],
         })
@@ -268,7 +268,7 @@ export function TerminalWorkspace({
   )
 
   const handleRunDebugCommand = useCallback(
-    function handleRunDebugCommand(command: string) {
+    function runTerminalDebugCommand(command: string) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
       if (!activeTab) return
       void sendInput(activeTab.id, `${command}\r`)
@@ -276,12 +276,12 @@ export function TerminalWorkspace({
     [activeTab, sendInput],
   )
 
-  const handleCloseDebugPanel = useCallback(function handleCloseDebugPanel() {
+  const handleCloseDebugPanel = useCallback(function closeDebugPanel() {
     setShowDebugPanel(false)
   }, [])
 
   const focusActiveTerminal = useCallback(
-    function focusActiveTerminal() {
+    function focusTerminal() {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
       if (!activeTab) return
       const terminal = terminalMapRef.current.get(activeTab.id)
@@ -290,7 +290,7 @@ export function TerminalWorkspace({
     [activeTab],
   )
 
-  const closeTabResources = useCallback(async function closeTabResources(
+  const closeTabResources = useCallback(async function closeTerminalTabResources(
     tabId: string,
     sessionId: string | null,
   ) {
@@ -320,7 +320,7 @@ export function TerminalWorkspace({
   }, [])
 
   const handleCloseTab = useCallback(
-    function handleCloseTab(tab: TerminalTab) {
+    function closeTerminalTab(tab: TerminalTab) {
       void closeTabResources(tab.id, tab.sessionId)
       closeTab(tab.id)
     },
@@ -328,7 +328,7 @@ export function TerminalWorkspace({
   )
 
   const handleClosePanel = useCallback(
-    function handleClosePanel() {
+    function closeTerminalPanel() {
       const currentTabs = useTerminalPanelStore.getState().tabs
       for (const tab of currentTabs) {
         void closeTabResources(tab.id, tab.sessionId)
@@ -341,7 +341,7 @@ export function TerminalWorkspace({
   )
 
   const connectTab = useCallback(
-    async function connectTab(tab: TerminalTab) {
+    async function connectTerminalTab(tab: TerminalTab) {
       if (!panelVisibleRef.current) return
       if (connectedRef.current.has(tab.id)) return
       const terminal = terminalMapRef.current.get(tab.id)
@@ -369,7 +369,7 @@ export function TerminalWorkspace({
       })
 
       if (!response || !response.ok || !response.body) {
-        terminal.writeln('\r\n[terminal] failed to connect\r\n')
+        terminal.writeln('\r\n[терминал] не удалось подключиться\r\n')
         connectedRef.current.delete(tab.id)
         setTabStatus(tab.id, 'idle')
         return
@@ -463,13 +463,13 @@ export function TerminalWorkspace({
               signal?: number
             }
             terminal.writeln(
-              `\r\n[process exited${payload.exitCode != null ? ` code=${payload.exitCode}` : ''}]\r\n`,
+              `\r\n[процесс завершён${payload.exitCode != null ? ` код=${payload.exitCode}` : ''}]\r\n`,
             )
             continue
           }
 
           if (eventName === 'error' && eventData) {
-            terminal.writeln('\r\n[terminal] connection error\r\n')
+            terminal.writeln('\r\n[терминал] ошибка соединения\r\n')
           }
         }
       }
@@ -517,7 +517,7 @@ export function TerminalWorkspace({
             .tabs.find((item) => item.id === tab.id)?.sessionId ===
           previousSessionId
         if (stillSameTab) {
-          terminal.writeln('\r\n\x1b[2m[reconnecting...]\x1b[0m')
+          terminal.writeln('\r\n\x1b[2m[переподключаюсь...]\x1b[0m')
           // Schedule a reconnect on the next tick to break out of this
           // closure cleanly. connectTab guards against double-connecting.
           setTimeout(() => {
@@ -538,7 +538,7 @@ export function TerminalWorkspace({
   )
 
   const ensureTerminalForTab = useCallback(
-    function ensureTerminalForTab(tab: TerminalTab) {
+    function ensureTerminalForTabInternal(tab: TerminalTab) {
       if (terminalMapRef.current.has(tab.id)) return
       const container = containerMapRef.current.get(tab.id)
       if (!container) return
@@ -590,7 +590,7 @@ export function TerminalWorkspace({
   )
 
   const handleCreateTab = useCallback(
-    function handleCreateTab() {
+    function createTerminalTab() {
       const newTabId = createTab(DEFAULT_TERMINAL_CWD)
       window.setTimeout(function focusNewTab() {
         const tab = useTerminalPanelStore

@@ -65,7 +65,7 @@ export function DebugPanel({
               speed={100}
               className="text-primary-400"
             />
-            <span className="text-pretty">Analyzing...</span>
+            <span className="text-pretty">Анализирую...</span>
           </div>
         ) : null}
 
