@@ -1036,14 +1036,14 @@ function TitleScreen({
               className="mt-2 text-[10px] font-bold uppercase tracking-[0.45em]"
               style={{ color: 'rgba(245, 217, 122, 0.7)' }}
             >
-              — the agent MMO —
+              — агентская MMO —
             </div>
             <p className="mt-5 max-w-[560px] text-[15px] leading-relaxed text-white/72">
               {displayName.trim().length === 0
-                ? 'Step into a shared world of Hermes agents. Train, build, and quest with builders worldwide.'
+                ? 'Войдите в общий мир агентов Hermes. Тренируйтесь, стройте и проходите задания вместе с другими создателями.'
                 : tutorialComplete
-                  ? `Welcome back, ${displayName}. Six worlds await.`
-                  : `${displayName}, your training awaits. Six worlds. One builder. Forge your path.`}
+                  ? `${displayName}, добро пожаловать обратно. Вас ждут шесть миров.`
+                  : `${displayName}, тренировка ждёт. Шесть миров. Один создатель. Соберите свой путь.`}
             </p>
           </div>
         </div>
@@ -1063,12 +1063,12 @@ function TitleScreen({
                 className="text-[10px] font-bold uppercase tracking-[0.22em]"
                 style={{ color: '#fde68a' }}
               >
-                ❖ Identify Yourself
+                ❖ Представьтесь
               </div>
               <input
                 value={displayName}
                 onChange={(event) => onChangeDisplayName(event.target.value.slice(0, 24))}
-                placeholder="Enter your builder name..."
+                placeholder="Введите имя создателя..."
                 maxLength={24}
                 className="mt-3 w-full rounded-xl border-2 bg-black/40 px-4 py-3.5 text-base text-white outline-none placeholder:text-white/25"
                 style={{ borderColor: 'rgba(245,217,122,0.25)' }}
@@ -1084,7 +1084,7 @@ function TitleScreen({
                     background: 'rgba(255,255,255,0.03)',
                   }}
                 >
-                  🎭 Customize Avatar
+                  🎭 Настроить героя
                 </button>
                 <button
                   type="button"
@@ -1100,7 +1100,7 @@ function TitleScreen({
                       : 'none',
                   }}
                 >
-                  Enter the Realm
+                  Войти в мир
                 </button>
               </div>
             </div>
