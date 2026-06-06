@@ -120,6 +120,11 @@ export function McpScreen() {
 
               <input
                 value={search}
+                aria-label={
+                  tab === 'marketplace'
+                    ? 'Поиск по каталогу MCP'
+                    : 'Поиск MCP-серверов по имени'
+                }
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={
                   tab === 'marketplace'
@@ -132,6 +137,7 @@ export function McpScreen() {
               {tab === 'installed' ? (
                 <select
                   value={category}
+                  aria-label="Категория MCP-серверов"
                   onChange={(event) => setCategory(event.target.value)}
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >

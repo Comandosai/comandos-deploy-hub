@@ -45,6 +45,20 @@ const FORMAT_LABELS: Record<(typeof FORMAT_OPTIONS)[number], string> = {
   'generic-json': 'Обычный JSON',
 }
 
+function trustLabel(trust: string): string {
+  if (trust === 'official' || trust === 'community' || trust === 'unverified') {
+    return TRUST_LABELS[trust]
+  }
+  return trust
+}
+
+function formatLabel(format: string): string {
+  if (format === 'smithery' || format === 'generic-json') {
+    return FORMAT_LABELS[format]
+  }
+  return format
+}
+
 const EMPTY_FORM: AddSourceInput = {
   id: '',
   name: '',
@@ -127,6 +141,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
         <span>ID источника <span className="text-red-500">*</span></span>
         <input
           className={FIELD}
+          aria-label="ID источника"
           value={form.id}
           onChange={(e) => set('id', e.target.value)}
           disabled={isEdit || saving}
@@ -141,6 +156,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
         <span>Название <span className="text-red-500">*</span></span>
         <input
           className={FIELD}
+          aria-label="Название источника"
           value={form.name}
           onChange={(e) => set('name', e.target.value)}
           disabled={saving}
@@ -153,6 +169,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
         <span>URL <span className="text-red-500">*</span></span>
         <input
           className={FIELD}
+          aria-label="URL источника"
           value={form.url}
           onChange={(e) => set('url', e.target.value)}
           disabled={saving}
@@ -168,6 +185,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
           <span>Доверие</span>
           <select
             className={FIELD}
+            aria-label="Доверие источника"
             value={form.trust}
             onChange={(e) => set('trust', e.target.value as AddSourceInput['trust'])}
             disabled={saving}
@@ -183,6 +201,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
           <span>Формат</span>
           <select
             className={FIELD}
+            aria-label="Формат источника"
             value={form.format}
             onChange={(e) => set('format', e.target.value as AddSourceInput['format'])}
             disabled={saving}
@@ -198,6 +217,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
       <div className="flex items-center gap-2">
         <input
           id="enabled-toggle"
+          aria-label="Источник включён"
           type="checkbox"
           checked={form.enabled}
           onChange={(e) => set('enabled', e.target.checked)}
@@ -245,11 +265,11 @@ function SourceRow({ source, onEdit, onDelete, deleting }: SourceRowProps) {
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-sm font-medium text-ink truncate">{source.name}</span>
           <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${TRUST_PILL[source.trust] ?? TRUST_PILL.unverified}`}>
-            {source.trust}
+            {trustLabel(source.trust)}
           </span>
           {source.builtin ? (
             <span className="rounded border border-primary-200 bg-primary-100/50 px-1.5 py-0.5 text-[10px] text-primary-500">
-              built-in
+              встроенный
             </span>
           ) : null}
           {!source.enabled ? (
@@ -259,7 +279,7 @@ function SourceRow({ source, onEdit, onDelete, deleting }: SourceRowProps) {
           ) : null}
         </div>
         <p className="text-xs text-primary-400 truncate">{source.url}</p>
-        <p className="text-[11px] text-primary-400">{source.format} · {source.id}</p>
+        <p className="text-[11px] text-primary-400">{formatLabel(source.format)} · {source.id}</p>
       </div>
       {!source.builtin ? (
         <div className="flex shrink-0 items-center gap-1">
