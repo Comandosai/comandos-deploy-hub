@@ -78,7 +78,7 @@ export type DashboardStatusSection = {
   activeSessions: number
   /**
    * Canonical "currently running" number from gateway runtime status
-   * (​`/health/detailed` -> `active_agents`). Falls back to legacy
+   * (`/health/detailed` -> `active_agents`). Falls back to legacy
    * `active_sessions` when `/health/detailed` is unreachable.
    */
   activeAgents: number
@@ -327,7 +327,7 @@ function normalizeCron(raw: unknown): DashboardCronSection | null {
   let jobs: Array<Record<string, unknown>> = []
   if (Array.isArray(raw)) {
     jobs = raw as Array<Record<string, unknown>>
-  } else if (raw && typeof raw === 'object') {
+  } else if (typeof raw === 'object') {
     const r = raw as Record<string, unknown>
     if (Array.isArray(r.jobs)) jobs = r.jobs as Array<Record<string, unknown>>
   }
@@ -339,8 +339,7 @@ function normalizeCron(raw: unknown): DashboardCronSection | null {
   let nextRunMs: number | null = null
   const recentFailures: DashboardCronSection['recentFailures'] = []
   for (const job of jobs) {
-    if (!job || typeof job !== 'object') continue
-    const j = job as Record<string, unknown>
+    const j = job
     const state = readString(j.state || j.status).toLowerCase()
     if (state === 'paused') paused += 1
     else if (state === 'running') running += 1
@@ -349,7 +348,7 @@ function normalizeCron(raw: unknown): DashboardCronSection | null {
       typeof j.last_error === 'string'
         ? j.last_error
         : typeof j.last_delivery_error === 'string'
-          ? (j.last_delivery_error as string)
+          ? (j.last_delivery_error)
           : null
     const isFailure =
       lastStatus === 'failed' ||
@@ -367,9 +366,9 @@ function normalizeCron(raw: unknown): DashboardCronSection | null {
       typeof j.next_run_at === 'string' ? Date.parse(j.next_run_at) : NaN,
       typeof j.next_run === 'string' ? Date.parse(j.next_run) : NaN,
       typeof j.next_run_at === 'number'
-        ? (j.next_run_at as number) * 1000
+        ? (j.next_run_at) * 1000
         : NaN,
-    ].filter((v) => Number.isFinite(v)) as Array<number>
+    ].filter((v) => Number.isFinite(v))
     for (const ts of candidates) {
       if (nextRunMs === null || ts < nextRunMs) nextRunMs = ts
     }
@@ -400,7 +399,7 @@ function normalizeAchievementUnlock(
     icon: readString(r.icon) || 'Star',
     tier: typeof r.tier === 'string' ? r.tier : null,
     unlockedAt:
-      typeof r.unlocked_at === 'number' ? (r.unlocked_at as number) : null,
+      typeof r.unlocked_at === 'number' ? (r.unlocked_at) : null,
   }
 }
 
@@ -475,7 +474,7 @@ function normalizeSkillsUsage(
         percentage: readNumber(e.percentage),
         lastUsedAt:
           typeof e.last_used_at === 'number'
-            ? (e.last_used_at as number)
+            ? (e.last_used_at)
             : null,
       }
     })
@@ -718,7 +717,7 @@ function formatTokensCompact(n: number): string {
  */
 function shortSkillName(raw: string): string {
   if (!raw) return raw
-  const segments = raw.split(/[:\/]/)
+  const segments = raw.split(/[:/]/)
   return segments[segments.length - 1] || raw
 }
 
@@ -761,14 +760,15 @@ function computeInsights(
       }
     }
     if (peakVal > 0) {
-      const top = analytics.topModels[0]
-      const driver = top ? `, driven by ${shortModelName(top.id)}` : ''
+      const driver = analytics.topModels.length > 0
+        ? `, основная модель: ${shortModelName(analytics.topModels[0].id)}`
+        : ''
       const peakDay = analytics.daily[peakIdx].day
       const todayIso = new Date().toISOString().slice(0, 10)
       peakIsToday = peakDay === todayIso
       out.push({
         tone: 'info',
-        text: `Usage peaked ${shortDate(peakDay)} (${formatTokensCompact(peakVal)} tokens)${driver}.`,
+        text: `Пик расхода был ${shortDate(peakDay)} (${formatTokensCompact(peakVal)} токенов)${driver}.`,
       })
     }
   }
@@ -786,7 +786,7 @@ function computeInsights(
       if (Math.abs(delta) >= 5) {
         out.push({
           tone: delta > 0 ? 'positive' : 'warn',
-          text: `Cache reads ${delta > 0 ? 'up' : 'down'} ${Math.abs(delta).toFixed(0)}% vs prior period.`,
+          text: `Чтение кэша ${delta > 0 ? 'выросло' : 'снизилось'} на ${Math.abs(delta).toFixed(0)}% к прошлому периоду.`,
         })
       }
     }
@@ -798,14 +798,14 @@ function computeInsights(
   const ops: Array<string> = []
   if (cron && cron.failed > 0) {
     ops.push(
-      `${cron.failed} failed cron job${cron.failed === 1 ? '' : 's'}`,
+      `ошибок заданий: ${cron.failed}`,
     )
   }
   if (cron && cron.nextRunAt) {
     const nextMs = Date.parse(cron.nextRunAt)
     if (Number.isFinite(nextMs) && nextMs - Date.now() < -7 * 86_400_000) {
       ops.push(
-        `${cron.total} stale cron job${cron.total === 1 ? '' : 's'}`,
+        `устаревших заданий: ${cron.total}`,
       )
     }
   }
@@ -815,9 +815,9 @@ function computeInsights(
     status.gatewayState === 'running' &&
     status.activeAgents === 0
   ) {
-    ops.push('no active runs')
+    ops.push('активных запусков нет')
   }
-  if (status?.restartRequested) ops.push('restart pending')
+  if (status?.restartRequested) ops.push('ожидается перезапуск')
   if (ops.length > 0) {
     out.push({
       tone: ops.length >= 2 ? 'warn' : 'info',
@@ -832,7 +832,7 @@ function computeInsights(
     const top = skills.topSkills[0]
     out.push({
       tone: 'info',
-      text: `Top skill: ${shortSkillName(top.skill)} (${top.totalCount} uses, ${top.percentage.toFixed(1)}% of skill activity).`,
+      text: `Главный навык: ${shortSkillName(top.skill)} (${top.totalCount} использований, ${top.percentage.toFixed(1)}% активности навыков).`,
     })
   }
 
@@ -854,8 +854,8 @@ function computeIncidents(
         id: `cron-fail-${f.id}`,
         severity: 'error',
         source: 'cron',
-        label: `cron job failed: ${f.name}`,
-        detail: f.lastError || 'last_status indicates failure',
+        label: `задание завершилось ошибкой: ${f.name}`,
+        detail: f.lastError || 'last_status указывает на ошибку',
         href: '/jobs',
       })
     }

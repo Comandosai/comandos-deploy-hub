@@ -2,11 +2,11 @@
 // The Overview content is instead rendered inline via renderOverviewContent().
 // To reduce agent-hub-layout.tsx size, the inline overview rendering could be
 // migrated to use this component instead.
-import { cn } from '@/lib/utils'
+import { AGENT_ACCENT_COLORS, AgentAvatar, resolveAgentAvatarIndex } from './agent-avatar'
+import { OfficeView, getAgentStatusMeta, getOfficeModelLabel } from './office-view'
 import type { AgentWorkingRow } from './agents-working-panel'
 import type { TeamMember } from './team-panel'
-import { AGENT_ACCENT_COLORS, AgentAvatar, resolveAgentAvatarIndex } from './agent-avatar'
-import { getAgentStatusMeta, getOfficeModelLabel, OfficeView } from './office-view'
+import { cn } from '@/lib/utils'
 
 export interface OverviewTabProps {
   missionActive: boolean
@@ -19,13 +19,13 @@ export interface OverviewTabProps {
   teamCount: number
   teamLabel: string
   pendingApprovalCount: number
-  agentWorkingRows: AgentWorkingRow[]
+  agentWorkingRows: Array<AgentWorkingRow>
   teamById: Map<string, TeamMember>
   overviewAgentsView: 'cards' | 'live'
   selectedOutputAgentId?: string
   activeTemplateName?: string
   processType: 'sequential' | 'hierarchical' | 'parallel'
-  recentActivityItems: string[]
+  recentActivityItems: Array<string>
   truncateMissionGoal: (goal: string, max?: number) => string
   onViewMission: () => void
   onStopMission: () => void
@@ -68,14 +68,14 @@ export function OverviewTab({
           {missionActive ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-neutral-900">Mission Status</p>
+                <p className="text-xs font-semibold text-neutral-900">Статус миссии</p>
                 <p className="mt-1 truncate text-sm text-neutral-700">
-                  {truncateMissionGoal(activeMissionGoal || missionGoal || 'Active mission')}
+                  {truncateMissionGoal(activeMissionGoal || missionGoal || 'Активная миссия')}
                 </p>
                 <p className="mt-1 text-[11px] text-neutral-500">
-                  {activeCount} active agent{activeCount === 1 ? '' : 's'}
+                  Активных агентов: {activeCount}
                   {' · '}
-                  {totalTasks > 0 ? `${doneTasks}/${totalTasks} tasks done` : 'No tasks yet'}
+                  {totalTasks > 0 ? `готово задач: ${doneTasks}/${totalTasks}` : 'Задач пока нет'}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -84,23 +84,23 @@ export function OverviewTab({
                   onClick={onViewMission}
                   className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
                 >
-                  View Mission
+                  Открыть миссию
                 </button>
                 <button
                   type="button"
                   onClick={onStopMission}
                   className="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-accent-600"
                 >
-                  Stop
+                  Стоп
                 </button>
               </div>
             </div>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold text-neutral-900">No active mission</p>
+                <p className="text-xs font-semibold text-neutral-900">Активной миссии нет</p>
                 <p className="mt-1 text-[11px] text-neutral-500">
-                  Configure your team and launch a mission when ready.
+                  Настройте команду и запустите миссию, когда всё готово.
                 </p>
               </div>
               <button
@@ -135,7 +135,7 @@ export function OverviewTab({
         <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-center gap-3">
-              <h2 className="text-sm font-semibold text-neutral-900">Agents</h2>
+              <h2 className="text-sm font-semibold text-neutral-900">Агенты</h2>
               {agentWorkingRows.length > 0 ? (
                 <div className="flex -space-x-2">
                   {agentWorkingRows.slice(0, 5).map((agent, index) => {
@@ -170,7 +170,7 @@ export function OverviewTab({
                             : 'text-neutral-500 hover:text-neutral-700',
                         )}
                       >
-                        {mode === 'cards' ? 'Cards' : 'Live'}
+                        {mode === 'cards' ? 'Карточки' : 'Живой вид'}
                       </button>
                     ))}
                   </div>
@@ -182,14 +182,14 @@ export function OverviewTab({
               onClick={onOpenConfigureAgents}
               className="text-xs font-medium text-accent-600 hover:text-accent-700"
             >
-              Configure
+              Настроить
             </button>
           </div>
           {agentWorkingRows.length === 0 ? (
             <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-6 text-center">
               <p className="text-2xl" aria-hidden>🤖</p>
-              <p className="mt-1 text-sm font-medium text-neutral-700">No agents configured yet</p>
-              <p className="mt-1 text-xs text-neutral-500">Open Configure to add your first agent.</p>
+              <p className="mt-1 text-sm font-medium text-neutral-700">Агенты ещё не настроены</p>
+              <p className="mt-1 text-xs text-neutral-500">Откройте настройку, чтобы добавить первого агента.</p>
             </div>
           ) : overviewAgentsView === 'live' ? (
             <OfficeView
@@ -231,7 +231,7 @@ export function OverviewTab({
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-neutral-900">{agent.name}</p>
                           <p className="truncate text-[11px] text-neutral-500">
-                            {agent.roleDescription || 'No role description'}
+                            {agent.roleDescription || 'Описание роли не задано'}
                           </p>
                         </div>
                       </div>
@@ -254,7 +254,7 @@ export function OverviewTab({
                         <span className={cn('size-2 rounded-full', statusMeta.dotClassName)} />
                       )}
                       <span className={cn('font-medium', statusMeta.className)}>● {statusMeta.label}</span>
-                      {agent.taskCount > 0 ? <span>· {agent.taskCount} tasks</span> : null}
+                      {agent.taskCount > 0 ? <span>· задач: {agent.taskCount}</span> : null}
                     </div>
                     {agent.lastLine ? (
                       <p className="mt-2 line-clamp-2 min-h-[2.2rem] font-mono text-[11px] text-neutral-500">
@@ -262,7 +262,7 @@ export function OverviewTab({
                       </p>
                     ) : (
                       <p className={cn('mt-2 min-h-[2.2rem] font-mono text-[11px]', statusMeta.className)}>
-                        {agent.status === 'none' ? '● Waiting for session' : `● ${statusMeta.label}`}
+                        {agent.status === 'none' ? '● Ждёт сессию' : `● ${statusMeta.label}`}
                       </p>
                     )}
                     <div className="mt-auto flex gap-2 pt-3">
@@ -276,7 +276,7 @@ export function OverviewTab({
                             : 'border-accent-200 text-accent-600 hover:bg-accent-50',
                         )}
                       >
-                        Configure
+                        Настроить
                       </button>
                       <button
                         type="button"
@@ -288,7 +288,7 @@ export function OverviewTab({
                             : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50',
                         )}
                       >
-                        View Output
+                        Открыть вывод
                       </button>
                     </div>
                   </div>
@@ -299,9 +299,9 @@ export function OverviewTab({
         </section>
 
         <section className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-          <h2 className="text-sm font-semibold text-neutral-900">Recent Activity</h2>
+          <h2 className="text-sm font-semibold text-neutral-900">Недавняя активность</h2>
           {recentActivityItems.length === 0 ? (
-            <p className="mt-2 text-xs text-neutral-500">📝 No recent activity yet.</p>
+            <p className="mt-2 text-xs text-neutral-500">📝 Недавней активности пока нет.</p>
           ) : (
             <ul className="mt-2 space-y-2">
               {recentActivityItems.map((item, index) => (

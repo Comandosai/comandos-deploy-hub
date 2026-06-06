@@ -55,11 +55,12 @@ export function buildInsights(
       }
     }
     if (peakVal > 0) {
-      const top = analytics.topModels[0]
-      const driver = top ? `, driven by ${formatModelName(top.id)}` : ''
+      const driver = analytics.topModels.length > 0
+        ? `, основная модель: ${formatModelName(analytics.topModels[0].id)}`
+        : ''
       out.push({
         tone: 'info',
-        text: `Usage peaked ${shortDate(daily[peakIdx].day)} (${formatTokens(peakVal)} tokens)${driver}.`,
+        text: `Пик расхода был ${shortDate(daily[peakIdx].day)} (${formatTokens(peakVal)} токенов)${driver}.`,
       })
     }
   }
@@ -76,7 +77,7 @@ export function buildInsights(
       if (Math.abs(delta) >= 5) {
         out.push({
           tone: delta > 0 ? 'positive' : 'warn',
-          text: `Cache reads ${delta > 0 ? 'up' : 'down'} ${Math.abs(delta).toFixed(0)}% vs prior period.`,
+          text: `Чтение кэша ${delta > 0 ? 'выросло' : 'снизилось'} на ${Math.abs(delta).toFixed(0)}% к прошлому периоду.`,
         })
       }
     }
@@ -88,14 +89,14 @@ export function buildInsights(
     const nextMs = Date.parse(cron.nextRunAt)
     if (Number.isFinite(nextMs) && nextMs - Date.now() < -7 * 86_400_000) {
       ops.push(
-        `${cron.total} stale cron job${cron.total === 1 ? '' : 's'}`,
+        `устаревших заданий: ${cron.total}`,
       )
     }
   }
   if (status && status.gatewayState === 'running' && status.activeAgents === 0) {
-    ops.push('no active runs')
+    ops.push('активных запусков нет')
   }
-  if (status?.restartRequested) ops.push('restart pending')
+  if (status?.restartRequested) ops.push('ожидается перезапуск')
   if (ops.length > 0) {
     out.push({
       tone: ops.length >= 2 ? 'warn' : 'info',

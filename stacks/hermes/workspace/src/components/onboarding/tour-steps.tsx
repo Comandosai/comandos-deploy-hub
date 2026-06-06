@@ -76,13 +76,13 @@ export const tourSteps: Array<Step> = [
     content:
       'Быстрые команды прямо внутри COMANDOS AI Workspace.',
   },
-  // Step 9: Usage Meter (in header)
+  // Step 9: usage meter in the header
   {
     target: '[data-tour="usage-meter"]',
     placement: 'bottom',
-    title: 'Usage монитор',
+    title: 'Монитор расхода',
     content:
-      'Следите за расходом провайдеров, стоимостью и API consumption.',
+      'Следите за расходом провайдеров, стоимостью и потреблением API.',
   },
   // Step 10: Settings
   {

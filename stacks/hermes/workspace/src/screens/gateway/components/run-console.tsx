@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckmarkCircle02Icon, Copy01Icon, Rocket01Icon, ViewIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { fetchSessionHistory } from '@/lib/gateway-api'
-import { cn } from '@/lib/utils'
-import { RunLearnings, type RunLearningsProps } from './run-learnings'
+import { RunLearnings } from './run-learnings'
 import { MissionEventLog } from './mission-event-log'
+import { onFeedEvent } from './feed-event-bus'
+import type { FeedEvent } from './feed-event-bus'
+import type { RunLearningsProps } from './run-learnings'
 import type { MissionEvent } from '@/screens/gateway/lib/mission-events'
-import { onFeedEvent, type FeedEvent } from './feed-event-bus'
+import { cn } from '@/lib/utils'
+import { fetchSessionHistory } from '@/lib/gateway-api'
 
 type RunArtifact = {
   id: string
@@ -19,7 +21,7 @@ type RunArtifact = {
 
 type RunReport = {
   summary: string
-  keyFindings: string[]
+  keyFindings: Array<string>
   duration: string
   totalTokens: number
   totalCost: number
@@ -43,14 +45,14 @@ type RunConsoleProps = {
   onSteerAgent?: (agentId: string, message: string) => void
   onApprove?: (approvalId: string) => void
   onDeny?: (approvalId: string) => void
-  sessionKeys?: string[]
+  sessionKeys?: Array<string>
   agentNameMap?: Record<string, string>
-  artifacts?: RunArtifact[]
+  artifacts?: Array<RunArtifact>
   report?: RunReport
-  missionEvents?: MissionEvent[]
+  missionEvents?: Array<MissionEvent>
   learnings?: RunLearningsProps['learnings']
   onAddLearning?: RunLearningsProps['onAddLearning']
-  tabs?: ConsoleTab[]
+  tabs?: Array<ConsoleTab>
   minimalChrome?: boolean
 }
 
@@ -67,12 +69,12 @@ type LiveStreamEvent = {
 }
 
 const TAB_OPTIONS: Array<{ id: ConsoleTab; label: string }> = [
-  { id: 'stream', label: 'Stream' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'artifacts', label: 'Artifacts' },
-  { id: 'report', label: 'Report' },
-  { id: 'events', label: 'Events' },
-  { id: 'learnings', label: 'Learnings' },
+  { id: 'stream', label: 'Поток' },
+  { id: 'timeline', label: 'Хронология' },
+  { id: 'artifacts', label: 'Артефакты' },
+  { id: 'report', label: 'Отчёт' },
+  { id: 'events', label: 'События' },
+  { id: 'learnings', label: 'Выводы' },
 ]
 
 const STATUS_STYLES: Record<RunConsoleProps['runStatus'], string> = {
@@ -92,14 +94,14 @@ const EVENT_STYLES: Record<LiveStreamEvent['eventType'], string> = {
 function formatRunStatus(status: RunConsoleProps['runStatus']): string {
   switch (status) {
     case 'needs_input':
-      return 'Needs Input'
+      return 'Нужен ввод'
     case 'complete':
-      return 'Complete'
+      return 'Завершено'
     case 'failed':
-      return 'Failed'
+      return 'Ошибка'
     case 'running':
     default:
-      return 'Running'
+      return 'В работе'
   }
 }
 
@@ -110,9 +112,9 @@ function formatDuration(startedAt?: number): string | null {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
-  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`
-  if (minutes > 0) return `${minutes}m ${seconds}s`
-  return `${seconds}s`
+  if (hours > 0) return `${hours} ч ${minutes} мин ${seconds} с`
+  if (minutes > 0) return `${minutes} мин ${seconds} с`
+  return `${seconds} с`
 }
 
 function formatCost(costEstimate?: number): string {
@@ -140,12 +142,13 @@ function extractContent(msg: { content?: string | Array<{ type?: string; text?: 
 }
 
 function sanitizeArgsPreview(args?: string): string {
-  if (!args) return 'No arguments'
+  if (!args) return 'Аргументов нет'
   const cleaned = args
+    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001F\u007F]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-  if (!cleaned) return 'No arguments'
+  if (!cleaned) return 'Аргументов нет'
   if (cleaned.length <= 200) return cleaned
   return `${cleaned.slice(0, 200)}...`
 }
@@ -163,9 +166,9 @@ function getElapsedLabel(firstSeconds: number, currentSeconds: number): string {
   const hours = Math.floor(elapsed / 3600)
   const minutes = Math.floor((elapsed % 3600) / 60)
   const seconds = elapsed % 60
-  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`
-  if (minutes > 0) return `${minutes}m ${seconds}s`
-  return `${seconds}s`
+  if (hours > 0) return `${hours} ч ${minutes} мин ${seconds} с`
+  if (minutes > 0) return `${minutes} мин ${seconds} с`
+  return `${seconds} с`
 }
 
 function getEventDotClass(eventType: LiveStreamEvent['eventType']): string {
@@ -176,8 +179,10 @@ function getEventDotClass(eventType: LiveStreamEvent['eventType']): string {
 }
 
 function getEventPillLabel(event: LiveStreamEvent): string {
-  if (event.eventType === 'tool' && event.toolName) return `TOOL: ${event.toolName}`
-  return event.eventType.toUpperCase()
+  if (event.eventType === 'tool' && event.toolName) return `ИНСТРУМЕНТ: ${event.toolName}`
+  if (event.eventType === 'output') return 'ВЫВОД'
+  if (event.eventType === 'error') return 'ОШИБКА'
+  return 'СТАТУС'
 }
 
 function mapFeedEventType(event: FeedEvent): LiveStreamEvent['eventType'] {
@@ -222,14 +227,14 @@ export function RunConsole({
   const [streamView, setStreamView] = useState<StreamView>('combined')
   const [steerTarget, setSteerTarget] = useState<string | null>(null)
   const [steerInput, setSteerInput] = useState('')
-  const [historyEvents, setHistoryEvents] = useState<LiveStreamEvent[]>([])
-  const [feedEvents, setFeedEvents] = useState<LiveStreamEvent[]>([])
+  const [historyEvents, setHistoryEvents] = useState<Array<LiveStreamEvent>>([])
+  const [feedEvents, setFeedEvents] = useState<Array<LiveStreamEvent>>([])
   const [isAutoScroll, setIsAutoScroll] = useState(true)
   const [copiedArtifactId, setCopiedArtifactId] = useState<string | null>(null)
   const [expandedArtifactId, setExpandedArtifactId] = useState<string | null>(null)
   const streamEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const allowedTabs = useMemo<ConsoleTab[]>(
+  const allowedTabs = useMemo<Array<ConsoleTab>>(
     () => (tabs && tabs.length > 0 ? tabs : TAB_OPTIONS.map((tab) => tab.id)),
     [tabs],
   )
@@ -237,12 +242,12 @@ export function RunConsole({
   // Fetch session history for all session keys
   const fetchAllHistory = useCallback(async () => {
     if (!sessionKeys?.length) return
-    const allEvents: LiveStreamEvent[] = []
+    const allEvents: Array<LiveStreamEvent> = []
     for (const key of sessionKeys) {
       try {
         const res = await fetchSessionHistory(key)
-        const msgs = res?.messages ?? []
-        const agentName = agentNameMap?.[key] ?? 'Agent'
+        const msgs = res.messages ?? []
+        const agentName = agentNameMap?.[key] ?? 'Агент'
         for (const msg of msgs) {
           const content = extractContent(msg)
           const toolName = msg.toolName
@@ -253,7 +258,7 @@ export function RunConsole({
             timestamp: formatTs(ts),
             agentName,
             eventType: roleToEventType(msg.role),
-            message: content || `[${toolName ?? 'tool call'}]`,
+            message: content || `[${toolName ?? 'вызов инструмента'}]`,
             toolName,
           })
         }
@@ -281,7 +286,7 @@ export function RunConsole({
           {
             id: event.id,
             timestamp: formatTs(event.timestamp),
-            agentName: event.agentName || 'System',
+            agentName: event.agentName || 'Система',
             eventType: mapFeedEventType(event),
             message: event.message,
           },
@@ -310,7 +315,7 @@ export function RunConsole({
     setIsAutoScroll(atBottom)
   }, [])
 
-  const resolvedDuration = duration || formatDuration(startedAt) || '0s'
+  const resolvedDuration = duration || formatDuration(startedAt) || '0 с'
   const resolvedTokens = typeof tokenCount === 'number' ? tokenCount.toLocaleString() : '0'
   const statusLabel = formatRunStatus(runStatus)
 
@@ -354,12 +359,11 @@ export function RunConsole({
       }
     }
     return Array.from(grouped.entries()).map(([agentName, events]) => ({ agentName, events }))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayEvents])
 
   const copyArtifactContent = useCallback(async (artifact: RunArtifact) => {
     const textToCopy = artifact.content || artifact.path || artifact.name
-    if (!textToCopy || !navigator?.clipboard?.writeText) return
+    if (!textToCopy) return
     try {
       await navigator.clipboard.writeText(textToCopy)
       setCopiedArtifactId(artifact.id)
@@ -394,10 +398,10 @@ export function RunConsole({
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-primary-300">
-              <span>Duration: {resolvedDuration}</span>
-              <span>Tokens: {resolvedTokens}</span>
-              <span>Cost: {formatCost(costEstimate)}</span>
-              <span>Agents: {agents.length}</span>
+              <span>Длительность: {resolvedDuration}</span>
+              <span>Токены: {resolvedTokens}</span>
+              <span>Стоимость: {formatCost(costEstimate)}</span>
+              <span>Агенты: {agents.length}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -487,7 +491,7 @@ export function RunConsole({
                     onClick={() => setSteerTarget(steerTarget === agent.id ? null : agent.id)}
                     className="rounded px-1.5 py-0.5 text-[10px] text-primary-400 transition-colors hover:bg-primary-800 hover:text-primary-200"
                   >
-                    Steer
+                    Направить
                   </button>
                 ) : null}
                 {onKillAgent ? (
@@ -496,7 +500,7 @@ export function RunConsole({
                     onClick={() => onKillAgent(agent.id)}
                     className="rounded px-1.5 py-0.5 text-[10px] text-red-400 transition-colors hover:bg-red-500/15 hover:text-red-300"
                   >
-                    Kill
+                    Завершить
                   </button>
                 ) : null}
               </div>
@@ -516,7 +520,7 @@ export function RunConsole({
                     setSteerTarget(null)
                   }
                 }}
-                placeholder="Send directive..."
+                placeholder="Отправить указание..."
                 className="flex-1 rounded-md border border-primary-700 bg-primary-950 px-2 py-1 text-xs text-primary-100 placeholder:text-primary-500 focus:border-accent-500 focus:outline-none"
               />
               <button
@@ -530,7 +534,7 @@ export function RunConsole({
                 }}
                 className="rounded-md bg-accent-500/20 px-2 py-1 text-[11px] font-medium text-accent-300 transition-colors hover:bg-accent-500/30"
               >
-                Send
+                Отправить
               </button>
               <button
                 type="button"
@@ -553,7 +557,7 @@ export function RunConsole({
           <div className="space-y-3 font-mono text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className={cn('text-sm font-medium', minimalChrome ? 'text-[var(--theme-muted)]' : 'text-primary-200')}>
-                {displayEvents.length > 0 ? `${displayEvents.length} events` : 'Waiting for live agent output'}
+                {displayEvents.length > 0 ? `Событий: ${displayEvents.length}` : 'Жду вывод живого агента'}
               </p>
               <div className={cn(
                 'inline-flex items-center rounded-md p-0.5 text-xs',
@@ -575,7 +579,7 @@ export function RunConsole({
                         : 'bg-primary-900/60 text-primary-300 hover:text-primary-100',
                   )}
                 >
-                  Combined
+                  Вместе
                 </button>
                 <button
                   type="button"
@@ -591,14 +595,14 @@ export function RunConsole({
                         : 'bg-primary-900/60 text-primary-300 hover:text-primary-100',
                   )}
                 >
-                  Lanes
+                  По агентам
                 </button>
               </div>
             </div>
 
             {pendingApprovals && pendingApprovals.length > 0 ? (
               <section className="sticky top-0 z-10 rounded-lg border border-amber-500/40 bg-amber-500/15 p-3 shadow-lg backdrop-blur">
-                <h3 className="text-sm font-semibold text-amber-200">⚠️ Approval Required</h3>
+                <h3 className="text-sm font-semibold text-amber-200">⚠️ Нужно согласование</h3>
                 <ol className="mt-2 space-y-2">
                   {pendingApprovals.map((approval) => (
                     <li
@@ -608,13 +612,13 @@ export function RunConsole({
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="space-y-1">
                           <p className="text-xs text-amber-100">
-                            Tool: <span className="font-semibold">{approval.tool}</span>
+                            Инструмент: <span className="font-semibold">{approval.tool}</span>
                           </p>
                           <p className="text-xs text-primary-200">
-                            Agent: <span className="font-medium">{approval.agentName || 'Unknown agent'}</span>
+                            Агент: <span className="font-medium">{approval.agentName || 'Неизвестный агент'}</span>
                           </p>
                           <p className="text-xs text-primary-300 break-all">
-                            Args: {sanitizeArgsPreview(approval.args)}
+                            Аргументы: {sanitizeArgsPreview(approval.args)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -644,7 +648,7 @@ export function RunConsole({
 
             {runStatus === 'needs_input' && (!pendingApprovals || pendingApprovals.length === 0) ? (
               <div className="rounded-lg border border-primary-700/80 bg-primary-900/60 px-3 py-2 text-xs text-primary-300">
-                Mission is waiting for input — check the approval queue
+                Миссия ждёт ввода — проверьте очередь согласований
               </div>
             ) : null}
 
@@ -664,13 +668,13 @@ export function RunConsole({
                   <HugeiconsIcon icon={Rocket01Icon} size={22} strokeWidth={1.8} />
                 </div>
                 <p className={cn('text-base font-semibold', minimalChrome ? 'text-[var(--theme-text)]' : 'text-primary-100')}>
-                  Stream is ready
+                  Поток готов
                 </p>
                 <p className={cn(
                   'mt-2 max-w-md text-sm leading-6',
                   minimalChrome ? 'text-[var(--theme-muted)]' : 'text-primary-300',
                 )}>
-                  Agent output, approvals, and system events will appear here as work begins. Use timeline or artifacts to inspect the run once activity starts.
+                  Вывод агентов, согласования и системные события появятся здесь после старта работы. Для проверки запуска используйте хронологию или артефакты.
                 </p>
               </div>
             ) : null}
@@ -718,11 +722,11 @@ export function RunConsole({
                   {eventsByAgent.map((lane) => {
                     const latestEvent = lane.events[lane.events.length - 1]
                     const laneDotClass =
-                      latestEvent?.eventType === 'error'
+                      latestEvent.eventType === 'error'
                         ? 'bg-red-400'
-                        : latestEvent?.eventType === 'tool'
+                        : latestEvent.eventType === 'tool'
                           ? 'bg-amber-400'
-                          : latestEvent?.eventType === 'output'
+                          : latestEvent.eventType === 'output'
                             ? 'bg-sky-400'
                             : 'bg-emerald-400'
                     return (
@@ -769,11 +773,11 @@ export function RunConsole({
                   {eventsByAgent.map((lane) => {
                     const latestEvent = lane.events[lane.events.length - 1]
                     const laneDotClass =
-                      latestEvent?.eventType === 'error'
+                      latestEvent.eventType === 'error'
                         ? 'bg-red-400'
-                        : latestEvent?.eventType === 'tool'
+                        : latestEvent.eventType === 'tool'
                           ? 'bg-amber-400'
-                          : latestEvent?.eventType === 'output'
+                          : latestEvent.eventType === 'output'
                             ? 'bg-sky-400'
                             : 'bg-emerald-400'
                     return (
@@ -822,7 +826,7 @@ export function RunConsole({
                 }}
                 className="sticky bottom-2 mx-auto flex items-center gap-1 rounded-full border border-primary-700 bg-primary-900/90 px-3 py-1.5 text-[11px] font-medium text-primary-200 shadow-lg backdrop-blur transition-colors hover:bg-primary-800"
               >
-                ↓ Jump to latest
+                ↓ К последнему
               </button>
             )}
           </div>
@@ -831,7 +835,7 @@ export function RunConsole({
         {activeTab === 'timeline' ? (
           <div className="rounded-xl border border-primary-800/80 bg-primary-950/50 p-4 sm:p-5">
             {timelineBuckets.length === 0 ? (
-              <p className="text-sm text-primary-300">No timeline events yet</p>
+              <p className="text-sm text-primary-300">Событий хронологии пока нет</p>
             ) : (
               <ol className="space-y-4">
                 {timelineBuckets.map((bucket) => (
@@ -947,7 +951,7 @@ export function RunConsole({
         {activeTab === 'events' ? (
           <div className="min-h-[200px]">
             {!missionEvents || missionEvents.length === 0 ? (
-              <p className="text-sm text-primary-300">No mission events recorded for this run yet.</p>
+              <p className="text-sm text-primary-300">Для этого запуска события миссии пока не записаны.</p>
             ) : (
               <MissionEventLog
                 events={missionEvents}
@@ -977,16 +981,16 @@ export function RunConsole({
         {activeTab === 'report' ? (
           <div className="rounded-xl border border-primary-800/80 bg-primary-950/50 p-4 sm:p-5">
             {!report ? (
-              <p className="text-sm text-primary-300">Report will be generated when the mission completes</p>
+              <p className="text-sm text-primary-300">Отчёт будет создан после завершения миссии</p>
             ) : (
               <div className="space-y-4">
                 <section className="rounded-lg border border-primary-800/80 bg-primary-900/50 p-3">
-                  <h3 className="text-sm font-semibold text-primary-100">Summary</h3>
+                  <h3 className="text-sm font-semibold text-primary-100">Итог</h3>
                   <p className="mt-2 text-sm leading-relaxed text-primary-300">{report.summary}</p>
                 </section>
 
                 <section className="rounded-lg border border-primary-800/80 bg-primary-900/50 p-3">
-                  <h3 className="text-sm font-semibold text-primary-100">Key Findings</h3>
+                  <h3 className="text-sm font-semibold text-primary-100">Ключевые выводы</h3>
                   {report.keyFindings.length > 0 ? (
                     <ul className="mt-2 space-y-2">
                       {report.keyFindings.map((finding, index) => (
@@ -997,33 +1001,33 @@ export function RunConsole({
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-2 text-sm text-primary-400">No key findings available</p>
+                    <p className="mt-2 text-sm text-primary-400">Ключевых выводов пока нет</p>
                   )}
                 </section>
 
                 <section className="grid gap-2 rounded-lg border border-primary-800/80 bg-primary-900/50 p-3 text-xs sm:grid-cols-3">
                   <div className="rounded-md border border-primary-800 bg-primary-950/70 px-2 py-1.5">
-                    <p className="text-primary-400">Duration</p>
+                    <p className="text-primary-400">Длительность</p>
                     <p className="mt-0.5 text-sm font-semibold text-primary-100">{report.duration}</p>
                   </div>
                   <div className="rounded-md border border-primary-800 bg-primary-950/70 px-2 py-1.5">
-                    <p className="text-primary-400">Total Tokens</p>
+                    <p className="text-primary-400">Всего токенов</p>
                     <p className="mt-0.5 text-sm font-semibold text-primary-100">{report.totalTokens.toLocaleString()}</p>
                   </div>
                   <div className="rounded-md border border-primary-800 bg-primary-950/70 px-2 py-1.5">
-                    <p className="text-primary-400">Total Cost</p>
+                    <p className="text-primary-400">Общая стоимость</p>
                     <p className="mt-0.5 text-sm font-semibold text-primary-100">${report.totalCost.toFixed(2)}</p>
                   </div>
                 </section>
 
                 <section className="overflow-hidden rounded-lg border border-primary-800/80 bg-primary-900/50">
-                  <h3 className="border-b border-primary-800/80 px-3 py-2 text-sm font-semibold text-primary-100">Agent Breakdown</h3>
+                  <h3 className="border-b border-primary-800/80 px-3 py-2 text-sm font-semibold text-primary-100">Разбивка по агентам</h3>
                   <table className="w-full text-left text-xs">
                     <thead className="bg-primary-950/70 text-primary-300">
                       <tr>
-                        <th className="px-3 py-2 font-medium">Agent</th>
-                        <th className="px-3 py-2 font-medium">Tasks Completed</th>
-                        <th className="px-3 py-2 font-medium">Tokens Used</th>
+                        <th className="px-3 py-2 font-medium">Агент</th>
+                        <th className="px-3 py-2 font-medium">Задач выполнено</th>
+                        <th className="px-3 py-2 font-medium">Токенов использовано</th>
                       </tr>
                     </thead>
                     <tbody>
