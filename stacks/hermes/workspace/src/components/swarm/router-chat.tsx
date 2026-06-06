@@ -643,7 +643,7 @@ function ModeToggle({
           type="button"
           onClick={() => setMode(m)}
           className={cn(
-            'rounded-lg px-3 py-1 transition-colors',
+            'inline-flex h-8 items-center justify-center rounded-lg px-3 transition-colors',
             mode === m ? 'bg-[var(--theme-accent)] text-primary-950' : 'hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]',
           )}
         >
