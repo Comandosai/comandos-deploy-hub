@@ -295,10 +295,11 @@ export function TasksScreen() {
                 </div>
                 <button
                   onClick={() => { setCreateColumn(col); setShowCreate(true) }}
-                  className="rounded p-0.5 hover:bg-[var(--theme-hover)] transition-colors"
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg hover:bg-[var(--theme-hover)] transition-colors"
+                  aria-label={`Добавить в "${COLUMN_LABELS[col]}"`}
                   title={`Добавить в "${COLUMN_LABELS[col]}"`}
                 >
-                  <HugeiconsIcon icon={Add01Icon} size={14} className="text-[var(--theme-muted)]" />
+                  <HugeiconsIcon icon={Add01Icon} size={16} className="text-[var(--theme-muted)]" />
                 </button>
               </div>
 
