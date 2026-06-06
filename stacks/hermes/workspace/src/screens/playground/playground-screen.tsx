@@ -672,6 +672,7 @@ export function PlaygroundScreen() {
           adminMode={!publicPlaySurface && adminMode}
           accent={WORLD_META[world].accent}
           showAdmin={!publicPlaySurface}
+          sidePanelOpen={!focusMode && (!isNarrow || mobileMenuOpen)}
           onToggleFocus={() => setFocusMode((value) => !value)}
           onOpenInventory={rpg.openInventory}
           onOpenJournal={() => setJournalOpen(true)}
@@ -842,6 +843,7 @@ type PlaygroundRightRailProps = {
   onOpenMap: () => void
   onOpenSettings: () => void
   onToggleAdmin: () => void
+  sidePanelOpen: boolean
 }
 
 function PlaygroundRightRail({
@@ -849,6 +851,7 @@ function PlaygroundRightRail({
   adminMode,
   accent,
   showAdmin,
+  sidePanelOpen,
   onToggleFocus,
   onOpenInventory,
   onOpenJournal,
@@ -869,7 +872,7 @@ function PlaygroundRightRail({
   }
   return (
     <div
-      className="pointer-events-auto fixed right-[20px] top-[214px] z-[72] hidden flex-col items-center gap-2 rounded-[24px] border px-2 py-3 text-[#F4E9D3] shadow-2xl backdrop-blur-xl md:flex"
+      className={`pointer-events-auto fixed ${sidePanelOpen ? 'right-[308px]' : 'right-[20px]'} top-[214px] z-[72] hidden flex-col items-center gap-2 rounded-[24px] border px-2 py-3 text-[#F4E9D3] shadow-2xl backdrop-blur-xl transition-[right] duration-200 md:flex`}
       style={{
         borderColor: `${hudAccent}66`,
         background: 'linear-gradient(180deg, rgba(15,22,34,.9), rgba(10,13,18,.84)), radial-gradient(circle at 50% 0%, rgba(241,197,109,.2), transparent 62%)',
