@@ -1527,6 +1527,7 @@ function PlaygroundUtilityDock({
         onClick={captureScreenshot}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
         title="Сделать снимок мира (PNG)"
+        aria-label="Сделать снимок мира"
       >
         📸
       </button>
@@ -1534,6 +1535,7 @@ function PlaygroundUtilityDock({
         onClick={toggleFullscreen}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
         title={isFullscreen ? 'Выйти из полноэкранного режима' : 'Открыть полноэкранный режим'}
+        aria-label={isFullscreen ? 'Выйти из полноэкранного режима' : 'Открыть полноэкранный режим'}
       >
         {isFullscreen ? '⤢' : '⛶'}
       </button>
@@ -1541,6 +1543,7 @@ function PlaygroundUtilityDock({
         onClick={copyShareLink}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
         title="Копировать ссылку"
+        aria-label="Копировать ссылку"
       >
         🔗
       </button>
