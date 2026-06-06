@@ -189,7 +189,8 @@ function JobCard({
         <div className="flex shrink-0 items-center gap-1">
           <button
             onClick={() => onTrigger(job.id)}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+            aria-label="Запустить сейчас"
             title="Запустить сейчас"
           >
             <HugeiconsIcon
@@ -200,7 +201,8 @@ function JobCard({
           </button>
           <button
             onClick={() => (isPaused ? onResume(job.id) : onPause(job.id))}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+            aria-label={isPaused ? 'Возобновить' : 'Пауза'}
             title={isPaused ? 'Возобновить' : 'Пауза'}
           >
             <HugeiconsIcon
@@ -211,7 +213,8 @@ function JobCard({
           </button>
           <button
             onClick={() => onEdit(job)}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+            aria-label="Редактировать"
             title="Редактировать"
           >
             <HugeiconsIcon
@@ -222,7 +225,8 @@ function JobCard({
           </button>
           <button
             onClick={() => setExpanded((current) => !current)}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+            aria-label={expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'}
             title={expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'}
           >
             <HugeiconsIcon
@@ -233,7 +237,8 @@ function JobCard({
           </button>
           <button
             onClick={() => onDelete(job.id)}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+            aria-label="Удалить"
             title="Удалить"
           >
             <HugeiconsIcon
@@ -493,7 +498,8 @@ export function JobsScreen() {
                 onClick={() =>
                   void queryClient.invalidateQueries({ queryKey: QUERY_KEY })
                 }
-                className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+                aria-label="Обновить список"
                 title="Обновить список"
               >
                 <HugeiconsIcon

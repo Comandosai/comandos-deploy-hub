@@ -225,7 +225,7 @@ export function TasksScreen() {
           <button
             onClick={() => setShowDone(v => !v)}
             className={cn(
-              'text-xs px-2.5 py-1 rounded-lg border transition-colors',
+              'inline-flex min-h-8 items-center justify-center rounded-lg border px-3 text-xs transition-colors',
               showDone
                 ? 'border-[var(--theme-accent)] text-[var(--theme-accent)] bg-[var(--theme-hover)]'
                 : 'border-[var(--theme-border)] text-[var(--theme-muted)] hover:text-[var(--theme-text)] hover:border-[var(--theme-accent)]',
@@ -235,14 +235,15 @@ export function TasksScreen() {
           </button>
           <button
             onClick={invalidate}
-            className="rounded-lg p-1.5 transition-colors hover:bg-[var(--theme-hover)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
+            aria-label="Обновить"
             title="Обновить"
           >
             <HugeiconsIcon icon={RefreshIcon} size={16} className="text-[var(--theme-muted)]" />
           </button>
           <button
             onClick={() => { setCreateColumn('backlog'); setShowCreate(true) }}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
+            className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
             style={{ background: 'var(--theme-accent)' }}
           >
             <HugeiconsIcon icon={Add01Icon} size={14} />
