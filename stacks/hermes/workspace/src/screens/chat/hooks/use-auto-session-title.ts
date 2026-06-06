@@ -14,8 +14,10 @@ const MAX_TITLE_LENGTH = 50
 const GENERIC_TITLE_PATTERNS = [
   /^a new session/i,
   /^new session/i,
+  /^новая сессия/i,
   /^untitled/i,
   /^session \d/i,
+  /^сессия [0-9a-f]{4,}/i,
   /^conversation$/i,
   /^chat$/i,
   /^[0-9a-f]{6,}/i,
@@ -24,7 +26,8 @@ const GENERIC_TITLE_PATTERNS = [
 
 function isGenericTitle(title: string): boolean {
   const trimmed = title.trim()
-  if (!trimmed || trimmed === 'New Session') return true
+  if (!trimmed || trimmed === 'New Session' || trimmed === 'Новая сессия')
+    return true
   return GENERIC_TITLE_PATTERNS.some((pattern) => pattern.test(trimmed))
 }
 
@@ -178,7 +181,7 @@ export function useAutoSessionTitle({
     onError: (error, payload) => {
       updateSessionTitleState(payload.friendlyId, {
         status: 'error',
-        error: error instanceof Error ? error.message : String(error ?? ''),
+        error: error.message,
       })
     },
   })

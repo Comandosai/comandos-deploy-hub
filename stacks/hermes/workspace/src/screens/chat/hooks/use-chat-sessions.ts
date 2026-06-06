@@ -42,7 +42,7 @@ function buildSyntheticActiveSession(
   if (!activeFriendlyId || activeFriendlyId === 'new') return null
 
   const derivedTitle =
-    stored?.title ?? (activeFriendlyId === 'main' ? 'Hermes' : 'New Session')
+    stored?.title ?? (activeFriendlyId === 'main' ? 'Hermes' : 'Новая сессия')
 
   return {
     key: forcedSessionKey || activeFriendlyId,
@@ -123,9 +123,9 @@ export function useChatSessions({
       if (activeSession.label) return activeSession.label
       if (activeSession.title) return activeSession.title
       if (activeSession.derivedTitle) return activeSession.derivedTitle
-      if (activeSession.titleStatus === 'generating') return 'Naming…'
-      if (activeSession.titleStatus === 'error') return 'New Session'
-      return 'New Session'
+      if (activeSession.titleStatus === 'generating') return 'Называю…'
+      if (activeSession.titleStatus === 'error') return 'Новая сессия'
+      return 'Новая сессия'
     }
     return activeFriendlyId === 'main' ? 'Hermes' : activeFriendlyId
   }, [activeFriendlyId, activeSession])

@@ -86,9 +86,9 @@ function getSessionDisplayTitle(
   const title = normalizeTitleValue(session.title)
   if (title) return title
 
-  if (isGenerating) return 'Naming…'
+  if (isGenerating) return 'Называю…'
   const shortId = getSessionShortId(session)
-  return shortId ? `Session ${shortId}` : 'Session'
+  return shortId ? `Сессия ${shortId}` : 'Сессия'
 }
 
 function getFriendlyIdLabel(friendlyId: string): string {
@@ -117,7 +117,7 @@ function SessionItemComponent({
 
   const subtitle = useMemo(() => {
     if (isError) {
-      return session.titleError || 'Could not generate a title'
+      return session.titleError || 'Не удалось назвать сессию'
     }
     const parts: Array<string> = []
     const formatted = formatSessionTimestamp(updatedAt)

@@ -1409,7 +1409,7 @@ function ChatComposerComponent({
 
             if (file.size > MAX_ATTACHMENT_FILE_SIZE) {
               toast(
-                `“${file.name || 'file'}” is ${formatFileSize(file.size)}. Max upload input size is ${formatFileSize(MAX_ATTACHMENT_FILE_SIZE)}.`,
+                `Файл “${file.name || 'без имени'}” весит ${formatFileSize(file.size)}. Максимальный размер вложения: ${formatFileSize(MAX_ATTACHMENT_FILE_SIZE)}.`,
                 { type: 'warning' },
               )
               return null
@@ -1452,7 +1452,7 @@ function ChatComposerComponent({
             const transportBytes = estimateDataUrlBytes(dataUrl)
             if (transportBytes > MAX_TRANSPORT_IMAGE_SIZE) {
               toast(
-                `Image compressed to ${(transportBytes / (1024 * 1024)).toFixed(2)}mb — still over the 1mb limit. Try a smaller screenshot.`,
+                `Изображение сжато до ${(transportBytes / (1024 * 1024)).toFixed(2)} МБ, но всё ещё больше лимита 1 МБ. Прикрепите меньший скриншот.`,
                 { type: 'warning' },
               )
               return null
@@ -1491,8 +1491,8 @@ function ChatComposerComponent({
       if (skippedCount > 0) {
         toast(
           skippedCount === 1
-            ? '1 file could not be attached.'
-            : `${skippedCount} files could not be attached.`,
+            ? '1 файл не удалось прикрепить.'
+            : `${skippedCount} файлов не удалось прикрепить.`,
           { type: 'warning' },
         )
       }
@@ -1760,12 +1760,12 @@ function ChatComposerComponent({
               previewUrl: '',
             },
           ])
-          appendTextToDraft(`🎤 Voice note (${secs}s)`, '\n')
+          appendTextToDraft(`🎤 Голосовое сообщение (${secs} с)`, '\n')
           if (useRemoteStt) {
             void transcribeVoiceBlob(blob)
               .then((text) => {
                 if (text.trim()) {
-                  appendTextToDraft(`Transcript: ${text.trim()}`, '\n')
+                  appendTextToDraft(`Расшифровка: ${text.trim()}`, '\n')
                 }
               })
               .catch((error) => {
@@ -2118,7 +2118,7 @@ function ChatComposerComponent({
 
         {isDraggingOver ? (
           <div className="pointer-events-none absolute inset-1 z-20 flex items-center justify-center rounded-[18px] border-2 border-dashed border-primary-400 bg-primary-50/90 text-sm font-medium text-primary-700">
-            Drop files to attach
+            Перетащите файлы сюда
           </div>
         ) : null}
 
@@ -2363,7 +2363,7 @@ function ChatComposerComponent({
                             />
                           </span>
                           <span className="text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                            Attach File
+                            Добавить файл
                           </span>
                         </button>
 
@@ -2409,7 +2409,7 @@ function ChatComposerComponent({
                               />
                             </span>
                             <span className="text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                              Clear Draft
+                              Очистить черновик
                             </span>
                           </button>
                         ) : null}
@@ -2558,7 +2558,7 @@ function ChatComposerComponent({
                                   </span>
                                   {entry.isLocal && (
                                     <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
-                                      local
+                                      локальная
                                     </span>
                                   )}
                                   {isActive && (
@@ -2578,8 +2578,8 @@ function ChatComposerComponent({
                                   }`}
                                   aria-label={
                                     isPinned(entry.id)
-                                      ? `Unpin ${entry.name}`
-                                      : `Pin ${entry.name}`
+                                      ? `Открепить ${entry.name}`
+                                      : `Закрепить ${entry.name}`
                                   }
                                 >
                                   <svg
