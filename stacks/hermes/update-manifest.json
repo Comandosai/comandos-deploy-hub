@@ -3,7 +3,7 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.74",
+    "version": "2.3.0-comandos.75",
     "ref": "main",
     "notes": [
       "Закрытые боковые панели больше не оставляют скрытые кнопки в дереве доступности и не раскладывают невидимые controls поверх рабочей области.",

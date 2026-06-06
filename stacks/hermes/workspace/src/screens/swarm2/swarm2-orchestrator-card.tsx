@@ -349,7 +349,6 @@ export function Swarm2OrchestratorCard({
                 <OfficeView
                   agentRows={officeAgents}
                   missionRunning={activeAgents.some((agent) => agent.state === 'working' || agent.state === 'reviewing')}
-                  onViewOutput={() => undefined}
                   containerHeight={360}
                   hideHeader
                 />

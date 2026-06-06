@@ -1850,7 +1850,6 @@ export function Conductor() {
                 missionRunning={homeOfficeRows.some(
                   (a) => a.status === 'active',
                 )}
-                onViewOutput={() => {}}
                 processType="parallel"
                 companyName=""
                 containerHeight={520}
@@ -3156,7 +3155,6 @@ export function Conductor() {
             <OfficeView
               agentRows={officeAgentRows}
               missionRunning
-              onViewOutput={() => {}}
               processType="parallel"
               companyName="Офис оркестратора"
               containerHeight={360}
