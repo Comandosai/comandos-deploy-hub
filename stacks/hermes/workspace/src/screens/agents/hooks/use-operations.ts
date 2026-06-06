@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { CronJob } from '@/components/cron-manager/cron-types'
+import type { GatewaySession } from '@/lib/gateway-api'
 import { toast } from '@/components/ui/toast'
 import { fetchCronJobs } from '@/lib/cron-api'
-import { fetchSessions, type GatewaySession } from '@/lib/gateway-api'
-import { formatModelName, formatRelativeTime } from '@/screens/dashboard/lib/formatters'
+import { fetchSessions } from '@/lib/gateway-api'
+import { formatModelName } from '@/screens/dashboard/lib/formatters'
 
 // Claude-Workspace adapter: Operations is backed by Hermes profiles
 // (each profile = one persistent agent). Profiles live at ~/.hermes/profiles/<name>/
@@ -59,15 +60,15 @@ export type OperationsAgent = GatewayConfigAgent & {
   shortModel: string
   status: OperationsAgentStatus
   sessionKey: string
-  sessions: GatewaySession[]
+  sessions: Array<GatewaySession>
   latestSession: GatewaySession | null
-  jobs: CronJob[]
+  jobs: Array<CronJob>
   nextRunAt: number | null
   lastActivityAt: number | null
   activityLabel: string
   progressValue: number
   progressStatus: 'running' | 'queued' | 'failed' | 'complete' | 'thinking'
-  recentOutputs: OperationsOutputItem[]
+  recentOutputs: Array<OperationsOutputItem>
   /**
    * True when the agent's profile has no model configured (blank model in
    * config.yaml). Dispatching into an unconfigured agent hangs because
@@ -83,7 +84,7 @@ type ConfigPayload = {
   payload?: {
     parsed?: {
       agents?: {
-        list?: unknown[]
+        list?: Array<unknown>
       }
       defaultModel?: string
       [key: string]: unknown
@@ -93,7 +94,7 @@ type ConfigPayload = {
   }
   parsed?: {
     agents?: {
-      list?: unknown[]
+      list?: Array<unknown>
     }
     defaultModel?: string
     [key: string]: unknown
@@ -186,10 +187,10 @@ function truncate(text: string, maxLength = 120): string {
   return `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`
 }
 
-function normalizeAgentList(input: unknown): GatewayConfigAgent[] {
+function normalizeAgentList(input: unknown): Array<GatewayConfigAgent> {
   if (!Array.isArray(input)) return []
 
-  const agents: GatewayConfigAgent[] = []
+  const agents: Array<GatewayConfigAgent> = []
 
   for (const entry of input) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
@@ -219,18 +220,18 @@ function parseConfigPayload(payload: ConfigPayload): ConfigPayload {
   return payload
 }
 
-async function fetchClaudeProfiles(): Promise<ClaudeProfileSummary[]> {
+async function fetchClaudeProfiles(): Promise<Array<ClaudeProfileSummary>> {
   const response = await fetch('/api/profiles/list')
   const contentType = response.headers.get('content-type') || ''
   if (!contentType.includes('json')) {
-    throw new Error('/api/profiles/list returned non-JSON')
+    throw new Error('Список профилей вернул не JSON')
   }
   const payload = (await response.json().catch(() => ({}))) as {
-    profiles?: ClaudeProfileSummary[]
+    profiles?: Array<ClaudeProfileSummary>
     error?: string
   }
   if (!response.ok || payload.error) {
-    throw new Error(payload.error || `HTTP ${response.status}`)
+    throw new Error(payload.error || `Не удалось загрузить профили (${response.status})`)
   }
   return Array.isArray(payload.profiles) ? payload.profiles : []
 }
@@ -273,7 +274,7 @@ async function createClaudeProfile(input: {
     error?: string
   }
   if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || `Failed to create profile (${response.status})`)
+    throw new Error(payload.error || `Не удалось создать профиль (${response.status})`)
   }
 }
 
@@ -288,7 +289,7 @@ async function updateClaudeProfile(name: string, patch: Record<string, unknown>)
     error?: string
   }
   if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || `Failed to update profile (${response.status})`)
+    throw new Error(payload.error || `Не удалось обновить профиль (${response.status})`)
   }
 }
 
@@ -303,7 +304,7 @@ async function deleteClaudeProfile(name: string) {
     error?: string
   }
   if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || `Failed to delete profile (${response.status})`)
+    throw new Error(payload.error || `Не удалось удалить профиль (${response.status})`)
   }
 }
 
@@ -394,13 +395,11 @@ function persistSettings(settings: OperationsSettings) {
   window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
 }
 
-
-
-function getAgentJobs(agentId: string, jobs: CronJob[]): CronJob[] {
-  return jobs.filter((job) => job.name?.startsWith(`ops:${agentId}:`))
+function getAgentJobs(agentId: string, jobs: Array<CronJob>): Array<CronJob> {
+  return jobs.filter((job) => job.name.startsWith(`ops:${agentId}:`))
 }
 
-function getAgentSessions(agentId: string, sessions: GatewaySession[]): GatewaySession[] {
+function getAgentSessions(agentId: string, sessions: Array<GatewaySession>): Array<GatewaySession> {
   return [...sessions]
     .filter((session) => {
       const label = readString(session.label)
@@ -456,16 +455,28 @@ function getProgressValue(
 
 function formatUpcomingTime(timestamp: number): string {
   const diff = timestamp - Date.now()
-  if (diff <= 0) return 'soon'
+  if (diff <= 0) return 'скоро'
   const minutes = Math.round(diff / 60_000)
-  if (minutes < 60) return `in ${minutes}m`
+  if (minutes < 60) return `через ${minutes} мин`
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `in ${hours}h`
-  return new Date(timestamp).toLocaleDateString(undefined, {
+  if (hours < 24) return `через ${hours} ч`
+  return new Date(timestamp).toLocaleDateString('ru-RU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   })
+}
+
+function formatOperationRelativeTime(timestampMs: number): string {
+  if (!timestampMs || timestampMs <= 0) return 'только что'
+  const diffMs = Math.max(0, Date.now() - timestampMs)
+  const seconds = Math.floor(diffMs / 1000)
+  if (seconds < 60) return 'только что'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} мин назад`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} ч назад`
+  return `${Math.floor(hours / 24)} д назад`
 }
 
 function slugifyJobLabel(value: string): string {
@@ -551,19 +562,21 @@ export function useOperations() {
     return configAgents.map((agent) => {
       const meta = loadAgentMeta(agent.id)
       const agentSessions = getAgentSessions(agent.id, sessions)
-      const latestSession = agentSessions[0] ?? null
+      const latestSession = agentSessions.at(0) ?? null
       const jobs = getAgentJobs(agent.id, cronJobs)
       const nextRunAt = jobs
         .filter((job) => job.enabled)
         .map((job) => readTimestamp(job.nextRunAt))
         .filter((value): value is number => value !== null)
-        .sort((left, right) => left - right)[0] ?? null
+        .sort((left, right) => left - right)
+        .at(0) ?? null
       const lastActivityAt =
         readTimestamp(latestSession?.updatedAt) ??
         jobs
           .map((job) => readTimestamp(job.lastRun?.startedAt))
           .filter((value): value is number => value !== null)
-          .sort((left, right) => right - left)[0] ??
+          .sort((left, right) => right - left)
+          .at(0) ??
         null
       const status = getAgentStatus(latestSession)
       const recentOutputs = [
@@ -579,7 +592,7 @@ export function useOperations() {
       return {
         ...agent,
         meta,
-        shortModel: formatModelName(agent.model || 'Custom'),
+        shortModel: formatModelName(agent.model || 'Без модели'),
         status,
         sessionKey: getOperationsSessionKey(agent.id),
         sessions: agentSessions,
@@ -588,10 +601,10 @@ export function useOperations() {
         nextRunAt,
         lastActivityAt,
         activityLabel: nextRunAt
-          ? `Next ${formatUpcomingTime(nextRunAt)}`
+          ? `Следующий запуск ${formatUpcomingTime(nextRunAt)}`
           : lastActivityAt
-            ? `Last ${formatRelativeTime(lastActivityAt)}`
-            : 'No activity yet',
+            ? `Последняя активность ${formatOperationRelativeTime(lastActivityAt)}`
+            : 'Активности пока нет',
         progressValue: getProgressValue(status, latestSession),
         progressStatus: getProgressStatus(status, latestSession),
         recentOutputs,
@@ -623,13 +636,13 @@ export function useOperations() {
       description?: string
     }) => {
       const id = normalizeAgentId(input.name)
-      if (!id) throw new Error('Agent name is required')
+      if (!id) throw new Error('Введите название агента')
       if (id === 'default') {
-        throw new Error('"default" is reserved — pick another name')
+        throw new Error('Имя "default" зарезервировано. Выберите другое.')
       }
       const currentAgents = normalizeAgentList(configQuery.data?.parsed?.agents?.list)
       if (currentAgents.some((agent) => agent.id === id)) {
-        throw new Error('A profile with this name already exists')
+        throw new Error('Профиль с таким именем уже существует')
       }
 
       await createClaudeProfile({
@@ -656,10 +669,10 @@ export function useOperations() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['operations', 'config'] })
-      toast('Agent created', { type: 'success' })
+      toast('Агент создан', { type: 'success' })
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to create agent', {
+      toast(error instanceof Error ? error.message : 'Не удалось создать агента', {
         type: 'error',
       })
     },
@@ -691,10 +704,10 @@ export function useOperations() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['operations', 'config'] })
-      toast('Agent settings saved', { type: 'success' })
+      toast('Настройки агента сохранены', { type: 'success' })
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to save agent', {
+      toast(error instanceof Error ? error.message : 'Не удалось сохранить агента', {
         type: 'error',
       })
     },
@@ -703,7 +716,7 @@ export function useOperations() {
   const deleteAgentMutation = useMutation({
     mutationFn: async (agentId: string) => {
       if (agentId === 'default') {
-        throw new Error('Cannot delete the default profile')
+        throw new Error('Нельзя удалить профиль по умолчанию')
       }
       await deleteClaudeProfile(agentId)
       removeAgentMeta(agentId)
@@ -713,10 +726,10 @@ export function useOperations() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['operations', 'config'] })
       await queryClient.invalidateQueries({ queryKey: ['operations', 'sessions'] })
-      toast('Agent deleted', { type: 'success' })
+      toast('Агент удалён', { type: 'success' })
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Failed to delete agent', {
+      toast(error instanceof Error ? error.message : 'Не удалось удалить агента', {
         type: 'error',
       })
     },
