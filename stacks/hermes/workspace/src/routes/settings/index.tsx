@@ -1693,6 +1693,7 @@ function ClaudeConfigSection({
         >
           <Switch
             checked={memoryConfig.memory_enabled !== false}
+            aria-label="Память включена"
             onCheckedChange={(checked: boolean) =>
               void saveConfig({
                 config: { memory: { memory_enabled: checked } },
@@ -1706,6 +1707,7 @@ function ClaudeConfigSection({
         >
           <Switch
             checked={memoryConfig.user_profile_enabled !== false}
+            aria-label="Профиль пользователя"
             onCheckedChange={(checked: boolean) =>
               void saveConfig({
                 config: { memory: { user_profile_enabled: checked } },
@@ -2313,6 +2315,7 @@ function ClaudeConfigSection({
       >
         <Switch
           checked={readBoolean(smartRouting.enabled, false)}
+          aria-label="Включить умный выбор"
           onCheckedChange={(checked) =>
             void saveConfig({
               config: { smart_model_routing: { enabled: checked } },
@@ -2499,6 +2502,7 @@ function ClaudeConfigSection({
         <SettingsRow label="Включить STT" description="Включить голосовой ввод.">
           <Switch
             checked={readBoolean(sttConfig.enabled, false)}
+            aria-label="Включить STT"
             onCheckedChange={(checked) =>
               void saveConfig({ config: { stt: { enabled: checked } } })
             }
@@ -2615,6 +2619,7 @@ function ClaudeConfigSection({
       >
         <Switch
           checked={readBoolean(displayConfig.streaming, true)}
+          aria-label="Потоковый вывод"
           onCheckedChange={(checked) =>
             void saveConfig({ config: { display: { streaming: checked } } })
           }
@@ -2626,6 +2631,7 @@ function ClaudeConfigSection({
       >
         <Switch
           checked={readBoolean(displayConfig.show_reasoning, false)}
+          aria-label="Показывать рассуждения"
           onCheckedChange={(checked) =>
             void saveConfig({
               config: { display: { show_reasoning: checked } },
@@ -2636,6 +2642,7 @@ function ClaudeConfigSection({
       <SettingsRow label="Показывать стоимость" description="Показывать данные о стоимости и расходе.">
         <Switch
           checked={readBoolean(displayConfig.show_cost, false)}
+          aria-label="Показывать стоимость"
           onCheckedChange={(checked) =>
             void saveConfig({ config: { display: { show_cost: checked } } })
           }
@@ -2644,6 +2651,7 @@ function ClaudeConfigSection({
       <SettingsRow label="Компактный вид" description="Использовать более плотную раскладку.">
         <Switch
           checked={readBoolean(displayConfig.compact, false)}
+          aria-label="Компактный вид"
           onCheckedChange={(checked) =>
             void saveConfig({ config: { display: { compact: checked } } })
           }
