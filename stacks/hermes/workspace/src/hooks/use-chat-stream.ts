@@ -1,6 +1,8 @@
 // Stub — Hermes Workspace uses claude-api.ts for chat streaming, not legacy SSE.
 // This hook is kept as a no-op to satisfy use-realtime-chat-history imports.
 
+import type { ConnectionState } from '../stores/chat-store'
+
 export function useChatStream(_opts: {
   sessionKey?: string
   enabled?: boolean
@@ -14,7 +16,7 @@ export function useChatStream(_opts: {
   onDone?: (...args: Array<any>) => void
 }) {
   return {
-    connectionState: 'connected' as const,
+    connectionState: 'connected' as ConnectionState,
     lastError: null as string | null,
     reconnect: () => {},
   }

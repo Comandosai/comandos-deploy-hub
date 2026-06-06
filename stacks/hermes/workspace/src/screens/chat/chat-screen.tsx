@@ -1,8 +1,5 @@
 // Module-level local model override — set by composer when user picks a local model
 // Avoids prop threading. Reset when switching back to cloud models.
-export let _localModelOverride = ''
-export function setLocalModelOverride(model: string) { _localModelOverride = model }
-
 import {
   useCallback,
   useEffect,
@@ -22,11 +19,10 @@ import {
 } from './utils'
 import {
   advanceStickyStreamingText,
-  createResponseWaitSnapshot,
   createOptimisticMessage,
+  createResponseWaitSnapshot,
   isTerminalActiveRunStatus,
   shouldClearWaitingForAssistantMessage,
-  type ResponseWaitSnapshot,
 } from './chat-screen-utils'
 import {
   appendHistoryMessage,
@@ -56,8 +52,6 @@ import { useChatHistory } from './hooks/use-chat-history'
 import { useRealtimeChatHistory } from './hooks/use-realtime-chat-history'
 import { useSmoothStreamingText } from './hooks/use-smooth-streaming-text'
 import { useStreamingMessage } from './hooks/use-streaming-message'
-import { playChatComplete } from '@/lib/sounds'
-import { useChatSettingsStore } from '@/hooks/use-chat-settings'
 import { useActiveRunCheck } from './hooks/use-active-run-check'
 import { useChatMobile } from './hooks/use-chat-mobile'
 import { useChatSessions } from './hooks/use-chat-sessions'
@@ -70,6 +64,7 @@ import {
   CHAT_PENDING_COMMAND_STORAGE_KEY,
   CHAT_RUN_COMMAND_EVENT,
 } from './chat-events'
+import type { ResponseWaitSnapshot } from './chat-screen-utils'
 import type {
   ChatComposerAttachment,
   ChatComposerHandle,
@@ -79,6 +74,9 @@ import type {
 import type { ApprovalRequest } from '@/screens/gateway/lib/approvals-store'
 import type { ChatAttachment, ChatMessage, SessionMeta } from './types'
 import type { ChatRunCommandDetail } from './chat-events'
+import type { AgentActivity } from '@/stores/chat-activity-store'
+import { useChatSettingsStore } from '@/hooks/use-chat-settings'
+import { playChatComplete } from '@/lib/sounds'
 import {
   addApproval,
   loadApprovals,
@@ -106,7 +104,12 @@ import { useResearchCard } from '@/hooks/use-research-card'
 // MOBILE_TAB_BAR_OFFSET removed — tab bar always hidden in chat
 import { useTapDebug } from '@/hooks/use-tap-debug'
 import { useChatMode } from '@/hooks/use-chat-mode'
-import { useChatActivityStore, type AgentActivity } from '@/stores/chat-activity-store'
+import { useChatActivityStore } from '@/stores/chat-activity-store'
+
+export let _localModelOverride = ''
+export function setLocalModelOverride(model: string) {
+  _localModelOverride = model
+}
 
 type ChatScreenProps = {
   activeFriendlyId: string
@@ -227,7 +230,7 @@ function exportConversationTranscript(payload: {
       const text = textFromMessage(message).trim()
       const attachments = Array.isArray(message.attachments)
         ? message.attachments
-            .map((attachment) => attachment?.name?.trim())
+            .map((attachment) => attachment.name?.trim())
             .filter((value): value is string => Boolean(value))
         : []
 
@@ -285,11 +288,11 @@ function messageFallbackSignature(message: ChatMessage): string {
     ? message.attachments
         .map((attachment) => {
           const name =
-            typeof attachment?.name === 'string' ? attachment.name : ''
+            typeof attachment.name === 'string' ? attachment.name : ''
           const size =
-            typeof attachment?.size === 'number' ? String(attachment.size) : ''
+            typeof attachment.size === 'number' ? String(attachment.size) : ''
           const type =
-            typeof attachment?.contentType === 'string'
+            typeof attachment.contentType === 'string'
               ? attachment.contentType
               : ''
           return `${name}:${size}:${type}`
@@ -388,11 +391,11 @@ function getMessageAttachmentSignature(message: ChatMessage): string {
 
   return message.attachments
     .map((attachment) => {
-      const name = typeof attachment?.name === 'string' ? attachment.name : ''
+      const name = typeof attachment.name === 'string' ? attachment.name : ''
       const size =
-        typeof attachment?.size === 'number' ? String(attachment.size) : ''
+        typeof attachment.size === 'number' ? String(attachment.size) : ''
       const type =
-        typeof attachment?.contentType === 'string'
+        typeof attachment.contentType === 'string'
           ? attachment.contentType
           : ''
       return `${name}:${size}:${type}`
@@ -607,7 +610,7 @@ export function ChatScreen({
   // On remount, check if the server still has an active run for this session.
   // If so, re-set waitingForResponse in the store so the UI shows the spinner.
   useActiveRunCheck({
-    sessionKey: resolvedSessionKey ?? '',
+    sessionKey: resolvedSessionKey,
     enabled: !isNewChat && Boolean(resolvedSessionKey) && historyQuery.isSuccess,
   })
 
@@ -1056,7 +1059,7 @@ export function ChatScreen({
   } = useStreamingMessage({
     pinMainSession:
       activeFriendlyId === 'main' &&
-      (resolvedSessionKey || activeFriendlyId || 'main') === 'main',
+      (resolvedSessionKey || activeFriendlyId) === 'main',
     onSessionResolved: useCallback(
       ({
         sessionKey,
@@ -1205,7 +1208,7 @@ export function ChatScreen({
   // wanted in either session).
   const navCancelKeyRef = useRef<string | null>(null)
   useEffect(() => {
-    const navKey = `${activeCanonicalKey ?? ''}::${isNewChat ? 'new' : activeFriendlyId}`
+    const navKey = `${activeCanonicalKey}::${isNewChat ? 'new' : activeFriendlyId}`
     if (navCancelKeyRef.current === null) {
       navCancelKeyRef.current = navKey
       return
@@ -1400,14 +1403,14 @@ export function ChatScreen({
       const last = finalDisplayMessages[finalDisplayMessages.length - 1]
       const id = isPortableMode
         ? localStreamingMessageId
-        : last?.role === 'assistant'
+        : last.role === 'assistant'
           ? (last as any).__optimisticId || (last as any).id || null
           : null
       return { isStreaming: true, streamingMessageId: id }
     }
     if (waitingForResponse && finalDisplayMessages.length > 0) {
       const last = finalDisplayMessages[finalDisplayMessages.length - 1]
-      if (last && last.role === 'assistant') {
+      if (last.role === 'assistant') {
         const isStreamingPlaceholder =
           (last as any).__streamingStatus === 'streaming'
         if (!isStreamingPlaceholder) {
@@ -1593,7 +1596,7 @@ export function ChatScreen({
       void historyQuery.refetch()
     }, 2000)
     return () => window.clearTimeout(timer)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- mount-only
+  }, [])
 
   useEffect(() => {
     function handleSSEDrop() {
@@ -1793,7 +1796,7 @@ export function ChatScreen({
    * Response arrives via SSE stream, not via this function.
    */
   const sendMessage = useCallback(
-    function sendMessage(
+    (
       sessionKey: string,
       friendlyId: string,
       body: string,
@@ -1801,7 +1804,7 @@ export function ChatScreen({
       fastMode = false,
       skipOptimistic = false,
       existingClientId = '',
-    ) {
+    ) => {
       // Read from ref so we always get the latest value without capturing it in deps
       const currentThinkingLevel = thinkingLevelRef.current
       setLocalActivity('reading')
@@ -2010,7 +2013,7 @@ export function ChatScreen({
   ])
 
   const retryQueuedMessage = useCallback(
-    function retryQueuedMessage(message: ChatMessage, mode: 'manual' | 'auto') {
+    (message: ChatMessage, mode: 'manual' | 'auto') => {
       if (!isRetryableQueuedMessage(message)) return false
 
       const body = textFromMessage(message).trim()
@@ -2078,7 +2081,7 @@ export function ChatScreen({
   )
 
   const flushRetryableMessages = useCallback(
-    function flushRetryableMessages() {
+    () => {
       for (const message of finalDisplayMessages) {
         retryQueuedMessage(message, 'auto')
       }
@@ -2087,7 +2090,7 @@ export function ChatScreen({
   )
 
   const handleRetryMessage = useCallback(
-    function handleRetryMessage(message: ChatMessage) {
+    (message: ChatMessage) => {
       const retryKey = getRetryMessageKey(message)
       retriedQueuedMessageKeysRef.current.delete(retryKey)
       retryQueuedMessage(message, 'manual')
@@ -2096,13 +2099,6 @@ export function ChatScreen({
   )
 
   useEffect(() => {
-    if (false) {
-      // Server connection checks removed — Hermes Agent uses direct API
-      hasSeenDisconnectRef.current = true
-      retriedQueuedMessageKeysRef.current.clear()
-      return
-    }
-
     if (connectionState === 'connected' && hasSeenDisconnectRef.current) {
       hasSeenDisconnectRef.current = false
       flushRetryableMessages()
@@ -2185,11 +2181,11 @@ export function ChatScreen({
       queryClient.setQueryData(
         chatQueryKeys.sessions,
         function upsert(existing: unknown) {
-          const sessions = Array.isArray(existing)
+          const cachedSessions = Array.isArray(existing)
             ? (existing as Array<SessionMeta>)
             : []
           const now = Date.now()
-          const existingIndex = sessions.findIndex((session) => {
+          const existingIndex = cachedSessions.findIndex((session) => {
             return (
               session.friendlyId === friendlyId || session.key === friendlyId
             )
@@ -2204,11 +2200,11 @@ export function ChatScreen({
                 lastMessage,
                 titleStatus: 'idle',
               },
-              ...sessions,
+              ...cachedSessions,
             ]
           }
 
-          return sessions.map((session, index) => {
+          return cachedSessions.map((session, index) => {
             if (index !== existingIndex) return session
             return {
               ...session,
@@ -2455,7 +2451,7 @@ export function ChatScreen({
   useEffect(() => {
     function handleRunCommand(event: Event) {
       const detail = (event as CustomEvent<ChatRunCommandDetail>).detail
-      if (!detail?.command) return
+      if (!detail.command) return
       runPaletteSlashCommand(detail.command)
     }
 
@@ -2637,7 +2633,7 @@ export function ChatScreen({
               renamingTitle={renamingSessionTitle}
               wrapperRef={headerRef}
               onOpenSessions={() => setSessionsOpen(true)}
-              sessions={sessions ?? []}
+              sessions={sessions}
               activeFriendlyId={activeFriendlyId}
               onSelectSession={(key) =>
                 void navigate({
