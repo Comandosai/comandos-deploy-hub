@@ -696,6 +696,14 @@ function getDirectorySuggestions() {
   return ['~/conductor-projects', '~/Projects', '/tmp', '~/Desktop']
 }
 
+function canBrowseDirectoryPath(pathValue: string) {
+  const normalized = pathValue.trim()
+  if (!normalized || normalized === '.') return true
+  if (normalized === '~' || normalized.startsWith('~/')) return false
+  if (normalized.startsWith('/')) return false
+  return true
+}
+
 function ModelSelectorDropdown({
   label,
   value,
@@ -990,6 +998,13 @@ export function Conductor() {
       setDirectoryBrowserError(null)
 
       try {
+        if (!canBrowseDirectoryPath(directoryBrowserPath)) {
+          if (!cancelled) {
+            setDirectoryBrowserEntries([])
+          }
+          return
+        }
+
         const res = await fetch(
           `/api/files?path=${encodeURIComponent(directoryBrowserPath)}`,
         )
@@ -2110,6 +2125,7 @@ export function Conductor() {
                   </div>
 
                   <textarea
+                    aria-label="Описание миссии"
                     value={goalDraft}
                     onChange={(event) => setGoalDraft(event.target.value)}
                     placeholder={`${QUICK_ACTIONS.find((action) => action.id === selectedAction)?.label ?? 'Сборка'}: опишите задачу, ограничения и желаемый результат.`}
@@ -2195,6 +2211,7 @@ export function Conductor() {
                     <div className="flex gap-2">
                       <input
                         type="text"
+                        aria-label="Папка проектов"
                         value={conductor.conductorSettings.projectsDir}
                         onChange={(event) =>
                           updateSettings({ projectsDir: event.target.value })
@@ -2221,6 +2238,7 @@ export function Conductor() {
                     </span>
                     <input
                       type="number"
+                      aria-label="Максимум агентов одновременно"
                       min={1}
                       max={5}
                       value={conductor.conductorSettings.maxParallel}
@@ -2239,6 +2257,7 @@ export function Conductor() {
                   <label className="flex items-start gap-3 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-4">
                     <input
                       type="checkbox"
+                      aria-label="Режим с подтверждением"
                       checked={conductor.conductorSettings.supervised}
                       onChange={(event) =>
                         updateSettings({ supervised: event.target.checked })
@@ -2389,6 +2408,13 @@ export function Conductor() {
                   {directoryBrowserError ? (
                     <div className="rounded-2xl border border-[var(--theme-warning-border)] bg-[var(--theme-warning-soft)] px-4 py-3 text-sm text-[var(--theme-warning)]">
                       {directoryBrowserError}
+                    </div>
+                  ) : null}
+
+                  {!canBrowseDirectoryPath(directoryBrowserPath) ? (
+                    <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-card2)] px-4 py-3 text-sm text-[var(--theme-muted)]">
+                      Этот путь можно выбрать вручную. Просмотр вложенных папок
+                      доступен только внутри рабочей папки.
                     </div>
                   ) : null}
 
