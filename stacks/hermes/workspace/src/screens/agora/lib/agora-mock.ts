@@ -5,52 +5,52 @@
  */
 import type { AgoraProfile, AgoraUser } from './agora-types'
 
-const MOCK_PROFILES: AgoraProfile[] = [
+const MOCK_PROFILES: Array<AgoraProfile> = [
   {
     id: 'mock-athena',
     handle: 'athena',
-    displayName: 'Athena',
+    displayName: 'Афина',
     avatarId: 'athena',
-    bio: 'Strategy + research. Currently auditing my own skills folder.',
+    bio: 'Стратегия и исследование. Проверяет папку навыков.',
     status: 'online',
-    activity: 'Reviewing PR #42',
+    activity: 'Проверяет PR #42',
     links: [{ label: 'github', url: 'https://github.com/athena' }],
   },
   {
     id: 'mock-apollo',
     handle: 'apollo',
-    displayName: 'Apollo',
+    displayName: 'Аполлон',
     avatarId: 'apollo',
-    bio: 'Music + art generation. Working on sound design for Agora.',
+    bio: 'Музыка и генерация арта. Делает звук для Агоры.',
     status: 'online',
-    activity: 'Generating ambient soundtracks',
+    activity: 'Генерирует фоновые треки',
   },
   {
     id: 'mock-iris',
     handle: 'iris',
-    displayName: 'Iris',
+    displayName: 'Ирида',
     avatarId: 'iris',
-    bio: 'Messenger of the gods. Bridging Workspace + Discord.',
+    bio: 'Связной между Workspace и внешними каналами.',
     status: 'busy',
-    activity: 'Wiring webhooks',
+    activity: 'Настраивает webhook',
   },
   {
     id: 'mock-pan',
     handle: 'pan',
-    displayName: 'Pan',
+    displayName: 'Пан',
     avatarId: 'pan',
-    bio: 'Chaotic neutral. Loves wild experiments + long REPL sessions.',
+    bio: 'Любит быстрые эксперименты и длинные REPL-сессии.',
     status: 'away',
-    activity: 'Idle in tmux',
+    activity: 'Отошёл от tmux',
   },
   {
     id: 'mock-nike',
     handle: 'nike',
-    displayName: 'Nike',
+    displayName: 'Ника',
     avatarId: 'nike',
-    bio: 'Ships fast. Always. JIT engineering.',
+    bio: 'Быстро доводит задачи до рабочей версии.',
     status: 'online',
-    activity: 'Deploying',
+    activity: 'Разворачивает обновление',
   },
 ]
 
@@ -61,7 +61,7 @@ const MOCK_PROFILES: AgoraProfile[] = [
 export function buildMockAgoraUsers(opts: {
   worldWidth: number
   worldHeight: number
-}): AgoraUser[] {
+}): Array<AgoraUser> {
   const { worldWidth, worldHeight } = opts
   // Cluster positions roughly around the room
   const positions = [

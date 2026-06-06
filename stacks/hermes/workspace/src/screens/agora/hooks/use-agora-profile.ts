@@ -5,29 +5,20 @@
  * the WebSocket server on `join`.
  */
 import { useCallback, useEffect, useState } from 'react'
-import {
-  AGORA_PROFILE_STORAGE_KEY,
-  type AgoraAvatarId,
-  type AgoraProfile,
-  type AgoraStatus,
-} from '../lib/agora-types'
-
-const FUNNY_ANIMALS = [
-  'Owl', 'Fox', 'Wolf', 'Otter', 'Hawk', 'Lynx', 'Crow', 'Stag', 'Heron',
-]
+import { AGORA_PROFILE_STORAGE_KEY } from '../lib/agora-types'
+import type { AgoraAvatarId, AgoraProfile, AgoraStatus } from '../lib/agora-types'
 
 function generateInitialProfile(): AgoraProfile {
   const id =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `agora-${Math.random().toString(36).slice(2, 10)}`
-  const animal = FUNNY_ANIMALS[Math.floor(Math.random() * FUNNY_ANIMALS.length)]
   const num = Math.floor(Math.random() * 9000) + 1000
-  const handle = `${animal.toLowerCase()}${num}`
+  const handle = `builder${num}`
   return {
     id,
     handle,
-    displayName: `Builder ${animal}`,
+    displayName: `Участник ${num}`,
     avatarId: 'hermes',
     bio: '',
     status: 'online',
@@ -43,11 +34,25 @@ function loadProfile(): AgoraProfile {
       window.localStorage.setItem(AGORA_PROFILE_STORAGE_KEY, JSON.stringify(initial))
       return initial
     }
-    const parsed = JSON.parse(raw) as AgoraProfile
-    if (!parsed.id || !parsed.handle || !parsed.displayName || !parsed.avatarId) {
+    const parsed = JSON.parse(raw) as Partial<AgoraProfile>
+    if (
+      typeof parsed.id !== 'string' ||
+      typeof parsed.handle !== 'string' ||
+      typeof parsed.displayName !== 'string' ||
+      typeof parsed.avatarId !== 'string'
+    ) {
       return generateInitialProfile()
     }
-    return parsed
+    return {
+      id: parsed.id,
+      handle: parsed.handle,
+      displayName: parsed.displayName,
+      avatarId: parsed.avatarId,
+      bio: typeof parsed.bio === 'string' ? parsed.bio : '',
+      status: parsed.status === 'away' || parsed.status === 'busy' ? parsed.status : 'online',
+      links: Array.isArray(parsed.links) ? parsed.links : undefined,
+      activity: typeof parsed.activity === 'string' ? parsed.activity : undefined,
+    }
   } catch {
     return generateInitialProfile()
   }

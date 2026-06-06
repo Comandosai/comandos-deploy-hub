@@ -40,7 +40,7 @@ export interface AgoraProfile {
   bio: string
   status: AgoraStatus
   /** Optional links (twitter, github, etc) */
-  links?: { label: string; url: string }[]
+  links?: Array<{ label: string; url: string }>
   /** Current activity hint, e.g. "Building COMANDOS AI Workspace" */
   activity?: string
 }
@@ -82,8 +82,8 @@ export interface AgoraWorld {
 
 export const DEFAULT_WORLD: AgoraWorld = {
   id: 'agora-main',
-  name: 'The Agora',
-  description: 'Default Hermes community lobby.',
+  name: 'Агора',
+  description: 'Локальная площадь сообщества Hermes.',
   width: 1200,
   height: 720,
   spawn: { x: 600, y: 360 },

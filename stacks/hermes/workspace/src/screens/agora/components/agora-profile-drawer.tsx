@@ -2,32 +2,37 @@
  * AgoraProfileDrawer — view/edit user profile.
  * Self profile is editable. Others are read-only with a "wave" CTA.
  */
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import type { AgoraAvatarId, AgoraProfile, AgoraStatus, AgoraUser } from '../lib/agora-types'
 
-const ALL_AVATARS: { id: AgoraAvatarId; label: string; tier: 'greek' | 'emoji' }[] = [
-  { id: 'hermes', label: 'Hermes', tier: 'greek' },
-  { id: 'athena', label: 'Athena', tier: 'greek' },
-  { id: 'apollo', label: 'Apollo', tier: 'greek' },
-  { id: 'artemis', label: 'Artemis', tier: 'greek' },
-  { id: 'iris', label: 'Iris', tier: 'greek' },
-  { id: 'nike', label: 'Nike', tier: 'greek' },
-  { id: 'eros', label: 'Eros', tier: 'greek' },
-  { id: 'pan', label: 'Pan', tier: 'greek' },
-  { id: 'chronos', label: 'Chronos', tier: 'greek' },
-  { id: 'owl', label: 'Owl', tier: 'emoji' },
-  { id: 'hermes-cat', label: 'Cat', tier: 'emoji' },
-  { id: 'robot', label: 'Robot', tier: 'emoji' },
-  { id: 'fox', label: 'Fox', tier: 'emoji' },
-  { id: 'ghost', label: 'Ghost', tier: 'emoji' },
-  { id: 'wolf', label: 'Wolf', tier: 'emoji' },
-  { id: 'octopus', label: 'Octopus', tier: 'emoji' },
-  { id: 'dragon', label: 'Dragon', tier: 'emoji' },
-  { id: 'panda', label: 'Panda', tier: 'emoji' },
+const ALL_AVATARS: Array<{ id: AgoraAvatarId; label: string; tier: 'greek' | 'emoji' }> = [
+  { id: 'hermes', label: 'Гермес', tier: 'greek' },
+  { id: 'athena', label: 'Афина', tier: 'greek' },
+  { id: 'apollo', label: 'Аполлон', tier: 'greek' },
+  { id: 'artemis', label: 'Артемида', tier: 'greek' },
+  { id: 'iris', label: 'Ирида', tier: 'greek' },
+  { id: 'nike', label: 'Ника', tier: 'greek' },
+  { id: 'eros', label: 'Эрос', tier: 'greek' },
+  { id: 'pan', label: 'Пан', tier: 'greek' },
+  { id: 'chronos', label: 'Хронос', tier: 'greek' },
+  { id: 'owl', label: 'Сова', tier: 'emoji' },
+  { id: 'hermes-cat', label: 'Кот', tier: 'emoji' },
+  { id: 'robot', label: 'Робот', tier: 'emoji' },
+  { id: 'fox', label: 'Лис', tier: 'emoji' },
+  { id: 'ghost', label: 'Призрак', tier: 'emoji' },
+  { id: 'wolf', label: 'Волк', tier: 'emoji' },
+  { id: 'octopus', label: 'Осьминог', tier: 'emoji' },
+  { id: 'dragon', label: 'Дракон', tier: 'emoji' },
+  { id: 'panda', label: 'Панда', tier: 'emoji' },
 ]
 
-const STATUS_OPTIONS: AgoraStatus[] = ['online', 'away', 'busy']
+const STATUS_OPTIONS: Array<AgoraStatus> = ['online', 'away', 'busy']
+const STATUS_LABELS: Record<AgoraStatus, string> = {
+  online: 'Онлайн',
+  away: 'Отошёл',
+  busy: 'Занят',
+}
 
 interface AgoraProfileDrawerProps {
   open: boolean
@@ -53,7 +58,7 @@ export function AgoraProfileDrawer({
   useEffect(() => {
     if (user) {
       setEditName(user.profile.displayName)
-      setEditBio(user.profile.bio ?? '')
+      setEditBio(user.profile.bio)
       setEditStatus(user.profile.status)
     }
   }, [user?.profile.id])
@@ -84,7 +89,7 @@ export function AgoraProfileDrawer({
             }}
           >
             <div className="flex items-start justify-between mb-4">
-              <h2 className="text-base font-semibold">{isSelf ? 'Your Profile' : user.profile.displayName}</h2>
+              <h2 className="text-base font-semibold">{isSelf ? 'Ваш профиль' : user.profile.displayName}</h2>
               <button
                 type="button"
                 onClick={onClose}
@@ -112,7 +117,8 @@ export function AgoraProfileDrawer({
                   <input
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    onBlur={() => onSaveProfile({ displayName: editName.slice(0, 32) || 'Builder' })}
+                    onBlur={() => onSaveProfile({ displayName: editName.slice(0, 32) || 'Участник' })}
+                    aria-label="Имя профиля"
                     className="w-full rounded-md px-2 py-1 text-sm font-semibold outline-none"
                     style={{
                       background: 'var(--theme-card)',
@@ -130,9 +136,8 @@ export function AgoraProfileDrawer({
               </div>
             </div>
 
-            {/* Status */}
             <section className="mb-5">
-              <div className="text-[10px] uppercase tracking-[0.18em] opacity-60 mb-2">Status</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] opacity-60 mb-2">Статус</div>
               {isSelf ? (
                 <div className="flex gap-2">
                   {STATUS_OPTIONS.map((s) => (
@@ -143,6 +148,7 @@ export function AgoraProfileDrawer({
                         setEditStatus(s)
                         onSaveProfile({ status: s })
                       }}
+                      aria-label={`Установить статус: ${STATUS_LABELS[s]}`}
                       className="rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.05em]"
                       style={{
                         background:
@@ -153,24 +159,24 @@ export function AgoraProfileDrawer({
                         border: '1px solid var(--theme-border)',
                       }}
                     >
-                      {s}
+                      {STATUS_LABELS[s]}
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="text-[12px] capitalize opacity-80">{user.profile.status}</div>
+                <div className="text-[12px] opacity-80">{STATUS_LABELS[user.profile.status]}</div>
               )}
             </section>
 
-            {/* Bio */}
             <section className="mb-5">
-              <div className="text-[10px] uppercase tracking-[0.18em] opacity-60 mb-2">Bio</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] opacity-60 mb-2">О себе</div>
               {isSelf ? (
                 <textarea
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   onBlur={() => onSaveProfile({ bio: editBio.slice(0, 240) })}
-                  placeholder="Say something about yourself…"
+                  placeholder="Коротко расскажите о себе..."
+                  aria-label="Описание профиля"
                   rows={3}
                   maxLength={240}
                   className="w-full rounded-md px-2 py-1.5 text-[12px] outline-none resize-none"
@@ -181,14 +187,13 @@ export function AgoraProfileDrawer({
                   }}
                 />
               ) : (
-                <div className="text-[12px] opacity-80 whitespace-pre-wrap">{user.profile.bio || 'No bio.'}</div>
+                <div className="text-[12px] opacity-80 whitespace-pre-wrap">{user.profile.bio || 'Описание не заполнено.'}</div>
               )}
             </section>
 
-            {/* Avatar picker (self only) */}
             {isSelf && (
               <section className="mb-5">
-                <div className="text-[10px] uppercase tracking-[0.18em] opacity-60 mb-2">Avatar</div>
+                <div className="text-[10px] uppercase tracking-[0.18em] opacity-60 mb-2">Аватар</div>
                 <div className="grid grid-cols-6 gap-2">
                   {ALL_AVATARS.map((a) => (
                     <button
@@ -196,6 +201,7 @@ export function AgoraProfileDrawer({
                       type="button"
                       onClick={() => onSaveProfile({ avatarId: a.id })}
                       title={a.label}
+                      aria-label={`Выбрать аватар: ${a.label}`}
                       className="rounded-lg p-1 transition-transform hover:scale-105"
                       style={{
                         background:
@@ -235,7 +241,7 @@ export function AgoraProfileDrawer({
                     color: 'var(--theme-bg)',
                   }}
                 >
-                  👋 Wave
+                  👋 Поприветствовать
                 </button>
               </div>
             )}

@@ -6,8 +6,8 @@ import type { AgoraMessage, AgoraUser } from '../lib/agora-types'
 
 interface AgoraChatPanelProps {
   self: AgoraUser
-  others: AgoraUser[]
-  messages: AgoraMessage[]
+  others: Array<AgoraUser>
+  messages: Array<AgoraMessage>
   onSend: (body: string) => void
 }
 
@@ -28,7 +28,7 @@ export function AgoraChatPanel({ self, others, messages, onSend }: AgoraChatPane
   function nameFor(userId: string) {
     if (userId === self.profile.id) return self.profile.displayName
     const u = others.find((o) => o.profile.id === userId)
-    return u?.profile.displayName ?? 'Stranger'
+    return u?.profile.displayName ?? 'Гость'
   }
 
   return (
@@ -66,7 +66,8 @@ export function AgoraChatPanel({ self, others, messages, onSend }: AgoraChatPane
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Say something to the room…"
+          placeholder="Напишите сообщение в комнату..."
+          aria-label="Сообщение в комнату"
           maxLength={280}
           className="flex-1 rounded-lg px-2 py-1.5 text-[12px] outline-none"
           style={{
@@ -78,13 +79,14 @@ export function AgoraChatPanel({ self, others, messages, onSend }: AgoraChatPane
         <button
           type="submit"
           disabled={!draft.trim()}
+          aria-label="Отправить сообщение в комнату"
           className="rounded-lg px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] disabled:opacity-40"
           style={{
             background: 'var(--theme-accent)',
             color: 'var(--theme-bg)',
           }}
         >
-          Send
+          Отправить
         </button>
       </form>
     </div>

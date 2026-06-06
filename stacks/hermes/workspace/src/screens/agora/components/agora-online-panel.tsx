@@ -5,7 +5,7 @@ import type { AgoraUser } from '../lib/agora-types'
 
 interface AgoraOnlinePanelProps {
   self: AgoraUser
-  others: AgoraUser[]
+  others: Array<AgoraUser>
   nearbyIds: Set<string>
   onSelectUser?: (user: AgoraUser) => void
 }
@@ -14,6 +14,11 @@ const STATUS_DOT: Record<string, string> = {
   online: '#10b981',
   away: '#f59e0b',
   busy: '#ef4444',
+}
+const STATUS_LABEL: Record<string, string> = {
+  online: 'онлайн',
+  away: 'отошёл',
+  busy: 'занят',
 }
 
 export function AgoraOnlinePanel({ self, others, nearbyIds, onSelectUser }: AgoraOnlinePanelProps) {
@@ -27,7 +32,7 @@ export function AgoraOnlinePanel({ self, others, nearbyIds, onSelectUser }: Agor
       }}
     >
       <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--theme-border)' }}>
-        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">Online</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">Участники</span>
         <span className="text-[10px] opacity-50">{all.length}</span>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -38,6 +43,7 @@ export function AgoraOnlinePanel({ self, others, nearbyIds, onSelectUser }: Agor
               type="button"
               key={u.profile.id}
               onClick={() => onSelectUser?.(u)}
+              aria-label={`Открыть профиль: ${u.profile.displayName}, ${STATUS_LABEL[u.profile.status] ?? 'статус неизвестен'}`}
               className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-[var(--theme-bg)]"
             >
               <img
@@ -58,7 +64,7 @@ export function AgoraOnlinePanel({ self, others, nearbyIds, onSelectUser }: Agor
                     style={{ background: STATUS_DOT[u.profile.status] ?? '#9ca3af' }}
                   />
                   <span className="text-[12px] font-medium truncate">{u.profile.displayName}</span>
-                  {u.isSelf && <span className="text-[10px] opacity-50">you</span>}
+                  {u.isSelf && <span className="text-[10px] opacity-50">вы</span>}
                   {nearby && (
                     <span
                       className="text-[9px] uppercase tracking-[0.15em] rounded px-1"
@@ -67,7 +73,7 @@ export function AgoraOnlinePanel({ self, others, nearbyIds, onSelectUser }: Agor
                         color: 'var(--theme-accent)',
                       }}
                     >
-                      near
+                      рядом
                     </span>
                   )}
                 </div>

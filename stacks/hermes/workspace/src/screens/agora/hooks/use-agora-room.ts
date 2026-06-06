@@ -9,15 +9,9 @@
  * Replaced by real WebSocket sync in v0.1.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  DEFAULT_WORLD,
-  type AgoraFacing,
-  type AgoraMessage,
-  type AgoraProfile,
-  type AgoraUser,
-  type AgoraWorld,
-} from '../lib/agora-types'
+import { DEFAULT_WORLD } from '../lib/agora-types'
 import { buildMockAgoraUsers, driftUser } from '../lib/agora-mock'
+import type { AgoraFacing, AgoraMessage, AgoraProfile, AgoraUser, AgoraWorld } from '../lib/agora-types'
 
 const MOVE_SPEED_PX = 6
 const BUBBLE_TTL_MS = 7000
@@ -42,11 +36,11 @@ export function useAgoraRoom({
     isMoving: false,
   }))
 
-  const [others, setOthers] = useState<AgoraUser[]>(() =>
+  const [others, setOthers] = useState<Array<AgoraUser>>(() =>
     buildMockAgoraUsers({ worldWidth: world.width, worldHeight: world.height }),
   )
 
-  const [messages, setMessages] = useState<AgoraMessage[]>([])
+  const [messages, setMessages] = useState<Array<AgoraMessage>>([])
 
   // Sync self.profile when external profile changes (e.g. avatar swap).
   useEffect(() => {
@@ -179,16 +173,16 @@ export function useAgoraRoom({
   // Random fake-user chatter for demo flavor (~every 12-25s)
   useEffect(() => {
     const lines = [
-      'gm builders',
-      'shipped a fix to the Agora protocol',
-      'who wants to pair on skill packaging?',
-      'trying out the new Codex spark model',
-      'wow this lobby actually works',
-      'brb building',
-      'anyone testing the voice POC?',
-      'where do I drop bug reports',
-      'love the Greek pantheon',
-      'just installed COMANDOS AI Workspace, hi everyone',
+      'привет, строители',
+      'закрыл правку протокола Агоры',
+      'кто хочет вместе проверить упаковку навыков?',
+      'пробую новую модель Codex',
+      'эта комната уже выглядит рабочей',
+      'ненадолго отошёл, собираю билд',
+      'кто проверяет голосовой прототип?',
+      'куда складываем отчёты об ошибках?',
+      'нравится стиль греческой площади',
+      'только что установил COMANDOS AI Workspace, всем привет',
     ]
     let cancelled = false
     const tick = () => {
@@ -197,7 +191,7 @@ export function useAgoraRoom({
       const speaker = others[Math.floor(Math.random() * others.length)]
       const line = lines[Math.floor(Math.random() * lines.length)]
       setMessages((prev) => {
-        const next: AgoraMessage[] = [
+        const next: Array<AgoraMessage> = [
           ...prev,
           {
             id:
@@ -218,8 +212,6 @@ export function useAgoraRoom({
       cancelled = true
       window.clearTimeout(initial)
     }
-    // intentionally only on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── Derived: active speech bubbles per user ────────────────

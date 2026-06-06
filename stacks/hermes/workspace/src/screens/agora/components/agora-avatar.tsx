@@ -5,7 +5,7 @@
  * Future: 8-direction sprite frames per avatar (v0.2+).
  */
 import { motion } from 'motion/react'
-import type { AgoraStatus, AgoraAvatarId, AgoraFacing } from '../lib/agora-types'
+import type { AgoraAvatarId, AgoraFacing, AgoraStatus } from '../lib/agora-types'
 
 const STATUS_DOT_COLOR: Record<AgoraStatus, string> = {
   online: '#10b981',
@@ -106,7 +106,7 @@ export function AgoraAvatar({
         title={displayName}
       >
         {displayName}
-        {isSelf && <span className="ml-1 opacity-50">(you)</span>}
+        {isSelf && <span className="ml-1 opacity-50">(вы)</span>}
       </div>
     </div>
   )

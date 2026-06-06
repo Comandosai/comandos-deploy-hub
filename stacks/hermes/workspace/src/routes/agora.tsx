@@ -8,6 +8,6 @@ export const Route = createFileRoute('/agora')({
 })
 
 function AgoraRoute() {
-  usePageTitle('Agora')
+  usePageTitle('Агора')
   return <AgoraScreen />
 }
