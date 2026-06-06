@@ -8,6 +8,7 @@ const MEASURE_SELECTOR = [
 ].join(',')
 const MEASURE_TEXT = 'W'.repeat(32)
 const REPEATED_MEASURE_TEXT = /^(.)\1{7,}$/
+const XTERM_INPUT_LABEL = 'Ввод терминала'
 
 function getMeasureElements(container: HTMLElement | null) {
   const root = container ?? document.body
@@ -21,7 +22,18 @@ function restoreXtermMeasureText(container: HTMLElement | null) {
   }
 }
 
+function labelXtermHelperTextarea(container: HTMLElement | null) {
+  const root = container ?? document.body
+  for (const node of root.querySelectorAll<HTMLTextAreaElement>(
+    '.xterm-helper-textarea',
+  )) {
+    node.setAttribute('aria-label', XTERM_INPUT_LABEL)
+    node.setAttribute('title', XTERM_INPUT_LABEL)
+  }
+}
+
 export function hideXtermMeasureElements(container: HTMLElement | null) {
+  labelXtermHelperTextarea(container)
   for (const node of getMeasureElements(container)) {
     node.setAttribute('aria-hidden', 'true')
     node.setAttribute('role', 'presentation')
