@@ -1,7 +1,6 @@
 /**
  * Tests for mcp-hub-sources-store — Phase 3.2.
  */
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   mkdtempSync,
   readFileSync,
@@ -10,17 +9,18 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
-  __resetHubSourcesCacheForTests,
-  readHubSources,
-  addHubSource,
-  updateHubSource,
-  deleteHubSource,
-  validateSourceEntry,
   BUILTIN_IDS,
   BUILTIN_SOURCES,
+  __resetHubSourcesCacheForTests,
+  addHubSource,
+  deleteHubSource,
   hubSourcesFilePath,
+  readHubSources,
+  updateHubSource,
+  validateSourceEntry,
 } from './mcp-hub-sources-store'
 
 let homeDir: string
@@ -132,7 +132,7 @@ describe('readHubSources', () => {
     })
     const result = await readHubSources()
     expect(result.source).toBe('invalid')
-    expect(result.validationErrors?.some((e) => e.message.includes('duplicate'))).toBe(true)
+    expect(result.validationErrors?.some((e) => e.message.includes('уже используется'))).toBe(true)
   })
 
   it('rejects reserved built-in ids', async () => {
@@ -142,7 +142,7 @@ describe('readHubSources', () => {
     })
     const result = await readHubSources()
     expect(result.source).toBe('invalid')
-    expect(result.validationErrors?.some((e) => e.message.includes('reserved'))).toBe(true)
+    expect(result.validationErrors?.some((e) => e.message.includes('зарезервирован'))).toBe(true)
   })
 
   it('uses mtime+size cache', async () => {
@@ -194,7 +194,7 @@ describe('validateSourceEntry', () => {
   it('rejects builtin ids', () => {
     const r = validateSourceEntry({ id: 'local-file', name: 'X', url: 'https://ok.com', trust: 'community', format: 'generic-json', enabled: true })
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.errors.some((e) => e.message.includes('reserved'))).toBe(true)
+    if (!r.ok) expect(r.errors.some((e) => e.message.includes('зарезервирован'))).toBe(true)
   })
 
   it('rejects invalid trust value', () => {
@@ -229,7 +229,7 @@ describe('addHubSource', () => {
     await addHubSource(input)
     const r2 = await addHubSource(input)
     expect(r2.ok).toBe(false)
-    if (!r2.ok) expect(r2.errors.some((e) => e.message.includes('duplicate'))).toBe(true)
+    if (!r2.ok) expect(r2.errors.some((e) => e.message.includes('уже существует'))).toBe(true)
   })
 
   it('rejects built-in id', async () => {
@@ -283,7 +283,7 @@ describe('deleteHubSource', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) {
       expect(result.status).toBe(400)
-      expect(result.errors.some((e) => e.message.includes('built-in'))).toBe(true)
+      expect(result.errors.some((e) => e.message.includes('Встроенный источник'))).toBe(true)
     }
   })
 

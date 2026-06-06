@@ -6,6 +6,17 @@
  * Triggered from a "Sources" button in the Marketplace tab toolbar.
  */
 import { useState } from 'react'
+import {
+  useAddHubSource,
+  useDeleteHubSource,
+  useMcpHubSources,
+  useUpdateHubSource,
+} from '../hooks/use-mcp-hub-sources'
+import type {
+  AddSourceInput,
+  HubSourceEntry,
+  MutationError,
+} from '../hooks/use-mcp-hub-sources'
 import { Button } from '@/components/ui/button'
 import {
   DialogContent,
@@ -14,15 +25,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toast } from '@/components/ui/toast'
-import {
-  useMcpHubSources,
-  useAddHubSource,
-  useUpdateHubSource,
-  useDeleteHubSource,
-  type HubSourceEntry,
-  type AddSourceInput,
-  type MutationError,
-} from '../hooks/use-mcp-hub-sources'
 
 interface Props {
   open: boolean
@@ -31,6 +33,17 @@ interface Props {
 
 const TRUST_OPTIONS = ['official', 'community', 'unverified'] as const
 const FORMAT_OPTIONS = ['smithery', 'generic-json'] as const
+
+const TRUST_LABELS: Record<(typeof TRUST_OPTIONS)[number], string> = {
+  official: 'Официальный',
+  community: 'Сообщество',
+  unverified: 'Не проверен',
+}
+
+const FORMAT_LABELS: Record<(typeof FORMAT_OPTIONS)[number], string> = {
+  smithery: 'Smithery',
+  'generic-json': 'Обычный JSON',
+}
 
 const EMPTY_FORM: AddSourceInput = {
   id: '',
@@ -45,7 +58,7 @@ const FIELD = 'h-9 w-full rounded-lg border border-primary-200 bg-primary-100/60
 const LABEL = 'flex flex-col gap-1 text-sm text-primary-500'
 const ERROR_TEXT = 'mt-0.5 text-xs text-red-600 dark:text-red-400'
 
-function fieldError(errors: MutationError[], path: string): string | undefined {
+function fieldError(errors: Array<MutationError>, path: string): string | undefined {
   return errors.find((e) => e.path === path)?.message
 }
 
@@ -55,27 +68,29 @@ interface SourceFormProps {
   onSave: (data: AddSourceInput) => void
   onCancel: () => void
   saving: boolean
-  serverErrors: MutationError[]
+  serverErrors: Array<MutationError>
 }
 
 function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }: SourceFormProps) {
   const [form, setForm] = useState<AddSourceInput>({ ...EMPTY_FORM, ...initial })
-  const [localErrors, setLocalErrors] = useState<Record<string, string>>({})
+  const [localErrors, setLocalErrors] = useState<
+    Partial<Record<keyof AddSourceInput, string>>
+  >({})
 
   function validate(): boolean {
     const errs: Record<string, string> = {}
     if (!form.id.match(/^[a-z][a-z0-9_-]{0,63}$/)) {
-      errs.id = 'id must match /^[a-z][a-z0-9_-]{0,63}$/'
+      errs.id = 'ID должен начинаться со строчной буквы и содержать только строчные буквы, цифры, _ или -.'
     }
-    if (form.name.trim().length < 1) errs.name = 'name is required'
+    if (form.name.trim().length < 1) errs.name = 'Укажите название источника.'
     if (!form.url) {
-      errs.url = 'url is required'
+      errs.url = 'Укажите URL источника.'
     } else {
       try {
         const u = new URL(form.url)
-        if (u.protocol !== 'https:') errs.url = 'url must use https://'
+        if (u.protocol !== 'https:') errs.url = 'URL должен начинаться с https://.'
       } catch {
-        errs.url = 'url is not valid'
+        errs.url = 'URL указан неверно.'
       }
     }
     setLocalErrors(errs)
@@ -88,9 +103,16 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
     onSave(form)
   }
 
-  function set<K extends keyof AddSourceInput>(key: K, value: AddSourceInput[K]) {
+  function set<TKey extends keyof AddSourceInput>(
+    key: TKey,
+    value: AddSourceInput[TKey],
+  ) {
     setForm((prev) => ({ ...prev, [key]: value }))
-    setLocalErrors((prev) => { const next = { ...prev }; delete next[key]; return next })
+    setLocalErrors((prev) => {
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
   }
 
   const idErr = localErrors.id ?? fieldError(serverErrors, 'id')
@@ -143,7 +165,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
 
       <div className="grid grid-cols-2 gap-3">
         <div className={LABEL}>
-          <span>Trust</span>
+          <span>Доверие</span>
           <select
             className={FIELD}
             value={form.trust}
@@ -151,14 +173,14 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
             disabled={saving}
           >
             {TRUST_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>{TRUST_LABELS[t]}</option>
             ))}
           </select>
           {trustErr ? <p className={ERROR_TEXT}>{trustErr}</p> : null}
         </div>
 
         <div className={LABEL}>
-          <span>Format</span>
+          <span>Формат</span>
           <select
             className={FIELD}
             value={form.format}
@@ -166,7 +188,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
             disabled={saving}
           >
             {FORMAT_OPTIONS.map((f) => (
-              <option key={f} value={f}>{f}</option>
+              <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
             ))}
           </select>
           {formatErr ? <p className={ERROR_TEXT}>{formatErr}</p> : null}
@@ -183,7 +205,7 @@ function SourceForm({ initial, isEdit, onSave, onCancel, saving, serverErrors }:
           className="h-4 w-4 rounded border-primary-200 text-primary accent-primary"
         />
         <label htmlFor="enabled-toggle" className="text-sm text-ink cursor-pointer">
-          Enabled
+          Включён
         </label>
       </div>
 
@@ -271,7 +293,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
   const [mode, setMode] = useState<Mode>('list')
   const [editingSource, setEditingSource] = useState<HubSourceEntry | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [serverErrors, setServerErrors] = useState<MutationError[]>([])
+  const [serverErrors, setServerErrors] = useState<Array<MutationError>>([])
 
   const query = useMcpHubSources()
   const addMutation = useAddHubSource()
@@ -302,7 +324,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
       },
       onError: (err) => {
         setDeletingId(null)
-        const errors = (err as { errors?: MutationError[] }).errors ?? []
+        const errors = (err as { errors?: Array<MutationError> }).errors ?? []
         setServerErrors(errors)
         toast('Не удалось удалить источник', { type: 'error' })
       },
@@ -317,7 +339,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
         toast('Источник добавлен', { type: 'success' })
       },
       onError: (err) => {
-        const errors = (err as { errors?: MutationError[] }).errors ?? []
+        const errors = (err as { errors?: Array<MutationError> }).errors ?? []
         setServerErrors(errors)
       },
     })
@@ -335,7 +357,7 @@ export function SourcesManagerDialog({ open, onClose }: Props) {
           toast('Источник обновлён', { type: 'success' })
         },
         onError: (err) => {
-          const errors = (err as { errors?: MutationError[] }).errors ?? []
+          const errors = (err as { errors?: Array<MutationError> }).errors ?? []
           setServerErrors(errors)
         },
       },

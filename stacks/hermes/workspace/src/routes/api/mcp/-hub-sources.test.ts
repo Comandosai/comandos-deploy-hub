@@ -3,7 +3,12 @@
  *
  * Uses vi.mock to isolate store functions from real filesystem I/O.
  */
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { addHubSource, deleteHubSource, readHubSources, updateHubSource } from '../../../server/mcp-hub-sources-store'
+import { isAuthenticated } from '../../../server/auth-middleware'
+import { Route as HubSourcesRoute } from './hub-sources'
+import { Route as HubSourcesIdRoute } from './hub-sources.$id'
 
 vi.mock('../../../server/mcp-hub-sources-store', () => ({
   readHubSources: vi.fn(),
@@ -14,11 +19,6 @@ vi.mock('../../../server/mcp-hub-sources-store', () => ({
 vi.mock('../../../server/auth-middleware', () => ({
   isAuthenticated: vi.fn(),
 }))
-
-import { readHubSources, addHubSource, updateHubSource, deleteHubSource } from '../../../server/mcp-hub-sources-store'
-import { isAuthenticated } from '../../../server/auth-middleware'
-import { Route as HubSourcesRoute } from './hub-sources'
-import { Route as HubSourcesIdRoute } from './hub-sources.$id'
 
 const mockReadHubSources = vi.mocked(readHubSources)
 const mockAddHubSource = vi.mocked(addHubSource)
@@ -114,7 +114,7 @@ describe('POST /api/mcp/hub-sources', () => {
   })
 
   it('returns ok:false + errors on bad input', async () => {
-    mockAddHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'url', message: 'url must use https://' }] })
+    mockAddHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'url', message: 'URL должен начинаться с https://' }] })
     const res = await callPost(makeRequest('POST', 'http://localhost/api/mcp/hub-sources', { id: 'bad', url: 'http://insecure.com' }))
     const body = await res.json()
     expect(body.ok).toBe(false)
@@ -151,7 +151,7 @@ describe('PUT /api/mcp/hub-sources/:id', () => {
   })
 
   it('returns 404 for unknown id', async () => {
-    mockUpdateHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'id', message: 'source "nope" not found' }], status: 404 })
+    mockUpdateHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'id', message: 'Источник "nope" не найден.' }], status: 404 })
     const res = await callPut(makeRequest('PUT', 'http://localhost/api/mcp/hub-sources/nope', { name: 'X', url: 'https://x.com', trust: 'community', format: 'generic-json', enabled: true }), 'nope')
     expect(res.status).toBe(404)
     const body = await res.json()
@@ -159,7 +159,7 @@ describe('PUT /api/mcp/hub-sources/:id', () => {
   })
 
   it('returns ok:false + errors on validation failure', async () => {
-    mockUpdateHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'url', message: 'url must use https://' }] })
+    mockUpdateHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'url', message: 'URL должен начинаться с https://' }] })
     const res = await callPut(makeRequest('PUT', 'http://localhost/api/mcp/hub-sources/corp', { url: 'http://insecure.com' }), 'corp')
     const body = await res.json()
     expect(body.ok).toBe(false)
@@ -182,13 +182,13 @@ describe('DELETE /api/mcp/hub-sources/:id', () => {
   })
 
   it('returns 404 for unknown id', async () => {
-    mockDeleteHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'id', message: 'source "nope" not found' }], status: 404 })
+    mockDeleteHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'id', message: 'Источник "nope" не найден.' }], status: 404 })
     const res = await callDelete(makeRequest('DELETE', 'http://localhost/api/mcp/hub-sources/nope'), 'nope')
     expect(res.status).toBe(404)
   })
 
   it('rejects deletion of built-in sources', async () => {
-    mockDeleteHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'id', message: '"mcp-get" is a built-in source and cannot be removed' }], status: 400 })
+    mockDeleteHubSource.mockResolvedValue({ ok: false, errors: [{ path: 'id', message: 'Встроенный источник "mcp-get" нельзя удалить.' }], status: 400 })
     const res = await callDelete(makeRequest('DELETE', 'http://localhost/api/mcp/hub-sources/mcp-get'), 'mcp-get')
     const body = await res.json()
     expect(body.ok).toBe(false)

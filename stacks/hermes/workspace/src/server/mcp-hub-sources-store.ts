@@ -51,18 +51,18 @@ export interface ValidationIssue {
 }
 
 export interface ReadHubSourcesResult {
-  sources: HubSourceEntry[]
+  sources: Array<HubSourceEntry>
   source: HubSourcesSource
   error?: string
   errorPath?: string
-  validationErrors?: ValidationIssue[]
+  validationErrors?: Array<ValidationIssue>
 }
 
 // ---------------------------------------------------------------------------
 // Built-in sources (always present, cannot be removed)
 // ---------------------------------------------------------------------------
 
-export const BUILTIN_SOURCES: HubSourceEntry[] = [
+export const BUILTIN_SOURCES: Array<HubSourceEntry> = [
   {
     id: 'mcp-get',
     name: 'Smithery Registry',
@@ -153,7 +153,7 @@ function makeCacheKey(path: string, st: { mtimeMs: number; size: number; ino: nu
 // Seed (empty user sources — built-ins are always injected separately)
 // ---------------------------------------------------------------------------
 
-const SEED_PAYLOAD = { version: 1, sources: [] as HubSourceEntry[] }
+const SEED_PAYLOAD = { version: 1, sources: [] as Array<HubSourceEntry> }
 
 // ---------------------------------------------------------------------------
 // Atomic bootstrap
@@ -191,32 +191,32 @@ function bootstrapSeed(final: string): boolean {
 // ---------------------------------------------------------------------------
 
 interface PayloadValidationResult {
-  sources: HubSourceEntry[]
-  errors: ValidationIssue[]
+  sources: Array<HubSourceEntry>
+  errors: Array<ValidationIssue>
 }
 
 function validatePayload(parsed: unknown): PayloadValidationResult {
-  const errors: ValidationIssue[] = []
-  const out: HubSourceEntry[] = []
+  const errors: Array<ValidationIssue> = []
+  const out: Array<HubSourceEntry> = []
 
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    errors.push({ path: '', message: 'root must be an object' })
+    errors.push({ path: '', message: 'Корень файла должен быть JSON-объектом.' })
     return { sources: [], errors }
   }
   const root = parsed as Record<string, unknown>
 
   if (root.version !== 1) {
-    errors.push({ path: 'version', message: 'version must be 1' })
+    errors.push({ path: 'version', message: 'Версия файла должна быть 1.' })
   }
 
   for (const key of Object.keys(root)) {
     if (!KNOWN_TOP_FIELDS.has(key)) {
-      errors.push({ path: key, message: 'unknown top-level field (ignored)' })
+      errors.push({ path: key, message: 'Неизвестное поле верхнего уровня проигнорировано.' })
     }
   }
 
   if (!Array.isArray(root.sources)) {
-    errors.push({ path: 'sources', message: 'sources must be an array' })
+    errors.push({ path: 'sources', message: 'Поле sources должно быть массивом.' })
     return { sources: [], errors }
   }
 
@@ -227,53 +227,53 @@ function validatePayload(parsed: unknown): PayloadValidationResult {
     const base = `sources[${i}]`
 
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
-      errors.push({ path: base, message: 'source entry must be an object' })
+      errors.push({ path: base, message: 'Запись источника должна быть JSON-объектом.' })
       continue
     }
     const p = item as Record<string, unknown>
 
     const id = typeof p.id === 'string' ? p.id : ''
     if (!ID_RE.test(id)) {
-      errors.push({ path: `${base}.id`, message: 'id must match /^[a-z][a-z0-9_-]{0,63}$/' })
+      errors.push({ path: `${base}.id`, message: 'ID должен начинаться со строчной буквы и содержать только строчные буквы, цифры, _ или -.' })
       continue
     }
     if (BUILTIN_IDS.has(id)) {
-      errors.push({ path: `${base}.id`, message: `"${id}" is a reserved built-in source id` })
+      errors.push({ path: `${base}.id`, message: `ID "${id}" зарезервирован встроенным источником.` })
       continue
     }
     if (seen.has(id)) {
-      errors.push({ path: `${base}.id`, message: `duplicate id "${id}"` })
+      errors.push({ path: `${base}.id`, message: `ID "${id}" уже используется.` })
       continue
     }
     seen.add(id)
 
     const name = typeof p.name === 'string' ? p.name.trim() : ''
     if (name.length < 1 || name.length > 100) {
-      errors.push({ path: `${base}.name`, message: 'name must be 1..100 characters' })
+      errors.push({ path: `${base}.name`, message: 'Название должно быть от 1 до 100 символов.' })
     }
 
     const url = typeof p.url === 'string' ? p.url.trim() : ''
     if (!url) {
-      errors.push({ path: `${base}.url`, message: 'url is required' })
+      errors.push({ path: `${base}.url`, message: 'Укажите URL источника.' })
     } else {
       try {
         const parsedUrl = new URL(url)
         if (parsedUrl.protocol !== 'https:') {
-          errors.push({ path: `${base}.url`, message: 'url must use https:// (http:// is not allowed)' })
+          errors.push({ path: `${base}.url`, message: 'URL должен начинаться с https://. http:// не разрешён.' })
         }
       } catch {
-        errors.push({ path: `${base}.url`, message: `url is not a valid URL: "${url}"` })
+        errors.push({ path: `${base}.url`, message: `URL указан неверно: "${url}".` })
       }
     }
 
     const trust = typeof p.trust === 'string' ? p.trust : ''
     if (!VALID_TRUST.has(trust)) {
-      errors.push({ path: `${base}.trust`, message: `trust must be one of: ${[...VALID_TRUST].join(', ')}` })
+      errors.push({ path: `${base}.trust`, message: `Доверие должно быть одним из значений: ${[...VALID_TRUST].join(', ')}.` })
     }
 
     const format = typeof p.format === 'string' ? p.format : ''
     if (!VALID_FORMAT.has(format)) {
-      errors.push({ path: `${base}.format`, message: `format must be one of: ${[...VALID_FORMAT].join(', ')}` })
+      errors.push({ path: `${base}.format`, message: `Формат должен быть одним из значений: ${[...VALID_FORMAT].join(', ')}.` })
     }
 
     const entryErrors = errors.filter((e) => e.path.startsWith(base))
@@ -297,7 +297,7 @@ function validatePayload(parsed: unknown): PayloadValidationResult {
 // Merge built-ins + user sources
 // ---------------------------------------------------------------------------
 
-function mergeWithBuiltins(userSources: HubSourceEntry[]): HubSourceEntry[] {
+function mergeWithBuiltins(userSources: Array<HubSourceEntry>): Array<HubSourceEntry> {
   return [...BUILTIN_SOURCES, ...userSources]
 }
 
@@ -399,7 +399,7 @@ export async function readHubSources(): Promise<ReadHubSourcesResult> {
 // Internal: read only user-defined sources from the file
 // ---------------------------------------------------------------------------
 
-async function readUserSources(): Promise<{ sources: HubSourceEntry[]; error?: string; validationErrors?: ValidationIssue[] }> {
+async function readUserSources(): Promise<{ sources: Array<HubSourceEntry>; error?: string; validationErrors?: Array<ValidationIssue> }> {
   const path = hubSourcesFilePath()
   const stat = statKey(path)
   if (!stat.ok) {
@@ -430,7 +430,7 @@ async function readUserSources(): Promise<{ sources: HubSourceEntry[]; error?: s
 // Internal: atomic write user sources
 // ---------------------------------------------------------------------------
 
-function writeUserSourcesSync(userSources: HubSourceEntry[]): void {
+function writeUserSourcesSync(userSources: Array<HubSourceEntry>): void {
   const path = hubSourcesFilePath()
   const dir = dirname(path)
   mkdirSync(dir, { recursive: true })
@@ -463,47 +463,47 @@ function writeUserSourcesSync(userSources: HubSourceEntry[]): void {
 
 export function validateSourceEntry(
   raw: unknown,
-): { ok: true; entry: Omit<HubSourceEntry, 'builtin'> } | { ok: false; errors: ValidationIssue[] } {
+): { ok: true; entry: Omit<HubSourceEntry, 'builtin'> } | { ok: false; errors: Array<ValidationIssue> } {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    return { ok: false, errors: [{ path: '', message: 'body must be a plain object' }] }
+    return { ok: false, errors: [{ path: '', message: 'Запрос должен быть обычным JSON-объектом.' }] }
   }
   const p = raw as Record<string, unknown>
-  const errors: ValidationIssue[] = []
+  const errors: Array<ValidationIssue> = []
 
   const id = typeof p.id === 'string' ? p.id : ''
   if (!ID_RE.test(id)) {
-    errors.push({ path: 'id', message: 'id must match /^[a-z][a-z0-9_-]{0,63}$/' })
+    errors.push({ path: 'id', message: 'ID должен начинаться со строчной буквы и содержать только строчные буквы, цифры, _ или -.' })
   } else if (BUILTIN_IDS.has(id)) {
-    errors.push({ path: 'id', message: `"${id}" is a reserved built-in source id` })
+    errors.push({ path: 'id', message: `ID "${id}" зарезервирован встроенным источником.` })
   }
 
   const name = typeof p.name === 'string' ? p.name.trim() : ''
   if (name.length < 1 || name.length > 100) {
-    errors.push({ path: 'name', message: 'name must be 1..100 characters' })
+    errors.push({ path: 'name', message: 'Название должно быть от 1 до 100 символов.' })
   }
 
   const url = typeof p.url === 'string' ? p.url.trim() : ''
   if (!url) {
-    errors.push({ path: 'url', message: 'url is required' })
+    errors.push({ path: 'url', message: 'Укажите URL источника.' })
   } else {
     try {
       const parsedUrl = new URL(url)
       if (parsedUrl.protocol !== 'https:') {
-        errors.push({ path: 'url', message: 'url must use https:// (http:// is not allowed)' })
+        errors.push({ path: 'url', message: 'URL должен начинаться с https://. http:// не разрешён.' })
       }
     } catch {
-      errors.push({ path: 'url', message: `url is not a valid URL: "${url}"` })
+      errors.push({ path: 'url', message: `URL указан неверно: "${url}".` })
     }
   }
 
   const trust = typeof p.trust === 'string' ? p.trust : ''
   if (!VALID_TRUST.has(trust)) {
-    errors.push({ path: 'trust', message: `trust must be one of: ${[...VALID_TRUST].join(', ')}` })
+    errors.push({ path: 'trust', message: `Доверие должно быть одним из значений: ${[...VALID_TRUST].join(', ')}.` })
   }
 
   const format = typeof p.format === 'string' ? p.format : ''
   if (!VALID_FORMAT.has(format)) {
-    errors.push({ path: 'format', message: `format must be one of: ${[...VALID_FORMAT].join(', ')}` })
+    errors.push({ path: 'format', message: `Формат должен быть одним из значений: ${[...VALID_FORMAT].join(', ')}.` })
   }
 
   if (errors.length > 0) return { ok: false, errors }
@@ -547,7 +547,7 @@ function withCrudLock<T>(fn: () => Promise<T>): Promise<T> {
 /** Append a new user-defined source. */
 export async function addHubSource(
   raw: unknown,
-): Promise<{ ok: true; sources: HubSourceEntry[] } | { ok: false; errors: ValidationIssue[]; status?: number }> {
+): Promise<{ ok: true; sources: Array<HubSourceEntry> } | { ok: false; errors: Array<ValidationIssue>; status?: number }> {
   const validation = validateSourceEntry(raw)
   if (!validation.ok) return { ok: false, errors: validation.errors }
 
@@ -556,7 +556,7 @@ export async function addHubSource(
     const userSources = existing.sources
 
     if (userSources.some((s) => s.id === validation.entry.id)) {
-      return { ok: false, errors: [{ path: 'id', message: `duplicate id "${validation.entry.id}"` }] }
+      return { ok: false, errors: [{ path: 'id', message: `Источник с ID "${validation.entry.id}" уже существует.` }] }
     }
 
     writeUserSourcesSync([...userSources, validation.entry])
@@ -570,9 +570,9 @@ export async function addHubSource(
 export async function updateHubSource(
   id: string,
   raw: unknown,
-): Promise<{ ok: true; sources: HubSourceEntry[] } | { ok: false; errors: ValidationIssue[]; status?: number }> {
+): Promise<{ ok: true; sources: Array<HubSourceEntry> } | { ok: false; errors: Array<ValidationIssue>; status?: number }> {
   if (BUILTIN_IDS.has(id)) {
-    return { ok: false, errors: [{ path: 'id', message: `"${id}" is a built-in source and cannot be modified` }], status: 400 }
+    return { ok: false, errors: [{ path: 'id', message: `Встроенный источник "${id}" нельзя изменить.` }], status: 400 }
   }
 
   const body = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}
@@ -586,7 +586,7 @@ export async function updateHubSource(
 
     const idx = userSources.findIndex((s) => s.id === id)
     if (idx === -1) {
-      return { ok: false, errors: [{ path: 'id', message: `source "${id}" not found` }], status: 404 }
+      return { ok: false, errors: [{ path: 'id', message: `Источник "${id}" не найден.` }], status: 404 }
     }
 
     const updated = [...userSources]
@@ -601,9 +601,9 @@ export async function updateHubSource(
 /** Remove a user-defined source by id. */
 export async function deleteHubSource(
   id: string,
-): Promise<{ ok: true; sources: HubSourceEntry[] } | { ok: false; errors: ValidationIssue[]; status?: number }> {
+): Promise<{ ok: true; sources: Array<HubSourceEntry> } | { ok: false; errors: Array<ValidationIssue>; status?: number }> {
   if (BUILTIN_IDS.has(id)) {
-    return { ok: false, errors: [{ path: 'id', message: `"${id}" is a built-in source and cannot be removed` }], status: 400 }
+    return { ok: false, errors: [{ path: 'id', message: `Встроенный источник "${id}" нельзя удалить.` }], status: 400 }
   }
 
   return withCrudLock(async () => {
@@ -612,7 +612,7 @@ export async function deleteHubSource(
 
     const idx = userSources.findIndex((s) => s.id === id)
     if (idx === -1) {
-      return { ok: false, errors: [{ path: 'id', message: `source "${id}" not found` }], status: 404 }
+      return { ok: false, errors: [{ path: 'id', message: `Источник "${id}" не найден.` }], status: 404 }
     }
 
     writeUserSourcesSync(userSources.filter((_, i) => i !== idx))

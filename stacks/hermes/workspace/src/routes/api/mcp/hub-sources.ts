@@ -12,10 +12,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../../server/auth-middleware'
 import {
-  readHubSources,
   addHubSource,
-  updateHubSource,
   deleteHubSource,
+  readHubSources,
+  updateHubSource,
 } from '../../../server/mcp-hub-sources-store'
 
 export const Route = createFileRoute('/api/mcp/hub-sources')({
@@ -53,7 +53,7 @@ export const Route = createFileRoute('/api/mcp/hub-sources')({
         try {
           body = await request.json()
         } catch {
-          return Response.json({ ok: false, errors: [{ path: '', message: 'invalid JSON body' }] })
+          return Response.json({ ok: false, errors: [{ path: '', message: 'Тело запроса должно быть корректным JSON.' }] })
         }
         const result = await addHubSource(body)
         if (!result.ok) {
