@@ -96,6 +96,8 @@ export function MessageActionsBar({
         <TooltipRoot>
           <TooltipTrigger
             type="button"
+            aria-label={copied ? 'Сообщение скопировано' : 'Копировать сообщение'}
+            title={copied ? 'Сообщение скопировано' : 'Копировать сообщение'}
             onClick={() => {
               handleCopy().catch(() => {})
             }}
