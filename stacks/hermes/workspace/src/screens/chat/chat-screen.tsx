@@ -1212,6 +1212,15 @@ export function ChatScreen({
     }
     if (navCancelKeyRef.current !== navKey) {
       navCancelKeyRef.current = navKey
+      const activeSend = activeSendRef.current
+      if (
+        activeSend &&
+        !isNewChat &&
+        (activeSend.sessionKey === activeCanonicalKey ||
+          activeSend.friendlyId === activeFriendlyId)
+      ) {
+        return
+      }
       cancelStreaming()
     }
   }, [activeCanonicalKey, activeFriendlyId, isNewChat, cancelStreaming])
