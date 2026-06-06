@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import {  useEffect, useMemo, useState } from 'react'
+import type {FormEvent} from 'react';
 import { usePageTitle } from '@/hooks/use-page-title'
 
 type CounterState = {
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/reserve')({
 })
 
 function ReserveRoute() {
-  usePageTitle('Reserve your HermesWorld name')
+  usePageTitle('Забронировать имя HermesWorld')
 
   const [desiredName, setDesiredName] = useState('')
   const [email, setEmail] = useState('')
@@ -75,11 +76,11 @@ function ReserveRoute() {
       })
       const payload = await response.json()
       if (!response.ok) {
-        throw new Error(payload.error || 'Reservation failed')
+        throw new Error(payload.error || 'Не удалось создать бронь')
       }
       setSubmitState({
         status: 'success',
-        message: `Reserved ${payload.reservation.desiredName}. Check ${payload.reservation.email} for the confirmation link.`,
+        message: `Имя ${payload.reservation.desiredName} забронировано. Ссылка подтверждения отправлена на ${payload.reservation.email}.`,
       })
       setDesiredName('')
       setEmail('')
@@ -91,7 +92,7 @@ function ReserveRoute() {
     } catch (error: any) {
       setSubmitState({
         status: 'error',
-        message: error?.message || 'Reservation failed',
+        message: error?.message || 'Не удалось создать бронь',
       })
     }
   }
@@ -106,38 +107,38 @@ function ReserveRoute() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 lg:grid lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
         <section className="rounded-[2rem] border border-[#d9b35f]/24 bg-[#05080e]/82 p-7 shadow-[0_40px_140px_rgba(0,0,0,.52)] backdrop-blur-2xl sm:p-9">
           <a href="/hermes-world" className="text-[11px] font-black uppercase tracking-[0.22em] text-[#d9b35f]/72 hover:text-[#f8e4ac]">
-            ← Back to HermesWorld
+            ← Назад в HermesWorld
           </a>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d9b35f]/30 bg-[#d9b35f]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-[#f8e4ac]">
-            Name reservation live
+            Бронирование имён работает
           </div>
           <h1 className="mt-5 font-serif text-4xl font-bold leading-[0.92] tracking-[-0.05em] text-[#fff6df] sm:text-6xl">
-            Reserve your HermesWorld name before accounts launch.
+            Забронируйте имя HermesWorld до запуска аккаунтов.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-[#d7d0bd]/68 sm:text-lg">
-            Lock your desired handle now. We validate duplicates, profanity, and admin/system names server-side, then email you a confirmation link so the reservation can auto-bind when the account system goes live.
+            Закрепите желаемое имя заранее. Мы проверяем дубли, запрещённые слова и системные имена на сервере, затем отправляем письмо для подтверждения.
           </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             <StatCard
-              label="Reservations"
+              label="Брони"
               value={counter.loading ? '...' : String(counter.count)}
               tone="gold"
-              subcopy={counter.error ? 'Counter temporarily unavailable' : 'Public live counter'}
+              subcopy={counter.error ? 'Счётчик временно недоступен' : 'Публичный счётчик'}
             />
-            <StatCard label="Name rules" value="3–20" tone="cyan" subcopy="Letters, numbers, underscores" />
-            <StatCard label="Confirmation" value="Email" tone="violet" subcopy="One-click verification" />
+            <StatCard label="Правила имени" value="3-20" tone="cyan" subcopy="Буквы, цифры, подчёркивание" />
+            <StatCard label="Подтверждение" value="Email" tone="violet" subcopy="Проверка одним кликом" />
           </div>
 
           <div className="mt-8 rounded-2xl border border-white/10 bg-black/24 p-5">
             <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#d9b35f]/72">
-              Reservation notes
+              Правила бронирования
             </div>
             <ul className="mt-3 space-y-2 text-sm leading-6 text-[#d7d0bd]/64">
-              <li>• Desired names must use letters, numbers, or underscores only.</li>
-              <li>• Duplicate names are rejected immediately.</li>
-              <li>• Wallet is optional today, but helps with future account linking.</li>
-              <li>• Confirmation email required before the reservation is considered locked.</li>
+              <li>• В имени можно использовать только буквы, цифры и подчёркивание.</li>
+              <li>• Дубли отклоняются сразу.</li>
+              <li>• Кошелёк сейчас необязателен, но поможет связать аккаунт после запуска.</li>
+              <li>• Бронь считается закреплённой только после подтверждения по email.</li>
             </ul>
           </div>
         </section>
@@ -146,10 +147,10 @@ function ReserveRoute() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#d9b35f]/72">
-                Reserve handle
+                Забронировать имя
               </div>
               <div className="mt-2 text-2xl font-bold text-[#fff6df]">
-                {trimmedName ? `Claim ${trimmedName}` : 'Enter your launch-day name'}
+                {trimmedName ? `Закрепить ${trimmedName}` : 'Введите имя для запуска'}
               </div>
             </div>
             <div className="rounded-full border border-cyan-200/22 bg-cyan-200/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100/82">
@@ -159,8 +160,8 @@ function ReserveRoute() {
 
           <form className="mt-8 space-y-5" onSubmit={onSubmit}>
             <Field
-              label="Desired name"
-              hint="3-20 chars • alnum + underscore"
+              label="Желаемое имя"
+              hint="3-20 символов • буквы/цифры + подчёркивание"
               value={desiredName}
               onChange={setDesiredName}
               placeholder="Atlas_Builder"
@@ -169,7 +170,7 @@ function ReserveRoute() {
             />
             <Field
               label="Email"
-              hint="We send the confirmation link here"
+              hint="Сюда придёт ссылка подтверждения"
               value={email}
               onChange={setEmail}
               placeholder="you@example.com"
@@ -178,8 +179,8 @@ function ReserveRoute() {
               type="email"
             />
             <Field
-              label="Wallet"
-              hint="Optional today — useful for launch binding"
+              label="Кошелёк"
+              hint="Необязательно сейчас — пригодится для привязки при запуске"
               value={wallet}
               onChange={setWallet}
               placeholder="0x... or wallet alias"
@@ -191,7 +192,7 @@ function ReserveRoute() {
               disabled={isDisabled}
               className="inline-flex w-full items-center justify-center rounded-xl border border-[#ffe7a3]/55 bg-[linear-gradient(180deg,#ffe7a3,#d9a63f)] px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-[#11100b] shadow-[0_30px_90px_rgba(217,179,95,.32),inset_0_1px_0_rgba(255,255,255,.32)] transition enabled:hover:-translate-y-0.5 enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isDisabled ? 'Submitting…' : 'Reserve name'}
+              {isDisabled ? 'Отправляю...' : 'Забронировать имя'}
             </button>
           </form>
 

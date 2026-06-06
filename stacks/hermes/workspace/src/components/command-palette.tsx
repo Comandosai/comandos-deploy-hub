@@ -47,9 +47,7 @@ type CommandAction = {
   label: string
   keywords: string
   shortcut?: string
-  icon: React.ComponentProps<
-    typeof import('@hugeicons/react').HugeiconsIcon
-  >['icon']
+  icon: React.ComponentProps<typeof HugeiconsIcon>['icon']
   onSelect: () => void
 }
 
@@ -522,20 +520,20 @@ export function CommandPalette({ pathname, sessions }: CommandPaletteProps) {
                     strokeWidth={1.5}
                   />
                 </span>
-                <span>Navigate</span>
+                <span>Навигация</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="rounded-md border border-primary-200 bg-surface px-2 py-1 text-[11px] font-medium text-primary-700">
                   Enter
                 </span>
-                <span>Select</span>
+                <span>Выбрать</span>
               </div>
             </div>
             <div className="flex items-center gap-2 text-primary-700">
               <span className="rounded-md border border-primary-200 bg-surface px-2 py-1 text-[11px] font-medium text-primary-700">
                 {isMacPlatform ? '⌘K' : 'Ctrl K'}
               </span>
-              <span>Toggle</span>
+              <span>Открыть/закрыть</span>
             </div>
           </CommandFooter>
         </Command>

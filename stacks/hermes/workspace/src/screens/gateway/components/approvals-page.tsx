@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchGatewayApprovals, type GatewayApprovalEntry } from '@/lib/gateway-api'
-import { cn } from '@/lib/utils'
 import type { ApprovalRequest } from '../lib/approvals-store'
+import type { GatewayApprovalEntry } from '@/lib/gateway-api'
+import { fetchGatewayApprovals } from '@/lib/gateway-api'
+import { cn } from '@/lib/utils'
 
 type ApprovalsPageProps = {
-  approvals: ApprovalRequest[]
+  approvals: Array<ApprovalRequest>
   onApprove: (id: string) => Promise<boolean> | void
   onDeny: (id: string) => Promise<boolean> | void
 }
@@ -22,15 +23,15 @@ type UnifiedApproval = {
 }
 
 function timeAgo(ms?: number): string {
-  if (!ms || !Number.isFinite(ms)) return 'unknown'
+  if (!ms || !Number.isFinite(ms)) return 'время неизвестно'
   const delta = Math.max(0, Date.now() - ms)
   const seconds = Math.floor(delta / 1000)
-  if (seconds < 60) return `${seconds}s ago`
+  if (seconds < 60) return `${seconds} сек назад`
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return `${minutes} мин назад`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return `${hours} ч назад`
+  return `${Math.floor(hours / 24)} дн назад`
 }
 
 function stringifyInput(input: unknown): string {
@@ -58,7 +59,7 @@ function toPreview(entry: GatewayApprovalEntry): string {
       : entry.action && entry.action.trim().length > 0
         ? entry.action
         : stringifyInput(entry.input)
-  return preview || 'Approval requested'
+  return preview || 'Запрошено согласование'
 }
 
 function toRisk(value: string): 'low' | 'medium' | 'high' {
@@ -78,6 +79,22 @@ function riskBadgeClass(risk: 'low' | 'medium' | 'high'): string {
   return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
 }
 
+function riskLabel(risk: 'low' | 'medium' | 'high'): string {
+  if (risk === 'high') return 'высокий'
+  if (risk === 'medium') return 'средний'
+  return 'низкий'
+}
+
+function sourceLabel(source: UnifiedApproval['source']): string {
+  return source === 'gateway' ? 'шлюз' : 'агент'
+}
+
+function approvalStatusLabel(status: ApprovalRequest['status']): string {
+  if (status === 'approved') return 'согласовано'
+  if (status === 'denied') return 'отклонено'
+  return 'ожидает'
+}
+
 function normalizeGatewayApproval(entry: GatewayApprovalEntry): UnifiedApproval | null {
   if (!entry.id) return null
   const preview = toPreview(entry)
@@ -86,7 +103,7 @@ function normalizeGatewayApproval(entry: GatewayApprovalEntry): UnifiedApproval 
     id: `gw-${entry.id}`,
     source: 'gateway',
     gatewayApprovalId: entry.id,
-    agentName: entry.agentName ?? entry.sessionKey ?? 'Gateway',
+    agentName: entry.agentName ?? entry.sessionKey ?? 'Шлюз',
     requestedAt: entry.requestedAt ?? Date.now(),
     toolName: toToolName(entry),
     commandPreview: preview,
@@ -95,8 +112,8 @@ function normalizeGatewayApproval(entry: GatewayApprovalEntry): UnifiedApproval 
 }
 
 function normalizeAgentApproval(entry: ApprovalRequest): UnifiedApproval {
-  const preview = entry.context?.trim() || entry.action
-  const toolName = entry.action.trim().split(/[\s:(]/)[0]?.slice(0, 32) || 'agent-action'
+  const preview = entry.context.trim() || entry.action
+  const toolName = entry.action.trim().split(/[\s:(]/)[0].slice(0, 32) || 'agent-action'
   return {
     key: `agent:${entry.id}`,
     id: entry.id,
@@ -110,7 +127,7 @@ function normalizeAgentApproval(entry: ApprovalRequest): UnifiedApproval {
 }
 
 export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPageProps) {
-  const [gatewayPending, setGatewayPending] = useState<GatewayApprovalEntry[]>([])
+  const [gatewayPending, setGatewayPending] = useState<Array<GatewayApprovalEntry>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [resolvingIds, setResolvingIds] = useState<Record<string, 'approve' | 'deny'>>({})
@@ -124,7 +141,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
     setGatewayPending(pending)
 
     const seen = seenIdsRef.current
-    const arrivals: string[] = []
+    const arrivals: Array<string> = []
     for (const entry of pending) {
       if (!entry.id) continue
       if (!seen.has(entry.id)) {
@@ -172,7 +189,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
     }
   }, [refreshPending])
 
-  const pendingRows = useMemo<UnifiedApproval[]>(() => {
+  const pendingRows = useMemo<Array<UnifiedApproval>>(() => {
     const normalizedGateway = gatewayPending
       .map(normalizeGatewayApproval)
       .filter((entry): entry is UnifiedApproval => Boolean(entry))
@@ -197,7 +214,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
       const ok = action === 'approve'
         ? await Promise.resolve(onApprove(row.id))
         : await Promise.resolve(onDeny(row.id))
-      if (ok === false) throw new Error('Failed to resolve approval')
+      if (ok === false) throw new Error('Не удалось обработать согласование')
 
       await refreshPending()
     } catch (err) {
@@ -217,15 +234,15 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
         <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-800 dark:bg-[var(--theme-panel,#111520)]">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Approvals</h2>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">Live gateway queue with local approval history</p>
+              <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Согласования</h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">Живая очередь шлюза и локальная история решений</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                {pendingRows.length} pending
+                {pendingRows.length} ожидает
               </span>
               <span className="rounded-full border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                Polling 2s
+                Опрос 2 сек
               </span>
             </div>
           </div>
@@ -239,7 +256,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
         <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)]">
           <section className="min-h-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-[var(--theme-panel,#111520)]">
             <div className="border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Pending Queue</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Очередь согласований</h3>
             </div>
 
             <div className="h-full max-h-full overflow-y-auto p-3 sm:p-4">
@@ -279,10 +296,10 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
                                 {row.toolName}
                               </span>
                               <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase', riskBadgeClass(row.risk))}>
-                                риск: {row.risk}
+                                риск: {riskLabel(row.risk)}
                               </span>
                               <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                                {row.source}
+                                {sourceLabel(row.source)}
                               </span>
                             </div>
                             <p className="mt-2 line-clamp-3 font-mono text-[11px] text-neutral-700 dark:text-neutral-300">
@@ -324,13 +341,13 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
 
           <section className="min-h-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-[var(--theme-panel,#111520)]">
             <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">History</h3>
-              <span className="text-[10px] text-neutral-400">From approvals store</span>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">История</h3>
+              <span className="text-[10px] text-neutral-400">Из локального журнала</span>
             </div>
 
             <div className="h-full max-h-full overflow-y-auto p-3 sm:p-4">
               {historyRows.length === 0 ? (
-                <p className="py-10 text-center text-xs text-neutral-500">No approvals resolved yet</p>
+                <p className="py-10 text-center text-xs text-neutral-500">Решений по согласованиям пока нет</p>
               ) : (
                 <div className="space-y-2">
                   {historyRows.map((entry) => {
@@ -350,7 +367,7 @@ export function ApprovalsPage({ approvals, onApprove, onDeny }: ApprovalsPagePro
                                 : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
                             )}
                           >
-                            {entry.status}
+                            {approvalStatusLabel(entry.status)}
                           </span>
                         </div>
                         <p className="mt-1 line-clamp-2 text-[11px] text-neutral-600 dark:text-neutral-400">{entry.action}</p>

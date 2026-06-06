@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { InlineApprovalCard } from './inline-approval-card'
+import { StreamingText } from './streaming-text'
+import type { HubTask } from './task-board'
+import type { ApprovalRequest } from '../lib/approvals-store'
+import type { SessionHistoryMessage } from '@/lib/gateway-api'
+import { fetchSessionHistory } from '@/lib/gateway-api'
 import { cn } from '@/lib/utils'
 import { Markdown } from '@/components/prompt-kit/markdown'
-import { fetchSessionHistory, type SessionHistoryMessage } from '@/lib/gateway-api'
-import type { HubTask } from './task-board'
-import { InlineApprovalCard } from './inline-approval-card'
-import type { ApprovalRequest } from '../lib/approvals-store'
-import { StreamingText } from './streaming-text'
 
 type OutputMessage = {
   role: 'assistant' | 'user' | 'tool'
@@ -15,7 +16,7 @@ type OutputMessage = {
 }
 
 type SessionOutputCacheEntry = {
-  messages: OutputMessage[]
+  messages: Array<OutputMessage>
   sessionEnded: boolean
   tokenCount: number
 }
@@ -26,7 +27,7 @@ const sessionOutputCache = new Map<string, SessionOutputCacheEntry>()
 export type AgentOutputPanelProps = {
   agentName: string
   sessionKey: string | null
-  tasks: HubTask[]
+  tasks: Array<HubTask>
   onClose: () => void
   onLine?: (line: string) => void
   /** Model preset id — shown in header badge e.g. 'pc1-coder', 'sonnet' */
@@ -47,13 +48,13 @@ export type AgentOutputPanelProps = {
    * the internal `messages` state. This is the Option A fix for the live
    * output panel — the parent already has the data, just pass it down.
    */
-  outputLines?: string[]
+  outputLines?: Array<string>
   /** Enable inline message input at the bottom of the output panel */
   enableMessaging?: boolean
   /** Callback when user sends a message to this agent */
   onSendMessage?: (sessionKey: string, message: string) => void
   /** Pending approval requests for this agent — shown as inline cards */
-  approvals?: ApprovalRequest[]
+  approvals?: Array<ApprovalRequest>
   /** Called when user approves an inline request */
   onApprove?: (id: string) => void
   /** Called when user denies an inline request */
@@ -169,11 +170,11 @@ function readEventRole(payload: Record<string, unknown>): 'assistant' | 'user' |
 }
 
 function upsertAssistantStream(
-  previous: OutputMessage[],
+  previous: Array<OutputMessage>,
   text: string,
   replace: boolean,
-): OutputMessage[] {
-  const last = previous[previous.length - 1]
+): Array<OutputMessage> {
+  const last = previous.at(-1)
   if (last && last.role === 'assistant' && !last.done) {
     return [
       ...previous.slice(0, -1),
@@ -183,8 +184,8 @@ function upsertAssistantStream(
   return [...previous, { role: 'assistant', content: text, timestamp: Date.now() }]
 }
 
-function appendAssistantMessage(previous: OutputMessage[], text: string): OutputMessage[] {
-  const last = previous[previous.length - 1]
+function appendAssistantMessage(previous: Array<OutputMessage>, text: string): Array<OutputMessage> {
+  const last = previous.at(-1)
   if (last && last.role === 'assistant' && !last.done) {
     // Always finalize the last in-progress assistant message with the complete text.
     // This handles providers (e.g. Gemini via OpenRouter) that emit both streaming
@@ -200,12 +201,12 @@ function appendAssistantMessage(previous: OutputMessage[], text: string): Output
   return [...previous, { role: 'assistant', content: text, timestamp: Date.now(), done: true }]
 }
 
-function trimMessages(messages: OutputMessage[]): OutputMessage[] {
+function trimMessages(messages: Array<OutputMessage>): Array<OutputMessage> {
   if (messages.length <= MAX_CACHED_MESSAGES) return messages
   return messages.slice(-MAX_CACHED_MESSAGES)
 }
 
-function appendBoundedMessage(previous: OutputMessage[], message: OutputMessage): OutputMessage[] {
+function appendBoundedMessage(previous: Array<OutputMessage>, message: OutputMessage): Array<OutputMessage> {
   // Deduplicate: skip if an identical role+content message exists in the recent tail
   const tail = previous.slice(-10)
   if (tail.some((msg) => msg.role === message.role && msg.content === message.content)) {
@@ -240,7 +241,7 @@ export function AgentOutputPanel({
   const [sendingMessage, setSendingMessage] = useState(false)
   const messageInputRef = useRef<HTMLInputElement>(null)
   const cachedInitial = readCachedSessionState(sessionKey)
-  const [messages, setMessages] = useState<OutputMessage[]>(cachedInitial?.messages ?? [])
+  const [messages, setMessages] = useState<Array<OutputMessage>>(cachedInitial?.messages ?? [])
   const [sessionEnded, setSessionEnded] = useState(cachedInitial?.sessionEnded ?? false)
   const [tokenCount, setTokenCount] = useState(cachedInitial?.tokenCount ?? 0)
   const [streamDisconnected, setStreamDisconnected] = useState(false)
@@ -378,17 +379,17 @@ export function AgentOutputPanel({
 
     // 'done' — session/run completed: add status marker
     source.addEventListener('done', (event) => {
-      let doneLabel = 'Session ended'
+      let doneLabel = 'Сессия завершена'
       if (event instanceof MessageEvent) {
         const payload = parseSsePayload(event.data as string)
         if (!payload) return
         if (!payloadMatchesSession(payload, sessionKey)) return
-        const state = readString(payload?.state).toLowerCase()
-        const error = readString(payload?.errorMessage)
+        const state = readString(payload.state).toLowerCase()
+        const error = readString(payload.errorMessage)
         if (state === 'error') {
-          doneLabel = error ? `Session ended with error: ${error}` : 'Session ended with error'
+          doneLabel = error ? `Сессия завершилась ошибкой: ${error}` : 'Сессия завершилась ошибкой'
         } else if (state === 'aborted') {
-          doneLabel = 'Session aborted'
+          doneLabel = 'Сессия прервана'
         }
       }
       setSessionEnded(true)
@@ -479,13 +480,13 @@ export function AgentOutputPanel({
       {/* Terminal output */}
       {sessionKey && streamDisconnected && !sessionEnded ? (
         <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-400">
-          <span>Stream disconnected</span>
+          <span>Поток отключился</span>
           <button
             type="button"
             onClick={handleReconnect}
             className="rounded border border-amber-400 px-2 py-0.5 text-[10px] font-semibold text-amber-600 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/40"
           >
-            Reconnect
+            Подключить заново
           </button>
         </div>
       ) : null}
@@ -525,7 +526,7 @@ export function AgentOutputPanel({
               <span className="animate-pulse text-emerald-600 dark:text-emerald-400">▊</span>
             </>
           ) : messages.length === 0 && !sessionEnded ? (
-            <p className="animate-pulse text-[var(--theme-muted)]">Waiting for response…</p>
+            <p className="animate-pulse text-[var(--theme-muted)]">Жду ответ...</p>
           ) : (
             <>
               {sortedMessages.map((msg, index) =>
@@ -544,7 +545,7 @@ export function AgentOutputPanel({
                     className="my-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm leading-6 text-blue-900 dark:border-blue-900/30 dark:bg-blue-950/20 dark:text-blue-200"
                   >
                     <div className="mb-1 flex items-center gap-2">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">You</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Вы</span>
                       <span className="text-[10px] text-[var(--theme-muted)] tabular-nums">{formatTimestamp(msg.timestamp)}</span>
                     </div>
                     <Markdown className="text-sm leading-6 text-blue-800 dark:text-blue-100 [&_p]:my-1 [&_ul]:my-2 [&_ol]:my-2">
@@ -591,10 +592,10 @@ export function AgentOutputPanel({
         // Fallback placeholder when no sessionKey
         <div className={cn('min-h-0 flex-1 overflow-y-auto rounded-lg bg-[var(--theme-card2)] p-3 font-mono text-sm leading-6 text-[var(--theme-text)]', compact ? 'min-h-0 flex-1 overflow-y-auto' : 'mt-1 min-h-[300px]')}>
           {tasks.length === 0 ? (
-            <p className="text-[var(--theme-muted)]">No dispatched tasks yet.</p>
+            <p className="text-[var(--theme-muted)]">Назначенных задач пока нет.</p>
           ) : (
             <>
-              <p className="text-[var(--theme-muted)]">$ Dispatching to {agentName}…</p>
+              <p className="text-[var(--theme-muted)]">$ Назначаю задачу агенту {agentName}...</p>
               <p className="animate-pulse text-emerald-600 dark:text-emerald-400">▊</p>
             </>
           )}
@@ -650,7 +651,7 @@ export function AgentOutputPanel({
             type="text"
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
-            placeholder={`Message ${agentName}...`}
+            placeholder={`Сообщение для ${agentName}...`}
             disabled={sendingMessage}
             className="flex-1 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-1.5 text-sm text-[var(--theme-text)] placeholder:text-[var(--theme-muted)] focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
           />
@@ -659,7 +660,7 @@ export function AgentOutputPanel({
             disabled={!messageInput.trim() || sendingMessage}
             className="shrink-0 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-sky-700 disabled:opacity-40"
           >
-            Send
+            Отправить
           </button>
         </form>
       )}
@@ -702,7 +703,7 @@ export function AgentOutputPanel({
           </span>
           {tokenCount > 0 ? (
             <span className="shrink-0 font-mono text-[10px] text-[var(--theme-muted)] tabular-nums">
-              ~{tokenCount.toLocaleString()} tok
+              ~{tokenCount.toLocaleString()} ток.
             </span>
           ) : null}
         </div>

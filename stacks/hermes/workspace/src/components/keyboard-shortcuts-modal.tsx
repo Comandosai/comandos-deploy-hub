@@ -23,7 +23,7 @@ const SHORTCUT_GROUPS = [
     ],
   },
   {
-    title: 'Chat',
+    title: 'Чат',
     items: [
       { keys: ['Enter'], label: 'Отправить сообщение' },
       { keys: ['Shift+Enter'], label: 'Новая строка' },
@@ -48,13 +48,14 @@ export function KeyboardShortcutsModal() {
         !event.ctrlKey &&
         !event.altKey
       ) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime safety
-        const tag = (event.target as HTMLElement)?.tagName?.toLowerCase()
+        const target = event.target
+        if (!(target instanceof HTMLElement)) return
+        const tag = target.tagName.toLowerCase()
 
         if (
           tag === 'input' ||
           tag === 'textarea' ||
-          (event.target as HTMLElement)?.isContentEditable
+          target.isContentEditable
         ) {
           return
         }

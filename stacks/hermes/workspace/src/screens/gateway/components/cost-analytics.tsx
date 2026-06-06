@@ -15,7 +15,7 @@ export type MissionReportEntry = {
 }
 
 export type CostAnalyticsDashboardProps = {
-  missionReports: MissionReportEntry[]
+  missionReports: Array<MissionReportEntry>
   compact?: boolean
 }
 
@@ -26,22 +26,22 @@ function estimateCost(tokens: number): number {
 }
 
 function dayKey(ts: number | string | undefined): string {
-  if (!ts) return 'unknown'
+  if (!ts) return 'без даты'
   return new Date(ts).toISOString().slice(0, 10)
 }
 
 function relativeDay(dateStr: string): string {
   const today = new Date().toISOString().slice(0, 10)
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-  if (dateStr === today) return 'Today'
-  if (dateStr === yesterday) return 'Yesterday'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  if (dateStr === today) return 'Сегодня'
+  if (dateStr === yesterday) return 'Вчера'
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('ru-RU', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
 type BarEntry = { label: string; value: number; pct: number }
 
-function CSSBarChart({ entries, unit = '', color = 'bg-accent-500' }: { entries: BarEntry[]; unit?: string; color?: string }) {
-  if (entries.length === 0) return <p className="text-xs text-neutral-400 italic">No data</p>
+function CSSBarChart({ entries, unit = '', color = 'bg-accent-500' }: { entries: Array<BarEntry>; unit?: string; color?: string }) {
+  if (entries.length === 0) return <p className="text-xs italic text-neutral-400">Нет данных</p>
   return (
     <div className="space-y-1.5">
       {entries.map((e) => (
@@ -79,12 +79,12 @@ export function CostAnalyticsDashboard({ missionReports, compact = false }: Cost
 
     const byAgent: Record<string, { tokens: number; cost: number }> = {}
     const byModel: Record<string, { tokens: number; cost: number }> = {}
-    const byDay: Record<string, { tokens: number; cost: number }> = {}
+    const byDay: Partial<Record<string, { tokens: number; cost: number }>> = {}
 
     for (const r of missionReports) {
-      const tokens = r.tokenCount ?? 0
-      const cost = r.costEstimate ?? estimateCost(tokens)
-      const ts = r.completedAt ?? 0
+      const tokens = r.tokenCount
+      const cost = r.costEstimate
+      const ts = r.completedAt
       const tsNum = typeof ts === 'string' ? new Date(ts).getTime() : ts
       const day = dayKey(ts)
 
@@ -95,16 +95,16 @@ export function CostAnalyticsDashboard({ missionReports, compact = false }: Cost
       if (tsNum > weekAgo) { weekTokens += tokens; weekCost += cost }
 
       // By agent
-      if (r.agents && r.agents.length > 0) {
+      if (r.agents.length > 0) {
         const perAgentTokens = tokens / r.agents.length
         const perAgentCost = cost / r.agents.length
         for (const m of r.agents) {
-          const name = m.name || m.id || 'unknown'
+          const name = m.name || m.id || 'без имени'
           byAgent[name] = byAgent[name] ?? { tokens: 0, cost: 0 }
           byAgent[name].tokens += perAgentTokens
           byAgent[name].cost += perAgentCost
 
-          const model = m.modelId || 'unknown'
+          const model = m.modelId || 'без модели'
           byModel[model] = byModel[model] ?? { tokens: 0, cost: 0 }
           byModel[model].tokens += perAgentTokens
           byModel[model].cost += perAgentCost
@@ -125,24 +125,24 @@ export function CostAnalyticsDashboard({ missionReports, compact = false }: Cost
 
     // Build bar entries
     const maxAgentCost = Math.max(...Object.values(byAgent).map((a) => a.cost), 0.0001)
-    const agentBars: BarEntry[] = Object.entries(byAgent)
+    const agentBars: Array<BarEntry> = Object.entries(byAgent)
       .sort((a, b) => b[1].cost - a[1].cost)
       .slice(0, 10)
       .map(([label, v]) => ({ label, value: v.cost, pct: (v.cost / maxAgentCost) * 100 }))
 
     const maxModelCost = Math.max(...Object.values(byModel).map((m) => m.cost), 0.0001)
-    const modelBars: BarEntry[] = Object.entries(byModel)
+    const modelBars: Array<BarEntry> = Object.entries(byModel)
       .sort((a, b) => b[1].cost - a[1].cost)
       .slice(0, 10)
       .map(([label, v]) => ({ label: label.split('/').pop() ?? label, value: v.cost, pct: (v.cost / maxModelCost) * 100 }))
 
     // Last 7 days
-    const days: string[] = []
+    const days: Array<string> = []
     for (let i = 6; i >= 0; i--) {
       days.push(new Date(now - i * 86400000).toISOString().slice(0, 10))
     }
     const maxDayCost = Math.max(...days.map((d) => byDay[d]?.cost ?? 0), 0.0001)
-    const dayBars: BarEntry[] = days.map((d) => ({
+    const dayBars: Array<BarEntry> = days.map((d) => ({
       label: relativeDay(d),
       value: byDay[d]?.cost ?? 0,
       pct: ((byDay[d]?.cost ?? 0) / maxDayCost) * 100,
@@ -165,20 +165,20 @@ export function CostAnalyticsDashboard({ missionReports, compact = false }: Cost
   )
   const summaryCards = compact
     ? [
-        { label: 'Tot. Mis', value: String(stats.missionCount) },
-        { label: 'Tot. Tok', value: stats.totalTokens.toLocaleString() },
-        { label: 'Tot. Cost', value: `$${stats.totalCost.toFixed(4)}` },
-        { label: 'Avg/Mis', value: `$${stats.avgCost.toFixed(4)}` },
-        { label: 'Today', value: `$${stats.todayCost.toFixed(4)}`, detail: `${stats.todayTokens.toLocaleString()} tok` },
-        { label: '7d', value: `$${stats.weekCost.toFixed(4)}`, detail: `${stats.weekTokens.toLocaleString()} tok` },
+        { label: 'Миссий', value: String(stats.missionCount) },
+        { label: 'Токенов', value: stats.totalTokens.toLocaleString() },
+        { label: 'Сумма', value: `$${stats.totalCost.toFixed(4)}` },
+        { label: 'Среднее', value: `$${stats.avgCost.toFixed(4)}` },
+        { label: 'Сегодня', value: `$${stats.todayCost.toFixed(4)}`, detail: `${stats.todayTokens.toLocaleString()} ток.` },
+        { label: '7 дней', value: `$${stats.weekCost.toFixed(4)}`, detail: `${stats.weekTokens.toLocaleString()} ток.` },
       ]
     : [
-        { label: 'Total Missions', value: String(stats.missionCount) },
-        { label: 'Total Tokens', value: stats.totalTokens.toLocaleString() },
-        { label: 'Total Cost', value: `$${stats.totalCost.toFixed(4)}` },
-        { label: 'Avg / Mission', value: `$${stats.avgCost.toFixed(4)}` },
-        { label: 'Today', value: `$${stats.todayCost.toFixed(4)}`, detail: `${stats.todayTokens.toLocaleString()} tok` },
-        { label: 'This Week', value: `$${stats.weekCost.toFixed(4)}`, detail: `${stats.weekTokens.toLocaleString()} tok` },
+        { label: 'Всего миссий', value: String(stats.missionCount) },
+        { label: 'Всего токенов', value: stats.totalTokens.toLocaleString() },
+        { label: 'Общая стоимость', value: `$${stats.totalCost.toFixed(4)}` },
+        { label: 'Среднее за миссию', value: `$${stats.avgCost.toFixed(4)}` },
+        { label: 'Сегодня', value: `$${stats.todayCost.toFixed(4)}`, detail: `${stats.todayTokens.toLocaleString()} ток.` },
+        { label: 'За неделю', value: `$${stats.weekCost.toFixed(4)}`, detail: `${stats.weekTokens.toLocaleString()} ток.` },
       ]
   const chartTitleClass = compact ? 'mb-2 text-xs font-semibold text-neutral-900 dark:text-white' : 'mb-3 text-sm font-semibold text-neutral-900 dark:text-white'
 
@@ -199,26 +199,26 @@ export function CostAnalyticsDashboard({ missionReports, compact = false }: Cost
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* By Agent */}
         <div className={CARD}>
-          <h3 className={chartTitleClass}>Cost by Agent</h3>
+          <h3 className={chartTitleClass}>Стоимость по агентам</h3>
           <CSSBarChart entries={stats.agentBars} unit="$" color="bg-violet-500" />
         </div>
 
         {/* By Model */}
         <div className={CARD}>
-          <h3 className={chartTitleClass}>Cost by Model</h3>
+          <h3 className={chartTitleClass}>Стоимость по моделям</h3>
           <CSSBarChart entries={stats.modelBars} unit="$" color="bg-sky-500" />
         </div>
 
         {/* Daily Timeline */}
         <div className={CARD}>
-          <h3 className={chartTitleClass}>Daily Cost (7d)</h3>
+          <h3 className={chartTitleClass}>Стоимость по дням (7 дней)</h3>
           <CSSBarChart entries={stats.dayBars} unit="$" color="bg-emerald-500" />
         </div>
       </div>
 
       {stats.missionCount === 0 && (
         <div className="flex items-center justify-center py-12 text-sm text-neutral-400">
-          No mission data yet. Complete some missions to see analytics.
+          Данных по миссиям пока нет. Завершите несколько миссий, чтобы увидеть аналитику.
         </div>
       )}
     </div>

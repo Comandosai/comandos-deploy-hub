@@ -5,7 +5,7 @@ type RunSnapshot = {
   duration: string
   tokenCount: number
   costEstimate: number
-  agents: string[]
+  agents: Array<string>
   startedAt: number
 }
 
@@ -48,14 +48,14 @@ function percentChange(base: number, next: number): number {
 }
 
 function compareLowerIsBetter(base: number, next: number): DeltaResult {
-  if (next === base) return { tone: 'same', arrow: '=', label: 'Same' }
+  if (next === base) return { tone: 'same', arrow: '=', label: 'Без изменений' }
   const pct = percentChange(base, next)
   if (next < base) return { tone: 'better', arrow: '↑', label: `${pct.toFixed(1)}%` }
   return { tone: 'worse', arrow: '↓', label: `${pct.toFixed(1)}%` }
 }
 
 function compareCount(base: number, next: number): DeltaResult {
-  if (next === base) return { tone: 'same', arrow: '=', label: 'Same' }
+  if (next === base) return { tone: 'same', arrow: '=', label: 'Без изменений' }
   const pct = percentChange(base, next)
   if (next > base) return { tone: 'neutral', arrow: '↑', label: `${pct.toFixed(1)}%` }
   return { tone: 'neutral', arrow: '↓', label: `${pct.toFixed(1)}%` }
@@ -71,12 +71,12 @@ function statusScore(status: string): number {
 }
 
 function compareStatus(base: string, next: string): DeltaResult {
-  if (base === next) return { tone: 'same', arrow: '=', label: 'Same' }
+  if (base === next) return { tone: 'same', arrow: '=', label: 'Без изменений' }
   const baseScore = statusScore(base)
   const nextScore = statusScore(next)
-  if (nextScore > baseScore) return { tone: 'better', arrow: '↑', label: 'Improved' }
-  if (nextScore < baseScore) return { tone: 'worse', arrow: '↓', label: 'Regressed' }
-  return { tone: 'neutral', arrow: '↑', label: 'Changed' }
+  if (nextScore > baseScore) return { tone: 'better', arrow: '↑', label: 'Лучше' }
+  if (nextScore < baseScore) return { tone: 'worse', arrow: '↓', label: 'Хуже' }
+  return { tone: 'neutral', arrow: '↑', label: 'Изменилось' }
 }
 
 function deltaClassName(tone: DeltaTone): string {
@@ -96,7 +96,7 @@ export function RunCompare({ runA, runB, onClose }: RunCompareProps) {
 
   const durationDelta: DeltaResult = durationA !== null && durationB !== null
     ? compareLowerIsBetter(durationA, durationB)
-    : { tone: 'neutral', arrow: '=', label: 'N/A' }
+    : { tone: 'neutral', arrow: '=', label: 'Нет данных' }
 
   const tokenDelta = compareLowerIsBetter(runA.tokenCount, runB.tokenCount)
   const costDelta = compareLowerIsBetter(runA.costEstimate, runB.costEstimate)
@@ -107,8 +107,8 @@ export function RunCompare({ runA, runB, onClose }: RunCompareProps) {
     <section className="w-full rounded-xl border border-primary-800 bg-primary-900 p-4">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-primary-100">Compare Runs</h3>
-          <p className="text-xs text-primary-400">Run metrics side by side</p>
+          <h3 className="text-sm font-semibold text-primary-100">Сравнение запусков</h3>
+          <p className="text-xs text-primary-400">Метрики двух запусков рядом</p>
         </div>
         <button
           type="button"
@@ -124,44 +124,44 @@ export function RunCompare({ runA, runB, onClose }: RunCompareProps) {
         <div className="min-w-[640px] space-y-2">
           <div className="grid grid-cols-[1fr_auto_1fr] gap-2">
             <div className="rounded-xl border border-primary-800 bg-primary-950 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-primary-400">Run A</p>
+              <p className="text-[11px] uppercase tracking-wide text-primary-400">Запуск A</p>
               <p className="truncate text-xs font-semibold text-primary-100">{runA.title}</p>
               <p className="truncate text-xs text-primary-300">{runA.id}</p>
             </div>
             <div />
             <div className="rounded-xl border border-primary-800 bg-primary-950 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-primary-400">Run B</p>
+              <p className="text-[11px] uppercase tracking-wide text-primary-400">Запуск B</p>
               <p className="truncate text-xs font-semibold text-primary-100">{runB.title}</p>
               <p className="truncate text-xs text-primary-300">{runB.id}</p>
             </div>
           </div>
 
           <MetricRow
-            label="Duration"
+            label="Длительность"
             leftValue={runA.duration}
             rightValue={runB.duration}
             delta={durationDelta}
           />
           <MetricRow
-            label="Token Count"
+            label="Токены"
             leftValue={runA.tokenCount.toLocaleString()}
             rightValue={runB.tokenCount.toLocaleString()}
             delta={tokenDelta}
           />
           <MetricRow
-            label="Cost"
+            label="Стоимость"
             leftValue={fmtCost(runA.costEstimate)}
             rightValue={fmtCost(runB.costEstimate)}
             delta={costDelta}
           />
           <MetricRow
-            label="Agent Count"
+            label="Агенты"
             leftValue={String(runA.agents.length)}
             rightValue={String(runB.agents.length)}
             delta={agentDelta}
           />
           <MetricRow
-            label="Status"
+            label="Статус"
             leftValue={runA.status}
             rightValue={runB.status}
             delta={statusDelta}

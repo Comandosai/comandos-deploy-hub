@@ -52,14 +52,14 @@ export function FeatureNotReady({
           <HugeiconsIcon icon={Alert02Icon} size={26} strokeWidth={1.6} />
         </div>
         <div className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-amber-300/80">
-          Upstream not ready
+          Функция пока не готова
         </div>
         <div className="mb-3 text-2xl font-extrabold">{feature}</div>
         <p className="mb-4 text-sm leading-relaxed text-white/75">{reason}</p>
         {action && (
           <p className="mb-5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left text-[12px] leading-relaxed text-white/85">
             <span className="mr-1 font-bold uppercase tracking-[0.14em] text-white/55">
-              Next:
+              Дальше:
             </span>
             {action}
           </p>

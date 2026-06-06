@@ -44,9 +44,9 @@ function categoryBadgeClass(category: LearningCategory): string {
 }
 
 function categoryLabel(category: LearningCategory): string {
-  if (category === 'success') return 'Success'
-  if (category === 'failure') return 'Failure'
-  return 'Optimization'
+  if (category === 'success') return 'Успех'
+  if (category === 'failure') return 'Ошибка'
+  return 'Оптимизация'
 }
 
 async function copyText(value: string): Promise<void> {
@@ -139,7 +139,7 @@ export function RunLearnings({ runId, runTitle, learnings, onAddLearning, onClos
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         {filteredLearnings.length === 0 ? (
           <div className="rounded-xl border border-dashed border-primary-800 bg-primary-900/60 px-4 py-8 text-center text-sm text-primary-300">
-            No learnings yet for this filter.
+            Для этого фильтра пока нет выводов.
           </div>
         ) : (
           <ol className="space-y-2">
@@ -188,7 +188,7 @@ export function RunLearnings({ runId, runTitle, learnings, onAddLearning, onClos
       <form onSubmit={handleSubmit} className="border-t border-primary-800 px-4 py-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <label className="sr-only" htmlFor="learning-category">
-            Category
+            Категория
           </label>
           <select
             id="learning-category"
@@ -196,20 +196,20 @@ export function RunLearnings({ runId, runTitle, learnings, onAddLearning, onClos
             onChange={(event) => setDraftCategory(event.target.value as LearningCategory)}
             className="h-10 rounded-lg border border-primary-700 bg-primary-900 px-3 text-sm text-primary-100 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           >
-            <option value="success">Success</option>
-            <option value="failure">Failure</option>
-            <option value="optimization">Optimization</option>
+            <option value="success">Успех</option>
+            <option value="failure">Ошибка</option>
+            <option value="optimization">Оптимизация</option>
           </select>
 
           <label className="sr-only" htmlFor="learning-text">
-            Learning text
+            Текст вывода
           </label>
           <input
             id="learning-text"
             type="text"
             value={draftText}
             onChange={(event) => setDraftText(event.target.value)}
-            placeholder="Add a reusable learning..."
+            placeholder="Добавьте вывод для повторного использования..."
             className="h-10 min-w-0 flex-1 rounded-lg border border-primary-700 bg-primary-900 px-3 text-sm text-primary-100 placeholder:text-primary-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
 
@@ -218,7 +218,7 @@ export function RunLearnings({ runId, runTitle, learnings, onAddLearning, onClos
             disabled={!draftText.trim()}
             className="h-10 rounded-lg bg-accent-500 px-4 text-sm font-semibold text-primary-950 transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Add Learning
+            Добавить вывод
           </button>
         </div>
       </form>

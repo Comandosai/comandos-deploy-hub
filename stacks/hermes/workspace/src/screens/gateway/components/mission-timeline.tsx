@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { AgentOutputPanel } from './agent-output-panel'
 import type { TeamMember } from './team-panel'
 import type { HubTask } from './task-board'
-import { AgentOutputPanel } from './agent-output-panel'
+import { cn } from '@/lib/utils'
 
 type MissionTimelineProps = {
-  tasks: HubTask[]
-  agentOutputs: Map<string, string[]>
+  tasks: Array<HubTask>
+  agentOutputs: Map<string, Array<string>>
   agentSessionMap?: Record<string, string>
   agentStatuses: Map<string, { status: string; lastSeen: number }>
   missionState: string
   missionGoal: string
-  teamMembers: TeamMember[]
+  teamMembers: Array<TeamMember>
   elapsedTime?: number
 }
 
@@ -21,9 +21,9 @@ function formatElapsed(ms?: number): string {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
-  if (hours > 0) return `${hours}h ${minutes}m`
-  if (minutes > 0) return `${minutes}m ${seconds}s`
-  return `${seconds}s`
+  if (hours > 0) return `${hours} ч ${minutes} мин`
+  if (minutes > 0) return `${minutes} мин ${seconds} сек`
+  return `${seconds} сек`
 }
 
 export function MissionTimeline({
@@ -60,7 +60,7 @@ export function MissionTimeline({
         <li className="flex items-start gap-3">
           <span className="mt-1 h-[14px] w-[14px] rounded-full bg-orange-400" />
           <div>
-            <p className="text-[16px] font-bold text-neutral-900">Mission started</p>
+            <p className="text-[16px] font-bold text-neutral-900">Миссия запущена</p>
             <p className="text-xs text-neutral-500">{new Date(startedAt).toLocaleString()}</p>
           </div>
         </li>
@@ -75,10 +75,10 @@ export function MissionTimeline({
                 <span className="mt-1 h-3 w-3 rounded-full bg-blue-500" />
                 <div className="min-w-0">
                   <p className="break-words text-base font-bold text-neutral-900">
-                    Agent dispatched: {member?.name ?? task.agentId}
+                    Агент назначен: {member?.name ?? task.agentId}
                   </p>
                   <p className="break-words text-sm text-neutral-500">
-                    {task.title} · {member?.modelId || 'Unknown model'}
+                    {task.title} · {member?.modelId || 'модель не указана'}
                   </p>
                 </div>
               </li>
@@ -99,18 +99,18 @@ export function MissionTimeline({
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate text-base font-bold text-neutral-900">{member.name}</p>
                   {isActive ? (
-                    <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-xs text-white">Active</span>
+                    <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-xs text-white">Активен</span>
                   ) : (
-                    <span className="text-sm text-neutral-400">Stopped</span>
+                    <span className="text-sm text-neutral-400">Остановлен</span>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-neutral-500">Assigned tasks: {assignedTaskCount}</p>
+                <p className="mt-1 text-sm text-neutral-500">Назначено задач: {assignedTaskCount}</p>
 
                 {isActive ? (
                   <div className="mt-2 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-50 px-3 py-2">
-                    <p className="text-sm font-semibold text-emerald-800">Agent working</p>
+                    <p className="text-sm font-semibold text-emerald-800">Агент работает</p>
                     <p className="mt-0.5 text-xs text-emerald-600">
-                      Live stream is active{status?.lastSeen ? ` · last seen ${new Date(status.lastSeen).toLocaleTimeString()}` : ''}
+                      Поток активен{status.lastSeen ? ` · последний сигнал ${new Date(status.lastSeen).toLocaleTimeString()}` : ''}
                     </p>
                   </div>
                 ) : null}
@@ -120,7 +120,7 @@ export function MissionTimeline({
                   onClick={() => setExpandedOutputs((prev) => ({ ...prev, [member.id]: !prev[member.id] }))}
                   className="mt-3 text-sm text-neutral-600"
                 >
-                  {isExpanded ? '▼ Live output' : '▶ Live output'}
+                  {isExpanded ? '▼ Живой вывод' : '▶ Живой вывод'}
                 </button>
 
                 {isExpanded ? (
@@ -136,7 +136,7 @@ export function MissionTimeline({
                     </div>
                   ) : (
                     <div className="mt-2 rounded-lg border border-neutral-200 bg-white p-2">
-                      <p className="text-[11px] text-neutral-400">Waiting for agent session...</p>
+                      <p className="text-[11px] text-neutral-400">Жду сессию агента...</p>
                     </div>
                   )
                 ) : null}
@@ -149,9 +149,9 @@ export function MissionTimeline({
           <li className="flex items-start gap-3">
             <span className="mt-1 h-3 w-3 rounded-full bg-neutral-300" />
             <div>
-              <p className="text-base font-bold text-neutral-900">Mission stopped</p>
+              <p className="text-base font-bold text-neutral-900">Миссия остановлена</p>
               <p className="text-xs text-neutral-500">
-                {completedTasks}/{totalTasks} tasks complete · total time {formatElapsed(elapsedTime)}
+                Готово задач: {completedTasks}/{totalTasks} · общее время {formatElapsed(elapsedTime)}
               </p>
             </div>
           </li>
