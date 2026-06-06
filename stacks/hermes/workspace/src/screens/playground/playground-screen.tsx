@@ -591,7 +591,7 @@ export function PlaygroundScreen() {
           playerArtifact={equippedVisuals.artifact}
           playerWeapon={equippedVisuals.weapon}
           playerHelmet={equippedVisuals.helmet}
-          portalLabel={world === 'training' ? 'Forge Gate' : 'World Portal'}
+          portalLabel={world === 'training' ? 'Ворота Кузницы' : 'Портал мира'}
           portalLocked={world === 'training' && !forgeUnlocked}
           multiplayerName={rpg.state.playerProfile.displayName || undefined}
           monsterHp={monsterHp}

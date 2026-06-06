@@ -133,7 +133,7 @@ function PlaygroundChatInner({ worldId, messages, onSend, collapsed = false, onT
                   <div key={m.id} className={`mb-1.5 rounded-lg px-1.5 py-1 ${isBot ? 'bg-purple-300/[0.035] text-white/72' : 'bg-cyan-300/[0.045]'}`}>
                     {isBot && (
                       <span className="mr-1 rounded bg-purple-400/15 px-1 py-0.5 text-[8px] font-bold uppercase tracking-[0.14em] text-purple-200">
-                        Ambient NPC
+                        Фоновый NPC
                       </span>
                     )}
                     <span className="font-semibold" style={{ color: m.color ?? 'white' }}>
@@ -158,7 +158,7 @@ function PlaygroundChatInner({ worldId, messages, onSend, collapsed = false, onT
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               maxLength={140}
-              placeholder="Press Enter to send human chat…"
+              placeholder="Enter отправит сообщение в чат..."
               className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-[12px] outline-none"
             />
             <button
@@ -166,7 +166,7 @@ function PlaygroundChatInner({ worldId, messages, onSend, collapsed = false, onT
               disabled={!draft.trim()}
               className="rounded-lg bg-cyan-300 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-black disabled:opacity-40"
             >
-              Send
+              Отправить
             </button>
           </form>
         </>

@@ -662,12 +662,12 @@ function ArenaDecor({ world }: { world: WorldDef }) {
 
 function TrainingDecor({ world }: { world: WorldDef }) {
   const labels = [
-    { text: 'Arrival Circle', pos: [-11, 2.4, 8] as [number, number, number] },
-    { text: 'Trainer’s Ring', pos: [-5, 2.4, -4] as [number, number, number] },
-    { text: 'Quartermaster Tent', pos: [-14, 2.4, -10] as [number, number, number] },
-    { text: 'Archive Podium', pos: [6, 2.4, 0] as [number, number, number] },
-    { text: 'Forge Gate', pos: [14, 2.6, -10] as [number, number, number] },
-    { text: 'Hermes Sigil', pos: [0, 4.5, 0] as [number, number, number] },
+    { text: 'Круг прибытия', pos: [-11, 2.4, 8] as [number, number, number] },
+    { text: 'Ринг наставника', pos: [-5, 2.4, -4] as [number, number, number] },
+    { text: 'Палатка снабженца', pos: [-14, 2.4, -10] as [number, number, number] },
+    { text: 'Архивный подиум', pos: [6, 2.4, 0] as [number, number, number] },
+    { text: 'Ворота Кузницы', pos: [14, 2.6, -10] as [number, number, number] },
+    { text: 'Сигил Hermes', pos: [0, 4.5, 0] as [number, number, number] },
   ]
 
   return (
@@ -1168,56 +1168,56 @@ function NpcAccessories({ role = '', color }: { role?: string; color: string }) 
 
 /* ── NPC billboard with proximity sensing ── */
 // Per-NPC ambient lines (cycles when nobody clicks them).
-const NPC_AMBIENT_LINES: Record<string, string[]> = {
+const NPC_AMBIENT_LINES: Record<string, Array<string>> = {
   athena: [
-    'Welcome, builder. The road begins here.',
-    'Hermes carries your prompts — wisely.',
-    'Memory turns moments into a story.',
+    'Добро пожаловать, создатель. Путь начинается здесь.',
+    'Hermes несёт ваши промпты — используйте это с умом.',
+    'Память превращает моменты в историю.',
   ],
   iris: [
-    'Every doc is a thread to follow.',
-    'I keep the archive. Ask, and I’ll fetch.',
+    'Каждый документ — это нить, по которой можно пройти.',
+    'Я храню архив. Спросите — и я найду.',
   ],
   pan: [
-    'Prompts harden into tools at the Forge.',
-    'Build small. Ship now. Iterate.',
+    'В Кузнице промпты становятся инструментами.',
+    'Собирайте малое. Выпускайте быстро. Улучшайте по ходу.',
   ],
   nike: [
-    'Strike with intent. Iterate with rigor.',
-    'Champions earn the field, then defend it.',
+    'Действуйте точно. Улучшайте строго.',
+    'Чемпионы сначала заслуживают поле, потом защищают его.',
   ],
   shopkeeper: [
-    'Starter kit, cheap and proud.',
-    'A blade and a cloak. That’s a beginning.',
+    'Стартовый набор: дёшево и по делу.',
+    'Клинок и плащ. Для начала достаточно.',
   ],
   hermes: [
-    'Speed is the soul of an agent.',
-    'I deliver — between thought and tool.',
+    'Скорость — душа агента.',
+    'Я доставляю смысл от мысли к инструменту.',
   ],
   chronos: [
-    'Records outlast the writer.',
-    'Time is the only honest critic.',
+    'Записи переживают автора.',
+    'Время — единственный честный критик.',
   ],
   apollo: [
-    'A song carries what code cannot.',
+    'Песня несёт то, что код не удержит.',
   ],
   artemis: [
-    'Track the signal. Ignore the noise.',
+    'Следите за сигналом. Шум игнорируйте.',
   ],
   eros: [
-    'Connection is the first protocol.',
+    'Связь — первый протокол.',
   ],
   trainer: [
-    'Form. Then power. Then speed.',
+    'Сначала форма. Потом сила. Потом скорость.',
   ],
   recruiter: [
-    'No one builds alone. Find your party.',
+    'Никто не строит в одиночку. Найдите свою команду.',
   ],
   banker: [
-    'Compound the small wins.',
+    'Складывайте маленькие победы.',
   ],
   tavernkeeper: [
-    'Rest. Trade. Listen.',
+    'Отдыхайте. Меняйтесь. Слушайте.',
   ],
 }
 
@@ -1248,6 +1248,8 @@ function NPC({
   const base = useMemo(() => new THREE.Vector3(...position), [position])
   const phase = useMemo(() => Math.random() * Math.PI * 2, [])
   const glbId = npcId || avatar
+  const lastNear = useRef(false)
+  const [isNear, setIsNear] = useState(false)
   const hasGlb = useGlbAvailable(glbId, isNear || highlight)
 
   // Ambient speech bubble — cycles every ~12-22s with NPC lore lines.
@@ -1268,8 +1270,6 @@ function NPC({
     return () => { stop = true; window.clearTimeout(initial) }
   }, [npcId, avatar])
 
-  const lastNear = useRef(false)
-  const [isNear, setIsNear] = useState(false)
   useFrame(({ clock }) => {
     if (!ref.current) return
     if (drift) {
@@ -2389,12 +2389,12 @@ function BotPlayer({
 type InteriorId = 'tavern' | 'bank' | 'smithy' | 'inn' | 'apothecary' | 'guild'
 
 const INTERIORS: Record<InteriorId, { title: string; accent: string; keeper: string; keeperNpc: string; keeperAvatar: string; keeperColor: string }> = {
-  tavern: { title: 'The Signal & Satyr Tavern', accent: '#f59e0b', keeper: 'Selene · Tavern Keeper', keeperNpc: 'tavernkeeper', keeperAvatar: 'apollo', keeperColor: '#f59e0b' },
-  bank: { title: 'Midas Memory Bank', accent: '#facc15', keeper: 'Midas · Banker', keeperNpc: 'banker', keeperAvatar: 'chronos', keeperColor: '#facc15' },
-  smithy: { title: 'Promptforge Smithy', accent: '#fb7185', keeper: 'Leonidas · Trainer', keeperNpc: 'trainer', keeperAvatar: 'nike', keeperColor: '#fb7185' },
-  inn: { title: 'Wayfarer Inn', accent: '#86efac', keeper: 'Hestia · Innkeeper', keeperNpc: 'innkeeper', keeperAvatar: 'athena', keeperColor: '#86efac' },
-  apothecary: { title: 'Eros’ Apothecary', accent: '#f472b6', keeper: 'Eros · Apothecary', keeperNpc: 'apothecary', keeperAvatar: 'eros', keeperColor: '#f472b6' },
-  guild: { title: 'Builders’ Guild Hall', accent: '#a78bfa', keeper: 'Cassia · Recruiter', keeperNpc: 'recruiter', keeperAvatar: 'athena', keeperColor: '#a78bfa' },
+  tavern: { title: 'Таверна сигнала и сатира', accent: '#f59e0b', keeper: 'Селена · Хозяйка таверны', keeperNpc: 'tavernkeeper', keeperAvatar: 'apollo', keeperColor: '#f59e0b' },
+  bank: { title: 'Банк памяти Мидаса', accent: '#facc15', keeper: 'Мидас · Банкир', keeperNpc: 'banker', keeperAvatar: 'chronos', keeperColor: '#facc15' },
+  smithy: { title: 'Кузня промптов', accent: '#fb7185', keeper: 'Леонид · Наставник', keeperNpc: 'trainer', keeperAvatar: 'nike', keeperColor: '#fb7185' },
+  inn: { title: 'Постоялый двор путника', accent: '#86efac', keeper: 'Гестия · Хозяйка двора', keeperNpc: 'innkeeper', keeperAvatar: 'athena', keeperColor: '#86efac' },
+  apothecary: { title: 'Лавка Эроса', accent: '#f472b6', keeper: 'Эрос · Алхимик', keeperNpc: 'apothecary', keeperAvatar: 'eros', keeperColor: '#f472b6' },
+  guild: { title: 'Зал гильдии строителей', accent: '#a78bfa', keeper: 'Кассия · Вербовщик', keeperNpc: 'recruiter', keeperAvatar: 'athena', keeperColor: '#a78bfa' },
 }
 
 function matchesObjectiveTarget(current: string | null, candidate: string) {
@@ -2439,7 +2439,7 @@ function DoorTrigger({
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} transparent opacity={0.8} />
       </mesh>
       <Html position={[0, 1.5, 0]} center distanceFactor={8}>
-        <div style={{padding:'3px 8px',background:'rgba(0,0,0,0.75)',color,borderRadius:6,fontSize:11,fontWeight:800,whiteSpace:'nowrap',border:`1px solid ${color}`}}>Enter {label}</div>
+        <div style={{padding:'3px 8px',background:'rgba(0,0,0,0.75)',color,borderRadius:6,fontSize:11,fontWeight:800,whiteSpace:'nowrap',border:`1px solid ${color}`}}>Войти: {label}</div>
       </Html>
     </group>
   )
@@ -2489,17 +2489,17 @@ function InteriorScene({
       <NPC npcId={info.keeperNpc} position={[0, 0, -3.8]} avatar={info.keeperAvatar} name={info.keeper} color={info.keeperColor} drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
       {id === 'tavern' && (
         <>
-          <NPC npcId="apollo" position={[-4.5, 0, 1.5]} avatar="apollo" name="Apollo · Bard" color="#f59e0b" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
-          <NPC npcId="iris" position={[4.5, 0, 1.2]} avatar="iris" name="Iris · Messenger" color="#22d3ee" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
+          <NPC npcId="apollo" position={[-4.5, 0, 1.5]} avatar="apollo" name="Аполлон · Бард" color="#f59e0b" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
+          <NPC npcId="iris" position={[4.5, 0, 1.2]} avatar="iris" name="Ирида · Вестник" color="#22d3ee" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
         </>
       )}
-      {id === 'bank' && <NPC npcId="chronos" position={[-4.5, 0, 1.2]} avatar="chronos" name="Chronos · Archivist" color="#facc15" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
-      {id === 'smithy' && <NPC npcId="pan" position={[4.4, 0, 1.3]} avatar="pan" name="Pan · Toolwright" color="#34d399" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
-      {id === 'inn' && <NPC npcId="apollo" position={[4.4, 0, 1.5]} avatar="apollo" name="Apollo · Bard at Rest" color="#f59e0b" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
-      {id === 'apothecary' && <NPC npcId="chronos" position={[-4.4, 0, 1.5]} avatar="chronos" name="Chronos · Lab Notes" color="#facc15" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
+      {id === 'bank' && <NPC npcId="chronos" position={[-4.5, 0, 1.2]} avatar="chronos" name="Хронос · Архивариус" color="#facc15" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
+      {id === 'smithy' && <NPC npcId="pan" position={[4.4, 0, 1.3]} avatar="pan" name="Пан · Мастер инструментов" color="#34d399" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
+      {id === 'inn' && <NPC npcId="apollo" position={[4.4, 0, 1.5]} avatar="apollo" name="Аполлон · Бард на отдыхе" color="#f59e0b" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
+      {id === 'apothecary' && <NPC npcId="chronos" position={[-4.4, 0, 1.5]} avatar="chronos" name="Хронос · Лабораторные заметки" color="#facc15" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />}
       {id === 'guild' && <>
-        <NPC npcId="nike" position={[-4.4, 0, 1.5]} avatar="nike" name="Nike · Raid Captain" color="#fb7185" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
-        <NPC npcId="hermes" position={[4.4, 0, 1.5]} avatar="hermes" name="Hermes · Guildmaster" color="#2dd4bf" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
+        <NPC npcId="nike" position={[-4.4, 0, 1.5]} avatar="nike" name="Ника · Командир рейда" color="#fb7185" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
+        <NPC npcId="hermes" position={[4.4, 0, 1.5]} avatar="hermes" name="Hermes · Глава гильдии" color="#2dd4bf" drift={false} playerRef={playerRef} onNearChange={onNpcNearChange} />
       </>}
 
       <ExitTrigger playerRef={playerRef} onExit={onExit} accent={info.accent} />
@@ -2925,57 +2925,57 @@ function Scene({
       {/* NPCs per world */}
       {worldId === 'training' && (
         <>
-          <NPC npcId="athena" position={[-10.5, 0, 7.2]} avatar="athena" name="Athena · Guide" color={NPC_COLORS.athena} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('athena')} />
-          <NPC npcId="iris" position={[6.2, 0, 0.4]} avatar="iris" name="Iris · Archivist" color={NPC_COLORS.iris} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('archive-podium')} />
-          <NPC npcId="pan" position={[11.2, 0, -7.5]} avatar="pan" name="Pan · Forge Guide" color={NPC_COLORS.pan} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('build-demo')} />
-          <NPC npcId="nike" position={[-4.8, 0, -4.8]} avatar="nike" name="Leonidas · Trainer" color={NPC_COLORS.nike} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="shopkeeper" position={[-14.5, 0, -10.2]} avatar="iris" name="Dorian · Quartermaster" color={NPC_COLORS.shopkeeper} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('training-blade') || isHighlighted('novice-cloak') || isHighlighted('hermes-sigil')} />
+          <NPC npcId="athena" position={[-10.5, 0, 7.2]} avatar="athena" name="Афина · Наставник" color={NPC_COLORS.athena} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('athena')} />
+          <NPC npcId="iris" position={[6.2, 0, 0.4]} avatar="iris" name="Ирида · Архивариус" color={NPC_COLORS.iris} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('archive-podium')} />
+          <NPC npcId="pan" position={[11.2, 0, -7.5]} avatar="pan" name="Пан · Проводник Кузницы" color={NPC_COLORS.pan} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('build-demo')} />
+          <NPC npcId="nike" position={[-4.8, 0, -4.8]} avatar="nike" name="Леонид · Наставник" color={NPC_COLORS.nike} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="shopkeeper" position={[-14.5, 0, -10.2]} avatar="iris" name="Дориан · Снабженец" color={NPC_COLORS.shopkeeper} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} highlight={isHighlighted('training-blade') || isHighlighted('novice-cloak') || isHighlighted('hermes-sigil')} />
         </>
       )}
       {worldId === 'agora' && (
         <>
-          <NPC npcId="athena" position={[-5, 0, 2]} avatar="athena" name="Athena · Sage" color={NPC_COLORS.athena} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="apollo" position={[5, 0, 3]} avatar="apollo" name="Apollo · Bard" color={NPC_COLORS.apollo} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="iris" position={[-3, 0, -5]} avatar="iris" name="Iris · Messenger" color={NPC_COLORS.iris} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="nike" position={[6, 0, -4]} avatar="nike" name="Nike · Champion" color={NPC_COLORS.nike} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="shopkeeper" position={[-3, 0, 9.5]} avatar="iris" name="Dorian · Quartermaster" color={NPC_COLORS.shopkeeper} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="trainer" position={[-12, 0, 5.7]} avatar="nike" name="Leonidas · Trainer" color={NPC_COLORS.trainer} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="banker" position={[15.3, 0, 7.5]} avatar="chronos" name="Midas · Banker" color={NPC_COLORS.banker} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="recruiter" position={[-1.2, 0, -15.5]} avatar="athena" name="Cassia · Recruiter" color={NPC_COLORS.recruiter} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="tavernkeeper" position={[2, 0, 15.5]} avatar="apollo" name="Selene · Tavern" color={NPC_COLORS.tavernkeeper} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <DoorTrigger position={[2, 0, 16.4]} label="Tavern" color="#f59e0b" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([2, 0, 16.7]); setInterior('tavern') }} />
-          <DoorTrigger position={[15.7, 0, 8.5]} label="Bank" color="#facc15" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([15.7, 0, 8.8]); setInterior('bank') }} />
-          <DoorTrigger position={[-12.7, 0, -13.9]} label="Smithy" color="#fb7185" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([-12.7, 0, -13.5]); setInterior('smithy') }} />
-          <DoorTrigger position={[-16.4, 0, 8.5]} label="Inn" color="#86efac" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([-16.4, 0, 8.8]); setInterior('inn') }} />
-          <DoorTrigger position={[12.7, 0, -13.9]} label="Apothecary" color="#f472b6" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([12.7, 0, -13.5]); setInterior('apothecary') }} />
-          <DoorTrigger position={[-1.2, 0, -19.2]} label="Guild Hall" color="#a78bfa" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([-1.2, 0, -18.7]); setInterior('guild') }} />
+          <NPC npcId="athena" position={[-5, 0, 2]} avatar="athena" name="Афина · Мудрец" color={NPC_COLORS.athena} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="apollo" position={[5, 0, 3]} avatar="apollo" name="Аполлон · Бард" color={NPC_COLORS.apollo} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="iris" position={[-3, 0, -5]} avatar="iris" name="Ирида · Вестник" color={NPC_COLORS.iris} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="nike" position={[6, 0, -4]} avatar="nike" name="Ника · Чемпион" color={NPC_COLORS.nike} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="shopkeeper" position={[-3, 0, 9.5]} avatar="iris" name="Дориан · Снабженец" color={NPC_COLORS.shopkeeper} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="trainer" position={[-12, 0, 5.7]} avatar="nike" name="Леонид · Наставник" color={NPC_COLORS.trainer} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="banker" position={[15.3, 0, 7.5]} avatar="chronos" name="Мидас · Банкир" color={NPC_COLORS.banker} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="recruiter" position={[-1.2, 0, -15.5]} avatar="athena" name="Кассия · Вербовщик" color={NPC_COLORS.recruiter} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="tavernkeeper" position={[2, 0, 15.5]} avatar="apollo" name="Селена · Таверна" color={NPC_COLORS.tavernkeeper} drift={false} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <DoorTrigger position={[2, 0, 16.4]} label="Таверна" color="#f59e0b" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([2, 0, 16.7]); setInterior('tavern') }} />
+          <DoorTrigger position={[15.7, 0, 8.5]} label="Банк" color="#facc15" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([15.7, 0, 8.8]); setInterior('bank') }} />
+          <DoorTrigger position={[-12.7, 0, -13.9]} label="Кузня" color="#fb7185" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([-12.7, 0, -13.5]); setInterior('smithy') }} />
+          <DoorTrigger position={[-16.4, 0, 8.5]} label="Постоялый двор" color="#86efac" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([-16.4, 0, 8.8]); setInterior('inn') }} />
+          <DoorTrigger position={[12.7, 0, -13.9]} label="Лавка алхимика" color="#f472b6" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([12.7, 0, -13.5]); setInterior('apothecary') }} />
+          <DoorTrigger position={[-1.2, 0, -19.2]} label="Зал гильдии" color="#a78bfa" playerRef={playerPos} onEnter={() => { moveTarget.current = null; setOutsideSpawn([-1.2, 0, -18.7]); setInterior('guild') }} />
         </>
       )}
       {worldId === 'forge' && (
         <>
-          <NPC npcId="pan" position={[-4, 0, 0]} avatar="pan" name="Pan · Hacker" color={NPC_COLORS.pan} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="chronos" position={[4, 0, 0]} avatar="chronos" name="Chronos · Architect" color={NPC_COLORS.chronos} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="pan" position={[-4, 0, 0]} avatar="pan" name="Пан · Хакер" color={NPC_COLORS.pan} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="chronos" position={[4, 0, 0]} avatar="chronos" name="Хронос · Архитектор" color={NPC_COLORS.chronos} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
         </>
       )}
       {worldId === 'grove' && (
         <>
-          <NPC npcId="pan" position={[-4, 0, 1]} avatar="pan" name="Pan · Druid" color={NPC_COLORS.pan} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="apollo" position={[4, 0, 0]} avatar="apollo" name="Apollo · Songkeeper" color={NPC_COLORS.apollo} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="artemis" position={[0, 0, -5]} avatar="artemis" name="Artemis · Tracker" color={NPC_COLORS.artemis} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="pan" position={[-4, 0, 1]} avatar="pan" name="Пан · Друид" color={NPC_COLORS.pan} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="apollo" position={[4, 0, 0]} avatar="apollo" name="Аполлон · Хранитель песен" color={NPC_COLORS.apollo} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="artemis" position={[0, 0, -5]} avatar="artemis" name="Артемида · Следопыт" color={NPC_COLORS.artemis} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
         </>
       )}
       {worldId === 'oracle' && (
         <>
-          <NPC npcId="athena" position={[-3, 0, -2]} avatar="athena" name="Athena · Oracle" color={NPC_COLORS.athena} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="chronos" position={[3, 0, -2]} avatar="chronos" name="Chronos · Archivist" color={NPC_COLORS.chronos} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="eros" position={[0, 0, 4]} avatar="eros" name="Eros · Whisperer" color={NPC_COLORS.eros} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="athena" position={[-3, 0, -2]} avatar="athena" name="Афина · Оракул" color={NPC_COLORS.athena} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="chronos" position={[3, 0, -2]} avatar="chronos" name="Хронос · Архивариус" color={NPC_COLORS.chronos} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="eros" position={[0, 0, 4]} avatar="eros" name="Эрос · Шёпот" color={NPC_COLORS.eros} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
         </>
       )}
       {worldId === 'arena' && (
         <>
-          <NPC npcId="nike" position={[-3, 0, 4]} avatar="nike" name="Nike · Champion" color={NPC_COLORS.nike} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="hermes" position={[3, 0, 4]} avatar="hermes" name="Hermes · Referee" color={NPC_COLORS.hermes} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
-          <NPC npcId="chronos" position={[0, 0, -5]} avatar="chronos" name="Chronos · Bookmaker" color={NPC_COLORS.chronos} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="nike" position={[-3, 0, 4]} avatar="nike" name="Ника · Чемпион" color={NPC_COLORS.nike} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="hermes" position={[3, 0, 4]} avatar="hermes" name="Hermes · Судья" color={NPC_COLORS.hermes} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
+          <NPC npcId="chronos" position={[0, 0, -5]} avatar="chronos" name="Хронос · Букмекер" color={NPC_COLORS.chronos} playerRef={playerPos} onNearChange={handleNearChange} onClickNpc={onClickNpc} />
         </>
       )}
 
@@ -2993,8 +2993,8 @@ function Scene({
       {/* Quest zones per world */}
       {worldId === 'training' && (
         <>
-          <QuestZone position={[6, 0, 0]} color="#a78bfa" label="Archive Podium" onEnter={() => onQuestZone('archive-podium')} playerRef={playerPos} highlight={isHighlighted('archive-podium')} />
-          <QuestZone position={[14, 0, -10]} color="#22d3ee" label="Forge Gate" onEnter={() => onQuestZone('forge-gate')} playerRef={playerPos} highlight={isHighlighted('forge-gate')} />
+          <QuestZone position={[6, 0, 0]} color="#a78bfa" label="Архивный подиум" onEnter={() => onQuestZone('archive-podium')} playerRef={playerPos} highlight={isHighlighted('archive-podium')} />
+          <QuestZone position={[14, 0, -10]} color="#22d3ee" label="Ворота Кузницы" onEnter={() => onQuestZone('forge-gate')} playerRef={playerPos} highlight={isHighlighted('forge-gate')} />
           <Monster
             position={[-4.8, 0.95, -4]}
             color="#f472b6"
@@ -3006,19 +3006,19 @@ function Scene({
         </>
       )}
       {worldId === 'agora' && (
-        <QuestZone position={[-8, 0, -3]} color="#facc15" label="Athena's Scroll" onEnter={() => onQuestZone('awakening-agora')} playerRef={playerPos} />
+        <QuestZone position={[-8, 0, -3]} color="#facc15" label="Свиток Афины" onEnter={() => onQuestZone('awakening-agora')} playerRef={playerPos} />
       )}
       {worldId === 'forge' && (
-        <QuestZone position={[0, 0, -7]} color="#22d3ee" label="Forge Shard" onEnter={() => onQuestZone('enter-forge')} playerRef={playerPos} />
+        <QuestZone position={[0, 0, -7]} color="#22d3ee" label="Осколок Кузницы" onEnter={() => onQuestZone('enter-forge')} playerRef={playerPos} />
       )}
       {worldId === 'grove' && (
-        <QuestZone position={[-6, 0, -4]} color="#34d399" label="Song of the Grove" onEnter={() => onQuestZone('grove-ritual')} playerRef={playerPos} />
+        <QuestZone position={[-6, 0, -4]} color="#34d399" label="Песня Рощи" onEnter={() => onQuestZone('grove-ritual')} playerRef={playerPos} />
       )}
       {worldId === 'oracle' && (
-        <QuestZone position={[5, 0, -3]} color="#a78bfa" label="Oracle's Riddle" onEnter={() => onQuestZone('oracle-riddle')} playerRef={playerPos} />
+        <QuestZone position={[5, 0, -3]} color="#a78bfa" label="Загадка Оракула" onEnter={() => onQuestZone('oracle-riddle')} playerRef={playerPos} />
       )}
       {worldId === 'arena' && (
-        <QuestZone position={[0, 0, 0]} color="#fb7185" label="Enter the Duel" onEnter={() => onQuestZone('arena-duel')} playerRef={playerPos} />
+        <QuestZone position={[0, 0, 0]} color="#fb7185" label="Войти в дуэль" onEnter={() => onQuestZone('arena-duel')} playerRef={playerPos} />
       )}
 
       <Suspense fallback={null}>

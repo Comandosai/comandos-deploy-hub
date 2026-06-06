@@ -637,12 +637,12 @@ export function ScatteredScenery({
       }
 
       // Buildings around the plaza like a small town — signed roles create districts
-      out.push({ type: 'building', pos: [-13, 0, -15], color: '#e8d4a8', roofColor: '#b91c1c', sign: 'Smithy' } as any)
-      out.push({ type: 'building', pos: [13, 0, -15], color: '#f5deb3', roofColor: '#1d4ed8', sign: 'Apothecary' } as any)
-      out.push({ type: 'building', pos: [-17, 0, 9], color: '#deb887', roofColor: '#92400e', sign: 'Inn' } as any)
-      out.push({ type: 'building', pos: [17, 0, 9], color: '#e8d4a8', roofColor: '#b91c1c', sign: 'Bank' } as any)
-      out.push({ type: 'building', pos: [-2, 0, -19], color: '#f3e1bb', roofColor: '#1d4ed8', sign: 'Guild' } as any)
-      out.push({ type: 'building', pos: [2, 0, 18], color: '#f3e1bb', roofColor: '#b91c1c', sign: 'Tavern' } as any)
+      out.push({ type: 'building', pos: [-13, 0, -15], color: '#e8d4a8', roofColor: '#b91c1c', sign: 'Кузня' } as any)
+      out.push({ type: 'building', pos: [13, 0, -15], color: '#f5deb3', roofColor: '#1d4ed8', sign: 'Алхимик' } as any)
+      out.push({ type: 'building', pos: [-17, 0, 9], color: '#deb887', roofColor: '#92400e', sign: 'Двор' } as any)
+      out.push({ type: 'building', pos: [17, 0, 9], color: '#e8d4a8', roofColor: '#b91c1c', sign: 'Банк' } as any)
+      out.push({ type: 'building', pos: [-2, 0, -19], color: '#f3e1bb', roofColor: '#1d4ed8', sign: 'Гильдия' } as any)
+      out.push({ type: 'building', pos: [2, 0, 18], color: '#f3e1bb', roofColor: '#b91c1c', sign: 'Таверна' } as any)
 
       // Market street: stalls + merchants behind them
       const stallSetup: { stall: [number, number, number]; merchant: [number, number, number]; mColor: string; mRot: number; awning: string }[] = [
