@@ -29,9 +29,9 @@ import type {
   AgentStatusBubble,
 } from './agent-card'
 import type { ActiveAgent } from '@/hooks/use-agent-view'
+import type { AgentCardStatus } from '@/components/agent-card'
 import { AgentChatModal } from '@/components/agent-chat/AgentChatModal'
 import { AgentCard as MiniAgentCard } from '@/components/agent-card'
-import type { AgentCardStatus } from '@/components/agent-card'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -241,11 +241,11 @@ function ocParseContextPct(payload: unknown): number {
     (root.totals as Record<string, unknown> | undefined) ??
     root
   return ocReadPercent(
-    (usage as Record<string, unknown>)?.contextPercent ??
-      (usage as Record<string, unknown>)?.context_percent ??
-      (usage as Record<string, unknown>)?.context ??
-      root?.contextPercent ??
-      root?.context_percent,
+    usage.contextPercent ??
+      usage.context_percent ??
+      usage.context ??
+      root.contextPercent ??
+      root.context_percent,
   )
 }
 
@@ -307,7 +307,6 @@ function OrchestratorCard({
       (p) => p.provider === preferredProvider,
     )
     const next = okProviders[(currentIdx + 1) % okProviders.length]
-    if (!next) return
     setPreferredProvider(next.provider)
     try {
       localStorage.setItem(PREFERRED_PROVIDER_KEY_OC, next.provider)
@@ -322,6 +321,7 @@ function OrchestratorCard({
 
   useEffect(() => {
     let cancelled = false
+    const isCancelled = () => cancelled
     async function fetchAll() {
       let modelFound = false
       try {
@@ -331,7 +331,7 @@ function OrchestratorCard({
           const data = await res.json()
           const payload = data.payload ?? data
           const m = readConfigModelLabel(payload)
-          if (!cancelled && m) {
+          if (!isCancelled() && m) {
             modelFound = true
             setModel(m)
           }
@@ -342,21 +342,21 @@ function OrchestratorCard({
               payload.label ??
               '',
           )
-          if (!cancelled && sn) setSessionName(sn)
+          if (!isCancelled() && sn) setSessionName(sn)
           const pct = ocParseContextPct(payload)
-          if (!cancelled) setContextPct(Math.min(100, Math.round(pct)))
+          if (!isCancelled()) setContextPct(Math.min(100, Math.round(pct)))
         }
       } catch {
         /* noop */
       }
 
       try {
-        if (!cancelled && !modelFound) {
+        if (!isCancelled() && !modelFound) {
           const res = await fetch('/api/claude-config')
-          if (res.ok && !cancelled) {
+          if (res.ok && !isCancelled()) {
             const data = await res.json()
             const fallbackModel = readConfigModelLabel(data)
-            if (!cancelled && fallbackModel) setModel(fallbackModel)
+            if (!isCancelled() && fallbackModel) setModel(fallbackModel)
           }
         }
       } catch {
@@ -366,14 +366,14 @@ function OrchestratorCard({
       try {
         // provider-usage: all bars
         const res2 = await fetch('/api/provider-usage')
-        if (!res2.ok || cancelled) return
+        if (!res2.ok || isCancelled()) return
         const data2 = (await res2.json().catch(() => null)) as {
           ok?: boolean
           providers?: Array<OcProviderEntry>
         } | null
-        if (!data2?.providers || cancelled) return
+        if (!data2?.providers || isCancelled()) return
 
-        if (!cancelled) {
+        if (!isCancelled()) {
           setAllOcProviders(data2.providers)
           updateUsageRowsFromProviders(data2.providers, preferredProvider)
         }
@@ -389,7 +389,6 @@ function OrchestratorCard({
       clearInterval(timer)
       if (flashTimerRefOc.current) clearTimeout(flashTimerRefOc.current)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferredProvider])
 
   const displayName = agentName || sessionName || 'Агент'
@@ -442,9 +441,9 @@ function OrchestratorCard({
     meta: 'https://cdn.simpleicons.org/meta',
     nvidia: 'https://cdn.simpleicons.org/nvidia',
   }
-  function getProviderLogoUrl(label: string | null): string | null {
-    if (!label) return null
-    const key = label.toLowerCase()
+  function getProviderLogoUrl(providerName: string | null): string | null {
+    if (!providerName) return null
+    const key = providerName.toLowerCase()
     for (const [k, v] of Object.entries(PROVIDER_LOGO_URLS)) {
       if (key.includes(k)) return v
     }
@@ -857,7 +856,6 @@ export function AgentViewPanel() {
   const activeNodeIds = useMemo(
     () => activeNodes.map((node) => node.id),
     // Stabilize: only recompute when the sorted id string changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeNodes.map((n) => n.id).join(',')],
   )
   const agentSpawn = useAgentSpawn(activeNodeIds)
@@ -883,7 +881,7 @@ export function AgentViewPanel() {
     [activeNodes, agentSpawn],
   )
 
-  const updateSourceBubbleRect = useCallback(function updateSourceBubbleRect() {
+  const updateSourceBubbleRect = useCallback(() => {
     if (typeof document === 'undefined') return
     const element = getLastUserMessageBubbleElement()
     if (!element) {
