@@ -49,6 +49,7 @@ import {
   isRecentSession,
   resetPendingSend,
   setPendingGeneration,
+  stashPendingSend,
 } from './pending-send'
 import { useChatMeasurements } from './hooks/use-chat-measurements'
 import { useChatHistory } from './hooks/use-chat-history'
@@ -2351,19 +2352,31 @@ export function ChatScreen({
           })
         }
 
-        sendMessage(
-          threadId,
-          threadId,
-          trimmedBody,
-          attachmentPayload,
-          fastMode,
-          true,
+        const optimisticClientId =
           typeof optimisticMessage.clientId === 'string'
             ? optimisticMessage.clientId
-            : '',
-        )
-        // In portable mode, navigate to /chat/main instead of UUID
-        if (!embedded) {
+            : ''
+
+        if (embedded) {
+          sendMessage(
+            threadId,
+            threadId,
+            trimmedBody,
+            attachmentPayload,
+            fastMode,
+            true,
+            optimisticClientId,
+          )
+        } else {
+          stashPendingSend({
+            sessionKey: threadId,
+            friendlyId: threadId,
+            message: trimmedBody,
+            attachments: attachmentPayload,
+            optimisticMessage,
+          })
+          // In portable mode, navigate to /chat/main instead of UUID and start
+          // the stream from the mounted target route to avoid aborting fetch.
           navigate({
             to: '/chat/$sessionKey',
             params: { sessionKey: threadId },
