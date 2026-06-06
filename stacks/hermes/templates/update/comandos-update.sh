@@ -241,6 +241,24 @@ backup_workspace() {
     "$REMOTE_WORKSPACE_DIR/" "$backup/" || true
 }
 
+prune_workspace_backups() {
+  local keep="${1:-6}"
+  [[ -d "$REMOTE_BASE_DIR/backups" ]] || return 0
+
+  find "$REMOTE_BASE_DIR/backups" \
+    -maxdepth 1 \
+    -mindepth 1 \
+    -type d \
+    -name 'workspace-update-*' \
+    -printf '%T@ %p\n' 2>/dev/null |
+    sort -rn |
+    awk -v keep="$keep" 'NR > keep { sub(/^[^ ]+ /, ""); print }' |
+    while IFS= read -r backup_path; do
+      [[ -n "$backup_path" ]] || continue
+      rm -rf -- "$backup_path"
+    done
+}
+
 validate_workspace_build() {
   local server_dir="$REMOTE_WORKSPACE_DIR/dist/server"
   local server_entry="$server_dir/server.js"
@@ -253,9 +271,10 @@ validate_workspace_build() {
     die "сборка панели повреждена: найдено пустых JS-файлов: $zero_count"
   fi
 
+  local check_log="$tmp_dir/comandos-workspace-node-check.log"
   if ! find "$server_dir" -name '*.js' -print0 \
-    | xargs -0 -r -n 1 node --check >/tmp/comandos-workspace-node-check.log 2>&1; then
-    cat /tmp/comandos-workspace-node-check.log >&2 || true
+    | xargs -0 -r -n 1 node --check >"$check_log" 2>&1; then
+    cat "$check_log" >&2 || true
     die "сборка панели повреждена: node --check не прошёл"
   fi
 }
@@ -265,11 +284,13 @@ update_workspace() {
   assert_workspace_not_downgrade
   ensure_workspace_runtime_deps
   mkdir -p "$REMOTE_BASE_DIR/backups" "$REMOTE_WORKSPACE_DIR"
+  prune_workspace_backups 6
   if [[ -d "$REMOTE_WORKSPACE_DIR" ]]; then
     backup="$REMOTE_BASE_DIR/backups/workspace-update-$(date +%Y%m%d%H%M%S)"
     mkdir -p "$backup"
     backup_workspace "$backup"
     log "Backup: $backup"
+    prune_workspace_backups 6
   fi
 
   rm -rf "$REMOTE_WORKSPACE_DIR/node_modules" "$REMOTE_WORKSPACE_DIR/dist" "$REMOTE_WORKSPACE_DIR/logs"
