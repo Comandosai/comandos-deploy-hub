@@ -12,8 +12,8 @@ import {
 } from 'recharts'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  ChartLineData01Icon,
   CancelIcon,
+  ChartLineData01Icon,
 } from '@hugeicons/core-free-icons'
 import type { DashboardOverview } from '@/server/dashboard-aggregator'
 import { formatModelName } from '@/screens/dashboard/lib/formatters'
@@ -332,7 +332,7 @@ function PeriodSwitch({
       className="inline-flex items-center overflow-hidden rounded border"
       style={{ borderColor: 'var(--theme-border)' }}
       role="tablist"
-      aria-label="Analytics period"
+      aria-label="Период аналитики"
     >
       {PERIODS.map((p) => {
         const active = p === value

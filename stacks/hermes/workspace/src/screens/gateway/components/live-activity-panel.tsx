@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import type { AgentWorkingRow, AgentWorkingStatus } from './agents-working-panel'
 import { AgentOutputPanel } from './agent-output-panel'
+import type { AgentWorkingRow, AgentWorkingStatus } from './agents-working-panel'
 import type { HubTask } from './task-board'
+import { cn } from '@/lib/utils'
 
 export type LiveActivityPanelProps = {
-  agents: AgentWorkingRow[]
+  agents: Array<AgentWorkingRow>
   selectedAgentId?: string
   sessionKeyByAgentId: Record<string, string>
-  tasksByAgentId: Record<string, HubTask[]>
+  tasksByAgentId: Record<string, Array<HubTask>>
   onViewAgent: (agentId: string) => void
   onKillAgent: (agentId: string) => void
   onRespawnAgent: (agentId: string) => void
@@ -153,7 +153,7 @@ function AgentCard({
               : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-200',
           )}
         >
-          {isSelected ? '✓ Viewing' : 'View'}
+          {isSelected ? '✓ Открыто' : 'Открыть'}
         </button>
 
         {/* ⋯ Overflow menu — warden controls */}
@@ -165,7 +165,7 @@ function AgentCard({
               setMenuOpen((p) => !p)
             }}
             className="rounded-lg px-2 py-1 text-[13px] text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
-            aria-label="Agent options"
+            aria-label="Действия агента"
           >
             ⋯
           </button>
@@ -188,7 +188,7 @@ function AgentCard({
                   }}
                   className="block w-full px-3 py-1.5 text-left text-[11px] text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                 >
-                  View Output
+                  Открыть вывод
                 </button>
                 {agent.status === 'error' ? (
                   <button
@@ -199,14 +199,14 @@ function AgentCard({
                     }}
                     className="block w-full px-3 py-1.5 text-left text-[11px] text-amber-600 transition-colors hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20"
                   >
-                    Respawn
+                    Перезапустить
                   </button>
                 ) : null}
                 {agent.status !== 'none' && agent.status !== 'error' ? (
                   <>
                     <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
                     <p className="px-3 pb-0.5 pt-1 text-[9px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-600">
-                      Warden
+                      Управление
                     </p>
                     <button
                       type="button"
@@ -214,7 +214,7 @@ function AgentCard({
                         setMenuOpen(false)
                         if (!onSteer) return
                         const directive = window.prompt(
-                          `Send directive to ${agent.name}`,
+                          `Отправить директиву агенту ${agent.name}`,
                           '',
                         )
                         if (!directive || !directive.trim()) return
@@ -222,7 +222,7 @@ function AgentCard({
                       }}
                       className="block w-full px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                     >
-                      Steer
+                      Директива
                     </button>
                     <button
                       type="button"
@@ -232,7 +232,7 @@ function AgentCard({
                       }}
                       className="block w-full px-3 py-1.5 text-left text-[11px] text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                     >
-                      {agent.status === 'paused' ? 'Resume' : 'Pause'}
+                      {agent.status === 'paused' ? 'Возобновить' : 'Пауза'}
                     </button>
                   </>
                 ) : null}
@@ -245,7 +245,7 @@ function AgentCard({
                   }}
                   className="block w-full px-3 py-1.5 text-left text-[11px] text-red-500 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/20"
                 >
-                  Kill session
+                  Завершить сессию
                 </button>
               </div>
             </>
@@ -309,12 +309,12 @@ export function LiveActivityPanel({
     }
     if (activeCount > 0) {
       return (
-        <span className="font-mono text-[9px] text-emerald-500">{activeCount} active</span>
+        <span className="font-mono text-[9px] text-emerald-500">Активно: {activeCount}</span>
       )
     }
     return (
       <span className="font-mono text-[9px] text-neutral-500">
-        {agents.length} agent{agents.length !== 1 ? 's' : ''}
+        Агентов: {agents.length}
       </span>
     )
   }
@@ -348,7 +348,7 @@ export function LiveActivityPanel({
                 : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300',
             )}
           >
-            Activity
+            Активность
           </button>
           <button
             type="button"
@@ -360,7 +360,7 @@ export function LiveActivityPanel({
                 : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300',
             )}
           >
-            Output
+            Вывод
             {selectedAgentId && tab !== 'output' ? (
               <span className="ml-1 inline-flex size-1.5 rounded-full bg-emerald-500" />
             ) : null}
@@ -376,10 +376,10 @@ export function LiveActivityPanel({
               <div className="text-center">
                 <p className="mb-1 text-2xl">🤖</p>
                 <p className="font-mono text-[10px] text-neutral-500 dark:text-neutral-600">
-                  // no agents configured
+                  // агенты не настроены
                 </p>
                 <p className="mt-1 text-[10px] text-neutral-400 dark:text-neutral-600">
-                  Add agents in the Team tab
+                  Добавьте агентов во вкладке команды
                 </p>
               </div>
             </div>
@@ -472,9 +472,9 @@ export function LiveActivityPanel({
               <div className="text-center">
                 <p className="mb-2 text-2xl opacity-40">📡</p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-600">
-                  Click{' '}
-                  <strong className="text-neutral-700 dark:text-neutral-400">View</strong>{' '}
-                  on an agent to stream their output here.
+                  Нажмите{' '}
+                  <strong className="text-neutral-700 dark:text-neutral-400">Открыть</strong>{' '}
+                  у агента, чтобы смотреть его вывод здесь.
                 </p>
               </div>
             </div>

@@ -569,13 +569,13 @@ function ChatHeaderComponent({
                     size="icon-sm"
                     variant="ghost"
                     className="text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-800"
-                    aria-label="Undo last message"
+                    aria-label="Отменить последнее сообщение"
                   >
                     <span className="text-sm">↩️</span>
                   </Button>
                 }
               />
-              <TooltipContent side="bottom">Undo last message</TooltipContent>
+              <TooltipContent side="bottom">Отменить последнее сообщение</TooltipContent>
             </TooltipRoot>
           </TooltipProvider>
         )}
@@ -601,7 +601,7 @@ function ChatHeaderComponent({
                       clearConfirm ? 'text-red-500' : 'text-primary-500',
                     )}
                     aria-label={
-                      clearConfirm ? 'Confirm clear' : 'Clear session'
+                      clearConfirm ? 'Подтвердить очистку' : 'Очистить сессию'
                     }
                   >
                     <span className="text-sm">
@@ -611,7 +611,7 @@ function ChatHeaderComponent({
                 }
               />
               <TooltipContent side="bottom">
-                {clearConfirm ? 'Click again to confirm' : 'Clear session'}
+                {clearConfirm ? 'Нажмите ещё раз для подтверждения' : 'Очистить сессию'}
               </TooltipContent>
             </TooltipRoot>
           </TooltipProvider>

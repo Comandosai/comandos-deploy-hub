@@ -4,12 +4,12 @@ import { cn } from '@/lib/utils'
 function formatRelativeTime(ts: number): string {
   const diffMs = Math.max(0, Date.now() - ts)
   const seconds = Math.floor(diffMs / 1000)
-  if (seconds < 60) return `${seconds}s ago`
+  if (seconds < 60) return `${seconds} сек. назад`
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return `${minutes} мин. назад`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return `${hours} ч. назад`
+  return `${Math.floor(hours / 24)} дн. назад`
 }
 export type AgentWorkingStatus =
   | 'spawning'
@@ -35,7 +35,7 @@ export type AgentWorkingRow = {
 }
 
 type AgentsWorkingPanelProps = {
-  agents: AgentWorkingRow[]
+  agents: Array<AgentWorkingRow>
   className?: string
   onSelectAgent?: (agentId: string) => void
   onKillAgent?: (agentId: string) => void
@@ -213,7 +213,7 @@ function AgentRow({
               type="button"
               onClick={(e) => { e.stopPropagation(); onRespawn() }}
               className="shrink-0 text-xs text-neutral-500 transition-colors hover:text-neutral-700"
-              title="Respawn agent"
+              title="Перезапустить агента"
             >
               ↻
             </button>
@@ -244,7 +244,7 @@ function AgentRow({
                           e.stopPropagation()
                           setMenuOpen(false)
                           const directive = window.prompt(
-                            `Send directive to ${agent.name}`,
+                            `Отправить директиву агенту ${agent.name}`,
                             '',
                           )
                           if (!directive || !directive.trim()) return
@@ -252,7 +252,7 @@ function AgentRow({
                         }}
                         className="block w-full rounded-lg px-3 py-2 text-left text-[11px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
                       >
-                        Send directive
+                        Отправить директиву
                       </button>
                     ) : null}
                     {canSteer && onPause ? (
@@ -265,7 +265,7 @@ function AgentRow({
                         }}
                         className="block w-full rounded-lg px-3 py-2 text-left text-[11px] font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
                       >
-                        {agent.status === 'paused' ? 'Resume' : 'Pause'}
+                        {agent.status === 'paused' ? 'Возобновить' : 'Пауза'}
                       </button>
                     ) : null}
                     <button
@@ -273,7 +273,7 @@ function AgentRow({
                       onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onKill() }}
                       className="block w-full rounded-lg px-3 py-2 text-left text-[11px] font-medium text-red-400 transition-colors hover:bg-red-950/20"
                     >
-                      Kill session
+                      Завершить сессию
                     </button>
                   </div>
                 </>
@@ -401,13 +401,13 @@ export function AgentsWorkingPanel({
         </div>
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10px] text-neutral-500">
-            {agents.length} agent{agents.length !== 1 ? 's' : ''}
+            Агентов: {agents.length}
           </span>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             className="rounded p-0.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-            aria-label={collapsed ? 'Expand agents panel' : 'Collapse agents panel'}
+            aria-label={collapsed ? 'Развернуть панель агентов' : 'Свернуть панель агентов'}
           >
             <svg
               viewBox="0 0 16 16"
@@ -427,7 +427,7 @@ export function AgentsWorkingPanel({
       {!collapsed ? (
         agents.length === 0 ? (
           <p className="px-3 pb-3 text-center font-mono text-[10px] text-neutral-500">
-            // no agents configured
+            // агенты не настроены
           </p>
         ) : (
           <>

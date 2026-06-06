@@ -78,11 +78,11 @@ function parseContextPercent(payload: unknown): number {
     (root.totals as Record<string, unknown> | undefined) ??
     root
   return readPercent(
-    (usage as Record<string, unknown>)?.contextPercent ??
-      (usage as Record<string, unknown>)?.context_percent ??
-      (usage as Record<string, unknown>)?.context ??
-      root?.contextPercent ??
-      root?.context_percent,
+    usage.contextPercent ??
+      usage.context_percent ??
+      usage.context ??
+      root.contextPercent ??
+      root.context_percent,
   )
 }
 
@@ -123,10 +123,10 @@ type UsageRow = {
 
 export function UsageMeterCompact() {
   const [contextPct, setContextPct] = useState<number | null>(null)
-  const [progressRows, setProgressRows] = useState<UsageRow[]>([])
+  const [progressRows, setProgressRows] = useState<Array<UsageRow>>([])
   const [providerLabel, setProviderLabel] = useState<string | null>(null)
   const [preferredProvider, setPreferredProvider] = useState<string | null>(getStoredPreferredProvider)
-  const [allProviders, setAllProviders] = useState<ProviderUsageEntry[]>([])
+  const [allProviders, setAllProviders] = useState<Array<ProviderUsageEntry>>([])
   const [expanded, setExpanded] = useState(true)
   // Flash state: animate provider name on change
   const [providerFlash, setProviderFlash] = useState(false)
@@ -135,7 +135,7 @@ export function UsageMeterCompact() {
   // ── Derived primary provider ─────────────────────────────────────────────
 
   const getPrimary = useCallback(
-    (providers: ProviderUsageEntry[], preferred: string | null) => {
+    (providers: Array<ProviderUsageEntry>, preferred: string | null) => {
       if (preferred) {
         const match = providers.find(
           (p) => p.provider === preferred && p.status === 'ok' && p.lines.length > 0,
@@ -155,7 +155,6 @@ export function UsageMeterCompact() {
     const currentIdx = okProviders.findIndex((p) => p.provider === preferredProvider)
     const nextIdx = (currentIdx + 1) % okProviders.length
     const next = okProviders[nextIdx]
-    if (!next) return
     setPreferredProvider(next.provider)
     setStoredPreferredProvider(next.provider)
 
@@ -168,11 +167,11 @@ export function UsageMeterCompact() {
   // ── Update display rows when provider changes ────────────────────────────
 
   const updateDisplayFromProviders = useCallback(
-    (providers: ProviderUsageEntry[], preferred: string | null) => {
+    (providers: Array<ProviderUsageEntry>, preferred: string | null) => {
       const primary = getPrimary(providers, preferred)
       if (!primary) return
 
-      const rows: UsageRow[] = primary.lines
+      const rows: Array<UsageRow> = primary.lines
         .filter((l) => l.type === 'progress' && l.used !== undefined)
         .slice(0, 2)
         .map((l) => ({
@@ -245,8 +244,7 @@ export function UsageMeterCompact() {
     void fetchProvider(preferredProvider)
     const id = window.setInterval(() => fetchProvider(preferredProvider), POLL_INTERVAL_MS)
     return () => window.clearInterval(id)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchProvider])
+  }, [fetchProvider, preferredProvider])
 
   // Cleanup flash timer on unmount
   useEffect(() => {
@@ -260,13 +258,15 @@ export function UsageMeterCompact() {
   if (contextPct === null) return null
 
   // Build the rows to display: session context row + all provider progress rows
-  const ctxRow: UsageRow = { label: 'Ctx', pct: contextPct, resetHint: null }
-  const allRows: UsageRow[] =
+  const ctxRow: UsageRow = { label: 'Контекст', pct: contextPct, resetHint: null }
+  const allRows: Array<UsageRow> =
     progressRows.length > 0
       ? progressRows
       : [ctxRow]
 
-  const headerLabel = providerLabel ? `Usage · ${providerLabel}` : 'Usage'
+  const headerLabel = providerLabel
+    ? `Использование · ${providerLabel}`
+    : 'Использование'
   const canCycle = allProviders.filter((p) => p.status === 'ok' && p.lines.length > 0).length > 1
 
   return (
@@ -284,8 +284,8 @@ export function UsageMeterCompact() {
               : 'cursor-default text-neutral-400',
             providerFlash && 'text-emerald-500 ring-1 ring-accent-400',
           )}
-          title={canCycle ? 'Click to switch provider' : undefined}
-          aria-label={canCycle ? 'Cycle provider' : undefined}
+          title={canCycle ? 'Переключить провайдера' : undefined}
+          aria-label={canCycle ? 'Переключить провайдера' : undefined}
         >
           <span>{headerLabel}</span>
           {canCycle && (
@@ -299,7 +299,7 @@ export function UsageMeterCompact() {
           onClick={() => setExpanded((v) => !v)}
           className="text-[9px] text-neutral-300 hover:text-neutral-500 transition-colors cursor-pointer"
           aria-expanded={expanded}
-          aria-label={expanded ? 'Collapse usage' : 'Expand usage'}
+          aria-label={expanded ? 'Свернуть использование' : 'Развернуть использование'}
         >
           {expanded ? '▲' : '▼'}
         </button>

@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { cn } from '@/lib/utils'
 import type { ApprovalRequest } from '../lib/approvals-store'
+import { cn } from '@/lib/utils'
 
 type ApprovalsBellProps = {
-  approvals: ApprovalRequest[]
+  approvals: Array<ApprovalRequest>
   onApprove: (id: string) => Promise<boolean> | void
   onDeny: (id: string) => Promise<boolean> | void
 }
@@ -13,10 +13,10 @@ type ApprovalsBellProps = {
 function timeAgo(ms: number): string {
   const delta = Math.max(0, Date.now() - ms)
   const s = Math.floor(delta / 1000)
-  if (s < 60) return `${s}s ago`
+  if (s < 60) return `${s} сек. назад`
   const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ago`
-  return `${Math.floor(m / 60)}h ago`
+  if (m < 60) return `${m} мин. назад`
+  return `${Math.floor(m / 60)} ч. назад`
 }
 
 export function ApprovalsBell({ approvals, onApprove, onDeny }: ApprovalsBellProps) {
@@ -102,7 +102,7 @@ export function ApprovalsBell({ approvals, onApprove, onDeny }: ApprovalsBellPro
             : 'border-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200',
           pulse && 'ring-2 ring-amber-400/50',
         )}
-        aria-label={`Approvals${count > 0 ? ` — ${count} pending` : ''}`}
+        aria-label={`Согласования${count > 0 ? ` — ожидают: ${count}` : ''}`}
       >
         {pulse ? (
           <span className="pointer-events-none absolute inset-0 animate-ping rounded-lg border-2 border-amber-400 opacity-30" />
@@ -124,13 +124,13 @@ export function ApprovalsBell({ approvals, onApprove, onDeny }: ApprovalsBellPro
             'shadow-[0_8px_30px_rgba(0,0,0,0.15)] dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)]',
           )}
           role="dialog"
-          aria-label="Pending approvals"
+          aria-label="Ожидающие согласования"
         >
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-700">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-[var(--theme-text)]">Approvals</span>
+              <span className="text-sm font-semibold text-[var(--theme-text)]">Согласования</span>
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                {count} pending
+                Ожидают: {count}
               </span>
             </div>
             <button

@@ -270,7 +270,7 @@ export function MobileTabBar() {
             : 'translate-y-0 opacity-100',
           isDragging ? 'cursor-grabbing' : '',
         )}
-        aria-label="Mobile navigation"
+        aria-label="Мобильная навигация"
         onTouchStart={handlePillTouchStart}
         onTouchMove={handlePillTouchMove}
         onTouchEnd={handlePillTouchEnd}

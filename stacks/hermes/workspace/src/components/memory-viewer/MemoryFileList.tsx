@@ -76,7 +76,7 @@ function MemoryFileList({
           <div className="flex min-w-0 items-center gap-2">
             <HugeiconsIcon icon={BrainIcon} size={20} strokeWidth={1.5} />
             <h2 className="truncate text-sm font-medium text-balance">
-              Memory Files
+              Файлы памяти
             </h2>
           </div>
           <div className="flex items-center gap-1">
@@ -84,7 +84,7 @@ function MemoryFileList({
               size="icon-sm"
               variant="ghost"
               onClick={onRefresh}
-              aria-label="Refresh memory files"
+              aria-label="Обновить файлы памяти"
             >
               <HugeiconsIcon icon={RefreshIcon} size={20} strokeWidth={1.5} />
             </Button>
@@ -92,7 +92,7 @@ function MemoryFileList({
               size="icon-sm"
               variant="ghost"
               onClick={onToggleCollapse}
-              aria-label="Collapse memory file list"
+              aria-label="Свернуть список файлов памяти"
               className="hidden lg:inline-flex"
             >
               <HugeiconsIcon

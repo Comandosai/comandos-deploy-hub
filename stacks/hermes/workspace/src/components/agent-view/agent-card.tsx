@@ -13,9 +13,9 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { AgentProgress } from './agent-progress'
-import type { AgentProgressStatus } from './agent-progress'
 import { KillConfirmDialog } from './kill-confirm-dialog'
 import { SteerModal } from './steer-modal'
+import type { AgentProgressStatus } from './agent-progress'
 import { Button } from '@/components/ui/button'
 import { AgentAvatar } from '@/components/agent-avatar'
 import {
@@ -218,14 +218,14 @@ export function AgentCard({
       const paused =
         typeof payload.paused === 'boolean' ? payload.paused : nextPaused
       setPausedOverride(paused)
-      toast(`${node.name} ${paused ? 'paused' : 'resumed'}`, {
+      toast(`${node.name}: ${paused ? 'пауза включена' : 'работа возобновлена'}`, {
         type: 'success',
       })
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : `Failed to ${nextPaused ? 'pause' : 'resume'} agent`
+          : `Не удалось ${nextPaused ? 'поставить агента на паузу' : 'возобновить агента'}`
       toast(message, { type: 'error' })
     } finally {
       setIsPausePending(false)
@@ -244,8 +244,8 @@ export function AgentCard({
             'aria-expanded:bg-primary-200',
             triggerClassName,
           )}
-          aria-label={`${node.name} controls`}
-          title="Agent controls"
+          aria-label={`Управление агентом ${node.name}`}
+          title="Управление агентом"
         >
           <HugeiconsIcon icon={MoreVerticalIcon} size={16} strokeWidth={1.5} />
         </MenuTrigger>
@@ -258,7 +258,7 @@ export function AgentCard({
             className="data-disabled:pointer-events-none data-disabled:opacity-50"
           >
             <HugeiconsIcon icon={AiChat01Icon} size={16} strokeWidth={1.5} />
-            Steer
+            Направить
           </MenuItem>
           <MenuItem
             onClick={function onClickPauseToggle() {
@@ -274,11 +274,11 @@ export function AgentCard({
             />
             {isPausePending
               ? isPaused
-                ? 'Resuming...'
-                : 'Pausing...'
+                ? 'Возобновляю...'
+                : 'Ставлю на паузу...'
               : isPaused
-                ? 'Resume'
-                : 'Pause'}
+                ? 'Возобновить'
+                : 'Пауза'}
           </MenuItem>
           <MenuItem
             onClick={function onClickKill() {
@@ -401,7 +401,7 @@ export function AgentCard({
                 onClick={() => onChat(node.id)}
               >
                 <HugeiconsIcon icon={EyeIcon} size={16} strokeWidth={1.5} />
-                View Output
+                Открыть вывод
               </Button>
             ) : null}
             {(node.status === 'running' || node.status === 'thinking') && onKill ? (

@@ -137,9 +137,9 @@ export function ManageModesModal({
                     {modelUnavailable && (
                       <span
                         className="ml-2 text-xs text-red-600"
-                        title="Model unavailable"
+                        title="Модель недоступна"
                       >
-                        ⚠️ Model unavailable
+                        ⚠️ Модель недоступна
                       </span>
                     )}
                   </h3>

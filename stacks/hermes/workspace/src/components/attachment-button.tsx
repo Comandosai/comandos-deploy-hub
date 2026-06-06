@@ -269,7 +269,7 @@ export function AttachmentButton({
         onClick={handleClick}
         disabled={disabled}
         className="rounded-full"
-        aria-label="Attach image"
+        aria-label="Добавить файл"
         type="button"
       >
         <HugeiconsIcon icon={PlusSignIcon} size={20} strokeWidth={1.5} />

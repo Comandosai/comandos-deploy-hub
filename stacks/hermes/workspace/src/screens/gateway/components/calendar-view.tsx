@@ -17,7 +17,7 @@ type ParsedCronSchedule = {
   kind: 'daily' | 'weekly' | 'monthly'
   hour: number
   minute: number
-  weekdays: number[]
+  weekdays: Array<number>
   monthDay: number
 }
 
@@ -30,8 +30,13 @@ type CalendarEvent = {
   status?: 'running' | 'complete' | 'failed'
 }
 
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+const WEEKDAY_LABELS = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'] as const
 const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`)
+const VIEW_LABELS: Record<CalendarMode, string> = {
+  month: 'Месяц',
+  week: 'Неделя',
+  day: 'День',
+}
 
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -65,7 +70,7 @@ function parseHourMinute(schedule: string, fallbackDate: Date): { hour: number; 
   const match = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/)
   if (match) {
     let hour = Number(match[1])
-    const minute = Number(match[2] ?? '0')
+    const minute = Number(match.at(2) ?? '0')
     const meridiem = match[3]
     if (meridiem === 'pm' && hour < 12) hour += 12
     if (meridiem === 'am' && hour === 12) hour = 0
@@ -75,7 +80,7 @@ function parseHourMinute(schedule: string, fallbackDate: Date): { hour: number; 
   return { hour: fallbackDate.getHours(), minute: fallbackDate.getMinutes() }
 }
 
-function parseCronWeekdays(value: string): number[] {
+function parseCronWeekdays(value: string): Array<number> {
   const parts = value.split(',').map((part) => part.trim()).filter(Boolean)
   const weekdays = new Set<number>()
 
@@ -191,7 +196,7 @@ function parseSchedule(schedule: string, fallbackDate: Date): ParsedCronSchedule
   }
 }
 
-function getMonthGrid(referenceDate: Date): { gridStart: Date; gridEnd: Date; days: Date[] } {
+function getMonthGrid(referenceDate: Date): { gridStart: Date; gridEnd: Date; days: Array<Date> } {
   const monthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1)
   const monthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0)
   const gridStart = startOfWeek(monthStart)
@@ -232,7 +237,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
     const rangeStart = startOfDay(activeRange.start)
     const rangeEnd = addDays(startOfDay(activeRange.end), 1)
 
-    const output: CalendarEvent[] = []
+    const output: Array<CalendarEvent> = []
 
     for (const job of cronJobs) {
       if (!job.enabled) continue
@@ -278,7 +283,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
   }, [activeRange.end, activeRange.start, cronJobs, missionRuns])
 
   const eventsByDay = useMemo(() => {
-    const grouped = new Map<string, CalendarEvent[]>()
+    const grouped = new Map<string, Array<CalendarEvent>>()
     for (const event of events) {
       const key = getDayKey(event.date)
       const list = grouped.get(key)
@@ -304,15 +309,15 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
 
   const title = useMemo(() => {
     if (mode === 'month') {
-      return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(cursorDate)
+      return new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' }).format(cursorDate)
     }
 
     if (mode === 'week') {
-      const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
+      const formatter = new Intl.DateTimeFormat('ru-RU', { month: 'short', day: 'numeric' })
       return `${formatter.format(weekRange.start)} - ${formatter.format(weekRange.end)}`
     }
 
-    return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(cursorDate)
+    return new Intl.DateTimeFormat('ru-RU', { month: 'long', day: 'numeric', year: 'numeric' }).format(cursorDate)
   }, [cursorDate, mode, weekRange.end, weekRange.start])
 
   return (
@@ -323,7 +328,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
             type="button"
             onClick={() => stepCursor(-1)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-primary-800 text-primary-200 transition-colors hover:bg-primary-900"
-            aria-label="Previous"
+            aria-label="Предыдущий период"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} strokeWidth={1.7} />
           </button>
@@ -332,7 +337,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
             type="button"
             onClick={() => stepCursor(1)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-primary-800 text-primary-200 transition-colors hover:bg-primary-900"
-            aria-label="Next"
+            aria-label="Следующий период"
           >
             <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={1.7} />
           </button>
@@ -349,7 +354,7 @@ export function CalendarView({ cronJobs, missionRuns, onSelectEvent }: CalendarV
                 mode === view ? 'bg-accent-500 text-primary-950' : 'text-primary-300 hover:bg-primary-800 hover:text-primary-100',
               )}
             >
-              {view}
+              {VIEW_LABELS[view]}
             </button>
           ))}
         </div>
