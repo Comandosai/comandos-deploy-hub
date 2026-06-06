@@ -319,7 +319,39 @@ restart_workspace_service_later() {
 
   local service_user="${REMOTE_SERVICE_USER:-}"
   if [[ -z "$service_user" ]]; then
-    service_user="$(stat -c '%U' "$REMOTE_WORKSPACE_DIR" 2>/dev/null || id -un)"
+    case "$REMOTE_HERMES_HOME" in
+      /home/*/.hermes*)
+        service_user="${REMOTE_HERMES_HOME#/home/}"
+        service_user="${service_user%%/*}"
+        ;;
+    esac
+  fi
+
+  if [[ -n "$service_user" ]] && ! id "$service_user" >/dev/null 2>&1; then
+    service_user=""
+  fi
+
+  if [[ -z "$service_user" ]]; then
+    local service_file
+    for service_file in /home/*/.config/systemd/user/comandos-workspace.service; do
+      if [[ -f "$service_file" ]] && grep -Fq "$REMOTE_WORKSPACE_DIR" "$service_file"; then
+        service_user="${service_file#/home/}"
+        service_user="${service_user%%/*}"
+        break
+      fi
+    done
+  fi
+
+  if [[ -z "$service_user" ]]; then
+    local workspace_owner
+    workspace_owner="$(stat -c '%U' "$REMOTE_WORKSPACE_DIR" 2>/dev/null || true)"
+    if [[ -n "$workspace_owner" && "$workspace_owner" != "root" ]]; then
+      service_user="$workspace_owner"
+    fi
+  fi
+
+  if [[ -z "$service_user" ]]; then
+    service_user="$(id -un)"
   fi
 
   if [[ "$service_user" == "$(id -un)" ]]; then

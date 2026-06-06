@@ -3,9 +3,10 @@
   "channel": "stable",
   "workspace": {
     "title": "COMANDOS AI Workspace",
-    "version": "2.3.0-comandos.91",
+    "version": "2.3.0-comandos.92",
     "ref": "main",
     "notes": [
+      "Скрипт обновления теперь определяет пользователя `comandos-workspace.service` по `REMOTE_SERVICE_USER`, `REMOTE_HERMES_HOME`, user-systemd файлу или владельцу workspace и перезапускает правильный user-service даже после root-обновления.",
       "Скрипт обновления теперь перезапускает `comandos-workspace.service` от имени владельца установленной папки, поэтому QA-контур `hermesqa:3130` не остаётся на старом Node-процессе после update.",
       "`agent-view-panel.tsx` теперь проходит целевой lint без ошибок: сохранена защита от отменённых async-запросов, убраны старые optional-chain/dead-condition/shadow замечания и несуществующие eslint-disable.",
       "Скрипт обновления корректно принимает пути из env: плейсхолдеры `{{...}}` больше не добавляют лишнюю `}` к `REMOTE_BASE_DIR` и `REMOTE_WORKSPACE_DIR`.",
