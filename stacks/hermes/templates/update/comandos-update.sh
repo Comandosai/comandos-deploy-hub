@@ -6,14 +6,41 @@ PRODUCT="${1:-all}"
 log() { printf '[COMANDOS update] %s\n' "$*"; }
 die() { printf '[COMANDOS update] ERROR: %s\n' "$*" >&2; exit 1; }
 
-REMOTE_BASE_DIR="${REMOTE_BASE_DIR:-{{REMOTE_BASE_DIR}}}"
-REMOTE_WORKSPACE_DIR="${REMOTE_WORKSPACE_DIR:-{{REMOTE_WORKSPACE_DIR}}}"
-REMOTE_HERMES_HOME="${REMOTE_HERMES_HOME:-{{REMOTE_HERMES_HOME}}}"
-HERMES_AGENT_INSTALLER_URL="${HERMES_AGENT_INSTALLER_URL:-{{HERMES_AGENT_INSTALLER_URL}}}"
+REMOTE_BASE_DIR="${REMOTE_BASE_DIR:-}"
+REMOTE_WORKSPACE_DIR="${REMOTE_WORKSPACE_DIR:-}"
+REMOTE_HERMES_HOME="${REMOTE_HERMES_HOME:-}"
+HERMES_AGENT_INSTALLER_URL="${HERMES_AGENT_INSTALLER_URL:-}"
 COMANDOS_STACK_REPO_URL="${COMANDOS_STACK_REPO_URL:-https://github.com/Comandosai/comandos-deploy-hub.git}"
 COMANDOS_STACK_REF="${COMANDOS_STACK_REF:-main}"
 COMANDOS_STACK_PATH="${COMANDOS_STACK_PATH:-stacks/hermes}"
 WORKSPACE_RESTART_DELAY_SECONDS="${COMANDOS_WORKSPACE_RESTART_DELAY_SECONDS:-30}"
+
+if [[ -z "$REMOTE_BASE_DIR" ]]; then
+  REMOTE_BASE_DIR="{{REMOTE_BASE_DIR}}"
+fi
+if [[ -z "$REMOTE_WORKSPACE_DIR" ]]; then
+  REMOTE_WORKSPACE_DIR="{{REMOTE_WORKSPACE_DIR}}"
+fi
+if [[ -z "$REMOTE_HERMES_HOME" ]]; then
+  REMOTE_HERMES_HOME="{{REMOTE_HERMES_HOME}}"
+fi
+if [[ -z "$HERMES_AGENT_INSTALLER_URL" ]]; then
+  HERMES_AGENT_INSTALLER_URL="{{HERMES_AGENT_INSTALLER_URL}}"
+fi
+
+require_resolved_value() {
+  local name="$1"
+  local value="$2"
+  case "$value" in
+    ''|*'{{'*|*'}}'*)
+      die "$name не настроен. Запустите установленный скрипт или передайте $name через env."
+      ;;
+  esac
+}
+
+require_resolved_value REMOTE_BASE_DIR "$REMOTE_BASE_DIR"
+require_resolved_value REMOTE_WORKSPACE_DIR "$REMOTE_WORKSPACE_DIR"
+require_resolved_value REMOTE_HERMES_HOME "$REMOTE_HERMES_HOME"
 
 case "$PRODUCT" in
   workspace|agent|all) ;;
@@ -37,6 +64,10 @@ src="$tmp_dir/repo/$COMANDOS_STACK_PATH"
 source "$src/comandos-hermes.lock"
 export COMANDOS_WORKSPACE_VERSION HERMES_AGENT_REF HERMES_AGENT_INSTALLER_URL
 export COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
+
+if [[ "$PRODUCT" == "agent" || "$PRODUCT" == "all" ]]; then
+  require_resolved_value HERMES_AGENT_INSTALLER_URL "$HERMES_AGENT_INSTALLER_URL"
+fi
 
 sync_update_script() {
   local template="$src/templates/update/comandos-update.sh"
