@@ -12,7 +12,7 @@ import {
   Settings01Icon,
 } from '@hugeicons/core-free-icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '@/components/prompt-kit/markdown'
 import {
   DialogContent,
@@ -110,7 +110,7 @@ function formatDate(value?: string): string | null {
   if (!value) return null
   const parsed = Date.parse(value)
   if (Number.isNaN(parsed)) return value
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat('ru-RU', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -285,15 +285,22 @@ export function KnowledgeBrowserScreen() {
   const [settingsSource, setSettingsSource] = useState<KnowledgeSource | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
+  const settingsEditedRef = useRef(false)
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (!settingsOpen) return
+    if (!settingsOpen) {
+      settingsEditedRef.current = false
+      return
+    }
+    settingsEditedRef.current = false
     fetch('/api/knowledge/config')
       .then((r) => r.json())
       .then((data: { config?: { source: KnowledgeSource } }) => {
-        if (data.config?.source) {
-          setSettingsSource(data.config.source)
+        if (!settingsEditedRef.current) {
+          setSettingsSource(
+            data.config?.source ?? { type: 'local', path: '~/.hermes/knowledge/' },
+          )
         }
       })
       .catch(() => {})
@@ -381,7 +388,7 @@ export function KnowledgeBrowserScreen() {
     [content],
   )
   const askUrl = `/chat?message=${encodeURIComponent(
-    `Tell me about: ${page?.title || selectedPath || 'this page'}\n\nContext:\n${content.slice(0, 500)}`,
+    `Расскажи про: ${page?.title || selectedPath || 'эту страницу'}\n\nКонтекст:\n${content.slice(0, 500)}`,
   )}`
   const searchResults = searchQuery.data?.results ?? []
 
@@ -497,12 +504,13 @@ export function KnowledgeBrowserScreen() {
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        settingsEditedRef.current = true
                         setSettingsSource((prev) => ({
                           type: 'local',
                           path: prev?.type === 'local' ? prev.path : '',
                         }))
-                      }
+                      }}
                       className="flex flex-1 items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors"
                       style={{
                         borderColor:
@@ -521,14 +529,15 @@ export function KnowledgeBrowserScreen() {
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        settingsEditedRef.current = true
                         setSettingsSource((prev) => ({
                           type: 'github',
                           repo: prev?.type === 'github' ? prev.repo : '',
                           branch: prev?.type === 'github' ? prev.branch : 'main',
                           path: prev?.type === 'github' ? prev.path : '',
                         }))
-                      }
+                      }}
                       className="flex flex-1 items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors"
                       style={{
                         borderColor:
@@ -557,13 +566,14 @@ export function KnowledgeBrowserScreen() {
                       id="kb-local-path"
                       type="text"
                       value={settingsSource.path}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        settingsEditedRef.current = true
                         setSettingsSource((prev) =>
                           prev?.type === 'local'
                             ? { ...prev, path: e.target.value }
                             : prev,
                         )
-                      }
+                      }}
                       placeholder="~/my-wiki или /absolute/path"
                       className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                       style={{
@@ -585,13 +595,14 @@ export function KnowledgeBrowserScreen() {
                         id="kb-gh-repo"
                         type="text"
                         value={settingsSource.repo}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          settingsEditedRef.current = true
                           setSettingsSource((prev) =>
                             prev?.type === 'github'
                               ? { ...prev, repo: e.target.value }
                               : prev,
                           )
-                        }
+                        }}
                         placeholder="owner/repo, например dontcallmejames/my-wiki"
                         className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                         style={{
@@ -610,13 +621,14 @@ export function KnowledgeBrowserScreen() {
                           id="kb-gh-branch"
                           type="text"
                           value={settingsSource.branch}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            settingsEditedRef.current = true
                             setSettingsSource((prev) =>
                               prev?.type === 'github'
                                 ? { ...prev, branch: e.target.value }
                                 : prev,
                             )
-                          }
+                          }}
                           placeholder="main"
                           className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                           style={{
@@ -634,13 +646,14 @@ export function KnowledgeBrowserScreen() {
                           id="kb-gh-path"
                           type="text"
                           value={settingsSource.path}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            settingsEditedRef.current = true
                             setSettingsSource((prev) =>
                               prev?.type === 'github'
                                 ? { ...prev, path: e.target.value }
                                 : prev,
                             )
-                          }
+                          }}
                           placeholder="wiki (необязательно)"
                           className="w-full rounded-xl border px-3 py-2 text-sm outline-none"
                           style={{
@@ -981,7 +994,7 @@ export function KnowledgeBrowserScreen() {
                       </div>
                       {backlinks.length === 0 ? (
                         <div className="text-sm text-primary-500 dark:text-neutral-400">
-                          No pages link here yet.
+                          Сюда пока не ссылается ни одна страница.
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2">
@@ -1005,26 +1018,26 @@ export function KnowledgeBrowserScreen() {
                   </div>
 
                   <aside className="space-y-3">
-                    <MetadataCard label="Type" value={page.type} />
-                    <MetadataCard label="Domain" value={page.domain} />
-                    <MetadataCard label="Status" value={page.status} />
+                    <MetadataCard label="Тип" value={page.type} />
+                    <MetadataCard label="Домен" value={page.domain} />
+                    <MetadataCard label="Статус" value={page.status} />
                     <MetadataCard
-                      label="Created"
+                      label="Создано"
                       value={formatDate(page.created)}
                     />
                     <MetadataCard
-                      label="Updated"
+                      label="Обновлено"
                       value={formatDate(page.updated || page.modified)}
                     />
-                    <MetadataCard label="Size" value={formatBytes(page.size)} />
+                    <MetadataCard label="Размер" value={formatBytes(page.size)} />
                     <div className="rounded-xl border border-primary-200 bg-primary-50/70 p-3 dark:border-neutral-800 dark:bg-neutral-900/60">
                       <div className="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-neutral-400">
-                        Tags
+                        Теги
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {page.tags.length === 0 ? (
                           <span className="text-sm text-primary-500 dark:text-neutral-400">
-                            No tags
+                            Тегов нет
                           </span>
                         ) : (
                           page.tags.map((tag) => (
@@ -1047,11 +1060,11 @@ export function KnowledgeBrowserScreen() {
                           size={14}
                           strokeWidth={1.7}
                         />
-                        Wikilinks
+                        Wiki-ссылки
                       </div>
                       {page.wikilinks.length === 0 ? (
                         <div className="text-sm text-primary-500 dark:text-neutral-400">
-                          No outbound links
+                          Исходящих ссылок нет
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2">
@@ -1082,7 +1095,7 @@ export function KnowledgeBrowserScreen() {
       <DialogRoot open={graphOpen} onOpenChange={setGraphOpen}>
         <DialogContent className="w-[min(980px,94vw)] max-w-none p-0">
           <div className="border-b border-primary-200 px-5 py-4 dark:border-neutral-800">
-            <DialogTitle>Knowledge graph</DialogTitle>
+            <DialogTitle>Граф знаний</DialogTitle>
             <DialogDescription>
               Связи страниц по wiki-ссылкам. Нажмите узел, чтобы открыть
               страницу.
