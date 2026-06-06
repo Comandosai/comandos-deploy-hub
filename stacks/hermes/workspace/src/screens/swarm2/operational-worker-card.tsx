@@ -10,13 +10,14 @@ import {
   ComputerTerminal01Icon,
   Settings01Icon,
 } from '@hugeicons/core-free-icons'
-import { AgentProgress } from '@/components/agent-view/agent-progress'
-import { PixelAvatar } from '@/components/agent-swarm/pixel-avatar'
 import { useQuery } from '@tanstack/react-query'
-import { Swarm2Artifacts, type Swarm2Artifact, type Swarm2Preview } from './swarm2-artifacts'
+import { Swarm2Artifacts } from './swarm2-artifacts'
 import { Swarm2LiveChat } from './swarm2-live-chat'
 import { Swarm2TaskQueue } from './swarm2-task-queue'
+import type { Swarm2Artifact, Swarm2Preview } from './swarm2-artifacts'
 import type { CrewMember } from '@/hooks/use-crew-status'
+import { PixelAvatar } from '@/components/agent-swarm/pixel-avatar'
+import { AgentProgress } from '@/components/agent-view/agent-progress'
 import { getOnlineStatus } from '@/hooks/use-crew-status'
 import { cn } from '@/lib/utils'
 
@@ -98,9 +99,20 @@ const ROLE_LABELS: Record<string, string> = {
   worker: 'Воркер',
 }
 
+const WORKER_NAME_LABELS: Record<string, string> = {
+  'KM Agent': 'Агент знаний',
+  'Ops Watch': 'Наблюдатель операций',
+  'Inbox Triage': 'Разбор входящих',
+}
+
 function displayRoleLabel(role: string | null | undefined): string {
   const value = String(role || 'Worker')
   return ROLE_LABELS[value] ?? value
+}
+
+function displayWorkerName(name: string | null | undefined): string {
+  const value = String(name || '').trim()
+  return WORKER_NAME_LABELS[value] ?? value
 }
 
 function deriveWorkerState(member: CrewMember, currentTask: string | null): WorkerState {
@@ -263,7 +275,7 @@ export function OperationalWorkerCard({
   const status = statusStyles(state)
   const rawRole = settings.role || member.role || roleFromId(member.id)
   const role = displayRoleLabel(rawRole)
-  const displayName = settings.displayName || member.displayName || member.id
+  const displayName = displayWorkerName(settings.displayName || member.displayName || member.id)
 
   // Reuse the project endpoint so artifacts can fall back to git-changed files
   // and so the inline preview gets a verified URL.
@@ -501,9 +513,9 @@ export function OperationalWorkerCard({
               <HugeiconsIcon icon={ArrowLeft01Icon} size={11} />
             </button>
             <div className="min-w-0 flex-1 text-center">
-              <div className="truncate">{activeFocusPanel?.label ?? 'Панель'}</div>
+              <div className="truncate">{activeFocusPanel.label}</div>
               <div className="truncate text-[10px] font-medium normal-case tracking-normal text-[var(--theme-muted)]/80">
-                {activeFocusPanel?.meta ?? outputFreshness}
+                {activeFocusPanel.meta || outputFreshness}
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -531,7 +543,7 @@ export function OperationalWorkerCard({
           </div>
 
           <p className="mb-2 mx-auto max-w-2xl text-center text-[11px] leading-relaxed text-[var(--theme-muted)]">
-            {activeFocusPanel?.helper ?? 'Данные агента'}
+            {activeFocusPanel.helper}
           </p>
 
           {focusPanel === 'tasks' ? (
@@ -583,7 +595,7 @@ export function OperationalWorkerCard({
         <button
           type="button"
           onClick={onOpenTasks}
-          title={`Направить задачу агенту ${member.displayName || member.id}`}
+          title={`Направить задачу агенту ${displayName}`}
           className="inline-flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
         >
           <HugeiconsIcon icon={CheckListIcon} size={11} />

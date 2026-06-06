@@ -163,7 +163,7 @@ function ContextBarComponent({
       >
         <div
           className={cn(
-            'shrink-0 w-full h-2 transition-colors duration-300 relative',
+            'shrink-0 w-full h-3 transition-colors duration-300 relative',
             barBg,
           )}
         >

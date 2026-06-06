@@ -13,13 +13,19 @@ import {
   toSessionSummary,
   updateSession,
 } from '../../server/claude-api'
-import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
 import {
   deleteLocalSession,
   getLocalSession,
   listLocalSessions,
   updateLocalSessionTitle,
 } from '../../server/local-session-store'
+import { createCapabilityUnavailablePayload } from '@/lib/feature-gates'
+
+function localSessionDisplayTitle(title: string | null | undefined): string {
+  const trimmed = String(title || '').trim()
+  if (!trimmed || trimmed === 'Local Chat') return 'Локальный чат'
+  return trimmed
+}
 
 export const Route = createFileRoute('/api/sessions')({
   server: {
@@ -31,19 +37,22 @@ export const Route = createFileRoute('/api/sessions')({
         }
         const capabilities = await ensureGatewayProbed()
         if (!capabilities.sessions) {
-          const localSessions = listLocalSessions().map((ls) => ({
-            key: ls.id,
-            id: ls.id,
-            friendlyId: ls.id,
-            title: ls.title || 'Local Chat',
-            label: ls.title || 'Local Chat',
-            derivedTitle: ls.title || 'Local Chat',
-            startedAt: ls.createdAt,
-            updatedAt: ls.updatedAt,
-            message_count: ls.messageCount,
-            model: ls.model,
-            source: 'local',
-          }))
+          const localSessions = listLocalSessions().map((ls) => {
+            const title = localSessionDisplayTitle(ls.title)
+            return {
+              key: ls.id,
+              id: ls.id,
+              friendlyId: ls.id,
+              title,
+              label: title,
+              derivedTitle: title,
+              startedAt: ls.createdAt,
+              updatedAt: ls.updatedAt,
+              message_count: ls.messageCount,
+              model: ls.model,
+              source: 'local',
+            }
+          })
           return json({
             ok: true,
             sessions: localSessions,
@@ -61,13 +70,14 @@ export const Route = createFileRoute('/api/sessions')({
           const gatewayIds = new Set(gatewaySessions.map((s: any) => s.key || s.id))
           for (const ls of localSessions) {
             if (!gatewayIds.has(ls.id)) {
+              const title = localSessionDisplayTitle(ls.title)
               gatewaySessions.push({
                 key: ls.id,
                 id: ls.id,
                 friendlyId: ls.id,
-                title: ls.title || 'Local Chat',
-                label: ls.title || 'Local Chat',
-                derivedTitle: ls.title || 'Local Chat',
+                title,
+                label: title,
+                derivedTitle: title,
                 startedAt: ls.createdAt,
                 updatedAt: ls.updatedAt,
                 message_count: ls.messageCount,
