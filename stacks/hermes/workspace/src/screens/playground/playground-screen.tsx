@@ -1,6 +1,6 @@
-import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { PlaygroundActionBar } from './components/playground-actionbar'
-import { PlaygroundChat, type ChatMessage } from './components/playground-chat'
+import { PlaygroundChat } from './components/playground-chat'
 import { PlaygroundHeroCanvas } from './components/playground-hero-canvas'
 import { PlaygroundHud } from './components/playground-hud'
 import { PlaygroundMinimap } from './components/playground-minimap'
@@ -14,7 +14,10 @@ import { usePlaygroundRpg } from './hooks/use-playground-rpg'
 import { playgroundAudio, usePlaygroundAudioMuted } from './lib/playground-audio'
 import { autoNarrateWorld, cancelNarration, isNarrationMuted, narrateWorldNow, setNarrationMuted } from './lib/playground-narration'
 import { botsFor } from './lib/playground-bots'
-import { PLAYGROUND_WORLDS, itemById, type PlaygroundItemId, type PlaygroundWorldId } from './lib/playground-rpg'
+import { PLAYGROUND_WORLDS, itemById } from './lib/playground-rpg'
+import type { ChatMessage } from './components/playground-chat'
+import type { ReactNode } from 'react'
+import type { PlaygroundItemId, PlaygroundWorldId } from './lib/playground-rpg'
 import type { RemotePlayer } from './hooks/use-playground-multiplayer'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 
@@ -43,6 +46,11 @@ const WORLD_META: Record<PlaygroundWorldId, { name: string; accent: string }> = 
 const FORGE_INTRO_STORAGE_KEY = 'hermes-playground-forge-intro-seen'
 const FORGE_FALLBACK_FLAVOR =
   'The Forge wakes with a lattice of cyan sparks as half-finished tools hum themselves into being around you.'
+
+function isPublicPlaySurface() {
+  if (typeof window === 'undefined') return false
+  return (window as unknown as { __HERMES_PUBLIC_PLAY__?: boolean }).__HERMES_PUBLIC_PLAY__ === true
+}
 
 type ForgeIntroState =
   | { open: false; flavor: string; loading: false }
@@ -101,17 +109,25 @@ export function PlaygroundScreen() {
   // Narration mute (Web Speech API). Initialized from persisted state.
   const [narrationMuted, setNarrationMutedState] = useState(false)
   const [adminMode, setAdminMode] = useState(false)
+  const publicPlaySurface = isPublicPlaySurface()
   useEffect(() => {
     setNarrationMutedState(isNarrationMuted())
   }, [])
   useEffect(() => {
     if (typeof window === 'undefined') return
+    if (isPublicPlaySurface()) {
+      window.localStorage.removeItem('hermes-playground-admin')
+      window.localStorage.removeItem('hermes-playground-owner')
+      setAdminMode(false)
+      return
+    }
     const params = new URLSearchParams(window.location.search)
     const fromUrl = params.get('admin') === '1'
     const fromStorage = window.localStorage.getItem('hermes-playground-admin') === '1'
     setAdminMode(fromUrl || fromStorage)
   }, [])
   const toggleAdminMode = () => {
+    if (isPublicPlaySurface()) return
     setAdminMode((prev) => {
       const next = !prev
       if (typeof window !== 'undefined') {
@@ -653,8 +669,9 @@ export function PlaygroundScreen() {
         />
         <PlaygroundRightRail
           focusMode={focusMode}
-          adminMode={adminMode}
+          adminMode={!publicPlaySurface && adminMode}
           accent={WORLD_META[world].accent}
+          showAdmin={!publicPlaySurface}
           onToggleFocus={() => setFocusMode((value) => !value)}
           onOpenInventory={rpg.openInventory}
           onOpenJournal={() => setJournalOpen(true)}
@@ -732,22 +749,24 @@ export function PlaygroundScreen() {
         >
           ⚙
         </button>
-        <button
-          type="button"
-          onClick={toggleAdminMode}
-          aria-label={adminMode ? 'Скрыть админ-панель' : 'Показать админ-панель'}
-          title={adminMode ? 'Скрыть админ-панель' : 'Показать админ-панель'}
-          className="pointer-events-auto fixed right-3 top-[314px] z-[71] hidden h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-[15px] text-white shadow-xl backdrop-blur-xl md:flex"
-          style={{
-            boxShadow: adminMode ? '0 0 14px rgba(251,191,36,0.55)' : '0 8px 22px rgba(0,0,0,.55)',
-            borderColor: adminMode ? 'rgba(251,191,36,0.6)' : 'rgba(255,255,255,0.15)',
-          }}
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            {adminMode ? <path d="m9 12 2 2 4-4" /> : null}
-          </svg>
-        </button>
+        {!publicPlaySurface ? (
+          <button
+            type="button"
+            onClick={toggleAdminMode}
+            aria-label={adminMode ? 'Скрыть админ-панель' : 'Показать админ-панель'}
+            title={adminMode ? 'Скрыть админ-панель' : 'Показать админ-панель'}
+            className="pointer-events-auto fixed right-3 top-[314px] z-[71] hidden h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-[15px] text-white shadow-xl backdrop-blur-xl md:flex"
+            style={{
+              boxShadow: adminMode ? '0 0 14px rgba(251,191,36,0.55)' : '0 8px 22px rgba(0,0,0,.55)',
+              borderColor: adminMode ? 'rgba(251,191,36,0.6)' : 'rgba(255,255,255,0.15)',
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              {adminMode ? <path d="m9 12 2 2 4-4" /> : null}
+            </svg>
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => setMobileMenuOpen(true)}
@@ -765,7 +784,7 @@ export function PlaygroundScreen() {
           </LazyPanelBoundary>
         ) : null}
         <PlaygroundHelpHud worldName={WORLD_META[world].name} />
-        {adminMode ? (
+        {!publicPlaySurface && adminMode ? (
           <LazyPanelBoundary>
             <PlaygroundAdminPanel />
           </LazyPanelBoundary>
@@ -816,6 +835,7 @@ type PlaygroundRightRailProps = {
   focusMode: boolean
   adminMode: boolean
   accent: string
+  showAdmin: boolean
   onToggleFocus: () => void
   onOpenInventory: () => void
   onOpenJournal: () => void
@@ -828,6 +848,7 @@ function PlaygroundRightRail({
   focusMode,
   adminMode,
   accent,
+  showAdmin,
   onToggleFocus,
   onOpenInventory,
   onOpenJournal,
@@ -842,8 +863,10 @@ function PlaygroundRightRail({
     { label: 'Журнал заданий', glyph: '?', onClick: onOpenJournal },
     { label: 'Карта', glyph: '◇', onClick: onOpenMap },
     { label: 'Настройки', glyph: '⚙', onClick: onOpenSettings },
-    { label: adminMode ? 'Скрыть админку' : 'Админ-панель', glyph: '⌂', onClick: onToggleAdmin, active: adminMode },
   ]
+  if (showAdmin) {
+    railItems.push({ label: adminMode ? 'Скрыть админку' : 'Админ-панель', glyph: '⌂', onClick: onToggleAdmin, active: adminMode })
+  }
   return (
     <div
       className="pointer-events-auto fixed right-[20px] top-[214px] z-[72] hidden flex-col items-center gap-2 rounded-[24px] border px-2 py-3 text-[#F4E9D3] shadow-2xl backdrop-blur-xl md:flex"
