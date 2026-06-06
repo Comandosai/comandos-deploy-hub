@@ -310,6 +310,42 @@ validate_workspace_build() {
   fi
 }
 
+restart_workspace_service_later() {
+  local delay="$1"
+  if ! command -v systemctl >/dev/null 2>&1; then
+    log "systemctl не найден; перезапустите панель вручную."
+    return
+  fi
+
+  local service_user="${REMOTE_SERVICE_USER:-}"
+  if [[ -z "$service_user" ]]; then
+    service_user="$(stat -c '%U' "$REMOTE_WORKSPACE_DIR" 2>/dev/null || id -un)"
+  fi
+
+  if [[ "$service_user" == "$(id -un)" ]]; then
+    log "Перезапускаю панель через $delay сек..."
+    nohup bash -c 'sleep "$1"; systemctl --user restart comandos-workspace.service >/dev/null 2>&1 || true' \
+      _ "$delay" >/dev/null 2>&1 </dev/null &
+    return
+  fi
+
+  if ! command -v sudo >/dev/null 2>&1 || ! sudo -n true >/dev/null 2>&1; then
+    log "Не удалось перезапустить user-service $service_user автоматически; перезапустите comandos-workspace.service вручную."
+    return
+  fi
+
+  local service_uid
+  service_uid="$(id -u "$service_user" 2>/dev/null || true)"
+  if [[ -z "$service_uid" ]]; then
+    log "Пользователь сервиса $service_user не найден; перезапустите comandos-workspace.service вручную."
+    return
+  fi
+
+  log "Перезапускаю панель пользователя $service_user через $delay сек..."
+  nohup bash -c 'sleep "$1"; sudo -n -u "$2" XDG_RUNTIME_DIR="/run/user/$3" systemctl --user restart comandos-workspace.service >/dev/null 2>&1 || true' \
+    _ "$delay" "$service_user" "$service_uid" >/dev/null 2>&1 </dev/null &
+}
+
 update_workspace() {
   log "Обновляю COMANDOS Workspace до $COMANDOS_WORKSPACE_VERSION"
   assert_workspace_not_downgrade
@@ -340,14 +376,7 @@ update_workspace() {
   pnpm build
   validate_workspace_build
   write_state
-
-  if command -v systemctl >/dev/null 2>&1; then
-    log "Перезапускаю панель через $WORKSPACE_RESTART_DELAY_SECONDS сек..."
-    nohup bash -c 'sleep "$1"; systemctl --user restart comandos-workspace.service >/dev/null 2>&1 || true' \
-      _ "$WORKSPACE_RESTART_DELAY_SECONDS" >/dev/null 2>&1 </dev/null &
-  else
-    log "systemctl не найден; перезапустите панель вручную."
-  fi
+  restart_workspace_service_later "$WORKSPACE_RESTART_DELAY_SECONDS"
 }
 
 update_agent() {
