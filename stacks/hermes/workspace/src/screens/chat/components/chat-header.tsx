@@ -370,6 +370,7 @@ function ChatHeaderComponent({
                 type="button"
                 onClick={() => setSessionPopoverOpen((p) => !p)}
                 className="min-w-0 truncate text-sm font-medium text-balance hover:text-accent-600 transition-colors rounded-sm text-left"
+                aria-label={`Переключить сессию: ${displayTitle}`}
                 title="Переключить сессию"
               >
                 {displayTitle}
@@ -379,6 +380,7 @@ function ChatHeaderComponent({
                   type="button"
                   onClick={startTitleEdit}
                   className="text-xs text-primary-400 opacity-0 group-hover:opacity-100 hover:text-primary-600 transition-opacity shrink-0"
+                  aria-label="Переименовать сессию"
                   title="Переименовать сессию"
                 >
                   ✏️
@@ -410,6 +412,7 @@ function ChatHeaderComponent({
                         autoFocus
                         type="text"
                         placeholder="Поиск сессий..."
+                        aria-label="Поиск сессий"
                         value={sessionSearch}
                         onChange={(e) => setSessionSearch(e.target.value)}
                         className="flex-1 bg-transparent text-sm outline-none"
@@ -499,7 +502,7 @@ function ChatHeaderComponent({
                 render={
                   <span
                     className="mr-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    aria-label="Thinking: Adaptive"
+                    aria-label="Мышление: адаптивное"
                     role="status"
                     style={{ boxShadow: '0 0 6px 1px rgba(251,191,36,0.4)' }}
                   >
