@@ -62,17 +62,17 @@ export type NameReservationRecord = {
 }
 
 export type NameReservationStore = {
-  findByNormalizedName(normalizedName: string): Promise<NameReservationRecord | null>
-  insertReservation(input: {
+  findByNormalizedName: (normalizedName: string) => Promise<NameReservationRecord | null>
+  insertReservation: (input: {
     desiredName: string
     normalizedName: string
     email: string
     wallet: string | null
     confirmationToken: string
     createdAt: string
-  }): Promise<NameReservationRecord>
-  countReservations(): Promise<number>
-  confirmByToken(token: string): Promise<NameReservationRecord | null>
+  }) => Promise<NameReservationRecord>
+  countReservations: () => Promise<number>
+  confirmByToken: (token: string) => Promise<NameReservationRecord | null>
 }
 
 export type ConfirmationEmailPayload = {
@@ -81,8 +81,33 @@ export type ConfirmationEmailPayload = {
   confirmationUrl: string
 }
 
+export type ReservationServiceStatus = {
+  storageConfigured: boolean
+  emailConfigured: boolean
+  enabled: boolean
+}
+
 export function normalizeReservationName(value: string): string {
   return value.trim().toLowerCase()
+}
+
+function hasEnv(name: string): boolean {
+  return Boolean((process.env[name] || '').trim())
+}
+
+export function getReservationServiceStatus(): ReservationServiceStatus {
+  const storageConfigured =
+    hasEnv('HERMESWORLD_SUPABASE_URL') &&
+    hasEnv('HERMESWORLD_SUPABASE_SERVICE_ROLE_KEY')
+  const emailConfigured =
+    hasEnv('RESEND_API_KEY') &&
+    (hasEnv('RESERVE_FROM_EMAIL') || hasEnv('RESEND_FROM_EMAIL'))
+
+  return {
+    storageConfigured,
+    emailConfigured,
+    enabled: storageConfigured && emailConfigured,
+  }
 }
 
 function getReservedNames(): Set<string> {

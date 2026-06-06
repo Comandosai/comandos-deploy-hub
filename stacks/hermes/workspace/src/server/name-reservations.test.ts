@@ -5,9 +5,10 @@ import {
   confirmReservation,
   countReservations,
   createReservation,
+  getReservationServiceStatus,
   validateReservationInput,
-  type NameReservationStore,
 } from './name-reservations'
+import type { NameReservationStore } from './name-reservations'
 
 function makeStore(seed: {
   reservations?: Array<{
@@ -79,6 +80,46 @@ describe('validateReservationInput', () => {
         wallet: '',
       }),
     ).toThrowError(ReservationValidationError)
+  })
+})
+
+describe('getReservationServiceStatus', () => {
+  it('reports disabled until storage and email delivery are configured', () => {
+    const previous = {
+      HERMESWORLD_SUPABASE_URL: process.env.HERMESWORLD_SUPABASE_URL,
+      HERMESWORLD_SUPABASE_SERVICE_ROLE_KEY: process.env.HERMESWORLD_SUPABASE_SERVICE_ROLE_KEY,
+      RESEND_API_KEY: process.env.RESEND_API_KEY,
+      RESERVE_FROM_EMAIL: process.env.RESERVE_FROM_EMAIL,
+      RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+    }
+
+    try {
+      delete process.env.HERMESWORLD_SUPABASE_URL
+      delete process.env.HERMESWORLD_SUPABASE_SERVICE_ROLE_KEY
+      delete process.env.RESEND_API_KEY
+      delete process.env.RESERVE_FROM_EMAIL
+      delete process.env.RESEND_FROM_EMAIL
+      expect(getReservationServiceStatus()).toEqual({
+        storageConfigured: false,
+        emailConfigured: false,
+        enabled: false,
+      })
+
+      process.env.HERMESWORLD_SUPABASE_URL = 'https://example.supabase.co'
+      process.env.HERMESWORLD_SUPABASE_SERVICE_ROLE_KEY = 'test-service-role'
+      process.env.RESEND_API_KEY = 'test-resend'
+      process.env.RESERVE_FROM_EMAIL = 'Hermes <reserve@example.com>'
+      expect(getReservationServiceStatus()).toEqual({
+        storageConfigured: true,
+        emailConfigured: true,
+        enabled: true,
+      })
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (typeof value === 'string') process.env[key] = value
+        else delete process.env[key]
+      }
+    }
   })
 })
 
@@ -183,7 +224,7 @@ describe('createReservation', () => {
 
   it('supports three sequential successful reservations', async () => {
     const store = makeStore()
-    const sent: string[] = []
+    const sent: Array<string> = []
     const attempts = [
       { desiredName: 'AtlasOne', email: 'player1@example.com', token: 'tok_1' },
       { desiredName: 'BeaconTwo', email: 'player2@example.com', token: 'tok_2' },

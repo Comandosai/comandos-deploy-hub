@@ -1,12 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import {  useEffect, useMemo, useState } from 'react'
-import type {FormEvent} from 'react';
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import { usePageTitle } from '@/hooks/use-page-title'
 
 type CounterState = {
   loading: boolean
   count: number
   error: string | null
+  enabled: boolean
 }
 
 type SubmitState =
@@ -30,6 +31,7 @@ function ReserveRoute() {
     loading: true,
     count: 0,
     error: null,
+    enabled: false,
   })
   const [submitState, setSubmitState] = useState<SubmitState>({
     status: 'idle',
@@ -43,12 +45,17 @@ function ReserveRoute() {
         const payload = await response.json()
         if (!response.ok) throw new Error(payload.error || 'Не удалось загрузить счётчик')
         if (!cancelled) {
-          setCounter({ loading: false, count: payload.count || 0, error: null })
+          setCounter({
+            loading: false,
+            count: payload.count || 0,
+            error: null,
+            enabled: payload.enabled !== false,
+          })
         }
       })
       .catch((error: Error) => {
         if (!cancelled) {
-          setCounter({ loading: false, count: 0, error: error.message })
+          setCounter({ loading: false, count: 0, error: error.message, enabled: false })
         }
       })
     return () => {
@@ -56,7 +63,9 @@ function ReserveRoute() {
     }
   }, [])
 
-  const isDisabled = submitState.status === 'submitting'
+  const serviceUnavailable = !counter.loading && !counter.enabled
+  const isSubmitting = submitState.status === 'submitting'
+  const isDisabled = isSubmitting || counter.loading || serviceUnavailable
   const trimmedName = useMemo(() => desiredName.trim(), [desiredName])
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -110,7 +119,11 @@ function ReserveRoute() {
             ← Назад в HermesWorld
           </a>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d9b35f]/30 bg-[#d9b35f]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-[#f8e4ac]">
-            Бронирование имён работает
+            {counter.loading
+              ? 'Проверяю бронирование'
+              : serviceUnavailable
+                ? 'Бронирование готовится'
+                : 'Бронирование имён работает'}
           </div>
           <h1 className="mt-5 font-serif text-4xl font-bold leading-[0.92] tracking-[-0.05em] text-[#fff6df] sm:text-6xl">
             Забронируйте имя HermesWorld до запуска аккаунтов.
@@ -124,7 +137,13 @@ function ReserveRoute() {
               label="Брони"
               value={counter.loading ? '...' : String(counter.count)}
               tone="gold"
-              subcopy={counter.error ? 'Счётчик временно недоступен' : 'Публичный счётчик'}
+              subcopy={
+                serviceUnavailable
+                  ? 'Сервис пока не подключён'
+                  : counter.error
+                    ? 'Счётчик временно недоступен'
+                    : 'Публичный счётчик'
+              }
             />
             <StatCard label="Правила имени" value="3-20" tone="cyan" subcopy="Буквы, цифры, подчёркивание" />
             <StatCard label="Подтверждение" value="Email" tone="violet" subcopy="Проверка одним кликом" />
@@ -192,7 +211,13 @@ function ReserveRoute() {
               disabled={isDisabled}
               className="inline-flex w-full items-center justify-center rounded-xl border border-[#ffe7a3]/55 bg-[linear-gradient(180deg,#ffe7a3,#d9a63f)] px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-[#11100b] shadow-[0_30px_90px_rgba(217,179,95,.32),inset_0_1px_0_rgba(255,255,255,.32)] transition enabled:hover:-translate-y-0.5 enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isDisabled ? 'Отправляю...' : 'Забронировать имя'}
+              {serviceUnavailable
+                ? 'Бронирование пока не подключено'
+                : counter.loading
+                  ? 'Проверяю сервис...'
+                  : isSubmitting
+                  ? 'Отправляю...'
+                  : 'Забронировать имя'}
             </button>
           </form>
 

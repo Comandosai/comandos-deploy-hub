@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
+  ReservationValidationError,
   countReservations,
   createReservation,
   createSupabaseReservationStore,
-  ReservationValidationError,
+  getReservationServiceStatus,
   sendReservationConfirmationEmail,
 } from '@/server/name-reservations'
 import {
@@ -23,20 +24,41 @@ export const Route = createFileRoute('/api/hermesworld/reservations')({
   server: {
     handlers: {
       GET: async () => {
+        const status = getReservationServiceStatus()
+        if (!status.storageConfigured) {
+          return Response.json({
+            ok: true,
+            count: 0,
+            enabled: false,
+            reason: 'storage_not_configured',
+          })
+        }
+
         try {
           const store = createSupabaseReservationStore()
           const count = await countReservations(store)
-          return Response.json({ ok: true, count })
+          return Response.json({ ok: true, count, enabled: status.enabled })
         } catch (error) {
-          return Response.json(
-            { ok: false, error: safeErrorMessage(error) },
-            { status: 500 },
-          )
+          console.warn('[hermesworld] reservation counter unavailable:', safeErrorMessage(error))
+          return Response.json({
+            ok: true,
+            count: 0,
+            enabled: false,
+            reason: 'counter_unavailable',
+          })
         }
       },
       POST: async ({ request }) => {
         const contentTypeError = requireJsonContentType(request)
         if (contentTypeError) return contentTypeError
+
+        const status = getReservationServiceStatus()
+        if (!status.enabled) {
+          return Response.json(
+            { ok: false, error: 'Бронирование пока не подключено на этом сервере.' },
+            { status: 503 },
+          )
+        }
 
         const ip = getClientIp(request)
         if (!rateLimit(`reserve:${ip}`, 5, 10 * 60 * 1000)) {
