@@ -162,7 +162,7 @@ export function PlaygroundHud({
             </div>
             <div className="min-w-0 leading-tight">
               <div className="text-[11px] font-black uppercase tracking-[0.14em]" style={{ color: HUD.parchment }}>
-                {playerProfile.displayName || 'Builder'}
+                {playerProfile.displayName || 'Создатель'}
               </div>
               <div className="mt-1 max-w-[126px] truncate text-[9px] uppercase tracking-[0.18em]" style={{ color: HUD.stone }}>{title}</div>
               <div className="mt-2 flex items-center gap-2">
@@ -189,7 +189,7 @@ export function PlaygroundHud({
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border"
             style={{ borderColor: `${hudAccent}99`, background: `linear-gradient(180deg, ${HUD.obsidian}, ${HUD.slate})`, boxShadow: `0 0 14px ${hudAccent}3d, inset 0 0 0 1px rgba(244,233,211,.08)` }}
-            title={arrowDeg != null ? 'Pointing toward objective' : 'Objective'}
+            title={arrowDeg != null ? 'Указывает на цель' : 'Цель'}
           >
             <span
               className="text-[18px] leading-none"
@@ -204,7 +204,7 @@ export function PlaygroundHud({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: HUD.stone }}>Quest</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: HUD.stone }}>Задание</span>
               <span className="truncate text-[12px] font-black" style={{ color: hudAccent }}>{activeQuestTitle}</span>
             </div>
             <div className="truncate text-[11px] leading-snug" style={{ color: HUD.parchment }}>{objectiveLabel}</div>

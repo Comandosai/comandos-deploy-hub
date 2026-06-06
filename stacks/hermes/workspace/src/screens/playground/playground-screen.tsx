@@ -584,7 +584,7 @@ export function PlaygroundScreen() {
           onQuestZone={handleQuestZone}
           onNpcNearChange={setNearbyNpc}
           botBubbles={botBubbles}
-          playerName={rpg.state.playerProfile.displayName || 'Builder'}
+          playerName={rpg.state.playerProfile.displayName || 'Создатель'}
           playerAvatar={rpg.state.playerProfile.avatarConfig}
           playerAccent={equippedVisuals.accent}
           playerCape={equippedVisuals.cape}
