@@ -51,7 +51,7 @@ const TerminalWorkspace = lazy(() =>
 )
 
 export const DESKTOP_SIDEBAR_BACKDROP_CLASS =
-  'fixed left-0 bottom-0 top-[var(--titlebar-h,0px)] w-[300px] z-10 bg-black/10 backdrop-blur-[1px]'
+  'pointer-events-none fixed left-0 bottom-0 top-[var(--titlebar-h,0px)] w-[300px] z-10 bg-black/10 backdrop-blur-[1px]'
 
 type WorkspaceShellProps = {
   children?: React.ReactNode
@@ -440,10 +440,8 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         {!isChromeFreeSurface && !isOnChatRoute && !isOnPlaygroundRoute && !isMobile && <ChatPanelToggle />}
 
         {showDesktopSidebarBackdrop ? (
-          <button
-            type="button"
-            aria-label="Свернуть боковое меню"
-            onClick={() => setSidebarCollapsed(true)}
+          <div
+            aria-hidden="true"
             className={DESKTOP_SIDEBAR_BACKDROP_CLASS}
           />
         ) : null}

@@ -8,6 +8,10 @@ describe('workspace shell sidebar backdrop', () => {
     expect(DESKTOP_SIDEBAR_BACKDROP_CLASS).toContain('w-[300px]')
     expect(DESKTOP_SIDEBAR_BACKDROP_CLASS).not.toContain('inset-0')
   })
+
+  it('is decorative and cannot become a dead sidebar button', () => {
+    expect(DESKTOP_SIDEBAR_BACKDROP_CLASS).toContain('pointer-events-none')
+  })
 })
 
 describe('swarm2 navigation alias handling', () => {
