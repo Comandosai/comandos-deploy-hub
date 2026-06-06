@@ -793,6 +793,7 @@ export function PlaygroundScreen() {
         <PlaygroundUtilityDock
           audioMuted={audioMuted}
           narrationMuted={narrationMuted}
+          sidePanelOpen={!focusMode && (!isNarrow || mobileMenuOpen)}
           onCustomize={() => setCustomizerOpen(true)}
           onToggleAudio={() => playgroundAudio.toggleMuted()}
           onReplayNarration={() => narrateWorldNow(world)}
@@ -1477,6 +1478,7 @@ function PlaygroundUtilityDock({
   onReplayNarration,
   onToggleNarration,
   narrationMuted,
+  sidePanelOpen,
 }: {
   audioMuted: boolean
   onCustomize: () => void
@@ -1484,6 +1486,7 @@ function PlaygroundUtilityDock({
   onReplayNarration: () => void
   onToggleNarration: () => void
   narrationMuted: boolean
+  sidePanelOpen: boolean
 }) {
   const [isFullscreen, setIsFullscreen] = useState(
     typeof document !== 'undefined' ? Boolean(document.fullscreenElement) : false,
@@ -1519,7 +1522,7 @@ function PlaygroundUtilityDock({
     } catch {}
   }
   return (
-    <div className="pointer-events-auto fixed bottom-[78px] right-3 z-[70] flex flex-col gap-1.5">
+    <div className={`pointer-events-auto fixed bottom-[78px] ${sidePanelOpen ? 'right-[308px]' : 'right-3'} z-[70] flex flex-col gap-1.5 transition-[right] duration-200`}>
       <button
         onClick={captureScreenshot}
         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
