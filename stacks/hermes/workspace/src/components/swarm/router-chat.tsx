@@ -329,6 +329,7 @@ export function RouterChat({
         )}>
           <div className="flex flex-col gap-2">
             <textarea
+              aria-label="Текст задачи для маршрутизации"
               rows={embedded ? 5 : 7}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -397,7 +398,7 @@ export function RouterChat({
                     (mode === 'manual' && !selectedId)
                   }
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold',
+                    'inline-flex min-h-8 items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold',
                     dispatching || decomposing
                       ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-text)]'
                       : 'bg-[var(--theme-accent)] text-primary-950 hover:bg-[var(--theme-accent-strong)] disabled:opacity-50',
@@ -466,6 +467,7 @@ export function RouterChat({
                       </button>
                     </div>
                     <textarea
+                      aria-label={`Задача для агента ${a.workerId}`}
                       rows={4}
                       value={a.task}
                       onChange={(e) =>

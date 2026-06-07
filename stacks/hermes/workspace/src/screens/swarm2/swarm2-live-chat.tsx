@@ -8,9 +8,10 @@ import {
   SentIcon,
 } from '@hugeicons/core-free-icons'
 import { useQueryClient } from '@tanstack/react-query'
+import type { SwarmChatMessage } from '@/hooks/use-swarm-chat'
+import { useSwarmChat } from '@/hooks/use-swarm-chat'
 import { ChatComposer } from '@/screens/chat/components/chat-composer'
 import { cn } from '@/lib/utils'
-import { useSwarmChat, type SwarmChatMessage } from '@/hooks/use-swarm-chat'
 
 type Swarm2LiveChatProps = {
   workerId: string
@@ -40,8 +41,10 @@ function formatMessageTime(ts: number | null | undefined): string {
 
 function parseTodoSummary(content: string): { total: number; pending: number; inProgress: number; completed: number; cancelled: number } | null {
   try {
-    const parsed = JSON.parse(content) as {
-      todos?: unknown[]
+    const parsed = JSON.parse(content) as unknown
+    if (!parsed || typeof parsed !== 'object') return null
+    const summary = (parsed as {
+      todos?: Array<unknown>
       summary?: {
         total?: number
         pending?: number
@@ -49,14 +52,14 @@ function parseTodoSummary(content: string): { total: number; pending: number; in
         completed?: number
         cancelled?: number
       }
-    }
-    if (!parsed || typeof parsed !== 'object' || !parsed.summary) return null
+    }).summary
+    if (!summary) return null
     return {
-      total: parsed.summary.total ?? 0,
-      pending: parsed.summary.pending ?? 0,
-      inProgress: parsed.summary.in_progress ?? 0,
-      completed: parsed.summary.completed ?? 0,
-      cancelled: parsed.summary.cancelled ?? 0,
+      total: summary.total ?? 0,
+      pending: summary.pending ?? 0,
+      inProgress: summary.in_progress ?? 0,
+      completed: summary.completed ?? 0,
+      cancelled: summary.cancelled ?? 0,
     }
   } catch {
     return null
@@ -82,11 +85,11 @@ function MessageBubble({
   const isTool = message.role === 'tool'
   const isError = message.role === 'error'
   const label = isUser
-    ? 'You'
+    ? 'Вы'
     : isAssistant
       ? workerId
-      : isTool
-        ? 'tool'
+    : isTool
+        ? 'инструмент'
         : message.role
   const todoSummary = parseTodoSummary(message.content)
   const toolMarker = parseToolMarker(message.content)
@@ -130,7 +133,7 @@ function MessageBubble({
             {isError ? (
               <HugeiconsIcon icon={AlertCircleIcon} size={9} />
             ) : null}
-            {renderAsToolCard ? 'tool' : label}
+            {renderAsToolCard ? 'инструмент' : label}
           </span>
         )}
         {message.timestamp && !message.pending ? (
@@ -156,7 +159,7 @@ function MessageBubble({
         ) : renderAsToolCard ? (
           <div className="space-y-1">
             <div className="text-[11px] font-medium text-[var(--theme-text)]">
-              {toolMarker ? `Used ${toolMarker}` : 'Tool result'}
+              {toolMarker ? `Инструмент: ${toolMarker}` : 'Результат инструмента'}
             </div>
             {!toolMarker && message.content ? (
               <pre className="whitespace-pre-wrap break-words font-sans text-[11px] leading-snug text-[var(--theme-muted-2)]">
@@ -169,7 +172,7 @@ function MessageBubble({
             'whitespace-pre-wrap break-words font-sans text-[12px] leading-snug',
             message.pending && isAssistant && 'animate-pulse',
           )}>
-            {message.content || '(empty)'}
+            {message.content || '(пусто)'}
           </pre>
         )}
       </div>
@@ -389,6 +392,7 @@ export function Swarm2LiveChat({
           <div className="border-t border-[var(--theme-border)]/70 px-2.5 py-2">
             <div className="flex items-end gap-2 rounded-xl border border-[var(--theme-border)]/70 bg-transparent p-1.5">
               <textarea
+                aria-label={`Сообщение агенту ${workerId}`}
                 rows={1}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
@@ -407,7 +411,7 @@ export function Swarm2LiveChat({
                 onClick={() => void handleSend()}
                 disabled={isSending || !draft.trim()}
                 className={cn(
-                  'inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-[11px] font-semibold transition-colors',
+                  'inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[11px] font-semibold transition-colors',
                   isSending
                     ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-text)]'
                     : 'bg-[var(--theme-accent)] text-primary-950 hover:bg-[var(--theme-accent-strong)] disabled:opacity-40',

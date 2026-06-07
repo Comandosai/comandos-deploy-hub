@@ -177,7 +177,7 @@ export function Swarm2OrchestratorCard({
                 type="button"
                 onClick={() => onViewModeChange(mode)}
                 className={cn(
-                  'rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors',
+                  'min-h-8 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors',
                   viewMode === mode
                     ? 'bg-[var(--theme-accent)] text-primary-950'
                     : 'text-[var(--theme-muted)] hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]',
@@ -300,14 +300,14 @@ export function Swarm2OrchestratorCard({
                 <button
                   type="button"
                   onClick={() => setSwarmCardMode('cards')}
-                  className={cn('rounded-lg px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]', swarmCardMode === 'cards' ? 'bg-[var(--theme-accent)] text-primary-950' : 'text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]')}
+                  className={cn('min-h-8 rounded-lg px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]', swarmCardMode === 'cards' ? 'bg-[var(--theme-accent)] text-primary-950' : 'text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]')}
                 >
                   Активный рой
                 </button>
                 <button
                   type="button"
                   onClick={() => setSwarmCardMode('office')}
-                  className={cn('rounded-lg px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]', swarmCardMode === 'office' ? 'bg-[var(--theme-accent)] text-primary-950' : 'text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]')}
+                  className={cn('min-h-8 rounded-lg px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em]', swarmCardMode === 'office' ? 'bg-[var(--theme-accent)] text-primary-950' : 'text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]')}
                 >
                   Офис
                 </button>
@@ -317,7 +317,7 @@ export function Swarm2OrchestratorCard({
                   type="button"
                   onClick={() => cycleAgentPage(-1)}
                   disabled={filteredAgents.length <= AGENT_PAGE_SIZE}
-                  className="inline-flex size-7 items-center justify-center rounded-lg text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] disabled:cursor-not-allowed disabled:opacity-35"
+                  className="inline-flex size-8 items-center justify-center rounded-lg text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] disabled:cursor-not-allowed disabled:opacity-35"
                   aria-label="Предыдущая страница агентов"
                 >
                   ←
@@ -337,7 +337,7 @@ export function Swarm2OrchestratorCard({
                   type="button"
                   onClick={() => cycleAgentPage(1)}
                   disabled={filteredAgents.length <= AGENT_PAGE_SIZE}
-                  className="inline-flex size-7 items-center justify-center rounded-lg text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] disabled:cursor-not-allowed disabled:opacity-35"
+                  className="inline-flex size-8 items-center justify-center rounded-lg text-[var(--theme-muted)] hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)] disabled:cursor-not-allowed disabled:opacity-35"
                   aria-label="Следующая страница агентов"
                 >
                   →

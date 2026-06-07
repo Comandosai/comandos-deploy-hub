@@ -1654,6 +1654,7 @@ function ChatComposerComponent({
   const promptPlaceholder = isMobileViewport
     ? 'Сообщение...'
     : 'Напишите задачу... (↵ отправить · ⇧↵ новая строка · ⌘⇧M сменить модель)'
+  const promptAriaLabel = embedded ? 'Сообщение агенту' : 'Сообщение в чат'
   const slashCommandQuery = useMemo(() => readSlashCommandQuery(value), [value])
   const isSlashMenuOpen =
     slashCommandQuery !== null && !disabled && !isSlashMenuDismissed
@@ -2212,6 +2213,7 @@ function ChatComposerComponent({
 
               {/* Textarea — flex-1, auto-growing */}
               <PromptInputTextarea
+                aria-label={promptAriaLabel}
                 placeholder={promptPlaceholder}
                 autoFocus
                 inputRef={promptRef}
@@ -2645,6 +2647,7 @@ function ChatComposerComponent({
           /* ── Desktop: original layout ── */
           <>
             <PromptInputTextarea
+              aria-label={promptAriaLabel}
               placeholder={promptPlaceholder}
               autoFocus
               inputRef={promptRef}

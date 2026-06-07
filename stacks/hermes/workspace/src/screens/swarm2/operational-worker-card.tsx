@@ -508,9 +508,9 @@ export function OperationalWorkerCard({
               aria-label="Предыдущая панель"
               title="Предыдущая панель"
               onClick={() => cycleFocusPanel(-1)}
-              className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={11} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={13} />
             </button>
             <div className="min-w-0 flex-1 text-center">
               <div className="truncate">{activeFocusPanel.label}</div>
@@ -525,9 +525,9 @@ export function OperationalWorkerCard({
                   aria-label={taskComposerOpen ? 'Закрыть добавление задачи' : 'Добавить задачу'}
                   title={taskComposerOpen ? 'Закрыть добавление задачи' : 'Добавить задачу'}
                   onClick={() => setTaskComposerOpen((value) => !value)}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
                 >
-                  <HugeiconsIcon icon={Add01Icon} size={11} />
+                  <HugeiconsIcon icon={Add01Icon} size={13} />
                 </button>
               ) : null}
               <button
@@ -535,9 +535,9 @@ export function OperationalWorkerCard({
                 aria-label="Следующая панель"
                 title="Следующая панель"
                 onClick={() => cycleFocusPanel(1)}
-                className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
               >
-                <HugeiconsIcon icon={ArrowRight01Icon} size={11} />
+                <HugeiconsIcon icon={ArrowRight01Icon} size={13} />
               </button>
             </div>
           </div>
@@ -595,18 +595,21 @@ export function OperationalWorkerCard({
         <button
           type="button"
           onClick={onOpenTasks}
+          aria-label={`Направить задачу агенту ${displayName}`}
           title={`Направить задачу агенту ${displayName}`}
-          className="inline-flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
+          className="inline-flex min-h-8 items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-1.5 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
         >
-          <HugeiconsIcon icon={CheckListIcon} size={11} />
+          <HugeiconsIcon icon={CheckListIcon} size={12} />
           Направить задачу
         </button>
         <button
           type="button"
           onClick={onOpenTui}
-          className="inline-flex items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-2.5 py-1 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
+          aria-label={`Открыть терминал агента ${displayName}`}
+          title={`Открыть терминал агента ${displayName}`}
+          className="inline-flex min-h-8 items-center gap-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-1.5 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-text)]"
         >
-          <HugeiconsIcon icon={ComputerTerminal01Icon} size={11} />
+          <HugeiconsIcon icon={ComputerTerminal01Icon} size={12} />
           Открыть терминал
         </button>
       </div>
