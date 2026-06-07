@@ -426,7 +426,7 @@ export function FileExplorerSidebar({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Поиск файлов"
-          className="w-full rounded-md border border-primary-200 bg-primary-50 px-2 py-1 text-sm text-primary-900 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
+          className="min-h-8 w-full rounded-md border border-primary-200 bg-primary-50 px-2 py-1 text-sm text-primary-900 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
         />
       </div>
 
