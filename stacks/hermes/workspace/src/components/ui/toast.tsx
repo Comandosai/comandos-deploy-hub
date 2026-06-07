@@ -92,7 +92,8 @@ export function Toaster() {
             onClick={() =>
               setToasts((prev) => prev.filter((x) => x.id !== t.id))
             }
-            className="pointer-events-auto ml-2 shrink-0 rounded-full p-0.5 opacity-70 transition-opacity hover:opacity-100"
+            className="pointer-events-auto ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base leading-none opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            aria-label="Закрыть уведомление"
           >
             ✕
           </button>

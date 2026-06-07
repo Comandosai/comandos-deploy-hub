@@ -90,8 +90,8 @@ function ToastItem({ entry, onDismiss }: ToastItemProps) {
       <button
         type="button"
         onClick={() => onDismiss(entry.id)}
-        className="shrink-0 text-primary-400 hover:text-primary-600 transition-colors text-lg leading-none"
-        aria-label="Скрыть"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg leading-none text-primary-400 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
+        aria-label="Закрыть уведомление об ошибке"
       >
         ×
       </button>
