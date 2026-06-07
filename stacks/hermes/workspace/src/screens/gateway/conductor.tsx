@@ -2457,7 +2457,7 @@ export function Conductor() {
                                 setDirectoryBrowserPath(crumb.path)
                               }
                               className={cn(
-                                'inline-flex min-h-8 items-center rounded-md px-2 transition-colors',
+                                'inline-flex min-h-8 min-w-8 items-center justify-center rounded-md px-2 transition-colors',
                                 crumb.path === directoryBrowserPath
                                   ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-strong)]'
                                   : 'text-[var(--theme-text)] hover:bg-[var(--theme-card2)]',
@@ -2555,7 +2555,7 @@ export function Conductor() {
                           key={pathOption}
                           type="button"
                           onClick={() => setDirectoryBrowserPath(pathOption)}
-                          className="rounded-full border border-[var(--theme-border)] bg-[var(--theme-card2)] px-3 py-1.5 text-xs font-medium text-[var(--theme-text)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
+                          className="inline-flex min-h-8 items-center rounded-full border border-[var(--theme-border)] bg-[var(--theme-card2)] px-3 py-1.5 text-xs font-medium text-[var(--theme-text)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
                         >
                           {pathOption}
                         </button>
