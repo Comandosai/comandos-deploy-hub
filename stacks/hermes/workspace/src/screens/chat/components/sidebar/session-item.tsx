@@ -173,11 +173,12 @@ function SessionItemComponent({
             event.stopPropagation()
           }}
           className={cn(
-            'ml-2 inline-flex size-7 items-center justify-center rounded-md text-primary-700',
+            'ml-2 inline-flex size-8 items-center justify-center rounded-md text-primary-700',
             'opacity-0 transition-opacity group-hover:opacity-100 hover:bg-primary-200 dark:hover:bg-primary-800',
             'aria-expanded:opacity-100 aria-expanded:bg-primary-200',
           )}
           aria-label="Настройки сессии"
+          title="Настройки сессии"
         >
           <HugeiconsIcon
             icon={MoreHorizontalIcon}
