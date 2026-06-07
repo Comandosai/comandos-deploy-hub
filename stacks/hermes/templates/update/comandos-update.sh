@@ -290,6 +290,25 @@ prune_workspace_backups() {
     done || true
 }
 
+repair_tree_ownership() {
+  local path="$1"
+  [[ -e "$path" ]] || return 0
+
+  local current_user current_group foreign_owner
+  current_user="$(id -un)"
+  current_group="$(id -gn)"
+  foreign_owner="$(find "$path" ! -user "$current_user" -printf '%u %p\n' -quit 2>/dev/null || true)"
+  [[ -n "$foreign_owner" ]] || return 0
+
+  if command -v sudo >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
+    log "Исправляю владельца файлов в $path для пользователя $current_user..."
+    sudo -n chown -R "$current_user:$current_group" "$path"
+    return
+  fi
+
+  die "в $path есть файлы другого владельца ($foreign_owner). Запустите от root: chown -R $current_user:$current_group $path"
+}
+
 validate_workspace_build() {
   local server_dir="$REMOTE_WORKSPACE_DIR/dist/server"
   local server_entry="$server_dir/server.js"
@@ -383,6 +402,8 @@ update_workspace() {
   assert_workspace_not_downgrade
   ensure_workspace_runtime_deps
   mkdir -p "$REMOTE_BASE_DIR/backups" "$REMOTE_WORKSPACE_DIR"
+  repair_tree_ownership "$REMOTE_WORKSPACE_DIR"
+  repair_tree_ownership "$REMOTE_BASE_DIR/backups"
   prune_workspace_backups 6
   if [[ -d "$REMOTE_WORKSPACE_DIR" ]]; then
     backup="$REMOTE_BASE_DIR/backups/workspace-update-$(date +%Y%m%d%H%M%S)"
