@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Cancel01Icon } from '@hugeicons/core-free-icons'
@@ -90,6 +90,11 @@ export function EditJobDialog({
   onSubmit,
 }: EditJobDialogProps) {
   const [form, setForm] = useState(() => getInitialState(job))
+  const onOpenChangeRef = useRef(onOpenChange)
+
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange
+  }, [onOpenChange])
 
   useEffect(() => {
     if (!open) {
@@ -104,7 +109,7 @@ export function EditJobDialog({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onOpenChange(false)
+        onOpenChangeRef.current(false)
       }
     }
 
@@ -113,7 +118,7 @@ export function EditJobDialog({
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [job, open, onOpenChange])
+  }, [job, open])
 
   function toggleDelivery(target: string) {
     setForm((current) => {
