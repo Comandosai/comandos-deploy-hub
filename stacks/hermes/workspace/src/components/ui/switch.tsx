@@ -21,7 +21,7 @@ function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
     <span className="inline-flex align-middle [&>input[aria-hidden='true']]:!hidden [&>input[aria-hidden='true']]:pointer-events-none">
       <SwitchPrimitive.Root
         className={cn(
-          'relative inline-flex h-[calc(var(--thumb-size)+2px)] w-[calc(var(--thumb-size)*2.4-2px)] shrink-0 items-center rounded-full p-px outline-none transition-[background-color,box-shadow] duration-200 [--thumb-size:--spacing(5)] focus-visible:ring-2 focus-visible:ring-primary-950 focus-visible:ring-offset-1 focus-visible:ring-offset-background data-checked:bg-emerald-600 data-unchecked:bg-primary-300 dark:data-unchecked:bg-neutral-600 border border-primary-300 dark:border-neutral-500 data-checked:border-emerald-700 data-disabled:opacity-64 sm:[--thumb-size:--spacing(4)]',
+          'relative inline-flex h-8 w-14 shrink-0 items-center rounded-full p-1 outline-none transition-[background-color,box-shadow] duration-200 [--thumb-size:--spacing(6)] focus-visible:ring-2 focus-visible:ring-primary-950 focus-visible:ring-offset-1 focus-visible:ring-offset-background data-checked:bg-emerald-600 data-unchecked:bg-primary-300 dark:data-unchecked:bg-neutral-600 border border-primary-300 dark:border-neutral-500 data-checked:border-emerald-700 data-disabled:opacity-64',
           className,
         )}
         data-slot="switch"
@@ -46,7 +46,7 @@ function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
         </span>
         <SwitchPrimitive.Thumb
           className={cn(
-            'pointer-events-none relative z-10 block aspect-square h-full origin-left in-[[role=switch]:active,[data-slot=label]:active]:not-data-disabled:scale-x-110 in-[[role=switch]:active,[data-slot=label]:active]:rounded-[var(--thumb-size)/calc(var(--thumb-size)*1.1)] rounded-(--thumb-size) bg-white shadow-md will-change-transform [transition:translate_.15s,border-radius_.15s,scale_.1s_.1s,transform-origin_.15s] data-checked:origin-[var(--thumb-size)_50%] data-checked:translate-x-[calc(var(--thumb-size)*1.4-4px)]',
+            'pointer-events-none relative z-10 block h-[var(--thumb-size)] w-[var(--thumb-size)] origin-left in-[[role=switch]:active,[data-slot=label]:active]:not-data-disabled:scale-x-110 in-[[role=switch]:active,[data-slot=label]:active]:rounded-[var(--thumb-size)/calc(var(--thumb-size)*1.1)] rounded-(--thumb-size) bg-white shadow-md will-change-transform [transition:translate_.15s,border-radius_.15s,scale_.1s_.1s,transform-origin_.15s] data-checked:origin-[var(--thumb-size)_50%] data-checked:translate-x-[var(--thumb-size)]',
           )}
           data-slot="switch-thumb"
         />
