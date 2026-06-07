@@ -9,6 +9,9 @@ import {
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useAgentChat } from '../hooks/use-agent-chat'
+import type { OperationsChatMessage } from '../hooks/use-agent-chat'
+import type { OperationsAgent } from '../hooks/use-operations'
 import { Button } from '@/components/ui/button'
 import { AgentProgress } from '@/components/agent-view/agent-progress'
 import { PixelAvatar } from '@/components/agent-swarm/pixel-avatar'
@@ -16,11 +19,6 @@ import { Markdown } from '@/components/prompt-kit/markdown'
 import { toast } from '@/components/ui/toast'
 import { runCronJob, toggleCronJob } from '@/lib/cron-api'
 import { cn } from '@/lib/utils'
-import {
-  useAgentChat,
-  type OperationsChatMessage,
-} from '../hooks/use-agent-chat'
-import type { OperationsAgent } from '../hooks/use-operations'
 
 function getStatusStyles(status: OperationsAgent['status']) {
   if (status === 'error') {
@@ -75,7 +73,7 @@ export function OperationsInlineChat({
   error,
 }: {
   agentName: string
-  messages: OperationsChatMessage[]
+  messages: Array<OperationsChatMessage>
   sendMessage: (message: string) => Promise<unknown>
   isSending: boolean
   error: string | null
@@ -255,7 +253,7 @@ export function OperationsAgentCard({
             }
             onClick={() => setShowCronPanel((value) => !value)}
             className={cn(
-              'inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]',
+              'inline-flex h-8 min-w-8 shrink-0 items-center justify-center gap-1 rounded-lg px-2 text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-bg)] hover:text-[var(--theme-text)]',
               showCronPanel && 'bg-[var(--theme-bg)] text-[var(--theme-text)]',
             )}
           >
@@ -429,7 +427,7 @@ export function OperationsAgentCard({
                         <Button
                           size="icon-sm"
                           variant="secondary"
-                          className="h-7 w-7 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text)] hover:bg-[var(--theme-card2)]"
+                          className="h-8 w-8 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-card)] text-[var(--theme-text)] hover:bg-[var(--theme-card2)]"
                           onClick={() => runCronMutation.mutate(job.id)}
                           aria-label={`Запустить ${displayJobName(job.name, agent.id)} сейчас`}
                         >
