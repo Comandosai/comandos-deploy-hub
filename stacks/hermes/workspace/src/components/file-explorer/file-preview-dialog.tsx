@@ -146,6 +146,8 @@ export default function FilePreviewDialog({
           ) : (
             <div className="h-[60vh]">
               <textarea
+                aria-label="Содержимое файла"
+                placeholder="Содержимое файла"
                 className="h-full w-full resize-none rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 font-mono text-xs leading-relaxed text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                 value={content}
                 onChange={(e) => {
