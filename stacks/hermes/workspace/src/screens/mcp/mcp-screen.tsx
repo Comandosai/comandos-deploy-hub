@@ -18,6 +18,17 @@ type Tab = 'installed' | 'marketplace'
 const TOOLBAR_FIELD =
   'h-9 w-full min-w-0 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none transition-colors focus:border-primary sm:min-w-[220px]'
 
+const MCP_CATEGORY_LABELS: Record<string, string> = {
+  All: 'Все',
+  Connected: 'Подключённые',
+  Failed: 'С ошибкой',
+  Disabled: 'Отключённые',
+}
+
+function formatMcpCategory(category: string): string {
+  return MCP_CATEGORY_LABELS[category] ?? category
+}
+
 export function McpScreen() {
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<Tab>('installed')
@@ -143,7 +154,7 @@ export function McpScreen() {
                 >
                   {categories.map((c) => (
                     <option key={c} value={c}>
-                      {c === 'All' ? 'Все' : c}
+                      {formatMcpCategory(c)}
                     </option>
                   ))}
                 </select>

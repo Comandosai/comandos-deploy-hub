@@ -17,7 +17,9 @@ export function useMcpServers(params: UseMcpServersParams) {
         url.searchParams.set('category', params.category)
       }
       const res = await fetch(url.toString().replace(window.location.origin, ''))
-      if (!res.ok) throw new Error(`MCP list failed (${res.status})`)
+      if (!res.ok) {
+        throw new Error(`Не удалось загрузить список MCP-серверов (${res.status}).`)
+      }
       const body = (await res.json()) as Partial<McpListResponse> & {
         ok?: boolean
         code?: string
