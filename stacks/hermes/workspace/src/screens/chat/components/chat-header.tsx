@@ -369,7 +369,7 @@ function ChatHeaderComponent({
               <button
                 type="button"
                 onClick={() => setSessionPopoverOpen((p) => !p)}
-                className="min-w-0 truncate text-sm font-medium text-balance hover:text-accent-600 transition-colors rounded-sm text-left"
+                className="min-h-8 min-w-0 truncate rounded-md px-1.5 text-left text-sm font-medium text-balance transition-colors hover:text-accent-600"
                 aria-label={`Переключить сессию: ${displayTitle}`}
                 title="Переключить сессию"
               >
@@ -379,7 +379,7 @@ function ChatHeaderComponent({
                 <button
                   type="button"
                   onClick={startTitleEdit}
-                  className="text-xs text-primary-400 opacity-0 group-hover:opacity-100 hover:text-primary-600 transition-opacity shrink-0"
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-xs text-primary-400 opacity-0 transition-opacity hover:bg-primary-100 hover:text-primary-600 group-hover:opacity-100"
                   aria-label="Переименовать сессию"
                   title="Переименовать сессию"
                 >

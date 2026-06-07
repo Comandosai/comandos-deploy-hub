@@ -101,7 +101,7 @@ export function MessageActionsBar({
             onClick={() => {
               handleCopy().catch(() => {})
             }}
-            className="inline-flex items-center justify-center rounded border border-transparent bg-transparent p-1 text-primary-700 hover:text-primary-900 hover:bg-primary-100 dark:hover:bg-primary-800"
+            className="inline-flex size-8 items-center justify-center rounded border border-transparent bg-transparent text-primary-700 hover:bg-primary-100 hover:text-primary-900 dark:hover:bg-primary-800"
           >
             <HugeiconsIcon
               icon={copied ? Tick02Icon : Copy01Icon}

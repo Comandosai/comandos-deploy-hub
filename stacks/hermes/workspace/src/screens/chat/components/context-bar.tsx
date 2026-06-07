@@ -121,7 +121,7 @@ function ContextBarComponent({
         {/* Invisible tap target */}
         <button
           type="button"
-          className="absolute inset-x-0 -top-2 -bottom-2 z-10"
+          className="absolute inset-x-0 -top-[14px] -bottom-[15px] z-10"
           onClick={() => setShowLabel((prev) => !prev)}
           aria-label={`Окно контекста: ${Math.round(clampedPct)}% использовано`}
         />
@@ -159,7 +159,7 @@ function ContextBarComponent({
             aria-label={`Окно контекста: ${Math.round(clampedPct)}% использовано`}
           />
         }
-        className="block w-full cursor-pointer"
+        className="relative z-10 -my-2.5 block w-full cursor-pointer py-2.5"
       >
         <div
           className={cn(

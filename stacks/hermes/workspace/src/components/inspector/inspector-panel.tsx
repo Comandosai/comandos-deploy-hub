@@ -231,8 +231,8 @@ function MemoryTab() {
           const list = Array.isArray(json?.files) ? json.files : []
           setFiles(
             list.map((entry: Record<string, unknown>) => ({
-              path: String(entry?.path || ''),
-              name: String(entry?.name || entry?.path || ''),
+              path: String(entry.path || ''),
+              name: String(entry.name || entry.path || ''),
             })),
           )
           setLoading(false)
@@ -324,7 +324,7 @@ function SkillsTab() {
   if (skills.length === 0) return <EmptyState text="Навыки не найдены" />
 
   // Group by category
-  const grouped: Record<string, Array<SkillItem>> = {}
+  const grouped: Partial<Record<string, Array<SkillItem>>> = {}
   for (const skill of skills) {
     const cat = skill.category || 'Без категории'
     if (!grouped[cat]) grouped[cat] = []
@@ -344,7 +344,7 @@ function SkillsTab() {
           >
             {category}
           </p>
-          {items.map((skill) => (
+          {(items ?? []).map((skill) => (
             <button
               key={skill.name}
               type="button"
@@ -407,13 +407,12 @@ function McpTab() {
         const list = Array.isArray(json?.servers) ? json.servers : []
         setServers(
           list.map((entry: Record<string, unknown>) => ({
-            id: String(entry?.id || entry?.name || ''),
-            name: String(entry?.name || ''),
-            enabled: Boolean(entry?.enabled),
-            status:
-              typeof entry?.status === 'string' ? entry.status : undefined,
+            id: String(entry.id || entry.name || ''),
+            name: String(entry.name || ''),
+            enabled: Boolean(entry.enabled),
+            status: typeof entry.status === 'string' ? entry.status : undefined,
             discoveredToolsCount:
-              typeof entry?.discoveredToolsCount === 'number'
+              typeof entry.discoveredToolsCount === 'number'
                 ? entry.discoveredToolsCount
                 : undefined,
           })),
@@ -653,7 +652,7 @@ export function InspectorToggleButton({ className }: { className?: string }) {
       onClick={toggle}
       title={isOpen ? 'Закрыть инспектор' : 'Открыть инспектор'}
       className={cn(
-        'flex items-center justify-center rounded-lg px-2 py-1.5 text-xs transition-colors',
+        'flex min-h-8 min-w-8 items-center justify-center rounded-lg px-2 py-1.5 text-xs transition-colors',
         isOpen ? 'opacity-100' : 'opacity-60 hover:opacity-90',
         className,
       )}
