@@ -45,7 +45,7 @@ function sessionGlyph(
   }
   const sourceKey = s.source?.toLowerCase()
   if (sourceKey && KIND_ICONS[sourceKey]) return KIND_ICONS[sourceKey]
-  const kindKey = s.kind?.toLowerCase()
+  const kindKey = s.kind.toLowerCase()
   if (kindKey && KIND_ICONS[kindKey]) return KIND_ICONS[kindKey]
   return KIND_ICONS.chat
 }
@@ -68,7 +68,7 @@ function formatTokens(n: number): string {
 }
 
 function shortTitle(s: SessionRowData): string {
-  const t = s.title?.trim()
+  const t = s.title.trim()
   if (t && t.length > 0 && t !== s.key) return t
   // Fall back to friendly slug from the key
   return `Сессия ${s.key.slice(0, 8)}`
@@ -109,7 +109,8 @@ function buildBadges(s: SessionRowData): Array<SessionBadge> {
       title: `${formatTokens(s.tokenCount)} токенов`,
     })
   }
-  if (s.status?.toLowerCase() === 'error' || s.status?.toLowerCase() === 'failed') {
+  const status = s.status.toLowerCase()
+  if (status === 'error' || status === 'failed') {
     badges.push({
       label: 'ошибка',
       tone: 'var(--theme-danger)',
@@ -201,7 +202,7 @@ export function SessionsIntelligenceCard({
           </span>
           <a
             href="/chat/main"
-            className="rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors hover:bg-[var(--theme-card)]/80"
+            className="inline-flex min-h-8 items-center rounded border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors hover:bg-[var(--theme-card)]/80"
             style={{
               borderColor: 'var(--theme-border)',
               color: 'var(--theme-muted)',

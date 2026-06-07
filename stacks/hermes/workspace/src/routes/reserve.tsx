@@ -115,7 +115,7 @@ function ReserveRoute() {
 
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 lg:grid lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
         <section className="rounded-[2rem] border border-[#d9b35f]/24 bg-[#05080e]/82 p-7 shadow-[0_40px_140px_rgba(0,0,0,.52)] backdrop-blur-2xl sm:p-9">
-          <a href="/hermes-world" className="text-[11px] font-black uppercase tracking-[0.22em] text-[#d9b35f]/72 hover:text-[#f8e4ac]">
+          <a href="/hermes-world" className="inline-flex min-h-8 items-center text-[11px] font-black uppercase tracking-[0.22em] text-[#d9b35f]/72 hover:text-[#f8e4ac]">
             ← Назад в HermesWorld
           </a>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d9b35f]/30 bg-[#d9b35f]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-[#f8e4ac]">
