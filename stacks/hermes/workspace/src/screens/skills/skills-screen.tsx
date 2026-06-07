@@ -1008,6 +1008,7 @@ function SecurityBadge({
   const config = SECURITY_BADGE[security.level]
 
   const [expanded, setExpanded] = useState(false)
+  const [pinned, setPinned] = useState(false)
 
   // Compact badge for card grid
   if (compact) {
@@ -1020,12 +1021,20 @@ function SecurityBadge({
             config.badgeClass,
           )}
           aria-label={`Проверка безопасности навыка: ${config.label}`}
+          aria-expanded={expanded}
+          aria-haspopup="dialog"
           title="Показать проверку безопасности"
           onMouseEnter={() => setExpanded(true)}
-          onMouseLeave={() => setExpanded(false)}
+          onMouseLeave={() => {
+            if (!pinned) setExpanded(false)
+          }}
           onClick={(e) => {
             e.stopPropagation()
-            setExpanded((v) => !v)
+            setPinned((current) => {
+              const nextPinned = !current
+              setExpanded(nextPinned)
+              return nextPinned
+            })
           }}
         >
           {config.label}
