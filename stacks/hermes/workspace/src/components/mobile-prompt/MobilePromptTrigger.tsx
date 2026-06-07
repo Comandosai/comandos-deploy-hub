@@ -188,15 +188,18 @@ export function MobilePromptTrigger() {
                   <button
                     type="button"
                     onClick={openSetup}
-                    className="rounded-lg px-3 py-1.5 text-xs font-semibold"
-                    style={{ background: 'var(--theme-accent)', color: 'var(--theme-on-accent)' }}
+                    className="h-8 min-h-8 rounded-lg px-3 text-xs font-semibold"
+                    style={{
+                      background: 'var(--theme-accent)',
+                      color: 'var(--theme-on-accent)',
+                    }}
                   >
                     Настроить
                   </button>
                   <button
                     type="button"
                     onClick={dismissPrompt}
-                    className="rounded-lg p-1.5 transition-colors hover:opacity-80"
+                    className="flex size-8 min-h-8 min-w-8 items-center justify-center rounded-lg transition-colors hover:opacity-80"
                     style={{ color: 'var(--theme-muted)' }}
                     aria-label="Закрыть подсказку мобильного доступа"
                   >

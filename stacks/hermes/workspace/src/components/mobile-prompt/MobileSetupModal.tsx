@@ -82,7 +82,8 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
       action: (
         <div className="rounded-lg border border-primary-700 bg-primary-950 px-4 py-3 text-sm text-primary-200">
           Расширенные API Hermes Agent необязательны. Если чат уже работает на
-          компьютере, для телефона главное, чтобы страница была доступна по сети.
+          компьютере, для телефона главное, чтобы страница была доступна по
+          сети.
         </div>
       ),
     },
@@ -213,7 +214,7 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 rounded-lg p-1.5 text-primary-400 transition-colors hover:bg-primary-900 hover:text-primary-200"
+          className="absolute top-4 right-4 flex size-8 min-h-8 min-w-8 items-center justify-center rounded-lg text-primary-400 transition-colors hover:bg-primary-900 hover:text-primary-200"
           aria-label="Закрыть настройку мобильного доступа"
         >
           <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={2} />
@@ -226,7 +227,9 @@ export function MobileSetupModal({ isOpen, onClose }: MobileSetupModalProps) {
             className="size-9 rounded-xl"
           />
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-white">Мобильный доступ</h2>
+            <h2 className="text-lg font-semibold text-white">
+              Мобильный доступ
+            </h2>
             <div className="mt-1 flex items-center gap-1.5">
               {steps.map((_, index) => (
                 <span
