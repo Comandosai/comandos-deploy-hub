@@ -1,13 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import type {
+  ClaudeTask,
+  CreateTaskInput,
+  TaskAssignee,
+  TaskColumn,
+  TaskPriority,
+} from '@/lib/tasks-api'
 import {
   DialogContent,
+  DialogDescription,
   DialogRoot,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { ClaudeTask, CreateTaskInput, TaskColumn, TaskPriority, TaskAssignee } from '@/lib/tasks-api'
 import { COLUMN_LABELS, COLUMN_ORDER } from '@/lib/tasks-api'
 
 type Props = {
@@ -34,6 +40,7 @@ export function TaskDialog({
   isDeleting = false,
 }: Props) {
   const isEdit = Boolean(task)
+  const formId = useId()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -72,7 +79,10 @@ export function TaskDialog({
       column,
       priority,
       assignee: assignee || null,
-      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
       due_date: dueDate || null,
     })
   }
@@ -91,28 +101,46 @@ export function TaskDialog({
   )
 
   const labelClass = 'block text-xs font-medium text-[var(--theme-muted)] mb-1'
+  const ids = {
+    title: `${formId}-title`,
+    description: `${formId}-description`,
+    column: `${formId}-column`,
+    priority: `${formId}-priority`,
+    assignee: `${formId}-assignee`,
+    dueDate: `${formId}-due-date`,
+    tags: `${formId}-tags`,
+  }
 
   return (
     <DialogRoot open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[min(520px,95vw)] border-[var(--theme-border)] bg-[var(--theme-bg)] overflow-hidden">
         {/* Accent top border */}
-        <div className="h-[3px] w-full" style={{ background: 'var(--theme-accent)' }} />
+        <div
+          className="h-[3px] w-full"
+          style={{ background: 'var(--theme-accent)' }}
+        />
 
         <div className="p-5">
           <DialogTitle className="text-base font-semibold text-[var(--theme-text)] mb-1">
             {isEdit ? 'Редактировать задачу' : 'Новая задача'}
           </DialogTitle>
           <DialogDescription className="text-xs text-[var(--theme-muted)] mb-4">
-            {isEdit ? 'Обновите параметры задачи.' : 'Заполните параметры новой задачи.'}
+            {isEdit
+              ? 'Обновите параметры задачи.'
+              : 'Заполните параметры новой задачи.'}
           </DialogDescription>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className={labelClass}>Название *</label>
+              <label htmlFor={ids.title} className={labelClass}>
+                Название *
+              </label>
               <input
+                id={ids.title}
+                aria-label="Название задачи"
                 className={inputClass}
                 value={title}
-                onChange={e => setTitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="Что нужно сделать?"
                 required
                 autoFocus
@@ -120,37 +148,51 @@ export function TaskDialog({
             </div>
 
             <div>
-              <label className={labelClass}>Описание</label>
+              <label htmlFor={ids.description} className={labelClass}>
+                Описание
+              </label>
               <textarea
+                id={ids.description}
+                aria-label="Описание задачи"
                 className={cn(inputClass, 'resize-none')}
                 rows={3}
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Дополнительные детали..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>Колонка</label>
+                <label htmlFor={ids.column} className={labelClass}>
+                  Колонка
+                </label>
                 <select
+                  id={ids.column}
+                  aria-label="Колонка задачи"
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
                   value={column}
-                  onChange={e => setColumn(e.target.value as TaskColumn)}
+                  onChange={(e) => setColumn(e.target.value as TaskColumn)}
                 >
-                  {COLUMN_ORDER.map(col => (
-                    <option key={col} value={col}>{COLUMN_LABELS[col]}</option>
+                  {COLUMN_ORDER.map((col) => (
+                    <option key={col} value={col}>
+                      {COLUMN_LABELS[col]}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Приоритет</label>
+                <label htmlFor={ids.priority} className={labelClass}>
+                  Приоритет
+                </label>
                 <select
+                  id={ids.priority}
+                  aria-label="Приоритет задачи"
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
                   value={priority}
-                  onChange={e => setPriority(e.target.value as TaskPriority)}
+                  onChange={(e) => setPriority(e.target.value as TaskPriority)}
                 >
                   <option value="high">Высокий</option>
                   <option value="medium">Средний</option>
@@ -161,46 +203,63 @@ export function TaskDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>Исполнитель</label>
+                <label htmlFor={ids.assignee} className={labelClass}>
+                  Исполнитель
+                </label>
                 <select
+                  id={ids.assignee}
+                  aria-label="Исполнитель задачи"
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
                   value={assignee}
-                  onChange={e => setAssignee(e.target.value)}
+                  onChange={(e) => setAssignee(e.target.value)}
                 >
                   <option value="">Не назначен</option>
                   {assignees.map(({ id, label }) => (
-                    <option key={id} value={id}>{label}</option>
+                    <option key={id} value={id}>
+                      {label}
+                    </option>
                   ))}
                 </select>
                 <p className="mt-1 text-[10px] text-[var(--theme-muted)]">
-                  Исполнитель не равен статусу. Перетаскивание меняет только колонку.
+                  Исполнитель не равен статусу. Перетаскивание меняет только
+                  колонку.
                 </p>
               </div>
               <div>
-                <label className={labelClass}>Срок</label>
+                <label htmlFor={ids.dueDate} className={labelClass}>
+                  Срок
+                </label>
                 <input
+                  id={ids.dueDate}
+                  aria-label="Срок задачи"
                   type="date"
                   className={inputClass}
                   style={{ colorScheme: 'dark' }}
                   value={dueDate}
-                  onChange={e => setDueDate(e.target.value)}
+                  onChange={(e) => setDueDate(e.target.value)}
                 />
               </div>
             </div>
 
             <div>
-              <label className={labelClass}>Теги через запятую</label>
+              <label htmlFor={ids.tags} className={labelClass}>
+                Теги через запятую
+              </label>
               <input
+                id={ids.tags}
+                aria-label="Теги задачи через запятую"
                 className={inputClass}
                 value={tags}
-                onChange={e => setTags(e.target.value)}
+                onChange={(e) => setTags(e.target.value)}
                 placeholder="frontend, bug, research"
               />
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <p className="text-[10px] text-[var(--theme-muted)]">Esc закрывает окно</p>
+              <p className="text-[10px] text-[var(--theme-muted)]">
+                Esc закрывает окно
+              </p>
               <div className="flex flex-wrap justify-end gap-2">
                 {isEdit && onDelete ? (
                   <Button
@@ -226,9 +285,16 @@ export function TaskDialog({
                   type="submit"
                   size="sm"
                   disabled={isSubmitting || isDeleting || !title.trim()}
-                  style={{ background: 'var(--theme-accent)', color: 'var(--theme-on-accent)' }}
+                  style={{
+                    background: 'var(--theme-accent)',
+                    color: 'var(--theme-on-accent)',
+                  }}
                 >
-                  {isSubmitting ? 'Сохраняю...' : isEdit ? 'Сохранить' : 'Создать'}
+                  {isSubmitting
+                    ? 'Сохраняю...'
+                    : isEdit
+                      ? 'Сохранить'
+                      : 'Создать'}
                 </Button>
               </div>
             </div>
