@@ -1640,6 +1640,8 @@ function ClaudeConfigSection({
                         />
                         <Button
                           size="sm"
+                          aria-label={`Сохранить API-ключ ${provider.name}`}
+                          title={`Сохранить API-ключ ${provider.name}`}
                           onClick={() => {
                             void saveConfig({ env: { [envKey]: keyInput } })
                             setEditingKey(null)
@@ -1651,6 +1653,8 @@ function ClaudeConfigSection({
                         <Button
                           size="sm"
                           variant="ghost"
+                          aria-label={`Отменить изменение API-ключа ${provider.name}`}
+                          title={`Отменить изменение API-ключа ${provider.name}`}
                           onClick={() => {
                             setEditingKey(null)
                             setKeyInput('')
@@ -1670,6 +1674,8 @@ function ClaudeConfigSection({
                         <Button
                           size="sm"
                           variant="ghost"
+                          aria-label={`${provider.configured ? 'Изменить' : 'Добавить'} API-ключ ${provider.name}`}
+                          title={`${provider.configured ? 'Изменить' : 'Добавить'} API-ключ ${provider.name}`}
                           onClick={() => {
                             setEditingKey(envKey)
                             setKeyInput('')
@@ -1824,7 +1830,9 @@ function ClaudeConfigSection({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-auto px-0 py-0 text-xs text-primary-700 underline"
+                aria-label="Заполнить своего провайдера из блока модели выше"
+                title="Заполнить своего провайдера из блока модели выше"
+                className="min-h-8 px-2 py-1 text-xs text-primary-700 underline"
                 onClick={() => {
                   setAddCpBaseUrl(baseUrlInput.trim())
                   setAddCpTitle((t) =>
@@ -1974,6 +1982,8 @@ function ClaudeConfigSection({
                         size="sm"
                         variant="outline"
                         disabled={saving}
+                        aria-label={`Применить провайдера ${extraPrimaryNotInList.name}`}
+                        title={`Применить провайдера ${extraPrimaryNotInList.name}`}
                         onClick={() => {
                           setProviderInput(extraPrimaryNotInList.name)
                           setBaseUrlInput(extraPrimaryNotInList.base_url)
@@ -1987,6 +1997,8 @@ function ClaudeConfigSection({
                         size="sm"
                         variant="outline"
                         disabled={saving}
+                        aria-label={`Добавить ${extraPrimaryNotInList.name} в список своих провайдеров`}
+                        title={`Добавить ${extraPrimaryNotInList.name} в список своих провайдеров`}
                         onClick={() =>
                           persistCustomProviderRow(
                             extraPrimaryNotInList.name,
@@ -2032,6 +2044,8 @@ function ClaudeConfigSection({
                       size="sm"
                       variant="outline"
                       disabled={saving}
+                      aria-label="Добавить manifest-провайдера в список своих провайдеров"
+                      title="Добавить manifest-провайдера в список своих провайдеров"
                       onClick={() => {
                         const u = extraManifestNotInList.base_url
                         persistCustomProviderRow(deriveCustomProviderNameFromBaseUrl(u), u, {
@@ -2086,6 +2100,8 @@ function ClaudeConfigSection({
                     />
                     <Button
                       size="sm"
+                      aria-label="Сохранить manifest API-ключ"
+                      title="Сохранить manifest API-ключ"
                       onClick={() => {
                         void saveConfig({
                           env: {
@@ -2100,6 +2116,8 @@ function ClaudeConfigSection({
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label="Отменить изменение manifest API-ключа"
+                      title="Отменить изменение manifest API-ключа"
                       onClick={() => setEditingCustomKey(false)}
                     >
                       ✕
@@ -2118,6 +2136,8 @@ function ClaudeConfigSection({
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label={`${customApiKeyConfigured ? 'Изменить' : 'Добавить'} manifest API-ключ`}
+                      title={`${customApiKeyConfigured ? 'Изменить' : 'Добавить'} manifest API-ключ`}
                       onClick={() => {
                         setEditingCustomKey(true)
                         setCustomApiKey('')
@@ -2158,6 +2178,8 @@ function ClaudeConfigSection({
                     />
                     <Button
                       size="sm"
+                      aria-label="Сохранить manifest базовый URL"
+                      title="Сохранить manifest базовый URL"
                       onClick={() => {
                         const u = customBaseUrl.trim()
                         if (!u) {
@@ -2185,6 +2207,8 @@ function ClaudeConfigSection({
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label="Отменить изменение manifest базового URL"
+                      title="Отменить изменение manifest базового URL"
                       onClick={() => {
                         setEditingCustomBaseUrl(false)
                         setCustomBaseUrl(manifestBaseUrlOnly)
@@ -2204,6 +2228,8 @@ function ClaudeConfigSection({
                     <Button
                       size="sm"
                       variant="ghost"
+                      aria-label={`${manifestBaseUrlOnly ? 'Изменить' : 'Добавить'} manifest базовый URL`}
+                      title={`${manifestBaseUrlOnly ? 'Изменить' : 'Добавить'} manifest базовый URL`}
                       onClick={() => {
                         setCustomBaseUrl(manifestBaseUrlOnly)
                         setEditingCustomBaseUrl(true)
