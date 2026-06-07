@@ -315,7 +315,7 @@ export function EditJobDialog({
                             schedule: preset.value,
                           }))
                         }
-                        className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                        className="min-h-[34px] rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                         style={{
                           background: isActive
                             ? 'var(--theme-accent)'
@@ -452,7 +452,7 @@ export function EditJobDialog({
                               ? `Нужен Hermes Agent gateway с настроенным ${option}`
                               : undefined
                           }
-                          className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors"
+                          className="min-h-[34px] rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors"
                           style={{
                             background: isActive
                               ? 'var(--theme-accent)'
@@ -491,7 +491,7 @@ export function EditJobDialog({
                           repeatMode: 'unlimited',
                         }))
                       }
-                      className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                      className="min-h-[34px] rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                       style={{
                         background:
                           form.repeatMode === 'unlimited'
@@ -517,7 +517,7 @@ export function EditJobDialog({
                           repeatMode: 'limited',
                         }))
                       }
-                      className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                      className="min-h-[34px] rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                       style={{
                         background:
                           form.repeatMode === 'limited'
