@@ -287,7 +287,7 @@ prune_workspace_backups() {
     while IFS= read -r backup_path; do
       [[ -n "$backup_path" ]] || continue
       rm -rf -- "$backup_path"
-    done
+    done || true
 }
 
 validate_workspace_build() {
