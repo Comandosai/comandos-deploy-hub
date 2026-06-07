@@ -94,7 +94,7 @@ for key, value in os.environ.items():
 with open(dst, "w", encoding="utf-8") as f:
     f.write(text)
 PY
-  chmod 700 "$tmp_target" || true
+  chmod 755 "$tmp_target" || true
   if mv "$tmp_target" "$target"; then
     log "Скрипт обновления синхронизирован: $target"
   else

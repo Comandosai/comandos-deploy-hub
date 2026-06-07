@@ -791,7 +791,7 @@ install_update_script() {
   export REMOTE_BASE_DIR REMOTE_WORKSPACE_DIR REMOTE_HERMES_HOME HERMES_AGENT_INSTALLER_URL
   export COMANDOS_STACK_REPO_URL COMANDOS_STACK_REF COMANDOS_STACK_PATH
   render_template "$REMOTE_TMP/payload/templates/update/comandos-update.sh" "$script_tmp"
-  install_app_file "$script_tmp" "$REMOTE_BASE_DIR/install/comandos-update.sh" 700
+  install_app_file "$script_tmp" "$REMOTE_BASE_DIR/install/comandos-update.sh" 755
 }
 
 write_installed_state() {
