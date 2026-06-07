@@ -600,6 +600,11 @@ export function SkillsScreen() {
               <input
                 value={searchInput}
                 onChange={(event) => handleSearchChange(event.target.value)}
+                aria-label={
+                  tab === 'marketplace'
+                    ? 'Поиск по каталогу навыков'
+                    : 'Поиск по установленным навыкам'
+                }
                 placeholder={
                   tab === 'marketplace'
                     ? 'Поиск по каталогу навыков, GitHub и локальным источникам'
@@ -614,6 +619,7 @@ export function SkillsScreen() {
                   onChange={(event) =>
                     handleCategoryChange(event.target.value)
                   }
+                  aria-label="Категория навыков"
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >
                   {categories.map((item) => (
@@ -628,6 +634,7 @@ export function SkillsScreen() {
                 <select
                   value={origin}
                   onChange={(event) => handleOriginChange(event.target.value)}
+                  aria-label="Источник навыков"
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >
                   <option value="All">Все источники</option>
@@ -645,6 +652,7 @@ export function SkillsScreen() {
                       event.target.value === 'category' ? 'category' : 'name',
                     )
                   }
+                  aria-label="Сортировка навыков"
                   className="h-9 rounded-lg border border-primary-200 bg-primary-100/60 px-3 text-sm text-ink outline-none"
                 >
                   <option value="name">По имени A-Z</option>
@@ -1008,9 +1016,11 @@ function SecurityBadge({
         <button
           type="button"
           className={cn(
-            'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors',
+            'inline-flex min-h-8 items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors',
             config.badgeClass,
           )}
+          aria-label={`Проверка безопасности навыка: ${config.label}`}
+          title="Показать проверку безопасности"
           onMouseEnter={() => setExpanded(true)}
           onMouseLeave={() => setExpanded(false)}
           onClick={(e) => {
