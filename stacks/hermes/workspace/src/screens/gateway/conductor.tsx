@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
@@ -950,6 +951,10 @@ function deriveSessionStatus(
 
 export function Conductor() {
   const conductor = useConductorGateway()
+  const missionModalTitleId = useId()
+  const settingsModalTitleId = useId()
+  const directoryModalTitleId = useId()
+  const continueModalTitleId = useId()
   const [goalDraft, setGoalDraft] = useState(() => loadConductorGoalDraft())
   const [missionModalOpen, setMissionModalOpen] = useState(false)
   const [continueDraft, setContinueDraft] = useState('')
@@ -1068,6 +1073,42 @@ export function Conductor() {
     if (!conductor.isPaused) return
     setNow(conductor.pausedAtMs ?? Date.now())
   }, [conductor.isPaused, conductor.pausedAtMs])
+
+  useEffect(() => {
+    if (
+      !missionModalOpen &&
+      !settingsOpen &&
+      !directoryBrowserOpen &&
+      !continueModalOpen
+    )
+      return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+
+      if (directoryBrowserOpen) {
+        setDirectoryBrowserOpen(false)
+        setDirectoryBrowserLoading(false)
+        setDirectoryBrowserError(null)
+        return
+      }
+
+      if (missionModalOpen) {
+        setMissionModalOpen(false)
+        return
+      }
+
+      if (settingsOpen) {
+        setSettingsOpen(false)
+        return
+      }
+
+      if (continueModalOpen) setContinueModalOpen(false)
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [continueModalOpen, directoryBrowserOpen, missionModalOpen, settingsOpen])
 
   // Set body background to match Conductor theme so no gray shows behind keyboard/tab bar
   useEffect(() => {
@@ -1212,7 +1253,14 @@ export function Conductor() {
       })),
     [selectedHistoryEntry],
   )
-  const OFFICE_NAMES = ['Агент 1', 'Агент 2', 'Агент 3', 'Агент 4', 'Агент 5', 'Агент 6']
+  const OFFICE_NAMES = [
+    'Агент 1',
+    'Агент 2',
+    'Агент 3',
+    'Агент 4',
+    'Агент 5',
+    'Агент 6',
+  ]
   const homeOfficeRows = useMemo<AgentWorkingRow[]>(() => {
     const sessions = conductor.recentSessions
     if (sessions.length === 0) {
@@ -2069,15 +2117,24 @@ export function Conductor() {
           {missionModalOpen ? (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-[color-mix(in_srgb,var(--theme-bg)_48%,transparent)] px-4 py-6 backdrop-blur-md"
-              onClick={() => setMissionModalOpen(false)}
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget)
+                  setMissionModalOpen(false)
+              }}
             >
               <div
                 className="w-full max-w-2xl rounded-3xl border border-[var(--theme-border2)] bg-[var(--theme-card)] p-5 shadow-[0_24px_80px_var(--theme-shadow)] sm:p-6"
-                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={missionModalTitleId}
+                onMouseDown={(event) => event.stopPropagation()}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold tracking-tight text-[var(--theme-text)]">
+                    <h2
+                      id={missionModalTitleId}
+                      className="text-lg font-semibold tracking-tight text-[var(--theme-text)]"
+                    >
                       Новая миссия
                     </h2>
                     <p className="mt-1 text-sm text-[var(--theme-muted-2)]">
@@ -2089,6 +2146,7 @@ export function Conductor() {
                     onClick={() => setMissionModalOpen(false)}
                     className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] text-lg text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
                     aria-label="Закрыть окно новой миссии"
+                    autoFocus
                   >
                     ×
                   </button>
@@ -2108,7 +2166,7 @@ export function Conductor() {
                         type="button"
                         onClick={() => handleQuickActionSelect(action)}
                         className={cn(
-                          'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
+                          'inline-flex min-h-8 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
                           selectedAction === action.id
                             ? 'border-[var(--theme-accent)] bg-[var(--theme-accent-soft)] text-[var(--theme-accent-strong)]'
                             : 'border-[var(--theme-border)] bg-transparent text-[var(--theme-muted)] hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]',
@@ -2156,18 +2214,26 @@ export function Conductor() {
           {settingsOpen && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-[color-mix(in_srgb,var(--theme-bg)_55%,transparent)] px-4 py-6 backdrop-blur-md"
-              onClick={() => setSettingsOpen(false)}
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setSettingsOpen(false)
+              }}
             >
               <div
                 className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[var(--theme-border2)] bg-[var(--theme-card)] p-5 shadow-[0_24px_80px_var(--theme-shadow)] sm:p-6"
-                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={settingsModalTitleId}
+                onMouseDown={(event) => event.stopPropagation()}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--theme-muted)]">
                       Настройки миссий
                     </p>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--theme-text)]">
+                    <h2
+                      id={settingsModalTitleId}
+                      className="mt-2 text-2xl font-semibold tracking-tight text-[var(--theme-text)]"
+                    >
                       Настройки оркестратора
                     </h2>
                     <p className="mt-2 text-sm text-[var(--theme-muted-2)]">
@@ -2180,6 +2246,7 @@ export function Conductor() {
                     onClick={() => setSettingsOpen(false)}
                     className="inline-flex size-10 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] text-lg text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
                     aria-label="Закрыть настройки"
+                    autoFocus
                   >
                     ×
                   </button>
@@ -2262,7 +2329,7 @@ export function Conductor() {
                       onChange={(event) =>
                         updateSettings({ supervised: event.target.checked })
                       }
-                      className="mt-1 size-4 rounded border-[var(--theme-border2)] accent-[var(--theme-accent)]"
+                      className="mt-0.5 size-6 min-h-8 min-w-8 rounded border-[var(--theme-border2)] accent-[var(--theme-accent)]"
                     />
                     <span className="min-w-0">
                       <span className="block text-sm font-medium text-[var(--theme-text)]">
@@ -2294,7 +2361,7 @@ export function Conductor() {
                           setContinueDraft('')
                           setSelectedTaskId(null)
                         }}
-                        className="text-xs text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-accent)]"
+                        className="inline-flex min-h-8 items-center rounded-lg px-3 text-xs text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-card2)] hover:text-[var(--theme-accent)]"
                       >
                         Сбросить
                       </button>
@@ -2308,18 +2375,27 @@ export function Conductor() {
           {directoryBrowserOpen ? (
             <div
               className="fixed inset-0 z-[70] flex items-center justify-center bg-[color-mix(in_srgb,var(--theme-bg)_55%,transparent)] px-4 py-6 backdrop-blur-md"
-              onClick={closeDirectoryBrowser}
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget)
+                  closeDirectoryBrowser()
+              }}
             >
               <div
                 className="w-full max-w-2xl rounded-3xl border border-[var(--theme-border2)] bg-[var(--theme-card)] p-5 shadow-[0_24px_80px_var(--theme-shadow)] sm:p-6"
-                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={directoryModalTitleId}
+                onMouseDown={(event) => event.stopPropagation()}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--theme-muted)]">
                       Выбор папки
                     </p>
-                    <h3 className="mt-2 text-xl font-semibold tracking-tight text-[var(--theme-text)]">
+                    <h3
+                      id={directoryModalTitleId}
+                      className="mt-2 text-xl font-semibold tracking-tight text-[var(--theme-text)]"
+                    >
                       Выберите папку проекта
                     </h3>
                     <p className="mt-2 text-sm text-[var(--theme-muted-2)]">
@@ -2332,6 +2408,7 @@ export function Conductor() {
                     onClick={closeDirectoryBrowser}
                     className="inline-flex size-10 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] text-lg text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
                     aria-label="Закрыть выбор папки"
+                    autoFocus
                   >
                     ×
                   </button>
@@ -2380,7 +2457,7 @@ export function Conductor() {
                                 setDirectoryBrowserPath(crumb.path)
                               }
                               className={cn(
-                                'rounded-md px-1.5 py-0.5 transition-colors',
+                                'inline-flex min-h-8 items-center rounded-md px-2 transition-colors',
                                 crumb.path === directoryBrowserPath
                                   ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-strong)]'
                                   : 'text-[var(--theme-text)] hover:bg-[var(--theme-card2)]',
@@ -2530,8 +2607,8 @@ export function Conductor() {
                 {conductor.goal}
               </h1>
               <p className="text-sm text-[var(--theme-muted-2)]">
-                Агент разбивает миссию на задачи и подбирает исполнителей.
-                После запуска здесь появится рабочая доска.
+                Агент разбивает миссию на задачи и подбирает исполнителей. После
+                запуска здесь появится рабочая доска.
               </p>
             </div>
 
@@ -2981,15 +3058,24 @@ export function Conductor() {
           {continueModalOpen ? (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-[color-mix(in_srgb,var(--theme-bg)_48%,transparent)] px-4 py-6 backdrop-blur-md"
-              onClick={() => setContinueModalOpen(false)}
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget)
+                  setContinueModalOpen(false)
+              }}
             >
               <div
                 className="w-full max-w-md rounded-3xl border border-[var(--theme-border2)] bg-[var(--theme-card)] p-5 shadow-[0_24px_80px_var(--theme-shadow)] sm:p-6"
-                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={continueModalTitleId}
+                onMouseDown={(event) => event.stopPropagation()}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold tracking-tight text-[var(--theme-text)]">
+                    <h2
+                      id={continueModalTitleId}
+                      className="text-lg font-semibold tracking-tight text-[var(--theme-text)]"
+                    >
                       Продолжить миссию
                     </h2>
                   </div>
@@ -2998,6 +3084,7 @@ export function Conductor() {
                     onClick={() => setContinueModalOpen(false)}
                     className="inline-flex size-9 items-center justify-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card2)] text-lg text-[var(--theme-muted)] transition-colors hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent-strong)]"
                     aria-label="Закрыть окно продолжения миссии"
+                    autoFocus
                   >
                     ×
                   </button>
