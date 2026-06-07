@@ -124,6 +124,9 @@ export function CreateJobDialog({
     })
   }
 
+  const titleId = 'create-job-dialog-title'
+  const descriptionId = 'create-job-dialog-description'
+
   return (
     <AnimatePresence>
       {open ? (
@@ -150,6 +153,10 @@ export function CreateJobDialog({
             exit={{ opacity: 0, scale: 0.98, y: 10 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
             onSubmit={handleFormSubmit}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
             className="relative z-10 flex max-h-[85vh] w-[min(720px,96vw)] flex-col overflow-hidden rounded-2xl border shadow-2xl"
             style={{
               background: 'var(--theme-card)',
@@ -162,12 +169,16 @@ export function CreateJobDialog({
               style={{ borderColor: 'var(--theme-border)' }}
             >
               <div>
-                <h2 className="text-lg font-semibold">Создать задание</h2>
+                <h2 id={titleId} className="text-lg font-semibold">
+                  Создать задание
+                </h2>
                 <p
+                  id={descriptionId}
                   className="mt-1 text-sm"
                   style={{ color: 'var(--theme-muted)' }}
                 >
-                  Настройте задачу Hermes, которая будет запускаться по расписанию.
+                  Настройте задачу Hermes, которая будет запускаться по
+                  расписанию.
                 </p>
               </div>
               <button
@@ -183,8 +194,14 @@ export function CreateJobDialog({
 
             <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
               <section className="space-y-2">
-                <label className="text-sm font-medium">Профиль</label>
+                <label
+                  htmlFor="create-job-profile"
+                  className="text-sm font-medium"
+                >
+                  Профиль
+                </label>
                 <select
+                  id="create-job-profile"
                   value={form.profile}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -213,8 +230,14 @@ export function CreateJobDialog({
               </section>
 
               <section className="space-y-2">
-                <label className="text-sm font-medium">Название</label>
+                <label
+                  htmlFor="create-job-name"
+                  className="text-sm font-medium"
+                >
+                  Название
+                </label>
                 <input
+                  id="create-job-name"
                   value={form.name}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -257,7 +280,7 @@ export function CreateJobDialog({
                             schedule: preset.value,
                           }))
                         }
-                        className="rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                        className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                         style={{
                           background: isActive
                             ? 'var(--theme-accent)'
@@ -276,8 +299,14 @@ export function CreateJobDialog({
                   })}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Своё расписание</label>
+                  <label
+                    htmlFor="create-job-schedule"
+                    className="text-sm font-medium"
+                  >
+                    Своё расписание
+                  </label>
                   <input
+                    id="create-job-schedule"
                     value={form.schedule}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -304,8 +333,14 @@ export function CreateJobDialog({
               </section>
 
               <section className="space-y-2">
-                <label className="text-sm font-medium">Задача для агента</label>
+                <label
+                  htmlFor="create-job-prompt"
+                  className="text-sm font-medium"
+                >
+                  Задача для агента
+                </label>
                 <textarea
+                  id="create-job-prompt"
                   value={form.prompt}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -337,8 +372,14 @@ export function CreateJobDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Навыки</label>
+                  <label
+                    htmlFor="create-job-skills"
+                    className="text-sm font-medium"
+                  >
+                    Навыки
+                  </label>
                   <input
+                    id="create-job-skills"
                     value={form.skillsInput}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -362,8 +403,17 @@ export function CreateJobDialog({
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Куда отправить результат</label>
+                <div
+                  className="space-y-2"
+                  role="group"
+                  aria-labelledby="create-job-delivery-label"
+                >
+                  <p
+                    id="create-job-delivery-label"
+                    className="text-sm font-medium"
+                  >
+                    Куда отправить результат
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {DELIVERY_OPTIONS.map((option) => {
                       const isActive = form.deliver.includes(option)
@@ -379,7 +429,7 @@ export function CreateJobDialog({
                               ? `Нужен Hermes Agent gateway с настроенным ${option}`
                               : undefined
                           }
-                          className="rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors"
+                          className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium capitalize transition-colors"
                           style={{
                             background: isActive
                               ? 'var(--theme-accent)'
@@ -402,8 +452,17 @@ export function CreateJobDialog({
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Повтор</label>
+                <div
+                  className="space-y-2"
+                  role="group"
+                  aria-labelledby="create-job-repeat-label"
+                >
+                  <p
+                    id="create-job-repeat-label"
+                    className="text-sm font-medium"
+                  >
+                    Повтор
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -413,7 +472,7 @@ export function CreateJobDialog({
                           repeatMode: 'unlimited',
                         }))
                       }
-                      className="rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                      className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                       style={{
                         background:
                           form.repeatMode === 'unlimited'
@@ -439,7 +498,7 @@ export function CreateJobDialog({
                           repeatMode: 'limited',
                         }))
                       }
-                      className="rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
+                      className="min-h-8 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors"
                       style={{
                         background:
                           form.repeatMode === 'limited'
@@ -460,6 +519,7 @@ export function CreateJobDialog({
                   </div>
                   {form.repeatMode === 'limited' ? (
                     <input
+                      aria-label="Количество повторов"
                       type="number"
                       min={1}
                       step={1}

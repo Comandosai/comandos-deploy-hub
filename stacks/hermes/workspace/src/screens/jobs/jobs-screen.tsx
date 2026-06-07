@@ -172,9 +172,7 @@ function JobCard({
             {job.skills && job.skills.length > 0 && (
               <>
                 <span>·</span>
-                <span>
-                  {job.skills.length} навык(ов)
-                </span>
+                <span>{job.skills.length} навык(ов)</span>
               </>
             )}
           </div>
@@ -226,8 +224,12 @@ function JobCard({
           <button
             onClick={() => setExpanded((current) => !current)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover)]"
-            aria-label={expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'}
-            title={expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'}
+            aria-label={
+              expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'
+            }
+            title={
+              expanded ? 'Скрыть историю запусков' : 'Показать историю запусков'
+            }
           >
             <HugeiconsIcon
               icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
@@ -288,8 +290,7 @@ function JobCard({
                         <span className="truncate">{output.filename}</span>
                       </div>
                       <p className="text-xs leading-5 text-[var(--theme-text)]">
-                        {getOutputPreview(output.content) ||
-                          'Нет содержимого'}
+                        {getOutputPreview(output.content) || 'Нет содержимого'}
                       </p>
                     </div>
                   ))}
@@ -332,16 +333,18 @@ export function JobsScreen() {
   )
   const upsertCachedJob = useCallback(
     (job: ClaudeJob | null | undefined) => {
-      queryClient.setQueryData<Array<ClaudeJob> | undefined>(QUERY_KEY, (jobs) =>
-        upsertJobInList(jobs, job),
+      queryClient.setQueryData<Array<ClaudeJob> | undefined>(
+        QUERY_KEY,
+        (jobs) => upsertJobInList(jobs, job),
       )
     },
     [queryClient],
   )
   const removeCachedJob = useCallback(
     (jobId: string | null | undefined) => {
-      queryClient.setQueryData<Array<ClaudeJob> | undefined>(QUERY_KEY, (jobs) =>
-        removeJobFromList(jobs, jobId),
+      queryClient.setQueryData<Array<ClaudeJob> | undefined>(
+        QUERY_KEY,
+        (jobs) => removeJobFromList(jobs, jobId),
       )
     },
     [queryClient],
@@ -355,9 +358,14 @@ export function JobsScreen() {
       toast('Задание остановлено')
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось остановить задание', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось остановить задание',
+        {
+          type: 'error',
+        },
+      )
     },
   })
   const resumeMutation = useMutation({
@@ -368,9 +376,14 @@ export function JobsScreen() {
       toast('Задание возобновлено')
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось возобновить задание', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось возобновить задание',
+        {
+          type: 'error',
+        },
+      )
     },
   })
   const triggerMutation = useMutation({
@@ -387,9 +400,12 @@ export function JobsScreen() {
       toast('Запуск начат. Статус обновится через несколько секунд')
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось запустить задание', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error ? error.message : 'Не удалось запустить задание',
+        {
+          type: 'error',
+        },
+      )
     },
   })
   const deleteMutation = useMutation({
@@ -400,9 +416,12 @@ export function JobsScreen() {
       toast('Задание удалено')
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось удалить задание', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error ? error.message : 'Не удалось удалить задание',
+        {
+          type: 'error',
+        },
+      )
     },
   })
   const createMutation = useMutation({
@@ -414,9 +433,12 @@ export function JobsScreen() {
       setShowCreate(false)
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось создать задание', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error ? error.message : 'Не удалось создать задание',
+        {
+          type: 'error',
+        },
+      )
     },
   })
   const updateMutation = useMutation({
@@ -440,9 +462,12 @@ export function JobsScreen() {
       setEditingJob(null)
     },
     onError: (error) => {
-      toast(error instanceof Error ? error.message : 'Не удалось обновить задание', {
-        type: 'error',
-      })
+      toast(
+        error instanceof Error ? error.message : 'Не удалось обновить задание',
+        {
+          type: 'error',
+        },
+      )
     },
   })
 
@@ -529,6 +554,7 @@ export function JobsScreen() {
             />
             <input
               type="text"
+              aria-label="Поиск заданий"
               placeholder="Поиск заданий..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
