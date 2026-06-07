@@ -614,6 +614,20 @@ export function FileExplorerSidebar({
             <input
               value={promptValue}
               onChange={(event) => setPromptValue(event.target.value)}
+              aria-label={
+                promptState?.mode === 'rename'
+                  ? 'Новое имя файла или папки'
+                  : promptState?.mode === 'new-folder'
+                    ? 'Имя новой папки'
+                    : 'Имя нового файла'
+              }
+              placeholder={
+                promptState?.mode === 'rename'
+                  ? 'Новое имя'
+                  : promptState?.mode === 'new-folder'
+                    ? 'Имя папки'
+                    : 'Имя файла'
+              }
               className="w-full rounded-md border border-primary-200 bg-primary-50 px-3 py-2 text-sm text-primary-900 focus:outline-none focus:ring-2 focus:ring-primary-300"
               autoFocus
             />
@@ -630,7 +644,6 @@ export function FileExplorerSidebar({
         onClose={() => setPreviewPath(null)}
         onSaved={refresh}
       />
-
     </aside>
   )
 }
