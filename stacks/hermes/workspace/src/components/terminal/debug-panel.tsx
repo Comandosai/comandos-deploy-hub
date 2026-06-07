@@ -109,7 +109,8 @@ export function DebugPanel({
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 shrink-0 border border-primary-600 px-2 text-xs text-primary-200 hover:bg-primary-800 hover:text-primary-100"
+                              className="h-8 min-h-8 shrink-0 border border-primary-600 px-3 text-xs text-primary-200 hover:bg-primary-800 hover:text-primary-100"
+                              aria-label={`Запустить проверку: ${item.command}`}
                               onClick={function runCommand() {
                                 onRunCommand(item.command)
                               }}
