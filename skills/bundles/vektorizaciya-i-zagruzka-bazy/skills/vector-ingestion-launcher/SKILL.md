@@ -28,11 +28,16 @@ Do not use this launcher immediately after document preparation unless the user 
 - ask only for the missing access data;
 - if Supabase does not exist, ask for server access and deploy flow via `supabase-stack` from this repository;
 - if personal data is involved, require `RU server`.
-6. Run the local runner as an internal step on the local execution host.
-7. Send prepared docs to `commandos-api`.
-8. Receive `chunks + embeddings`.
-9. Write results to remote `Supabase`.
-10. After a successful run, ensure processed files leave `Base/prepared_docs` and appear in `Base/vectorized_docs`.
+6. Resolve the target DB schema before runner start:
+- default standalone schema: `public`;
+- if the launch context is `zapusk-otdela-prodazh-os`, set `SUPABASE_DB_SCHEMA=sales_department`;
+- do not mark the Sales OS knowledge base ready if data was written only to `public`.
+- if the target schema is not `public`, verify `knowledge_rag` and `products_live` already exist there before ingestion; do not let runner silently create `public` instead.
+7. Run the local runner as an internal step on the local execution host.
+8. Send prepared docs to `commandos-api`.
+9. Receive `chunks + embeddings`.
+10. Write results to remote `Supabase`.
+11. After a successful run, ensure processed files leave `Base/prepared_docs` and appear in `Base/vectorized_docs`.
 
 ## Execution rule
 
@@ -68,6 +73,7 @@ Always report:
 - how many chunks were received;
 - how many rows were written to `knowledge_rag`;
 - how many rows were written to `products_live`;
+- which Supabase schema was used;
 - how many files were moved to `Base/vectorized_docs`;
 - whether `Base/prepared_docs` was cleaned after the run;
 - whether any step failed.

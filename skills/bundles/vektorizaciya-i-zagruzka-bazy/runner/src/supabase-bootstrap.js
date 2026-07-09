@@ -2,17 +2,27 @@ import fs from "fs/promises";
 import path from "path";
 import { createPool } from "./db.js";
 
-async function tableExists(pool, tableName) {
+function getTargetSchema() {
+  const schema = process.env.SUPABASE_DB_SCHEMA || "public";
+
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema)) {
+    throw new Error(`Invalid SUPABASE_DB_SCHEMA: ${schema}`);
+  }
+
+  return schema;
+}
+
+async function tableExists(pool, schemaName, tableName) {
   const result = await pool.query(
     `
       SELECT EXISTS (
         SELECT 1
         FROM information_schema.tables
-        WHERE table_schema = 'public'
-          AND table_name = $1
+        WHERE table_schema = $1
+          AND table_name = $2
       ) AS exists
     `,
-    [tableName],
+    [schemaName, tableName],
   );
 
   return Boolean(result.rows[0]?.exists);
@@ -20,16 +30,23 @@ async function tableExists(pool, tableName) {
 
 export async function ensureBootstrapSchema(schemaFilePath, processedDir) {
   const pool = createPool();
+  const schema = getTargetSchema();
 
   try {
-    const hasKnowledgeRag = await tableExists(pool, "knowledge_rag");
-    const hasProductsLive = await tableExists(pool, "products_live");
+    const hasKnowledgeRag = await tableExists(pool, schema, "knowledge_rag");
+    const hasProductsLive = await tableExists(pool, schema, "products_live");
 
     if (hasKnowledgeRag && hasProductsLive) {
       return {
         applied: false,
-        reason: "schema_already_present",
+        reason: `schema_already_present:${schema}`,
       };
+    }
+
+    if (schema !== "public") {
+      throw new Error(
+        `Target schema "${schema}" is missing knowledge_rag/products_live. Apply the target project SQL before ingestion.`,
+      );
     }
 
     const sql = await fs.readFile(schemaFilePath, "utf8");

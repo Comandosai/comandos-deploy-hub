@@ -1,5 +1,23 @@
 import { createPool } from "./db.js";
 
+function getTargetSchema() {
+  const schema = process.env.SUPABASE_DB_SCHEMA || "public";
+
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema)) {
+    throw new Error(`Invalid SUPABASE_DB_SCHEMA: ${schema}`);
+  }
+
+  return schema;
+}
+
+function quoteIdentifier(identifier) {
+  return `"${identifier.replace(/"/g, '""')}"`;
+}
+
+function tableName(schema, table) {
+  return `${quoteIdentifier(schema)}.${quoteIdentifier(table)}`;
+}
+
 function buildChunkMetadata(chunk) {
   return {
     prepared_doc_id: chunk.prepared_doc_id,
@@ -22,6 +40,8 @@ function normalizeNullable(value) {
 
 async function replaceKnowledgeChunks(pool, chunks) {
   const client = await pool.connect();
+  const schema = getTargetSchema();
+  const knowledgeRag = tableName(schema, "knowledge_rag");
 
   try {
     await client.query("BEGIN");
@@ -31,7 +51,7 @@ async function replaceKnowledgeChunks(pool, chunks) {
     for (const preparedDocId of preparedDocIds) {
       await client.query(
         `
-          DELETE FROM public.knowledge_rag
+          DELETE FROM ${knowledgeRag}
           WHERE metadata->>'prepared_doc_id' = $1
         `,
         [preparedDocId],
@@ -41,7 +61,7 @@ async function replaceKnowledgeChunks(pool, chunks) {
     for (const chunk of chunks) {
       await client.query(
         `
-          INSERT INTO public.knowledge_rag (
+          INSERT INTO ${knowledgeRag} (
             tenant_id,
             content,
             embedding,
@@ -73,6 +93,8 @@ async function upsertProductsLive(pool, rows) {
   }
 
   const client = await pool.connect();
+  const schema = getTargetSchema();
+  const productsLive = tableName(schema, "products_live");
 
   try {
     await client.query("BEGIN");
@@ -80,7 +102,7 @@ async function upsertProductsLive(pool, rows) {
     for (const row of rows) {
       await client.query(
         `
-          INSERT INTO public.products_live (
+          INSERT INTO ${productsLive} (
             tenant_id,
             entity_id,
             entity_type,

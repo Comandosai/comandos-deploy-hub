@@ -46,6 +46,18 @@ cp .env.example .env
 npm start
 ```
 
+## Целевая схема Supabase
+
+По умолчанию runner пишет в `public`.
+
+Если нужно писать в другую схему, задай в `.env`:
+
+```bash
+SUPABASE_DB_SCHEMA=sales_department
+```
+
+Для `zapusk-otdela-prodazh-os` используй именно `sales_department`, чтобы база знаний и отдел продаж смотрели в одни и те же таблицы.
+
 ## Что еще нужно добавить дальше
 
 - incremental update через `content_hash`
