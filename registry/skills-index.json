@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-05-23",
+  "updated_at": "2026-08-06",
   "allowed_clients": [
     "codex",
     "claude",
@@ -99,6 +99,19 @@
         "vektorizaciya-i-zagruzka-bazy",
         "podklyuchenie-otdela-prodazh",
         "telegram-testirovanie-bota",
+        "sborka-brifa",
+        "prompt-kvalifikatora",
+        "prompt-konsultanta"
+      ],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "zapusk-otdela-prodazh-os",
+      "title": "Запуск отдела продаж ОС",
+      "type": "bundle",
+      "path": "skills/bundles/zapusk-otdela-prodazh-os",
+      "depends_on": [
+        "vektorizaciya-i-zagruzka-bazy",
         "sborka-brifa",
         "prompt-kvalifikatora",
         "prompt-konsultanta"

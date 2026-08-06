@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "status": "not_started",
+  "stage_zero": {
+    "agents_md_created": false,
+    "roadmap_created": false,
+    "state_created": true,
+    "project_notes_created": false,
+    "stopped_before_integrations": true
+  },
+  "launch_mode": null,
+  "hub": {
+    "url": null,
+    "license_key_mask": null,
+    "user_confirmed_access": false
+  },
+  "supabase": {
+    "required": true,
+    "deployment_mode": null,
+    "discovery_source": null,
+    "internal_connection_available": false,
+    "external_connection_required": true,
+    "external_connection_verified": false,
+    "cabinet_connection_verified": false,
+    "connection_strategy": null,
+    "blocking_reason": null,
+    "can_start_knowledge_base": false,
+    "connected": false,
+    "schema": "sales_department",
+    "schema_applied": false,
+    "verified_tables": [],
+    "last_check": null
+  },
+  "knowledge_base": {
+    "has_sources": null,
+    "prepared": false,
+    "loaded": false,
+    "notes": []
+  },
+  "research": {
+    "internet_available": null,
+    "audience_research_ready": false,
+    "path": null,
+    "sources_checked": [],
+    "owner_hypothesis_confirmed": false,
+    "owner_corrections": [],
+    "limitations": []
+  },
+  "telegram": {
+    "required": true,
+    "connected": false,
+    "bot_username": null,
+    "user_session_path": null,
+    "user_session_ready": false,
+    "smoke_scenario_path": null,
+    "smoke_report_path": null,
+    "smoke_test_passed": false
+  },
+  "brief": {
+    "ready": false,
+    "path": null
+  },
+  "field_plan": {
+    "ready": false,
+    "path": null,
+    "sales_model": null,
+    "recommendation_strategy": null,
+    "owner_confirmed": false,
+    "qualification_gate": {
+      "owner_confirmed": false,
+      "required_for_consultation": [],
+      "optional_enrichment": [],
+      "payload_sources_allowed": [],
+      "status_rule": "consultation is blocked while required facts are missing"
+    },
+    "pain_to_solution_chain": {
+      "owner_confirmed": false,
+      "pain_facts": [],
+      "process_facts": [],
+      "consequence_facts": [],
+      "solution_rule": "recommendations must explain the solution through the confirmed pain and current process"
+    },
+    "required_facts": [],
+    "optional_facts": []
+  },
+  "prompts": {
+    "default_dialog_style": "short_manager_like",
+    "default_dialog_style_confirmed": false,
+    "qualifier_ready": false,
+    "qualifier_path": null,
+    "consultant_ready": false,
+    "consultant_path": null,
+    "crm_operator_ready": false,
+    "crm_operator_path": null
+  },
+  "amocrm": {
+    "required": null,
+    "connected": false,
+    "account_name": null,
+    "snapshot_ready": false,
+    "field_gap_ready": false,
+    "resnapshot_after_fields_ready": false,
+    "mapping_ready": false,
+    "snapshot_path": null,
+    "field_gap_path": null,
+    "resnapshot_path": null,
+    "mapping_path": null
+  },
+  "final_smoke": {
+    "telegram_passed": false,
+    "crm_passed": false,
+    "notes": []
+  },
+  "next_step": "Уточнить режим запуска.",
+  "updated_at": null
+}

@@ -6,12 +6,18 @@
 
 - лежат в `skills/bundles/`
 - `polnyy-zapusk-otdela-prodazh` — полный запуск отдела продаж (ставится вместе с зависимостями).
+- `zapusk-otdela-prodazh-os` — запуск hosted-отдела продаж в COMANDOS ОС без старого n8n-сценария; поиск/создание Telegram-сессии и живой тест уже встроены в пакет.
 - `vektorizaciya-i-zagruzka-bazy` — подготовка и загрузка базы знаний.
 - `podklyuchenie-otdela-prodazh` — подключение отдела продаж.
 
 Команда для полного набора:
 ```bash
 curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install polnyy-zapusk-otdela-prodazh --client codex
+```
+
+Команда для нового запуска через COMANDOS ОС:
+```bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install zapusk-otdela-prodazh-os --client codex
 ```
 
 ## Отдельные навыки

@@ -1,0 +1,18 @@
+{
+  "source": "amocrm_mcp",
+  "license_key_mask": null,
+  "account": {
+    "id": null,
+    "name": null
+  },
+  "pipelines": [],
+  "statuses": [],
+  "deal_fields": [],
+  "contact_fields": [],
+  "company_fields": [],
+  "users": [],
+  "task_types": [],
+  "required_fields": [],
+  "enum_values": [],
+  "captured_at": null
+}

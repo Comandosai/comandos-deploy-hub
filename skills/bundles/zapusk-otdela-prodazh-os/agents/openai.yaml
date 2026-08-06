@@ -1,0 +1,6 @@
+interface:
+  display_name: "Запуск отдела продаж ОС"
+  short_description: "Запуск отдела продаж с исследованием, живой квалификацией, qualification gate, prompts и CRM mapping"
+  default_prompt: "Use $zapusk-otdela-prodazh-os to launch a client's COMANDOS sales department: prepare sources, research audience, confirm the business hypothesis, recommendation strategy, pain-driven qualification flow and qualification gate with the owner, build prompts, then map CRM fields and pipeline rules."
+policy:
+  allow_implicit_invocation: true
