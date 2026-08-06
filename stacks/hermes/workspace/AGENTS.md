@@ -23,3 +23,16 @@ This workspace uses semantic Hermes swarm workers, not numbered-only lanes. The 
 - Prefer GBrain-first lookup for context-sensitive RAZSOC/Hermes/workflow decisions.
 - Builder implements; Reviewer gates; QA verifies behavior; Orchestrator routes and enforces greenlight.
 - Do not enable optional Hermes plugins globally unless the task explicitly needs them; record plugin/toolset alignment in `swarm.yaml` first.
+
+
+<!-- context-isolation:start -->
+## Граница контекста
+
+Контур этого проекта: `COMANDOS`.
+
+Перед работой читай только карточку COMANDOS, карточку текущего продукта, ближайшие `README.md` и `AGENTS.md`. Очередь решений открывай только для COMANDOS и только если задача ждёт решения владельца или создаёт настоящий блокер.
+
+Не читай, не передавай и не упоминай данные, карточки, блокеры или отчёты InLogic и Work. Исключение — только прямая команда владельца с явно названными контурами и минимально нужными данными.
+
+Если создаётся новый самостоятельный проект или сервис, сначала создай или выбери его карточку под COMANDOS, затем зарегистрируй ближайший `AGENTS.md` и пройди канонический старт проекта.
+<!-- context-isolation:end -->
