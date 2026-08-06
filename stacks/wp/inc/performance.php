@@ -41,8 +41,8 @@ add_action('wp_head', function() {
     }
 
     if ($lcp_img_id) {
-        $img_src = wp_get_attachment_image_url($lcp_img_id, 'full');
-        $img_srcset = wp_get_attachment_image_srcset($lcp_img_id, 'full');
+        $img_src = wp_get_attachment_image_url($lcp_img_id, 'comandos-hero');
+        $img_srcset = wp_get_attachment_image_srcset($lcp_img_id, 'comandos-hero');
 
         if ($img_src) {
             $uploads_dir = wp_get_upload_dir();
@@ -71,7 +71,7 @@ add_action('wp_head', function() {
             }
             // Smart sizes for LCP
             if ($is_singular_lcp) {
-                $manual_sizes = '(max-width: 480px) 100vw, (max-width: 1024px) 100vw, 1024px';
+                $manual_sizes = '(max-width: 767px) calc(100vw - 48px), 800px';
             } else {
                 // Grid item sizes
                 $manual_sizes = '(max-width: 767px) 100vw, (max-width: 1024px) 50vw, 400px';

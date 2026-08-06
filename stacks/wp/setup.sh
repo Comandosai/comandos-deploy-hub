@@ -373,6 +373,7 @@ docker exec comandos-wp bash -c 'cat <<EOF > .htaccess
   ExpiresByType image/gif "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
   ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/avif "access plus 1 year"
   ExpiresByType image/x-icon "access plus 1 year"
   ExpiresByType text/css "access plus 1 year"
   ExpiresByType application/javascript "access plus 1 year"
@@ -381,7 +382,7 @@ docker exec comandos-wp bash -c 'cat <<EOF > .htaccess
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|woff2)$">
+  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|avif|js|css|swf|woff2)$">
     Header set Cache-Control "max-age=31536000, public, immutable"
   </FilesMatch>
 </IfModule>

@@ -13,13 +13,13 @@ get_header();
       
       <?php if (has_post_thumbnail()) : ?>
         <div class="post-hero">
-          <?php the_post_thumbnail('full', [
+          <?php the_post_thumbnail('comandos-hero', [
               'class' => 'single-thumb',
               'loading' => 'eager', 
               'fetchpriority' => 'high', 
               'decoding' => 'async',
-              'sizes' => '(max-width: 480px) 100vw, (max-width: 767px) 100vw, 800px',
-              'alt' => get_the_title()
+              'sizes' => '(max-width: 767px) calc(100vw - 48px), 800px',
+              'alt' => comandos_cover_alt(get_the_ID())
           ]); ?>
         </div>
       <?php endif; ?>
@@ -38,17 +38,7 @@ get_header();
             <?php foreach ($related_posts as $post) : setup_postdata($post); ?>
               <a href="<?php the_permalink(); ?>" class="related-item">
                 <div class="related-thumb-wrapper">
-                  <?php if (has_post_thumbnail()) : ?>
-                    <?php the_post_thumbnail('comandos-thumb', [
-                      'class' => 'related-thumb', 
-                      'style' => 'width: 100%; height: 100%; object-fit: cover;',
-                      'width' => '500',
-                      'height' => '281',
-                      'alt' => get_the_title()
-                    ]); ?>
-                  <?php else : ?>
-                    <div class="related-thumb-placeholder" style="width: 100%; height: 100%; background: #e2e8f0;"></div>
-                  <?php endif; ?>
+                  <?php comandos_render_related_post_thumb($post); ?>
                 </div>
                 <h4 class="related-item-title" style="font-size: 1rem; font-weight: 700; line-height: 1.4; color: #1e293b; margin: 0;"><?php the_title(); ?></h4>
               </a>

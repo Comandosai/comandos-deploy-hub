@@ -120,7 +120,7 @@ add_filter('get_avatar', function($avatar, $id_or_email, $size, $default, $alt, 
         $avatar = str_replace('<img ', '<img width="80" height="80" decoding="async" loading="lazy" class="avatar avatar-80" ', $avatar);
     }
     if (strpos($avatar, 'alt=""') !== false || strpos($avatar, 'alt=\'\'') !== false) {
-        $avatar = str_replace(['alt=""', "alt=''"], 'alt="Артем Лахтин"', $avatar);
+        $avatar = str_replace(['alt=""', "alt=''"], 'alt=""', $avatar);
     }
     return $avatar;
 }, 10, 6);
@@ -254,7 +254,7 @@ function comandos_apply_modern_format_replacement($html) {
         $is_hero = strpos($img, 'single-thumb') !== false;
         
         if ($is_hero) {
-            $img = preg_replace('/sizes="auto"/i', 'sizes="(max-width: 800px) 100vw, 800px"', $img);
+            $img = preg_replace('/sizes="auto"/i', 'sizes="(max-width: 767px) calc(100vw - 48px), 800px"', $img);
             $img = preg_replace('/loading="lazy"/i', 'loading="eager"', $img);
             
             // Critical: Add fetchpriority if missing for hero
@@ -290,7 +290,11 @@ add_filter('the_content', function ($content) {
         $img = $m[1];
         if (strpos($img, 'class=') === false) { $img = str_replace('<img ', '<img class="avatar" ', $img); }
         elseif (strpos($img, 'class="') !== false && strpos($img, 'avatar') === false) { $img = str_replace('class="', 'class="avatar ', $img); }
-        if (strpos($img, 'alt=') === false || strpos($img, 'alt=""') !== false) { $img = str_replace('<img ', '<img alt="Артем Лахтин - AI эксперт" ', $img); }
+        if (strpos($img, 'alt=') === false) {
+            $img = str_replace('<img ', '<img alt="" ', $img);
+        } else {
+            $img = preg_replace('/alt=(["\'])\s*\1/i', 'alt=""', $img);
+        }
         return '<span class="author-avatar-wrapper">' . $img . '</span>';
     }, $content);
     return $content;
