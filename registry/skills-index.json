@@ -66,6 +66,22 @@
       "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
     },
     {
+      "id": "cyberseo-deploy",
+      "title": "Развёртывание CyberSEO",
+      "type": "unit",
+      "path": "skills/units/cyberseo-deploy",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "cyberseo-topic-research",
+      "title": "Поиск и импорт тем CyberSEO",
+      "type": "unit",
+      "path": "skills/units/cyberseo-topic-research",
+      "depends_on": [],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
       "id": "sborka-brifa",
       "title": "Сборка брифа",
       "type": "unit",
@@ -115,6 +131,17 @@
         "sborka-brifa",
         "prompt-kvalifikatora",
         "prompt-konsultanta"
+      ],
+      "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
+    },
+    {
+      "id": "cyberseo-full",
+      "title": "Полный запуск CyberSEO",
+      "type": "bundle",
+      "path": "skills/bundles/cyberseo-full",
+      "depends_on": [
+        "cyberseo-deploy",
+        "cyberseo-topic-research"
       ],
       "clients": ["codex", "claude", "gemini", "antigravity", "terminal"]
     }

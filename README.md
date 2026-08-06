@@ -31,6 +31,12 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 Подробный список: [SKILLS.md](SKILLS.md)
 Правила для агента: [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md)
 
+Полный пакет CyberSEO ставится из `main` командой:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/tools/skills.sh | bash -s -- install cyberseo-full --client codex
+```
+
 ## Быстрый старт для Telegram-парсера
 
 Чтобы скачать учебную заготовку, установить зависимости и сразу пройти вход в Telegram:

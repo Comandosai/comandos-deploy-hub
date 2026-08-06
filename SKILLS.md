@@ -9,6 +9,7 @@
 - `zapusk-otdela-prodazh-os` — запуск hosted-отдела продаж в COMANDOS ОС без старого n8n-сценария; поиск/создание Telegram-сессии и живой тест уже встроены в пакет.
 - `vektorizaciya-i-zagruzka-bazy` — подготовка и загрузка базы знаний.
 - `podklyuchenie-otdela-prodazh` — подключение отдела продаж.
+- `cyberseo-full` — полный пошаговый запуск CyberSEO и связанного WordPress.
 
 Команда для полного набора:
 ```bash
@@ -26,6 +27,8 @@ curl -sSL https://raw.githubusercontent.com/Comandosai/comandos-deploy-hub/main/
 - `razvertyvanie-i-obnovlenie-n8n` — развёртывание и обновление n8n.
 - `razvertyvanie-comandos-hermes` — развёртывание COMANDOS Hermes с фирменной панелью на VPS.
 - `obnovlenie-cyberseo-workflow` — обновление CyberSEO workflow в существующем n8n клиента.
+- `cyberseo-deploy` — развёртывание CyberSEO по проектному конфигу.
+- `cyberseo-topic-research` — поиск, кластеризация и импорт тем CyberSEO.
 - `telegram-testirovanie-bota` — живое тестирование Telegram-бота.
 - `sborka-brifa` — сборка брифа.
 - `prompt-kvalifikatora` — сборка промпта квалификатора.

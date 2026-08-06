@@ -1,0 +1,29 @@
+{
+  "bundle_id": "cyberseo-deploy",
+  "bundle_name": "Развёртывание CyberSEO",
+  "version": "0.1.0",
+  "clients": ["antigravity", "claude", "codex", "gemini", "terminal"],
+  "required_inputs": [
+    "license_key",
+    "ssh_host",
+    "dashboard_domain"
+  ],
+  "optional_inputs": [
+    "wordpress_domain",
+    "language",
+    "kie_api_key",
+    "perplexity_api_key",
+    "telegram_bot_token",
+    "telegram_chat_id",
+    "writer_style_prompt",
+    "image_style_prompt",
+    "reference_image_path"
+  ],
+  "modules": [
+    "config-read-or-create",
+    "license-artifact-download",
+    "server-install-or-update",
+    "settings-import",
+    "post-check"
+  ]
+}
