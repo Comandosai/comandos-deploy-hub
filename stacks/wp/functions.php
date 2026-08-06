@@ -37,7 +37,8 @@ add_action('init', function() {
     $meta_fields = [
         '_yoast_wpseo_title',
         '_yoast_wpseo_metadesc',
-        '_yoast_wpseo_focuskw'
+        '_yoast_wpseo_focuskw',
+        'cyberseo_language'
     ];
 
     foreach ($meta_fields as $field) {
