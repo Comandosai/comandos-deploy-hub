@@ -50,6 +50,8 @@ class Settings:
     output_dir: Path
     history_limit: int
     download_media: bool
+    extract_markdown: bool
+    markdown_output_dir: Path
     deepseek_api_key: str
     deepseek_model: str
     telegram_bot_token: str
@@ -81,15 +83,20 @@ def load_settings() -> Settings:
     if api_id <= 0 or not api_hash:
         raise RuntimeError("Заполните TELEGRAM_API_ID и TELEGRAM_API_HASH в .env")
 
+    output_dir = _path("OUTPUT_DIR", "data")
+    markdown_output_dir = _path("MARKDOWN_OUTPUT_DIR", str(output_dir / "analysis" / "markitdown"))
+
     return Settings(
         api_id=api_id,
         api_hash=api_hash,
         session_name=os.getenv("TELEGRAM_SESSION_NAME", DEFAULT_SESSION_NAME).strip() or DEFAULT_SESSION_NAME,
         sessions_dir=_path("SESSIONS_DIR", "sessions"),
         sources_file=_path("SOURCES_FILE", "sources.txt"),
-        output_dir=_path("OUTPUT_DIR", "data"),
+        output_dir=output_dir,
         history_limit=_int("HISTORY_LIMIT", 500),
         download_media=_bool("DOWNLOAD_MEDIA", False),
+        extract_markdown=_bool("EXTRACT_MARKDOWN", False),
+        markdown_output_dir=markdown_output_dir,
         deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", "").strip(),
         deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat",
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", "").strip(),

@@ -26,6 +26,11 @@ CSV_FIELDS = [
     "forwards",
     "reply_to_message_id",
     "local_media_path",
+    "markdown_path",
+    "markdown_status",
+    "markdown_parser",
+    "markdown_error",
+    "markdown_chars",
 ]
 
 
@@ -105,6 +110,7 @@ def serialize_message(
     chat: Any,
     sender: Any = None,
     local_media_path: str = "",
+    markdown_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     chat_id = chat_marked_id(message, chat)
     sender_id = getattr(message, "sender_id", None) or getattr(sender, "id", None)
@@ -113,6 +119,7 @@ def serialize_message(
     text = getattr(message, "message", None) or getattr(message, "raw_text", "") or ""
     source_keywords = getattr(source, "keywords", ()) if not isinstance(source, str) else ()
     source_label = source.label if not isinstance(source, str) and hasattr(source, "label") else str(source)
+    markdown_result = markdown_result or {}
 
     return {
         "source": source_label,
@@ -133,6 +140,11 @@ def serialize_message(
         "forwards": getattr(message, "forwards", None),
         "reply_to_message_id": getattr(message, "reply_to_msg_id", None),
         "local_media_path": local_media_path,
+        "markdown_path": markdown_result.get("markdown_path", ""),
+        "markdown_status": markdown_result.get("status", ""),
+        "markdown_parser": markdown_result.get("parser_used", ""),
+        "markdown_error": markdown_result.get("error", ""),
+        "markdown_chars": markdown_result.get("chars", ""),
     }
 
 

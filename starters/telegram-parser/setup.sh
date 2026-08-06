@@ -16,7 +16,7 @@ fi
 
 mkdir -p sessions data logs
 
-echo "Готово. Telegram API уже задан в конфиге проекта."
+echo "Готово. Заполните TELEGRAM_API_ID и TELEGRAM_API_HASH в локальном .env."
 echo "Дальше запустите:"
 echo "source .venv/bin/activate"
 echo "python scripts/auth.py"

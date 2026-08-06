@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from tg_parser.client import make_client
 from tg_parser.config import load_settings, load_sources, parse_chat_identifier
+from tg_parser.document_markdown import append_markdown_manifest, convert_file_to_markdown
 from tg_parser.serialize import CSV_FIELDS, append_jsonl, message_matches, serialize_message
 
 
@@ -69,6 +70,7 @@ async def async_main() -> None:
                         continue
 
                     local_media_path = ""
+                    markdown_result = None
                     if settings.download_media and getattr(message, "media", None):
                         media_dir.mkdir(parents=True, exist_ok=True)
                         downloaded = await client.download_media(
@@ -76,6 +78,12 @@ async def async_main() -> None:
                             file=str(media_dir / f"{chat_id}_{message.id}_"),
                         )
                         local_media_path = downloaded or ""
+                        if settings.extract_markdown and local_media_path:
+                            markdown_result = convert_file_to_markdown(
+                                Path(local_media_path),
+                                settings.markdown_output_dir,
+                            )
+                            append_markdown_manifest(settings.markdown_output_dir, markdown_result)
 
                     sender = await message.get_sender()
                     row = serialize_message(
@@ -84,6 +92,7 @@ async def async_main() -> None:
                         chat=chat,
                         sender=sender,
                         local_media_path=local_media_path,
+                        markdown_result=markdown_result,
                     )
                     append_jsonl(jsonl_path, row)
                     writer.writerow({field: row.get(field, "") for field in CSV_FIELDS})

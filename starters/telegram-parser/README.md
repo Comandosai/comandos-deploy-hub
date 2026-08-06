@@ -4,14 +4,26 @@
 
 Это не готовый продукт под одну задачу. Это заготовка, которую агент помогает быстро переделать под вашу цель: новости, конкуренты, закрытые группы, база людей, комментарии, медиа, отчёты.
 
+## GitHub / push
+
+- Публичная версия: `Comandosai/comandos-deploy-hub`, папка `starters/telegram-parser`.
+- Основная ветка: `main`.
+- Реальные `.env`, `sessions/`, `data/`, `logs/` и `sources.txt` в GitHub не попадают.
+
+## Таблицы БД
+
+- БД: не используется по умолчанию.
+- Парсер пишет локальные файлы в `data/`.
+- Если добавляется запись в Postgres, таблицы нужно сначала описать в этом README.
+
 ## Что внутри
 
 - `setup.sh` — установка зависимостей.
-- `src/tg_parser/defaults.py` — встроенный `api_id/api_hash` Telegram.
 - `scripts/auth.py` — авторизация Telegram-сессии через Telethon.
 - `scripts/list_sources.py` — список чатов, каналов и групп, доступных аккаунту.
 - `scripts/collect_history.py` — сбор истории сообщений.
 - `scripts/watch_live.py` — постоянный сбор новых сообщений.
+- `scripts/extract_markdown.py` — извлечение текста из документов в Markdown через MarkItDown.
 - `scripts/analyze_deepseek.py` — выжимка по собранным сообщениям через DeepSeek.
 - `scripts/check_bot.py` — проверка Telegram-бота для уведомлений.
 - `START_PROMPT.md` — стартовый промпт для агента.
@@ -57,14 +69,14 @@ cd telegram-parser-starter
 bash setup.sh
 ```
 
-Обычно `.env` трогать не нужно: Telegram `api_id/api_hash` уже лежат в конфиге проекта.
-
-Если надо заменить их на свои, раскомментируйте в `.env`:
+Получите Telegram API ID и API Hash в `my.telegram.org` и заполните локальный `.env`:
 
 ```bash
 TELEGRAM_API_ID=...
 TELEGRAM_API_HASH=...
 ```
+
+Не публикуйте эти значения и не переносите `.env` в Git.
 
 Авторизуйтесь:
 
@@ -107,6 +119,24 @@ python scripts/collect_history.py --limit 500 --append
 
 - `data/messages.jsonl`
 - `data/messages.csv`
+
+Если нужно забирать документы и сразу получать Markdown-слой для анализа, включите в `.env`:
+
+```bash
+DOWNLOAD_MEDIA=true
+EXTRACT_MARKDOWN=true
+MARKDOWN_OUTPUT_DIR=data/analysis/markitdown
+```
+
+После этого у сообщений с документами появятся поля `markdown_path`, `markdown_status`, `markdown_parser`, `markdown_error`, `markdown_chars`.
+
+Для уже скачанных файлов можно запустить конвертацию отдельно:
+
+```bash
+python scripts/extract_markdown.py --input data/media
+```
+
+Markdown-файлы и отчёт появятся в `data/analysis/markitdown`.
 
 Если есть ключ DeepSeek, сделайте выжимку:
 
